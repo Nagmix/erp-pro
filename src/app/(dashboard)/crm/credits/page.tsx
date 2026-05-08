@@ -46,6 +46,10 @@ import {
   Undo2,
   Eye,
   Trash2,
+  Mail,
+  Clock,
+  AlertTriangle,
+  Download,
 } from 'lucide-react';
 import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ErpLinkCombobox as AccCombobox } from '@/components/erp/erp-link-combobox';
@@ -53,6 +57,7 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
+import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -77,6 +82,17 @@ interface CreditRow {
   currency?: string;
   docstatus: number;
   remarks?: string;
+}
+
+interface OutstandingRow {
+  name: string;
+  customer?: string;
+  customer_name?: string;
+  outstanding_amount?: number;
+  due_date?: string;
+  posting_date?: string;
+  currency?: string;
+  docstatus?: number;
 }
 
 // ============================================================
@@ -141,7 +157,16 @@ export default function CreditsPage() {
   const submitMut = useSubmitDoc<CreditRow>('Payment Entry');
   const cancelMut = useCancelDoc<CreditRow>('Payment Entry');
 
+  // جلب بيانات الفواتير المستحقة لحساب الرصيد المستحق والتقادم
+  const outstandingList = useDocList<OutstandingRow>('Sales Invoice', {
+    fields: ['name', 'customer', 'customer_name', 'outstanding_amount', 'due_date', 'posting_date', 'currency', 'docstatus'],
+    filters: [['outstanding_amount', '>', '0'], ['docstatus', '=', '1']],
+    limit: 1000,
+    order_by: 'due_date asc',
+  });
+
   const entries = list.data || [];
+  const outstandingInvoices = outstandingList.data || [];
 
   // ── Filtered Data ──
   const filteredData = useMemo(() => {
@@ -182,6 +207,41 @@ export default function CreditsPage() {
   );
 
   const totalTransactions = entries.length;
+
+  // إجمالي المبلغ المستحق من فواتير المبيعات
+  const totalOutstanding = useMemo(
+    () =>
+      outstandingInvoices.reduce(
+        (sum, inv) => sum + Number(inv.outstanding_amount || 0),
+        0
+      ),
+    [outstandingInvoices]
+  );
+
+  // حساب تقادم المستحقات (aging)
+  const aging = useMemo(() => {
+    const now = new Date();
+    const buckets = { current: 0, days30: 0, days60: 0, days90: 0, over90: 0 };
+    for (const inv of outstandingInvoices) {
+      const dueDate = inv.due_date ? new Date(inv.due_date) : null;
+      const amount = Number(inv.outstanding_amount || 0);
+      if (!dueDate || amount <= 0) continue;
+      const diffMs = now.getTime() - dueDate.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays <= 0) {
+        buckets.current += amount;
+      } else if (diffDays <= 30) {
+        buckets.days30 += amount;
+      } else if (diffDays <= 60) {
+        buckets.days60 += amount;
+      } else if (diffDays <= 90) {
+        buckets.days90 += amount;
+      } else {
+        buckets.over90 += amount;
+      }
+    }
+    return buckets;
+  }, [outstandingInvoices]);
 
   const netBalance = totalCredits - totalSpent;
 
@@ -498,22 +558,35 @@ export default function CreditsPage() {
           { label: 'الأرصدة' },
         ]}
         actions={
-          <Button
-            size="sm"
-            className="gap-1.5"
-            onClick={() => {
-              resetForm();
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            عملية جديدة
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => {
+                toast.info('سيتم إرسال كشف حساب للعميل عبر البريد الإلكتروني');
+              }}
+            >
+              <Mail className="h-3.5 w-3.5" />
+              إرسال كشف حساب
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1.5"
+              onClick={() => {
+                resetForm();
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              عملية جديدة
+            </Button>
+          </div>
         }
       />
 
       {/* شريط مؤشرات الأداء */}
-      <KpiStrip cols={4}>
+      <KpiStrip cols={5}>
         <KpiCard
           title="إجمالي الأرصدة المشحونة"
           value={formatCurrency(totalCredits)}
@@ -536,6 +609,13 @@ export default function CreditsPage() {
           description="الفرق بين الاستلام والصرف"
         />
         <KpiCard
+          title="إجمالي المستحقات"
+          value={formatCurrency(totalOutstanding)}
+          icon={AlertTriangle}
+          accent={totalOutstanding > 0 ? 'warning' : 'success'}
+          description="فواتير مبيعات غير مسددة"
+        />
+        <KpiCard
           title="عدد العمليات"
           value={totalTransactions}
           icon={Receipt}
@@ -543,6 +623,51 @@ export default function CreditsPage() {
           description="جميع قيود العملاء"
         />
       </KpiStrip>
+
+      {/* ملخص تقادم المستحقات */}
+      {totalOutstanding > 0 && (
+        <Card className="border-border/40">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="h-4 w-4 text-warning" />
+              <h3 className="text-sm font-semibold text-foreground">ملخص تقادم المستحقات</h3>
+              <span className="text-[10px] text-muted-foreground">— تصنيف المبالغ غير المسددة حسب الأيام المتأخرة</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <AgingBucket
+                label="حالي (غير مستحق)"
+                amount={aging.current}
+                color="bg-success/10 text-success border-success/20"
+                barColor="bg-success"
+              />
+              <AgingBucket
+                label="1-30 يوم"
+                amount={aging.days30}
+                color="bg-primary/10 text-primary border-primary/20"
+                barColor="bg-primary"
+              />
+              <AgingBucket
+                label="31-60 يوم"
+                amount={aging.days60}
+                color="bg-warning/10 text-warning border-warning/20"
+                barColor="bg-warning"
+              />
+              <AgingBucket
+                label="61-90 يوم"
+                amount={aging.days90}
+                color="bg-amber-500/10 text-amber-600 border-amber-500/20"
+                barColor="bg-amber-500"
+              />
+              <AgingBucket
+                label="أكثر من 90 يوم"
+                amount={aging.over90}
+                color="bg-destructive/10 text-destructive border-destructive/20"
+                barColor="bg-destructive"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <ListQueryAlert
         error={list.isError ? list.error : null}
@@ -899,6 +1024,34 @@ export default function CreditsPage() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+/* ─── Aging Bucket Sub-Component ─── */
+function AgingBucket({
+  label,
+  amount,
+  color,
+  barColor,
+}: {
+  label: string;
+  amount: number;
+  color: string;
+  barColor: string;
+}) {
+  const maxAmount = Math.max(amount, 1);
+  const barWidth = Math.min((amount / maxAmount) * 100, 100);
+  return (
+    <div className={cn('rounded-lg border p-3 space-y-2', color)}>
+      <p className="text-[10px] font-medium opacity-80">{label}</p>
+      <p className="text-sm font-bold tabular-nums" dir="ltr">{formatCurrency(amount)}</p>
+      <div className="h-1.5 rounded-full bg-muted/30 overflow-hidden">
+        <div
+          className={cn('h-full rounded-full transition-all duration-500', barColor)}
+          style={{ width: `${amount > 0 ? Math.max(barWidth, 5) : 0}%` }}
+        />
+      </div>
     </div>
   );
 }
