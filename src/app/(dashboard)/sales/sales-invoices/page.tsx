@@ -72,8 +72,8 @@ export default function SalesInvoicesPage() {
     let list = invoices;
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      list = list.filter((row: any) =>
-        ['name', 'customer_name'].some(key => String(row.docstatus ?? '').toLowerCase().includes(q))
+      list = list.filter((row) =>
+        ['name', 'customer_name'].some(key => String((row as any)[key] ?? '').toLowerCase().includes(q))
       );
     }
     if (dateFrom || dateTo) {
@@ -84,9 +84,10 @@ export default function SalesInvoicesPage() {
     }
     
     if (invoiceStatusFilter !== 'all') {
-      list = list.filter((row: any) => String(row.docstatus ?? '') === invoiceStatusFilter);
-    }return list;
-  }, [invoices, dateFrom, dateTo, statusFilter]);  const columns: Column<InvoiceRow>[] = useMemo(
+      list = list.filter((row) => row.status === invoiceStatusFilter);
+    }
+    return list;
+  }, [invoices, dateFrom, dateTo, statusFilter, search, invoiceStatusFilter]);  const columns: Column<InvoiceRow>[] = useMemo(
     () => [
       {
         key: 'name',
