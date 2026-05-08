@@ -613,3 +613,174 @@ None critical. The POS page has all its components in `src/components/pos/` (17 
 4. **MEDIUM**: Standardize toast system to one approach
 5. **LOW**: Enhance stock-levels page
 6. **LOW**: Enhance bank-disbursement, portal, credits pages
+
+---
+
+## Task 6: Improve and Complete Sales Module Pages
+
+- **Date**: 2025-03-06
+- **Status**: ✅ Completed
+- **Agent**: sales-module-improver
+- **Scope**: 5 sales pages enhanced with missing features
+
+### Summary
+
+Improved 5 sales module pages by adding missing features: KPI summaries, CRUD capabilities, standardized toast system, enhanced columns, filters, and ERPNext API integration.
+
+### Changes Made
+
+#### 1. Customer Groups Page (`src/app/(dashboard)/sales/customer-groups/page.tsx`)
+**203 → ~320 lines**
+- **Added** KPI strip (total groups, root groups, total customers)
+- **Added** `ErpLinkCombobox` for parent customer group (was plain `<Input>`)
+- **Added** `useUpdateDoc` + edit dialog for updating groups
+- **Added** customer count per group column (fetches Customer data)
+- **Added** collapsible filter section (root/sub group filter)
+- **Added** FolderTree/Folder icons for group type visualization
+- **Added** item count in delete confirmation dialog
+- **Preserved** all existing CRUD (create, delete) functionality
+
+#### 2. Coupon Codes Page (`src/app/(dashboard)/sales/coupon-codes/page.tsx`)
+**544 → ~560 lines**
+- **Standardized** toast from `sonner` to `useToast` (consistent with other pages)
+- **Added** submit/cancel actions for Coupon Code (useSubmitDoc, useCancelDoc)
+- **Added** 4th KPI card (draft coupons count)
+- **Changed** KpiStrip from 3 to 4 columns
+- **Preserved** all existing functionality (create, delete, filters)
+
+#### 3. Integrations Page (`src/app/(dashboard)/sales/integrations/page.tsx`)
+**285 → ~420 lines**
+- **Added** KPI strip (4 cards: payment templates, active subscriptions, sales persons, shipping rules)
+- **Added** refresh button in PageHeader actions
+- **Added** create dialogs for Payment Terms Template and Shipping Rule
+- **Enhanced** table columns:
+  - Subscription: added start_date, end_date columns + status color badges
+  - Subscription Plan: added billing_interval column
+  - Shipping Rule: added shipping_rule_type, modified columns
+  - Sales Person: added commission_rate column
+  - Sales Team: added modified column
+  - Loyalty Program: added loyalty_program_type, auto_opt_in columns
+- **Added** icons on tab triggers for better UX
+- **Added** count badges in section headers (e.g., "قوالب شروط الدفع (5)")
+- **Added** useToast for create notifications
+
+#### 4. Pricing Rules Page (`src/app/(dashboard)/sales/pricing-rules/page.tsx`)
+**613 → ~620 lines**
+- **Standardized** toast from `sonner` to `useToast` (consistent with other pages)
+- **Added** 4th KPI card (submitted rules count)
+- **Changed** KpiStrip from 3 to 4 columns
+- **Preserved** all existing functionality (create, submit, cancel, delete, filters)
+
+#### 5. Reports Page (`src/app/(dashboard)/sales/reports/page.tsx`)
+**369 → ~400 lines**
+- **Added** breadcrumbs to PageHeader
+- **Added** refresh button in PageHeader actions
+- **Added** current report label in criteria card header
+- **Added** Button import for refresh functionality
+- **Improved** error display with styled container (border + background)
+- **Improved** loading state with spinning RefreshCw icon
+- **Added** empty state when filters not ready
+- **Preserved** all existing report functionality (10 Frappe reports, filters, export)
+
+### Code Quality Improvements (Cross-Page)
+1. **Standardized toast system**: `coupon-codes` and `pricing-rules` now use `useToast` instead of `sonner`, matching 5 other sales pages
+2. **ErpLinkCombobox**: `customer-groups` parent group field now uses `ErpLinkCombobox` instead of plain `<Input>`
+3. **Consistent KPI strips**: All 4 list pages now have 3-4 KPI cards with consistent styling
+4. **Consistent filter patterns**: All pages with filters use the same Collapsible pattern
+
+### Verification
+- TypeScript: `npx tsc --noEmit` passes with no errors
+- Next.js build: `npx next build` succeeds with no errors
+- No ESLint errors in modified files
+- All Arabic text and RTL preserved
+
+---
+
+## Task 5: Improve and Complete Accounting Module Pages
+
+- **Date**: 2025-03-06
+- **Status**: ✅ Completed
+- **Agent**: accounting-pages-improver
+- **Scope**: 5 accounting pages enhanced with missing features
+
+### Summary
+
+Improved 5 accounting module pages by adding missing features: KPI summaries, confirmation dialogs, delete functionality, enhanced filters, export/print support, and better empty states.
+
+### Changes Made
+
+#### 1. Bank Reconciliation Page (`src/app/(dashboard)/accounting/bank-reconciliation/page.tsx`)
+**665 → ~700 lines**
+- **Added** second KPI strip with reconciliation status: matched count, unmatched count, total reconciled amount, unmatched amount
+- **Added** `EmptyState` component for all three DataTable tabs (bank statement, system entries, matching)
+- **Added** descriptive Arabic text for each empty state with actionable suggestions
+- **Added** "حركة بنكية جديدة" action button in bank statement empty state
+- **Added** new icon imports: `CircleDollarSign`, `FileWarning`
+- **Added** new component imports: `EmptyState`
+- **Removed** unused imports: `Collapsible`, `CollapsibleContent`, `CollapsibleTrigger`, `Filter`, `ChevronDown`
+- **Split** KPI strip into two rows: 3-column summary (bank balance, system, difference) + 4-column reconciliation status
+
+#### 2. Fiscal Year Page (`src/app/(dashboard)/accounting/fiscal-year/page.tsx`)
+**233 → ~310 lines**
+- **Added** AlertDialog confirmation before closing a fiscal year with warning about implications
+- **Added** AlertDialog confirmation before reopening a fiscal year with notice about auditing
+- **Added** KPI strip: total years, active years, closed years
+- **Added** prominent status badges (نشطة/مقفلة) with color-coded badges using `Badge` component
+- **Added** icons in action buttons (`CalendarCheck`, `CalendarX2`)
+- **Added** "سنة مالية جديدة" button with Plus icon in dialog trigger
+- **Improved** close button styling with destructive color variant
+- **Added** warning box in close dialog listing all implications of closing a fiscal year
+- **Added** advisory box in reopen dialog about auditing considerations
+
+#### 3. Cheque Books Page (`src/app/(dashboard)/accounting/cheque-books/page.tsx`)
+**206 → ~340 lines**
+- **Added** `useDeleteDoc` hook for delete functionality
+- **Added** AlertDialog confirmation before deleting a cheque book
+- **Added** delete button column in DataTable with destructive styling
+- **Added** protection: prevents deleting submitted cheque books with toast notification
+- **Added** KPI strip: total books, drafts, submitted, total cheques count
+- **Added** `EmptyState` component when no cheque books exist
+- **Added** "دفتر شيكات جديد" action button in empty state
+- **Added** descriptive content in delete confirmation dialog (bank account, number range)
+- **Added** "لا يمكن التراجع" warning in delete dialog
+- **Fixed** hooks order: moved early return after all hooks to comply with React Hooks rules
+- **Improved** create button loading state text ("جاري الحفظ..." instead of "...")
+
+#### 4. Financial Statements Page (`src/app/(dashboard)/accounting/financial-statements/page.tsx`)
+**296 → ~350 lines**
+- **Added** print button in PageHeader actions with `Printer` icon
+- **Added** company selector using `ErpLinkCombobox` doctype="Company"
+- **Added** reset filters button with `RotateCcw` icon
+- **Added** active filter indicators (chips showing applied filters)
+- **Improved** filter card layout: 4-column responsive grid (company, from, to, periodicity/fiscal year)
+- **Added** fiscal year display for trial balance tab (read-only field showing detected FY)
+- **Added** "اختر معايير التقرير" empty state when filters are not ready
+- **Added** `print:hidden` classes for print-unsafe elements (filter card, tabs, IAS alert)
+- **Moved** ExportButton into filter card header (better UX grouping)
+- **Added** breadcrumbs to PageHeader
+
+#### 5. Period Closing Page (`src/app/(dashboard)/accounting/period-closing/page.tsx`)
+**290 → ~360 lines**
+- **Added** AlertDialog confirmation before submitting (posting) a period closing voucher
+- **Added** AlertDialog confirmation before cancelling a submitted voucher
+- **Added** warning box in submit dialog explaining what posting means:
+  - Transfers all revenue/expense balances to closing account
+  - Closes the period for new entries
+  - Period date range shown in warning
+  - Cancellation possible but advised to confirm first
+- **Added** warning box in cancel dialog about implications:
+  - Reverses closing entries and reopens the period
+  - External auditor review recommended
+  - Period date range shown
+- **Added** KPI strip: total vouchers, drafts, submitted, cancelled
+- **Added** global warning banner when draft vouchers exist
+- **Added** icons in action buttons (`CheckCircle2`, `XCircle`)
+- **Added** destructive styling on cancel action button
+- **Improved** loading state text in action buttons
+
+### Verification
+- TypeScript: `npx tsc --noEmit` passes with no errors in modified files
+- Next.js build: `npx next build` succeeds
+- ESLint: No errors in modified accounting pages
+- All Arabic text and RTL preserved
+- All existing functionality preserved

@@ -29,18 +29,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Plus, Trash2, Tag, Send, Undo2, CheckCircle, XCircle, Percent, Filter, ChevronDown } from 'lucide-react';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
+import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { apiCreateDoc, apiSubmitDoc } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { toast } from 'sonner';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface PricingRuleRow {
@@ -70,6 +74,7 @@ const PRICE_DISCOUNT_MAP: Record<string, string> = {
 };
 
 export default function PricingRulesPage() {
+  const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
 
   // ── Filters ──
@@ -135,21 +140,22 @@ export default function PricingRulesPage() {
   const totalRules = rows.length;
   const activeRules = rows.filter((r) => !chk(r.disable)).length;
   const discountRules = rows.filter((r) => r.price_or_discount === 'Discount').length;
+  const submittedRules = rows.filter((r) => Number(r.docstatus) === 1).length;
 
   // ── Create Handler ──
   const handleCreate = async () => {
     if (!formTitle.trim()) {
-      toast.error('يرجى إدخال اسم القاعدة');
+      toast({ title: 'يرجى إدخال اسم القاعدة', variant: 'destructive' });
       return;
     }
     const company = formCompany || defaultCompany;
     if (!company) {
-      toast.error('يرجى اختيار الشركة');
+      toast({ title: 'يرجى اختيار الشركة', variant: 'destructive' });
       return;
     }
     const discPct = Number(formDiscountPercentage);
     if (formPriceOrDiscount === 'Discount' && (!Number.isFinite(discPct) || discPct <= 0)) {
-      toast.error('يرجى إدخال نسبة خصم صحيحة');
+      toast({ title: 'يرجى إدخال نسبة خصم صحيحة', variant: 'destructive' });
       return;
     }
 
@@ -174,19 +180,19 @@ export default function PricingRulesPage() {
       if (created && typeof created === 'object' && 'name' in created) {
         try {
           await apiSubmitDoc('Pricing Rule', (created as { name: string }).name);
-          toast.success('تم إنشاء قاعدة التسعير وترحيلها');
+          toast({ title: 'تم إنشاء قاعدة التسعير وترحيلها بنجاح' });
         } catch {
-          toast.success('تم إنشاء قاعدة التسعير (مسودة)');
+          toast({ title: 'تم إنشاء قاعدة التسعير (مسودة)', description: 'يمكنك ترحيلها لاحقاً من جدول البيانات' });
         }
       } else {
-        toast.success('تم إنشاء قاعدة التسعير');
+        toast({ title: 'تم إنشاء قاعدة التسعير بنجاح' });
       }
 
       setDialogOpen(false);
       resetForm();
       void refetch();
     } catch (e) {
-      toast.error((e as Error).message || 'تعذر إنشاء قاعدة التسعير');
+      toast({ title: 'تعذر إنشاء قاعدة التسعير', description: String((e as Error).message || e), variant: 'destructive' });
     } finally {
       setCreating(false);
     }
@@ -210,11 +216,11 @@ export default function PricingRulesPage() {
     if (!deleteTarget) return;
     deleteMutation.mutate(deleteTarget.name, {
       onSuccess: () => {
-        toast.success('تم حذف قاعدة التسعير');
+        toast({ title: 'تم حذف قاعدة التسعير بنجاح' });
         setDeleteTarget(null);
         void refetch();
       },
-      onError: () => toast.error('تعذر حذف قاعدة التسعير'),
+      onError: () => toast({ title: 'تعذر حذف قاعدة التسعير', variant: 'destructive' }),
     });
   };
 
@@ -305,10 +311,10 @@ export default function PricingRulesPage() {
                   onClick={() =>
                     submitMutation.mutate(row.name, {
                       onSuccess: () => {
-                        toast.success('تم الترحيل');
+                        toast({ title: 'تم ترحيل قاعدة التسعير بنجاح' });
                         void refetch();
                       },
-                      onError: () => toast.error('تعذر الترحيل'),
+                      onError: () => toast({ title: 'تعذر ترحيل قاعدة التسعير', variant: 'destructive' }),
                     })
                   }
                 >
@@ -326,10 +332,10 @@ export default function PricingRulesPage() {
                   onClick={() =>
                     cancelMutation.mutate(row.name, {
                       onSuccess: () => {
-                        toast.success('أُلغي الترحيل');
+                        toast({ title: 'تم إلغاء ترحيل قاعدة التسعير' });
                         void refetch();
                       },
-                      onError: () => toast.error('تعذر الإلغاء'),
+                      onError: () => toast({ title: 'تعذر إلغاء ترحيل قاعدة التسعير', variant: 'destructive' }),
                     })
                   }
                 >
@@ -373,7 +379,7 @@ export default function PricingRulesPage() {
         accent="info"
         breadcrumbs={[{ label: 'المبيعات', href: '/sales' }, { label: 'قواعد التسعير' }]}
         actions={
-          <Button size="sm" className="gap-1.5" disabled={coLoading} onClick={() => setDialogOpen(true)}>
+          <Button size="sm" className="gap-1.5" disabled={coLoading} onClick={() => { resetForm(); setDialogOpen(true); }}>
             <Plus className="h-3.5 w-3.5" />
             قاعدة تسعير جديدة
           </Button>
@@ -381,7 +387,7 @@ export default function PricingRulesPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={3}>
+      <KpiStrip cols={4}>
         <KpiCard
           title="إجمالي القواعد"
           value={totalRules}
@@ -402,6 +408,13 @@ export default function PricingRulesPage() {
           icon={Percent}
           accent="warning"
           description="قواعد من نوع خصم"
+        />
+        <KpiCard
+          title="القواعد المرحّلة"
+          value={submittedRules}
+          icon={Send}
+          accent="info"
+          description="قواعد تم ترحيلها"
         />
       </KpiStrip>
 

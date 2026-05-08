@@ -108,7 +108,7 @@ export default function JournalEntryPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((row: any) =>
-        ['name', 'user_remark'].some(key => String(row.docstatus ?? '').toLowerCase().includes(q))
+        ['name', 'user_remark', 'voucher_type', 'company'].some(key => String((row as any)[key] ?? '').toLowerCase().includes(q))
       );
     }
     if (dateFrom || dateTo) {

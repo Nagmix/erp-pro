@@ -167,7 +167,7 @@ export default function PaymentEntryPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((row: any) =>
-        ['name', 'party'].some(key => String(row.docstatus ?? '').toLowerCase().includes(q))
+        ['name', 'party', 'mode_of_payment', 'reference_no', 'payment_type', 'remarks'].some(key => String((row as any)[key] ?? '').toLowerCase().includes(q))
       );
     }
     if (typeFilter !== 'all') list = list.filter(p => p.payment_type === typeFilter);

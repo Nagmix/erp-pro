@@ -19,8 +19,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDocList, useCreateDoc } from '@/lib/client/hooks';
+import { EmptyState } from '@/components/erp/empty-state';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { apiCreateDoc, apiUpdateDoc } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -33,14 +33,14 @@ import {
   Landmark,
   ArrowLeftRight,
   Plus,
-  Filter,
-  ChevronDown,
   X,
   CheckCircle2,
   XCircle,
   Loader2,
   Zap,
   Handshake,
+  CircleDollarSign,
+  FileWarning,
 } from 'lucide-react';
 
 // ============================================================
@@ -189,6 +189,9 @@ export default function BankReconciliationPage() {
   const systemPayments = useMemo(() => filteredPayments.reduce((s, p) => s + (Number(p.paid_amount) || 0), 0), [filteredPayments]);
   const difference = bankBalance - systemPayments;
   const pendingCount = useMemo(() => filteredBankTx.filter(t => !matchedKeys.has(t.name)).length, [filteredBankTx, matchedKeys]);
+  const matchedCount = useMemo(() => filteredBankTx.filter(t => matchedKeys.has(t.name)).length, [filteredBankTx, matchedKeys]);
+  const totalReconciledAmount = useMemo(() => filteredBankTx.filter(t => matchedKeys.has(t.name)).reduce((s, t) => s + (Number(t.deposit) || 0) + (Number(t.withdrawal) || 0), 0), [filteredBankTx, matchedKeys]);
+  const totalUnmatchedAmount = useMemo(() => filteredBankTx.filter(t => !matchedKeys.has(t.name)).reduce((s, t) => s + (Number(t.deposit) || 0) + (Number(t.withdrawal) || 0), 0), [filteredBankTx, matchedKeys]);
 
   // ── Form ──
   const form = useForm<BankTxFormInput, any, BankTxFormOutput>({
@@ -352,12 +355,19 @@ export default function BankReconciliationPage() {
         }
       />
 
-      {/* KPI Strip */}
-      <KpiStrip cols={4}>
+      {/* KPI Strip - Summary */}
+      <KpiStrip cols={3}>
         <KpiCard title="رصيد البنك" value={formatCurrency(bankBalance)} icon={Landmark} accent="primary" compact />
         <KpiCard title="رصيد النظام" value={formatCurrency(systemPayments)} icon={ArrowLeftRight} accent="info" compact />
         <KpiCard title="الفرق" value={formatCurrency(Math.abs(difference))} icon={XCircle} accent={Math.abs(difference) > 0.01 ? 'destructive' : 'success'} compact />
-        <KpiCard title="معلّق للتسوية" value={pendingCount} icon={Handshake} accent="warning" compact />
+      </KpiStrip>
+
+      {/* KPI Strip - Reconciliation Status */}
+      <KpiStrip cols={4}>
+        <KpiCard title="مطابق" value={matchedCount} description={filteredBankTx.length > 0 ? `من أصل ${filteredBankTx.length} حركة` : undefined} icon={CheckCircle2} accent="success" compact />
+        <KpiCard title="غير مطابق" value={pendingCount} description={pendingCount > 0 ? `مبلغ: ${formatCurrency(totalUnmatchedAmount)}` : undefined} icon={FileWarning} accent="warning" compact />
+        <KpiCard title="إجمالي المبلغ المسوّى" value={formatCurrency(totalReconciledAmount)} icon={CircleDollarSign} accent="info" compact />
+        <KpiCard title="معلّق للتسوية" value={formatCurrency(totalUnmatchedAmount)} icon={Handshake} accent={pendingCount > 0 ? 'destructive' : 'success'} compact />
       </KpiStrip>
 
       {/* Bank Account & Date Filter */}
@@ -418,15 +428,25 @@ export default function BankReconciliationPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <DataTable
-                data={filteredBankTx}
-                columns={btCols}
-                pageSize={15}
-                searchable
-                loading={btLoad}
-                tableId="bank-tx-table"
-                exportFileName="bank-transactions.csv"
-              />
+              {!btLoad && filteredBankTx.length === 0 ? (
+                <EmptyState
+                  title="لا توجد حركات بنكية"
+                  description="لم يتم العثور على حركات بنكية للفترة المحددة. جرّب تعديل الفلاتر أو أنشئ حركة بنكية جديدة."
+                  icon={Landmark}
+                  actionLabel="حركة بنكية جديدة"
+                  onAction={() => { form.reset({ bank_account: bankAccount, date: new Date().toISOString().split('T')[0], description: '', reference_number: '', deposit: 0, withdrawal: 0 }); setCreateDialogOpen(true); }}
+                />
+              ) : (
+                <DataTable
+                  data={filteredBankTx}
+                  columns={btCols}
+                  pageSize={15}
+                  searchable
+                  loading={btLoad}
+                  tableId="bank-tx-table"
+                  exportFileName="bank-transactions.csv"
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -439,15 +459,23 @@ export default function BankReconciliationPage() {
               <Badge variant="secondary" className="text-[10px]">إجمالي: <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(systemPayments)}</span></Badge>
             </CardHeader>
             <CardContent>
-              <DataTable
-                data={filteredPayments}
-                columns={peCols}
-                pageSize={15}
-                searchable
-                loading={peLoad}
-                tableId="payment-entries-table"
-                exportFileName="payment-entries.csv"
-              />
+              {!peLoad && filteredPayments.length === 0 ? (
+                <EmptyState
+                  title="لا توجد قيود دفع"
+                  description="لم يتم العثور على قيود دفع أو قبض للفترة المحددة. جرّب تعديل الفلاتر أو أنشئ قيد دفع من صفحة قيود الدفع."
+                  icon={ArrowLeftRight}
+                />
+              ) : (
+                <DataTable
+                  data={filteredPayments}
+                  columns={peCols}
+                  pageSize={15}
+                  searchable
+                  loading={peLoad}
+                  tableId="payment-entries-table"
+                  exportFileName="payment-entries.csv"
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -476,15 +504,23 @@ export default function BankReconciliationPage() {
               </Button>
             </CardHeader>
             <CardContent>
-              <DataTable
-                data={matches}
-                columns={matchCols}
-                pageSize={10}
-                searchable
-                loading={btLoad || peLoad}
-                tableId="bank-match-table"
-                exportFileName="bank-matches.csv"
-              />
+              {!btLoad && !peLoad && matches.length === 0 ? (
+                <EmptyState
+                  title="لا توجد مقترحات مطابقة"
+                  description="لم يتم العثور على مطابقات تلقائية بين الحركات البنكية وقيود النظام. يمكنك استخدام التسوية اليدوية أدناه."
+                  icon={Zap}
+                />
+              ) : (
+                <DataTable
+                  data={matches}
+                  columns={matchCols}
+                  pageSize={10}
+                  searchable
+                  loading={btLoad || peLoad}
+                  tableId="bank-match-table"
+                  exportFileName="bank-matches.csv"
+                />
+              )}
             </CardContent>
           </Card>
 

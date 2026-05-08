@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -18,6 +19,7 @@ import { DataTable } from '@/components/erp/data-table';
 import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
+import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { useDocList, useRunReport } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { normalizeFrappeReportPayload } from '@/lib/reports/normalize-frappe-report';
@@ -29,10 +31,9 @@ import {
   type FiscalYearRow,
   type Periodicity,
 } from '@/lib/reports/financial-filters';
-import { BarChart3, BookOpen, Scale, Wallet } from 'lucide-react';
+import { BarChart3, BookOpen, Scale, Wallet, Printer, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/core/helpers';
-import { translateAccountName, translateAccountType, translateRootType } from '@/lib/core/arabic-labels';
 
 type ReportTab = 'balance-sheet' | 'income-statement' | 'cash-flow' | 'trial-balance';
 
@@ -57,7 +58,10 @@ export default function FinancialStatementsPage() {
   const [to, setTo] = useState(d1);
   const [tab, setTab] = useState<ReportTab>('income-statement');
   const [periodicity, setPeriodicity] = useState<Periodicity>('Yearly');
+  const [selectedCompany, setSelectedCompany] = useState('');
   const { company: effectiveCompany } = useDefaultCompanyName();
+
+  const company = selectedCompany || effectiveCompany;
 
   const { data: fiscalYears = [], isLoading: fyLoading } = useDocList<FiscalYearRow>('Fiscal Year', {
     fields: ['name', 'year_start_date', 'year_end_date'],
@@ -75,23 +79,23 @@ export default function FinancialStatementsPage() {
   );
 
   const filters = useMemo(() => {
-    if (!effectiveCompany || !from || !to) return null;
+    if (!company || !from || !to) return null;
     if (tab === 'trial-balance') {
       if (!fiscalYearName) return null;
       return buildTrialBalanceFilters({
-        company: effectiveCompany,
+        company,
         fiscalYear: fiscalYearName,
         fromDate: from,
         toDate: to,
       });
     }
     return buildFinancialStatementFilters({
-      company: effectiveCompany,
+      company,
       periodStart: from,
       periodEnd: to,
       periodicity,
     });
-  }, [effectiveCompany, from, to, tab, periodicity, fiscalYearName]);
+  }, [company, from, to, tab, periodicity, fiscalYearName]);
 
   const filtersReady = Boolean(filters);
   const reportQuery = useRunReport(
@@ -114,6 +118,20 @@ export default function FinancialStatementsPage() {
 
   const summaryStrip = normalized.reportSummary.filter((s) => s && typeof s.value !== 'undefined');
 
+  const resetFilters = () => {
+    const { from: defFrom, to: defTo } = defaultDateRange();
+    setFrom(defFrom);
+    setTo(defTo);
+    setPeriodicity('Yearly');
+    setSelectedCompany('');
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const activeTabLabel = TAB_META.find((t) => t.id === tab)?.label ?? 'تقرير مالي';
+
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <PageHeader
@@ -121,9 +139,24 @@ export default function FinancialStatementsPage() {
         description="قائمة الدخل والميزانية العمومية والتدفقات النقدية وميزان المراجعة — بيانات فعلية للمراجعة والتصدير."
         iconify="solar:document-text-bold-duotone"
         accent="info"
+        breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'القوائم المالية' }]}
+        actions={
+          <div className="flex gap-2 print:hidden">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={handlePrint}
+              disabled={normalized.rows.length === 0}
+            >
+              <Printer className="h-3.5 w-3.5" />
+              طباعة
+            </Button>
+          </div>
+        }
       />
 
-      <Alert className="border-border/55 bg-muted/25">
+      <Alert className="border-border/55 bg-muted/25 print:hidden">
         <AlertTitle className="text-sm">إطار المعايير (عرض إرشادي مع القوائم)</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground leading-relaxed space-y-2 [&_a]:font-medium [&_a]:text-primary [&_a]:underline-offset-4 [&_a]:hover:underline">
           <p>
@@ -164,47 +197,108 @@ export default function FinancialStatementsPage() {
         </AlertDescription>
       </Alert>
 
-      <Card className="border-border/40">
+      {/* Enhanced Filter Card */}
+      <Card className="border-border/40 print:hidden">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">معايير التقرير</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-base">معايير التقرير</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-[10px] gap-1"
+                onClick={resetFilters}
+              >
+                <RotateCcw className="h-3 w-3" />
+                إعادة تعيين
+              </Button>
+              <ExportButton
+                data={normalized.rows}
+                filename={activeTabLabel}
+                columns={exportCols}
+              />
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="flex flex-wrap items-end gap-4">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">من تاريخ</Label>
-            <Input type="date" dir="ltr" className="h-9 w-40" value={from} onChange={(e) => setFrom(e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
-            <Input type="date" dir="ltr" className="h-9 w-40" value={to} onChange={(e) => setTo(e.target.value)} />
-          </div>
-          {tab !== 'trial-balance' && (
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Company selector */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">التواتر</Label>
-              <Select value={periodicity} onValueChange={(v) => setPeriodicity(v as Periodicity)}>
-                <SelectTrigger className="h-9 w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Yearly">سنوي</SelectItem>
-                  <SelectItem value="Half-Yearly">نصف سنوي</SelectItem>
-                  <SelectItem value="Quarterly">ربع سنوي</SelectItem>
-                  <SelectItem value="Monthly">شهري</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label className="text-xs text-muted-foreground">الشركة</Label>
+              <ErpLinkCombobox
+                doctype="Company"
+                value={selectedCompany}
+                onChange={setSelectedCompany}
+                placeholder={effectiveCompany || 'اختر الشركة...'}
+                className="h-9 text-xs"
+              />
+            </div>
+            {/* From date */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">من تاريخ</Label>
+              <Input type="date" dir="ltr" className="h-9 w-full" value={from} onChange={(e) => setFrom(e.target.value)} />
+            </div>
+            {/* To date */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
+              <Input type="date" dir="ltr" className="h-9 w-full" value={to} onChange={(e) => setTo(e.target.value)} />
+            </div>
+            {/* Periodicity */}
+            {tab !== 'trial-balance' ? (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">التواتر</Label>
+                <Select value={periodicity} onValueChange={(v) => setPeriodicity(v as Periodicity)}>
+                  <SelectTrigger className="h-9 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Yearly">سنوي</SelectItem>
+                    <SelectItem value="Half-Yearly">نصف سنوي</SelectItem>
+                    <SelectItem value="Quarterly">ربع سنوي</SelectItem>
+                    <SelectItem value="Monthly">شهري</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">السنة المالية</Label>
+                <div className="flex h-9 items-center rounded-md border border-input bg-muted/30 px-3 text-xs text-muted-foreground">
+                  {fiscalYearName || '—'}
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Active filter indicators */}
+          {(selectedCompany || from !== d0 || to !== d1 || periodicity !== 'Yearly') && (
+            <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border/40 pt-3">
+              {selectedCompany && (
+                <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary ring-1 ring-inset ring-primary/20">
+                  شركة: {selectedCompany}
+                </span>
+              )}
+              {from !== d0 && (
+                <span className="inline-flex items-center rounded-md bg-info/10 px-2 py-0.5 text-[10px] font-medium text-info ring-1 ring-inset ring-info/20">
+                  من: {from}
+                </span>
+              )}
+              {to !== d1 && (
+                <span className="inline-flex items-center rounded-md bg-info/10 px-2 py-0.5 text-[10px] font-medium text-info ring-1 ring-inset ring-info/20">
+                  إلى: {to}
+                </span>
+              )}
+              {periodicity !== 'Yearly' && (
+                <span className="inline-flex items-center rounded-md bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning-foreground ring-1 ring-inset ring-warning/20">
+                  تواتر: {periodicity === 'Monthly' ? 'شهري' : periodicity === 'Quarterly' ? 'ربع سنوي' : 'نصف سنوي'}
+                </span>
+              )}
             </div>
           )}
-          <div className="ms-auto">
-            <ExportButton
-              data={normalized.rows}
-              filename={TAB_META.find((t) => t.id === tab)?.label ?? 'financial-report'}
-              columns={exportCols}
-            />
-          </div>
         </CardContent>
       </Card>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as ReportTab)} className="space-y-4">
-        <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-muted/40 p-1">
+        <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-muted/40 p-1 print:hidden">
           {TAB_META.map((t) => {
             const Icon = t.icon;
             return (
@@ -221,7 +315,7 @@ export default function FinancialStatementsPage() {
         </TabsList>
 
         <div className="space-y-4">
-          {tab === 'trial-balance' && !fyLoading && effectiveCompany && !fiscalYearName && (
+          {tab === 'trial-balance' && !fyLoading && company && !fiscalYearName && (
             <p className="text-sm text-amber-700 dark:text-amber-400">
               لا توجد سنة مالية تغطي «إلى تاريخ» المحدد. عدّل التاريخ أو أنشئ السنة المالية في النظام.
             </p>
@@ -279,6 +373,13 @@ export default function FinancialStatementsPage() {
             />
           )}
 
+          {!filtersReady && !reportQuery.isLoading && (
+            <EmptyState
+              title="اختر معايير التقرير"
+              description="حدد الشركة والتواريخ لعرض القوائم المالية."
+            />
+          )}
+
           {normalized.rows.length > 0 && (
             <DataTable
               data={normalized.rows}
@@ -286,7 +387,7 @@ export default function FinancialStatementsPage() {
               searchable
               pageSize={25}
               stickyFirstColumn
-              exportFileName={TAB_META.find((x) => x.id === tab)?.label ?? 'financial-report'}
+              exportFileName={activeTabLabel}
             />
           )}
         </div>

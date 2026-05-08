@@ -29,17 +29,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Trash2, Ticket, CheckCircle, XCircle, Hash, Filter, ChevronDown } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { Plus, Trash2, Ticket, CheckCircle, XCircle, Hash, Filter, ChevronDown, Send, Undo2 } from 'lucide-react';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { formatDate } from '@/lib/core/helpers';
-import { useDocList, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { apiCreateDoc } from '@/lib/client/api';
-import { toast } from 'sonner';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 interface CouponCodeRow {
@@ -73,6 +77,8 @@ function generateCouponCode(): string {
 }
 
 export default function CouponCodesPage() {
+  const { toast } = useToast();
+
   // ── Filters ──
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'disabled'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'Percentage' | 'Item Price'>('all');
@@ -112,6 +118,8 @@ export default function CouponCodesPage() {
   });
 
   const deleteMutation = useDeleteDoc('Coupon Code');
+  const submitMutation = useSubmitDoc<CouponCodeRow>('Coupon Code');
+  const cancelMutation = useCancelDoc<CouponCodeRow>('Coupon Code');
 
   const rows = data || [];
   const chk = (v: unknown) => Number(v) === 1 || v === true;
@@ -129,15 +137,16 @@ export default function CouponCodesPage() {
   const totalCoupons = rows.length;
   const activeCoupons = rows.filter((r) => !chk(r.disable)).length;
   const totalUsage = rows.reduce((sum, r) => sum + (Number(r.used) || 0), 0);
+  const draftCoupons = rows.filter((r) => Number(r.docstatus) === 0).length;
 
   // ── Create Handler ──
   const handleCreate = async () => {
     if (!formCouponName.trim()) {
-      toast.error('يرجى إدخال اسم الكوبون');
+      toast({ title: 'يرجى إدخال اسم الكوبون', variant: 'destructive' });
       return;
     }
     if (!formPricingRule) {
-      toast.error('يرجى اختيار قاعدة التسعير المرتبطة');
+      toast({ title: 'يرجى اختيار قاعدة التسعير المرتبطة', variant: 'destructive' });
       return;
     }
 
@@ -160,12 +169,12 @@ export default function CouponCodesPage() {
       const body = prepareFrappeDocForCreate(payload);
       await apiCreateDoc('Coupon Code', body);
 
-      toast.success('تم إنشاء كوبون الخصم بنجاح');
+      toast({ title: 'تم إنشاء كوبون الخصم بنجاح' });
       setDialogOpen(false);
       resetForm();
       void refetch();
     } catch (e) {
-      toast.error((e as Error).message || 'تعذر إنشاء كوبون الخصم');
+      toast({ title: 'تعذر إنشاء كوبون الخصم', description: String((e as Error).message || e), variant: 'destructive' });
     } finally {
       setCreating(false);
     }
@@ -191,11 +200,11 @@ export default function CouponCodesPage() {
     if (!deleteTarget) return;
     deleteMutation.mutate(deleteTarget.name, {
       onSuccess: () => {
-        toast.success('تم حذف الكوبون');
+        toast({ title: 'تم حذف الكوبون بنجاح' });
         setDeleteTarget(null);
         void refetch();
       },
-      onError: () => toast.error('تعذر حذف الكوبون'),
+      onError: () => toast({ title: 'تعذر حذف الكوبون', variant: 'destructive' }),
     });
   };
 
@@ -283,11 +292,53 @@ export default function CouponCodesPage() {
       {
         key: '_actions',
         header: 'إجراءات',
-        width: 'w-20',
+        width: 'w-36',
         render: (_v, row) => {
           const ds = Number(row.docstatus);
           return (
             <div className="flex flex-wrap gap-1">
+              {ds === 0 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 text-[10px] px-2"
+                  disabled={submitMutation.isPending}
+                  onClick={() =>
+                    submitMutation.mutate(row.name, {
+                      onSuccess: () => {
+                        toast({ title: 'تم ترحيل الكوبون بنجاح' });
+                        void refetch();
+                      },
+                      onError: () => toast({ title: 'تعذر ترحيل الكوبون', variant: 'destructive' }),
+                    })
+                  }
+                >
+                  <Send className="h-3 w-3" />
+                  ترحيل
+                </Button>
+              )}
+              {ds === 1 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-[10px] px-2"
+                  disabled={cancelMutation.isPending}
+                  onClick={() =>
+                    cancelMutation.mutate(row.name, {
+                      onSuccess: () => {
+                        toast({ title: 'تم إلغاء ترحيل الكوبون' });
+                        void refetch();
+                      },
+                      onError: () => toast({ title: 'تعذر إلغاء ترحيل الكوبون', variant: 'destructive' }),
+                    })
+                  }
+                >
+                  <Undo2 className="h-3 w-3" />
+                  إلغاء
+                </Button>
+              )}
               {ds === 0 && (
                 <Button
                   type="button"
@@ -304,7 +355,7 @@ export default function CouponCodesPage() {
         },
       },
     ],
-    [],
+    [submitMutation, cancelMutation, refetch],
   );
 
   const clearFilters = () => {
@@ -332,7 +383,7 @@ export default function CouponCodesPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={3}>
+      <KpiStrip cols={4}>
         <KpiCard
           title="إجمالي الكوبونات"
           value={totalCoupons}
@@ -353,6 +404,13 @@ export default function CouponCodesPage() {
           icon={Hash}
           accent="info"
           description="عدد مرات الاستخدام الكلي"
+        />
+        <KpiCard
+          title="كوبونات مسودة"
+          value={draftCoupons}
+          icon={Ticket}
+          accent="warning"
+          description="بانتظار الترحيل"
         />
       </KpiStrip>
 

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import {
@@ -42,6 +43,7 @@ import {
   Receipt,
   TrendingUp,
   Users,
+  RefreshCw,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -235,6 +237,9 @@ export default function SalesReportsPage() {
 
   const isArTab = tab === 'sales-invoice-status' || tab === 'overdue-invoices';
 
+  // Determine current tab label for display
+  const currentTabLabel = TAB_META.find((t) => t.id === tab)?.label ?? 'تقرير المبيعات';
+
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <PageHeader
@@ -242,11 +247,29 @@ export default function SalesReportsPage() {
         description="تحليل المبيعات، السجلات الضريبية، إجمالي الربح، ذمم العملاء، دفتر المدفوعات، ونقطة البيع."
         iconify="solar:chart-bold-duotone"
         accent="success"
+        breadcrumbs={[{ label: 'المبيعات', href: '/sales' }, { label: 'التقارير' }]}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => reportQuery.refetch()}
+              disabled={reportQuery.isLoading}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${reportQuery.isLoading ? 'animate-spin' : ''}`} />
+              تحديث
+            </Button>
+          </div>
+        }
       />
 
       <Card className="border-border/40">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">معايير التقرير</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-success" />
+            معايير التقرير — {currentTabLabel}
+          </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap items-end gap-4">
           {!isArTab && (
@@ -317,10 +340,10 @@ export default function SalesReportsPage() {
           )}
 
           {reportQuery.isError && (
-            <p className="text-sm text-destructive">
+            <div className="rounded-[var(--radius-md-ui)] border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
               {(reportQuery.error as Error)?.message ||
                 'تعذر تشغيل التقرير. تحقق من الصلاحيات وتثبيت وحدة البيع.'}
-            </p>
+            </div>
           )}
 
           {summaryStrip.length > 0 && (
@@ -342,13 +365,23 @@ export default function SalesReportsPage() {
           )}
 
           {reportQuery.isLoading && (
-            <p className="text-xs text-muted-foreground">جاري تحميل التقرير…</p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <RefreshCw className="h-4 w-4 animate-spin" />
+              جاري تحميل التقرير…
+            </div>
           )}
 
           {!reportQuery.isLoading && !reportQuery.isError && filtersReady && normalized.rows.length === 0 && (
             <EmptyState
               title="لا توجد صفوف للعرض"
               description="جرّب توسيع الفترة أو التحقق من وجود فواتير/حركات ضمن الشركة المحددة."
+            />
+          )}
+
+          {!filtersReady && !reportQuery.isLoading && (
+            <EmptyState
+              title="حدد معايير التقرير"
+              description="يرجى اختيار الشركة والتاريخ لتشغيل التقرير."
             />
           )}
 

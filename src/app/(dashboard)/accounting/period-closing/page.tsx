@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,7 +11,8 @@ import {
   useCancelDoc,
 } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader } from '@/components/erp/page-header';
+import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,8 +26,26 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Info } from 'lucide-react';
+import {
+  Info,
+  AlertTriangle,
+  FileCheck,
+  FileX2,
+  Clock,
+  CheckCircle2,
+  XCircle,
+} from 'lucide-react';
 
 const schema = z.object({
   company: z.string().min(1),
@@ -55,6 +74,10 @@ export default function PeriodClosingPage() {
   const { toast } = useToast();
   const { company, isLoading: coLoad } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [submitConfirmOpen, setSubmitConfirmOpen] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<PcvRow | null>(null);
+
   const { data, isLoading, isError, error, refetch } = useDocList<PcvRow>('Period Closing Voucher', {
     fields: [
       'name',
@@ -91,6 +114,12 @@ export default function PeriodClosingPage() {
     }
   }, [company, form]);
 
+  // ── KPIs ──
+  const rows = data || [];
+  const draftCount = useMemo(() => rows.filter(r => r.docstatus === 0).length, [rows]);
+  const submittedCount = useMemo(() => rows.filter(r => r.docstatus === 1).length, [rows]);
+  const cancelledCount = useMemo(() => rows.filter(r => r.docstatus === 2).length, [rows]);
+
   const onSubmit = (d: Form) => {
     createMutation.mutate(
       buildPeriodClosingVoucher({
@@ -111,6 +140,50 @@ export default function PeriodClosingPage() {
         onError: () => toast({ title: 'تعذر الحفظ — راجع الحقول', variant: 'destructive' }),
       }
     );
+  };
+
+  // ── Submit (post) with confirmation ──
+  const handleSubmitClick = (row: PcvRow) => {
+    setSelectedRow(row);
+    setSubmitConfirmOpen(true);
+  };
+
+  const confirmSubmit = () => {
+    if (!selectedRow) return;
+    submitMutation.mutate(selectedRow.name, {
+      onSuccess: () => {
+        toast({ title: 'تم ترحيل قسيمة الإقفال' });
+        void refetch();
+        setSubmitConfirmOpen(false);
+        setSelectedRow(null);
+      },
+      onError: () => {
+        toast({ title: 'فشل الترحيل', variant: 'destructive' });
+        setSubmitConfirmOpen(false);
+      },
+    });
+  };
+
+  // ── Cancel with confirmation ──
+  const handleCancelClick = (row: PcvRow) => {
+    setSelectedRow(row);
+    setCancelConfirmOpen(true);
+  };
+
+  const confirmCancel = () => {
+    if (!selectedRow) return;
+    cancelMutation.mutate(selectedRow.name, {
+      onSuccess: () => {
+        toast({ title: 'أُلغي ترحيل قسيمة الإقفال' });
+        void refetch();
+        setCancelConfirmOpen(false);
+        setSelectedRow(null);
+      },
+      onError: () => {
+        toast({ title: 'تعذر إلغاء الترحيل', variant: 'destructive' });
+        setCancelConfirmOpen(false);
+      },
+    });
   };
 
   const columns: Column<PcvRow>[] = [
@@ -143,16 +216,9 @@ export default function PeriodClosingPage() {
               size="sm"
               className="h-7 text-[10px] px-2 gap-1"
               disabled={submitMutation.isPending}
-              onClick={() =>
-                submitMutation.mutate(row.name, {
-                  onSuccess: () => {
-                    toast({ title: 'تم الترحيل' });
-                    void refetch();
-                  },
-                  onError: () => toast({ title: 'فشل الترحيل', variant: 'destructive' }),
-                })
-              }
+              onClick={() => handleSubmitClick(row)}
             >
+              <CheckCircle2 className="h-3 w-3" />
               ترحيل
             </Button>
           )}
@@ -161,18 +227,11 @@ export default function PeriodClosingPage() {
               type="button"
               size="sm"
               variant="outline"
-              className="h-7 text-[10px] px-2 gap-1"
+              className="h-7 text-[10px] px-2 gap-1 text-destructive hover:text-destructive"
               disabled={cancelMutation.isPending}
-              onClick={() =>
-                cancelMutation.mutate(row.name, {
-                  onSuccess: () => {
-                    toast({ title: 'أُلغي الترحيل' });
-                    void refetch();
-                  },
-                  onError: () => toast({ title: 'تعذر الإلغاء', variant: 'destructive' }),
-                })
-              }
+              onClick={() => handleCancelClick(row)}
             >
+              <XCircle className="h-3 w-3" />
               إلغاء ترحيل
             </Button>
           )}
@@ -271,13 +330,36 @@ export default function PeriodClosingPage() {
         }
       />
 
+      {/* KPI Strip */}
+      <KpiStrip cols={4}>
+        <KpiCard title="إجمالي القسائم" value={rows.length} icon={FileCheck} accent="primary" compact />
+        <KpiCard title="مسودات" value={draftCount} icon={Clock} accent="warning" compact />
+        <KpiCard title="مرحّلة" value={submittedCount} icon={CheckCircle2} accent="success" compact />
+        <KpiCard title="ملغاة" value={cancelledCount} icon={FileX2} accent={cancelledCount > 0 ? 'destructive' : 'info'} compact />
+      </KpiStrip>
+
+      {/* Warning about period closing */}
+      {draftCount > 0 && (
+        <div className="rounded-lg border border-warning/30 bg-warning/[0.04] px-4 py-3">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+            <div className="space-y-1.5 text-xs">
+              <p className="font-semibold text-warning-foreground">يوجد {draftCount} قسيمة إقفال في حالة مسودة</p>
+              <p className="text-muted-foreground">
+                قبل ترحيل قسيمة الإقفال، تأكد من اكتمال جميع القيود المحاسبية للفترة المحددة. ترحيل قسيمة الإقفال يُغلق الفترة ولا يمكن تسجيل حركات جديدة ضمنها.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Card>
         <CardHeader className="py-3">
           <CardTitle className="text-sm">قسائم إقفال سابقة</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <DataTable
-            data={data || []}
+            data={rows}
             columns={columns}
             title="القسائم"
             searchable
@@ -285,6 +367,87 @@ export default function PeriodClosingPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Submit Confirmation Dialog */}
+      <AlertDialog open={submitConfirmOpen} onOpenChange={setSubmitConfirmOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              تأكيد ترحيل قسيمة الإقفال
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 text-sm leading-relaxed">
+              <p>
+                هل أنت متأكد من ترحيل قسيمة الإقفال{' '}
+                <span className="font-semibold text-foreground">{selectedRow?.name}</span>؟
+              </p>
+              {selectedRow && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/[0.04] p-3 text-xs space-y-1.5">
+                  <p className="font-semibold text-destructive">⚠️ تحذير: ما يعنيه ترحيل قسيمة الإقفال</p>
+                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                    <li>سيتم تحويل جميع أرصدة حسابات الإيرادات والمصروفات إلى حساب الإقفال</li>
+                    <li>ستُغلق الفترة من <span className="font-medium">{formatDate(selectedRow.period_start_date)}</span> إلى <span className="font-medium">{formatDate(selectedRow.period_end_date)}</span></li>
+                    <li>لن يمكن تسجيل أي قيود محاسبية ضمن هذه الفترة بعد الترحيل</li>
+                    <li>يمكن إلغاء الترحيل لاحقاً لكن يُنصح بالتأكد قبل المتابعة</li>
+                  </ul>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                السنة المالية: <span className="font-medium">{selectedRow?.fiscal_year || '—'}</span>
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-xs">إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="text-xs"
+              onClick={confirmSubmit}
+              disabled={submitMutation.isPending}
+            >
+              {submitMutation.isPending ? 'جاري الترحيل...' : 'نعم، ترحيل القسيمة'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Cancel Confirmation Dialog */}
+      <AlertDialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              تأكيد إلغاء ترحيل قسيمة الإقفال
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 text-sm leading-relaxed">
+              <p>
+                هل أنت متأكد من إلغاء ترحيل قسيمة الإقفال{' '}
+                <span className="font-semibold text-foreground">{selectedRow?.name}</span>؟
+              </p>
+              {selectedRow && (
+                <div className="rounded-lg border border-warning/30 bg-warning/[0.04] p-3 text-xs space-y-1.5">
+                  <p className="font-semibold text-warning-foreground">تنبيه:</p>
+                  <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                    <li>سيتم عكس قيود الإقفال وإعادة فتح الفترة</li>
+                    <li>ستعود أرصدة الإيرادات والمصروفات إلى ما كانت عليه قبل الإقفال</li>
+                    <li>قد تحتاج لمراجعة المدقق الخارجي قبل هذا الإجراء</li>
+                    <li>الفترة: <span className="font-medium">{formatDate(selectedRow.period_start_date)}</span> — <span className="font-medium">{formatDate(selectedRow.period_end_date)}</span></li>
+                  </ul>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="text-xs">إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="text-xs bg-destructive hover:bg-destructive/90"
+              onClick={confirmCancel}
+              disabled={cancelMutation.isPending}
+            >
+              {cancelMutation.isPending ? 'جاري الإلغاء...' : 'نعم، إلغاء الترحيل'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
