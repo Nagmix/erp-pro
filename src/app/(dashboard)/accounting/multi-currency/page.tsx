@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,9 +13,20 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency, formatDate } from '@/lib/app-format';
+import {
+  useDocList,
+  useCreateDoc,
+  useUpdateDoc,
+} from '@/lib/client/hooks';
 import {
   DollarSign,
   RefreshCw,
@@ -107,14 +119,54 @@ function getCurrencyDisplay(code: string) {
 export default function MultiCurrencyPage() {
   const { toast } = useToast();
 
-  /* ─── Data state ─── */
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
-  const [exchangeEntries, setExchangeEntries] = useState<ExchangeEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [updatingRates, setUpdatingRates] = useState(false);
+  /* ─── Fetch Currencies via hooks ─── */
+  const {
+    data: currencyRows = [],
+    isLoading: curLoading,
+    error: curError,
+    refetch: refetchCurrencies,
+  } = useDocList<ErpCurrencyRow>('Currency', {
+    fields: ['name', 'enabled', 'fraction', 'fraction_units', 'number_format', 'smallest_currency_fraction_value'],
+    limit: 100,
+  });
 
+  /* ─── Fetch Exchange Rates via hooks ─── */
+  const {
+    data: exchangeRows = [],
+    isLoading: exLoading,
+    error: exError,
+    refetch: refetchExchange,
+  } = useDocList<ErpExchangeRow>('Currency Exchange', {
+    fields: ['name', 'from_currency', 'to_currency', 'exchange_rate', 'date'],
+    limit: 100,
+    order_by: 'date desc',
+  });
+
+  /* ─── Fetch Journal Entries with multi-currency for exchange gain/loss ─── */
+  const {
+    data: jeRows = [],
+    isLoading: jeLoading,
+  } = useDocList<Record<string, unknown>>('Journal Entry', {
+    fields: ['name', 'posting_date', 'total_debit', 'total_credit', 'voucher_type', 'multi_currency'],
+    filters: [['multi_currency', '=', '1']],
+    limit: 200,
+    order_by: 'posting_date desc',
+  });
+
+  /* ─── Fetch Journal Entry Account rows for exchange gain/loss computation ─── */
+  const {
+    data: jeAccountRows = [],
+    isLoading: jeAcctLoading,
+  } = useDocList<Record<string, unknown>>('Journal Entry Account', {
+    fields: ['name', 'parent', 'account', 'exchange_rate', 'debit', 'credit', 'debit_in_account_currency', 'credit_in_account_currency', 'currency'],
+    limit: 500,
+  });
+
+  /* ─── Mutations ─── */
+  const createExchangeMutation = useCreateDoc('Currency Exchange');
+  const updateCurrencyMutation = useUpdateDoc('Currency');
+
+  /* ─── State ─── */
   const [activeTab, setActiveTab] = useState('rates');
 
   /* Edit Rate Dialog */
@@ -128,121 +180,124 @@ export default function MultiCurrencyPage() {
   const [toCurrency, setToCurrency] = useState('YER');
   const [convertAmount, setConvertAmount] = useState('1');
 
-  /* ─── Refresh trigger ─── */
-  const [refreshKey, setRefreshKey] = useState(0);
-  const refreshData = useCallback(() => setRefreshKey((k) => k + 1), []);
+  /* ─── Map currencies from ERPNext data ─── */
+  const currencies = useMemo(() => {
+    const mapped: Currency[] = currencyRows.map((r) => {
+      const display = getCurrencyDisplay(r.name);
+      // Find the latest exchange rate for this currency → YER
+      const rateToYER = exchangeRows.find(
+        (e) => e.from_currency === r.name && e.to_currency === 'YER'
+      );
+      const rateFromYER = exchangeRows.find(
+        (e) => e.from_currency === 'YER' && e.to_currency === r.name
+      );
+      const buyRate = rateToYER?.exchange_rate ?? (r.name === 'YER' ? 1 : 0);
+      const sellRate = buyRate > 0 ? buyRate * 1.002 : 0;
+      return {
+        code: r.name,
+        nameAr: display.nameAr,
+        nameEn: display.nameEn,
+        symbol: display.symbol,
+        buyRate,
+        sellRate: rateFromYER ? 1 / rateFromYER.exchange_rate : sellRate,
+        lastUpdate: rateToYER?.date ?? new Date().toISOString(),
+        source: rateToYER ? 'API' : 'يدوي' as const,
+        active: r.enabled === 1,
+      };
+    });
 
-  /* ─── Fetch data from ERPNext API ─── */
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoading(true);
+    // If no currencies returned, seed with YER at least
+    if (mapped.length === 0) {
+      mapped.push({
+        code: 'YER',
+        nameAr: 'ريال يمني',
+        nameEn: 'Yemeni Rial',
+        symbol: '﷼',
+        buyRate: 1,
+        sellRate: 1,
+        lastUpdate: new Date().toISOString(),
+        source: 'يدوي',
+        active: true,
+      });
+    }
 
-        // Fetch currencies
-        const curRes = await fetch(
-          '/api/data/Currency?fields=["name","enabled","fraction","fraction_units","number_format","smallest_currency_fraction_value"]&limit_page_length=100'
-        );
-        let curRows: ErpCurrencyRow[] = [];
-        if (curRes.ok) {
-          const curJson = await curRes.json();
-          curRows = curJson.data ?? curJson ?? [];
-        }
+    return mapped;
+  }, [currencyRows, exchangeRows]);
 
-        // Fetch exchange rates
-        const exRes = await fetch(
-          '/api/data/Currency Exchange?fields=["name","from_currency","to_currency","exchange_rate","date"]&limit_page_length=100&order_by=date desc'
-        );
-        let exRows: ErpExchangeRow[] = [];
-        if (exRes.ok) {
-          const exJson = await exRes.json();
-          exRows = exJson.data ?? exJson ?? [];
-        }
+  /* ─── Map exchange rates ─── */
+  const exchangeRates: ExchangeRate[] = useMemo(
+    () => exchangeRows.map((r) => ({
+      name: r.name,
+      from_currency: r.from_currency,
+      to_currency: r.to_currency,
+      exchange_rate: r.exchange_rate,
+      date: r.date,
+    })),
+    [exchangeRows]
+  );
 
-        // Map currencies
-        const mappedCurrencies: Currency[] = curRows.map((r) => {
-          const display = getCurrencyDisplay(r.name);
-          // Find the latest exchange rate for this currency → YER
-          const rateToYER = exRows.find(
-            (e) => e.from_currency === r.name && e.to_currency === 'YER'
-          );
-          const rateFromYER = exRows.find(
-            (e) => e.from_currency === 'YER' && e.to_currency === r.name
-          );
-          const buyRate = rateToYER?.exchange_rate ?? (r.name === 'YER' ? 1 : 0);
-          const sellRate = buyRate > 0 ? buyRate * 1.002 : 0; // approximate sell from buy
-          return {
-            code: r.name,
-            nameAr: display.nameAr,
-            nameEn: display.nameEn,
-            symbol: display.symbol,
-            buyRate,
-            sellRate: rateFromYER ? 1 / rateFromYER.exchange_rate : sellRate,
-            lastUpdate: rateToYER?.date ?? new Date().toISOString(),
-            source: rateToYER ? 'API' : 'يدوي',
-            active: r.enabled === 1,
-          };
+  /* ─── Compute REAL exchange gain/loss from Journal Entries ─── */
+  const exchangeEntries: ExchangeEntry[] = useMemo(() => {
+    const entries: ExchangeEntry[] = [];
+
+    // Group JE account rows by parent (Journal Entry)
+    const jeAccountMap = new Map<string, Record<string, unknown>[]>();
+    for (const acct of jeAccountRows) {
+      const parent = String(acct.parent ?? '');
+      if (!jeAccountMap.has(parent)) jeAccountMap.set(parent, []);
+      jeAccountMap.get(parent)!.push(acct);
+    }
+
+    // For each multi-currency JE, compute exchange gain/loss
+    for (const je of jeRows) {
+      const jeName = String(je.name ?? '');
+      const accounts = jeAccountMap.get(jeName) ?? [];
+      const postingDate = String(je.posting_date ?? '');
+
+      for (const acct of accounts) {
+        const currency = String(acct.currency ?? '');
+        // Only consider non-YER currencies
+        if (!currency || currency === 'YER') continue;
+
+        const exchangeRate = Number(acct.exchange_rate ?? 0);
+        const debitInAcctCurrency = Number(acct.debit_in_account_currency ?? 0);
+        const creditInAcctCurrency = Number(acct.credit_in_account_currency ?? 0);
+        const debitBase = Number(acct.debit ?? 0);
+        const creditBase = Number(acct.credit ?? 0);
+
+        // If the account has a non-YER currency and has amounts
+        const originalAmount = Math.abs(debitInAcctCurrency || creditInAcctCurrency);
+        if (originalAmount === 0 || exchangeRate === 0) continue;
+
+        // Find the current exchange rate for this currency
+        const currentRate = exchangeRows.find(
+          (e) => e.from_currency === currency && e.to_currency === 'YER'
+        )?.exchange_rate ?? exchangeRate;
+
+        // Compute difference: (current rate - entry rate) * original amount
+        const rateDiff = currentRate - exchangeRate;
+        const diffAmount = Math.round(rateDiff * originalAmount * 100) / 100;
+
+        // Only include if there's an actual difference
+        if (Math.abs(diffAmount) < 0.01) continue;
+
+        entries.push({
+          id: `${jeName}-${acct.name ?? ''}`,
+          date: postingDate,
+          doctype: 'قيد يومية',
+          docname: jeName,
+          currency,
+          originalAmount,
+          rateAtCreation: exchangeRate,
+          rateAtSettlement: currentRate,
+          difference: diffAmount,
+          type: diffAmount >= 0 ? 'ربح' : 'خسارة',
         });
-
-        // If no currencies returned, seed with YER at least
-        if (mappedCurrencies.length === 0) {
-          mappedCurrencies.push({
-            code: 'YER',
-            nameAr: 'ريال يمني',
-            nameEn: 'Yemeni Rial',
-            symbol: '﷼',
-            buyRate: 1,
-            sellRate: 1,
-            lastUpdate: new Date().toISOString(),
-            source: 'يدوي',
-            active: true,
-          });
-        }
-
-        if (!cancelled) {
-          setCurrencies(mappedCurrencies);
-
-          // Map exchange rates
-          const mappedExchangeRates: ExchangeRate[] = exRows.map((r) => ({
-            name: r.name,
-            from_currency: r.from_currency,
-            to_currency: r.to_currency,
-            exchange_rate: r.exchange_rate,
-            date: r.date,
-          }));
-          setExchangeRates(mappedExchangeRates);
-
-          // Derive exchange gain/loss entries from the exchange rates
-          const entries: ExchangeEntry[] = exRows.map((r, i) => {
-            const isGain = Math.random() > 0.45;
-            const diff = isGain
-              ? Math.round(r.exchange_rate * 10 * (Math.random() * 5))
-              : -Math.round(r.exchange_rate * 10 * (Math.random() * 5));
-            return {
-              id: r.name || `EX-${i}`,
-              date: r.date,
-              doctype: 'سعر صرف',
-              docname: r.name,
-              currency: r.from_currency,
-              originalAmount: 1000,
-              rateAtCreation: r.exchange_rate,
-              rateAtSettlement: r.exchange_rate * (1 + (Math.random() - 0.5) * 0.004),
-              difference: diff,
-              type: diff >= 0 ? 'ربح' : 'خسارة',
-            };
-          });
-          setExchangeEntries(entries);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          toast({ title: 'خطأ في تحميل البيانات', description: String(err), variant: 'destructive' });
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
       }
-    })();
-    return () => { cancelled = true; };
-  }, [refreshKey]);
+    }
+
+    return entries;
+  }, [jeRows, jeAccountRows, exchangeRows]);
 
   /* ── KPI Calculations ── */
   const activeCurrenciesCount = useMemo(
@@ -282,15 +337,10 @@ export default function MultiCurrencyPage() {
       const currency = currencies.find((c) => c.code === code);
       if (!currency) return;
       const newActive = !currency.active;
-      // Optimistic update
-      setCurrencies((prev) =>
-        prev.map((c) => (c.code === code ? { ...c, active: newActive } : c))
-      );
       try {
-        await fetch(`/api/data/Currency/${code}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ enabled: newActive ? 1 : 0 }),
+        await updateCurrencyMutation.mutateAsync({
+          name: code,
+          doc: { enabled: newActive ? 1 : 0 },
         });
         toast({
           title: currency.active ? 'تم تعطيل العملة' : 'تم تفعيل العملة',
@@ -298,13 +348,9 @@ export default function MultiCurrencyPage() {
         });
       } catch (err) {
         toast({ title: 'خطأ', description: String(err), variant: 'destructive' });
-        // Revert
-        setCurrencies((prev) =>
-          prev.map((c) => (c.code === code ? { ...c, active: !newActive } : c))
-        );
       }
     },
-    [currencies, toast]
+    [currencies, updateCurrencyMutation, toast]
   );
 
   const handleOpenEdit = useCallback((currency: Currency) => {
@@ -323,62 +369,42 @@ export default function MultiCurrencyPage() {
       return;
     }
 
-    setSaving(true);
     try {
-      // Create a Currency Exchange entry via API
       const today = new Date().toISOString().slice(0, 10);
 
       // Save buy rate (currency → YER)
-      await fetch('/api/data/Currency Exchange', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          doctype: 'Currency Exchange',
-          from_currency: editingCurrency.code,
-          to_currency: 'YER',
-          exchange_rate: buy,
-          date: today,
-        }),
+      await createExchangeMutation.mutateAsync({
+        doctype: 'Currency Exchange',
+        from_currency: editingCurrency.code,
+        to_currency: 'YER',
+        exchange_rate: buy,
+        date: today,
       });
 
       // Save sell rate (YER → currency)
       if (sell > 0) {
-        await fetch('/api/data/Currency Exchange', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            doctype: 'Currency Exchange',
-            from_currency: 'YER',
-            to_currency: editingCurrency.code,
-            exchange_rate: 1 / sell,
-            date: today,
-          }),
+        await createExchangeMutation.mutateAsync({
+          doctype: 'Currency Exchange',
+          from_currency: 'YER',
+          to_currency: editingCurrency.code,
+          exchange_rate: 1 / sell,
+          date: today,
         });
       }
 
       toast({ title: 'تم تحديث السعر', description: `${editingCurrency.nameAr} (${editingCurrency.code})` });
       setEditDialogOpen(false);
       setEditingCurrency(null);
-      refreshData();
     } catch (err) {
       toast({ title: 'خطأ', description: String(err), variant: 'destructive' });
-    } finally {
-      setSaving(false);
     }
-  }, [editingCurrency, editBuyRate, editSellRate, refreshData, toast]);
+  }, [editingCurrency, editBuyRate, editSellRate, createExchangeMutation, toast]);
 
   const handleUpdateRates = useCallback(async () => {
-    setUpdatingRates(true);
-    try {
-      // Refresh data from ERPNext
-      refreshData();
-      toast({ title: 'تم تحديث الأسعار', description: 'تم جلب الأسعار من ERPNext بنجاح' });
-    } catch (err) {
-      toast({ title: 'خطأ في تحديث الأسعار', description: String(err), variant: 'destructive' });
-    } finally {
-      setUpdatingRates(false);
-    }
-  }, [refreshData, toast]);
+    refetchCurrencies();
+    refetchExchange();
+    toast({ title: 'تم تحديث الأسعار', description: 'تم جلب الأسعار من ERPNext بنجاح' });
+  }, [refetchCurrencies, refetchExchange, toast]);
 
   /* ── Conversion Logic ── */
 
@@ -424,6 +450,10 @@ export default function MultiCurrencyPage() {
     () => currencies.filter((c) => c.active),
     [currencies]
   );
+
+  const loading = curLoading || exLoading || jeLoading || jeAcctLoading;
+  const error = curError || exError;
+  const saving = createExchangeMutation.isPending;
 
   /* ── DataTable Columns ── */
 
@@ -569,7 +599,7 @@ export default function MultiCurrencyPage() {
       },
       {
         key: 'rateAtSettlement',
-        header: 'السعر عند التسوية',
+        header: 'السعر الحالي',
         sortable: true,
         render: (_v, row: ExchangeEntry) => (
           <span className="tabular-nums text-muted-foreground">
@@ -641,14 +671,16 @@ export default function MultiCurrencyPage() {
               size="sm"
               className="gap-1.5"
               onClick={handleUpdateRates}
-              disabled={updatingRates}
+              disabled={loading}
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${updatingRates ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
               تحديث الأسعار
             </Button>
           </div>
         }
       />
+
+      <ListQueryAlert error={error} onRetry={() => { refetchCurrencies(); refetchExchange(); }} />
 
       {/* KPI Strip */}
       <KpiStrip cols={4}>
@@ -913,6 +945,16 @@ export default function MultiCurrencyPage() {
             printTitle="أرباح وخسائر التحويل"
             getRowId={(row) => (row as ExchangeEntry).id}
           />
+
+          {exchangeEntries.length === 0 && (
+            <Card className="border-border/40">
+              <CardContent className="p-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  لا توجد أرباح أو خسائر تحويل حالياً. تظهر هذه البيانات عند وجود قيود يومية متعددة العملات مع فروق أسعار صرف.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 

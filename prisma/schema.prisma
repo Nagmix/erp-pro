@@ -55,3 +55,47 @@ model DeveloperPortalBackup {
   payload   String
   updatedAt DateTime @updatedAt
 }
+
+/// إقرارات ضريبية ربع سنوية — تخزين محلي (M-23).
+model TaxDeclaration {
+  id               String   @id @default(cuid())
+  quarter          String
+  year             Int
+  filingDate       String
+  declarationType  String
+  taxableSales     Float    @default(0)
+  taxablePurchases Float    @default(0)
+  salesTax         Float    @default(0)
+  purchaseTax      Float    @default(0)
+  netTaxPayable    Float    @default(0)
+  status           String   @default("مسودة")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+/// سجلات ضريبة الاستقطاع — تخزين محلي (M-23).
+model WithholdingEntry {
+  id               String   @id @default(cuid())
+  supplier         String
+  invoiceNo        String   @default("")
+  amount           Float    @default(0)
+  withholdingRate  Float    @default(0)
+  withheldAmount   Float    @default(0)
+  paymentStatus    String   @default("غير مدفوع")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+/// صلاحيات الخزائن — تخزين محلي (M-23).
+model VaultPermission {
+  id          String   @id @default(cuid())
+  employeeId  String
+  vaultId     String
+  canDeposit  Boolean  @default(false)
+  canWithdraw Boolean  @default(false)
+  canView     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([employeeId, vaultId])
+}

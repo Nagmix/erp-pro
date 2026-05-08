@@ -42,10 +42,6 @@ export const SYSTEM_MODULES: SystemModule[] = [
           { id: 'op-bank-reconciliation', nameAr: 'التسوية البنكية', path: '/accounting/bank-reconciliation' },
           { id: 'op-recurring-entries', nameAr: 'القيود المتكررة', path: '/accounting/recurring-entries' },
           { id: 'op-vault-permissions', nameAr: 'صلاحيات الخزائن', path: '/accounting/vault-permissions' },
-<<<<<<< HEAD
-          { id: 'op-cheque-books', nameAr: 'دفاتر الشيكات', path: '/accounting/cheque-books' },
-=======
->>>>>>> b42e1aa (feat: الفجوات المتبقية - 9 صفحات جديدة)
         ],
       },
       {

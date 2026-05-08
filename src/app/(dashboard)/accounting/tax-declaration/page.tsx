@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useSyncExternalStore, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { DataTable, type Column } from '@/components/erp/data-table';
@@ -39,6 +39,7 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { useDocList } from '@/lib/client/hooks';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency, formatDate } from '@/lib/app-format';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FileText,
   Calculator,
@@ -48,11 +49,8 @@ import {
   Receipt,
   Banknote,
   ClipboardCheck,
+  Loader2,
 } from 'lucide-react';
-
-/* ─── localStorage Keys ─── */
-const LS_DECLARATIONS = 'erp_tax_declarations';
-const LS_WITHHOLDING = 'erp_withholding_tax';
 
 /* ─── Types ─── */
 type TaxDeclaration = {
@@ -102,29 +100,116 @@ const DECL_TYPE_OPTIONS = [
   { value: 'zero', label: 'صفري' },
 ];
 
-function uid(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+/* ─── API helpers for local storage ─── */
+async function fetchDeclarations(): Promise<TaxDeclaration[]> {
+  const res = await fetch('/api/accounting/tax-declarations');
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'فشل تحميل الإقرارات');
+  return json.data ?? [];
 }
 
-function loadJson<T>(key: string, fallback: T): T {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
+async function createDeclarationAPI(data: Omit<TaxDeclaration, 'id'>): Promise<TaxDeclaration> {
+  const res = await fetch('/api/accounting/tax-declarations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'فشل إنشاء الإقرار');
+  return json.data;
 }
 
-const emptySubscribe = () => () => {};
+async function updateDeclarationAPI(data: Partial<TaxDeclaration> & { id: string }): Promise<TaxDeclaration> {
+  const res = await fetch('/api/accounting/tax-declarations', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'فشل تحديث الإقرار');
+  return json.data;
+}
+
+async function fetchWithholdings(): Promise<WithholdingEntry[]> {
+  const res = await fetch('/api/accounting/withholding');
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'فشل تحميل سجلات الاستقطاع');
+  return json.data ?? [];
+}
+
+async function createWithholdingAPI(data: Omit<WithholdingEntry, 'id'>): Promise<WithholdingEntry> {
+  const res = await fetch('/api/accounting/withholding', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'فشل إنشاء سجل الاستقطاع');
+  return json.data;
+}
+
+async function deleteWithholdingAPI(id: string): Promise<void> {
+  const res = await fetch(`/api/accounting/withholding?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'فشل حذف سجل الاستقطاع');
+}
 
 export default function TaxDeclarationPage() {
   const { toast } = useToast();
   const { company } = useDefaultCompanyName();
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const queryClient = useQueryClient();
 
-  // Declarations
-  const [declarations, setDeclarations] = useState<TaxDeclaration[]>(() => loadJson(LS_DECLARATIONS, []));
+  // ─── Declarations (from local DB via API) ───
+  const {
+    data: declarations = [],
+    isLoading: declLoading,
+    error: declError,
+    refetch: refetchDeclarations,
+  } = useQuery({
+    queryKey: ['taxDeclarations'],
+    queryFn: fetchDeclarations,
+  });
+
+  const createDeclMutation = useMutation({
+    mutationFn: createDeclarationAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taxDeclarations'] });
+    },
+  });
+
+  const updateDeclMutation = useMutation({
+    mutationFn: updateDeclarationAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['taxDeclarations'] });
+    },
+  });
+
+  // ─── Withholding entries (from local DB via API) ───
+  const {
+    data: withholdings = [],
+    isLoading: whLoading,
+    error: whError,
+    refetch: refetchWithholdings,
+  } = useQuery({
+    queryKey: ['withholdingEntries'],
+    queryFn: fetchWithholdings,
+  });
+
+  const createWhMutation = useMutation({
+    mutationFn: createWithholdingAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['withholdingEntries'] });
+    },
+  });
+
+  const deleteWhMutation = useMutation({
+    mutationFn: deleteWithholdingAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['withholdingEntries'] });
+    },
+  });
+
+  // Declarations form state
   const [declDialog, setDeclDialog] = useState(false);
   const [declForm, setDeclForm] = useState({
     quarter: 'Q1',
@@ -137,8 +222,7 @@ export default function TaxDeclarationPage() {
   const [reportFrom, setReportFrom] = useState('');
   const [reportTo, setReportTo] = useState('');
 
-  // Withholding
-  const [withholdings, setWithholdings] = useState<WithholdingEntry[]>(() => loadJson(LS_WITHHOLDING, []));
+  // Withholding form state
   const [whDialog, setWhDialog] = useState(false);
   const [whForm, setWhForm] = useState<Partial<WithholdingEntry>>({});
   const [whDeleteOpen, setWhDeleteOpen] = useState(false);
@@ -256,8 +340,7 @@ export default function TaxDeclarationPage() {
 
   // ─── Declaration Actions ───
   const createDeclaration = () => {
-    const newDecl: TaxDeclaration = {
-      id: uid(),
+    createDeclMutation.mutate({
       quarter: declForm.quarter,
       year: declForm.year,
       filingDate: declForm.filingDate,
@@ -268,21 +351,29 @@ export default function TaxDeclarationPage() {
       purchaseTax: totalPurchaseTax,
       netTaxPayable,
       status: 'مسودة',
-    };
-    const updated = [newDecl, ...declarations];
-    setDeclarations(updated);
-    localStorage.setItem(LS_DECLARATIONS, JSON.stringify(updated));
-    setDeclDialog(false);
-    toast({ title: 'تم إنشاء الإقرار الضريبي' });
+    }, {
+      onSuccess: () => {
+        setDeclDialog(false);
+        toast({ title: 'تم إنشاء الإقرار الضريبي' });
+      },
+      onError: (err) => {
+        toast({ title: 'خطأ', description: err.message, variant: 'destructive' });
+      },
+    });
   };
 
   const submitDeclaration = (decl: TaxDeclaration) => {
-    const updated = declarations.map((d) =>
-      d.id === decl.id ? { ...d, status: 'مقدّم' as const } : d
-    );
-    setDeclarations(updated);
-    localStorage.setItem(LS_DECLARATIONS, JSON.stringify(updated));
-    toast({ title: `تم تقديم الإقرار ${decl.quarter}-${decl.year}` });
+    updateDeclMutation.mutate({
+      id: decl.id,
+      status: 'مقدّم',
+    }, {
+      onSuccess: () => {
+        toast({ title: `تم تقديم الإقرار ${decl.quarter}-${decl.year}` });
+      },
+      onError: (err) => {
+        toast({ title: 'خطأ', description: err.message, variant: 'destructive' });
+      },
+    });
   };
 
   const printDeclaration = (decl: TaxDeclaration) => {
@@ -327,30 +418,36 @@ export default function TaxDeclarationPage() {
     }
     const amt = Number(whForm.amount) || 0;
     const rate = Number(whForm.withholdingRate) || 0;
-    const entry: WithholdingEntry = {
-      id: uid(),
+    createWhMutation.mutate({
       supplier: whForm.supplier!,
       invoiceNo: whForm.invoiceNo ?? '',
       amount: amt,
       withholdingRate: rate,
       withheldAmount: Math.round((amt * rate) / 100 * 100) / 100,
       paymentStatus: whForm.paymentStatus ?? 'غير مدفوع',
-    };
-    const updated = [entry, ...withholdings];
-    setWithholdings(updated);
-    localStorage.setItem(LS_WITHHOLDING, JSON.stringify(updated));
-    setWhDialog(false);
-    toast({ title: 'تم إنشاء سجل ضريبة الاستقطاع' });
+    }, {
+      onSuccess: () => {
+        setWhDialog(false);
+        toast({ title: 'تم إنشاء سجل ضريبة الاستقطاع' });
+      },
+      onError: (err) => {
+        toast({ title: 'خطأ', description: err.message, variant: 'destructive' });
+      },
+    });
   };
 
   const confirmDeleteWh = () => {
     if (!whToDelete) return;
-    const updated = withholdings.filter((w) => w.id !== whToDelete.id);
-    setWithholdings(updated);
-    localStorage.setItem(LS_WITHHOLDING, JSON.stringify(updated));
-    setWhDeleteOpen(false);
-    setWhToDelete(null);
-    toast({ title: 'تم حذف سجل ضريبة الاستقطاع' });
+    deleteWhMutation.mutate(whToDelete.id, {
+      onSuccess: () => {
+        setWhDeleteOpen(false);
+        setWhToDelete(null);
+        toast({ title: 'تم حذف سجل ضريبة الاستقطاع' });
+      },
+      onError: (err) => {
+        toast({ title: 'خطأ', description: err.message, variant: 'destructive' });
+      },
+    });
   };
 
   // ─── DataTable Columns ───
@@ -442,9 +539,7 @@ export default function TaxDeclarationPage() {
   );
 
   const loading = loadingSales || loadingPurch;
-  const error = salesError || purchError;
-
-  if (!mounted) return null;
+  const error = salesError || purchError || declError || whError;
 
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
@@ -456,7 +551,7 @@ export default function TaxDeclarationPage() {
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'الإقرار الضريبي' }]}
       />
 
-      <ListQueryAlert error={error} onRetry={() => { refetchSales(); refetchPurch(); }} />
+      <ListQueryAlert error={error} onRetry={() => { refetchSales(); refetchPurch(); refetchDeclarations(); refetchWithholdings(); }} />
 
       <Tabs defaultValue="declaration" className="space-y-4">
         <TabsList>
@@ -610,8 +705,8 @@ export default function TaxDeclarationPage() {
                 </div>
               </div>
 
-              <Button size="sm" onClick={createDeclaration}>
-                <Plus className="h-3.5 w-3.5 me-1.5" />
+              <Button size="sm" onClick={createDeclaration} disabled={createDeclMutation.isPending}>
+                {createDeclMutation.isPending ? <Loader2 className="h-3.5 w-3.5 me-1.5 animate-spin" /> : <Plus className="h-3.5 w-3.5 me-1.5" />}
                 إنشاء الإقرار
               </Button>
             </CardContent>
@@ -623,6 +718,7 @@ export default function TaxDeclarationPage() {
             columns={declColumns}
             tableId="tax-declarations"
             searchable
+            loading={declLoading}
             exportFileName="الإقرارات-الضريبية"
             onView={(row) => {
               if (row.status === 'مسودة') submitDeclaration(row);
@@ -703,6 +799,7 @@ export default function TaxDeclarationPage() {
             columns={whColumns}
             tableId="withholding-tax"
             searchable
+            loading={whLoading}
             addLabel="إنشاء سجل"
             onAdd={openCreateWithholding}
             onDelete={(row) => {
@@ -823,7 +920,8 @@ export default function TaxDeclarationPage() {
             <Button variant="outline" size="sm" onClick={() => setWhDialog(false)}>
               إلغاء
             </Button>
-            <Button size="sm" onClick={saveWithholding}>
+            <Button size="sm" onClick={saveWithholding} disabled={createWhMutation.isPending}>
+              {createWhMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin me-1" /> : null}
               إنشاء
             </Button>
           </DialogFooter>
@@ -840,9 +938,9 @@ export default function TaxDeclarationPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={confirmDeleteWh}>
-              حذف
+            <AlertDialogCancel disabled={deleteWhMutation.isPending}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={confirmDeleteWh} disabled={deleteWhMutation.isPending}>
+              {deleteWhMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

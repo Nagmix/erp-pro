@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { KpiStrip } from '@/components/erp/page-header';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ExportButton } from '@/components/erp/export-button';
 import { formatCurrency } from '@/lib/core/helpers';
-import { useDocList } from '@/lib/client/hooks';
+import { useDocList, useErpMethodCall } from '@/lib/client/hooks';
 import {
   ArrowUpLeft,
   ArrowDownLeft,
@@ -20,6 +21,7 @@ import {
   Building2,
   Landmark,
   RefreshCw,
+  Info,
 } from 'lucide-react';
 import {
   BarChart,
@@ -48,7 +50,7 @@ export default function CashFlowPage() {
   const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0]);
 
   // Fetch Payment Entries for operating flows
-  const { data: payments = [], isLoading: paymentsLoading, refetch: refetchPayments } = useDocList<Record<string, unknown>>('Payment Entry', {
+  const { data: payments = [], isLoading: paymentsLoading, refetch: refetchPayments, error: paymentsError } = useDocList<Record<string, unknown>>('Payment Entry', {
     fields: ['name', 'payment_type', 'posting_date', 'paid_amount', 'party_type', 'party_name', 'mode_of_payment'],
     filters: [
       ['docstatus', '=', '1'],
@@ -60,8 +62,8 @@ export default function CashFlowPage() {
   });
 
   // Fetch Journal Entries for investing/financing flows
-  const { data: journals = [], isLoading: journalsLoading, refetch: refetchJournals } = useDocList<Record<string, unknown>>('Journal Entry', {
-    fields: ['name', 'posting_date', 'total_debit', 'total_credit', 'voucher_type'],
+  const { data: journals = [], isLoading: journalsLoading, refetch: refetchJournals, error: journalsError } = useDocList<Record<string, unknown>>('Journal Entry', {
+    fields: ['name', 'posting_date', 'total_debit', 'total_credit', 'voucher_type', 'user_remark'],
     filters: [
       ['docstatus', '=', '1'],
       ['posting_date', '>=', dateFrom],
@@ -72,7 +74,7 @@ export default function CashFlowPage() {
   });
 
   // Fetch Sales Invoices for operating inflows
-  const { data: salesInvoices = [], isLoading: siLoading } = useDocList<Record<string, unknown>>('Sales Invoice', {
+  const { data: salesInvoices = [], isLoading: siLoading, error: siError } = useDocList<Record<string, unknown>>('Sales Invoice', {
     fields: ['name', 'posting_date', 'grand_total'],
     filters: [
       ['docstatus', '=', '1'],
@@ -84,7 +86,7 @@ export default function CashFlowPage() {
   });
 
   // Fetch Purchase Invoices for operating outflows
-  const { data: purchaseInvoices = [], isLoading: piLoading } = useDocList<Record<string, unknown>>('Purchase Invoice', {
+  const { data: purchaseInvoices = [], isLoading: piLoading, error: piError } = useDocList<Record<string, unknown>>('Purchase Invoice', {
     fields: ['name', 'posting_date', 'grand_total'],
     filters: [
       ['docstatus', '=', '1'],
@@ -95,9 +97,52 @@ export default function CashFlowPage() {
     order_by: 'posting_date desc',
   });
 
-  const loading = paymentsLoading || journalsLoading || siLoading || piLoading;
+  // Fetch GL Entries to categorize Journal Entries into investing/financing
+  const { data: glEntries = [], isLoading: glLoading, error: glError } = useDocList<Record<string, unknown>>('GL Entry', {
+    fields: ['name', 'account', 'debit', 'credit', 'voucher_no', 'posting_date', 'against_voucher'],
+    filters: [
+      ['docstatus', '=', '1'],
+      ['posting_date', '>=', dateFrom],
+      ['posting_date', '<=', dateTo],
+      ['voucher_type', '=', 'Journal Entry'],
+    ],
+    limit: 1000,
+    order_by: 'posting_date desc',
+  });
 
-  // Calculate cash flow sections
+  // Fetch Account root types to classify GL entries
+  const { data: accountsRaw = [], isLoading: accountsLoading } = useDocList<Record<string, unknown>>('Account', {
+    fields: ['name', 'root_type', 'account_type'],
+    limit: 500,
+  });
+
+  // Build account → root_type map
+  const accountRootTypeMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const a of accountsRaw) {
+      map.set(String(a.name), String(a.root_type ?? ''));
+    }
+    return map;
+  }, [accountsRaw]);
+
+  // Get opening balance via method call (bank/cash account balance at dateFrom)
+  const { data: openingBalResult } = useErpMethodCall<{ message: { balance: number } }>(['Account']);
+  // We'll compute opening balance from bank/cash accounts
+
+  // Fetch Account balances for opening balance
+  const { data: bankCashAccounts = [] } = useDocList<Record<string, unknown>>('Account', {
+    fields: ['name', 'account_name', 'account_type'],
+    or_filters: [
+      ['account_type', '=', 'Bank'],
+      ['account_type', '=', 'Cash'],
+    ],
+    limit: 100,
+  });
+
+  const loading = paymentsLoading || journalsLoading || siLoading || piLoading || glLoading || accountsLoading;
+  const error = paymentsError || journalsError || siError || piError || glError;
+
+  // Calculate cash flow sections using REAL data
   const operatingInflows = useMemo(() =>
     payments
       .filter(p => String(p.payment_type) === 'Receive')
@@ -122,22 +167,85 @@ export default function CashFlowPage() {
     [purchaseInvoices]
   );
 
-  const journalTotal = useMemo(() =>
-    journals.reduce((sum, je) => sum + Number(je.total_debit ?? 0), 0),
-    [journals]
-  );
+  // Classify Journal Entry GL entries into investing/financing based on account root types
+  const { investingInflows, investingOutflows, financingInflows, financingOutflows } = useMemo(() => {
+    let invIn = 0, invOut = 0, finIn = 0, finOut = 0;
 
-  // Estimated sections
+    // Group GL entries by voucher_no (Journal Entry)
+    const jeMap = new Map<string, { debits: { account: string; amount: number }[]; credits: { account: string; amount: number }[] }>();
+
+    for (const gl of glEntries) {
+      const voucherNo = String(gl.voucher_no ?? '');
+      if (!jeMap.has(voucherNo)) {
+        jeMap.set(voucherNo, { debits: [], credits: [] });
+      }
+      const entry = jeMap.get(voucherNo)!;
+      const debit = Number(gl.debit ?? 0);
+      const credit = Number(gl.credit ?? 0);
+      const account = String(gl.account ?? '');
+
+      if (debit > 0) {
+        entry.debits.push({ account, amount: debit });
+      }
+      if (credit > 0) {
+        entry.credits.push({ account, amount: credit });
+      }
+    }
+
+    // For each Journal Entry, classify based on the accounts involved
+    // - If an Asset account (root_type=Asset, not Bank/Cash) is debited → investing outflow (buying assets)
+    // - If an Asset account (root_type=Asset, not Bank/Cash) is credited → investing inflow (selling assets)
+    // - If a Liability or Equity account is credited → financing inflow (loans, capital)
+    // - If a Liability or Equity account is debited → financing outflow (repaying loans)
+    for (const [, entry] of jeMap) {
+      for (const d of entry.debits) {
+        const rootType = accountRootTypeMap.get(d.account) ?? '';
+        if (rootType === 'Asset') {
+          const acctInfo = accountsRaw.find(a => String(a.name) === d.account);
+          const acctType = String(acctInfo?.account_type ?? '');
+          // Skip Bank/Cash accounts - those are the cash effect itself
+          if (acctType !== 'Bank' && acctType !== 'Cash') {
+            invOut += d.amount;
+          }
+        } else if (rootType === 'Liability' || rootType === 'Equity') {
+          finOut += d.amount;
+        }
+      }
+      for (const c of entry.credits) {
+        const rootType = accountRootTypeMap.get(c.account) ?? '';
+        if (rootType === 'Asset') {
+          const acctInfo = accountsRaw.find(a => String(a.name) === c.account);
+          const acctType = String(acctInfo?.account_type ?? '');
+          if (acctType !== 'Bank' && acctType !== 'Cash') {
+            invIn += c.amount;
+          }
+        } else if (rootType === 'Liability' || rootType === 'Equity') {
+          finIn += c.amount;
+        }
+      }
+    }
+
+    return {
+      investingInflows: Math.round(invIn),
+      investingOutflows: Math.round(invOut),
+      financingInflows: Math.round(finIn),
+      financingOutflows: Math.round(finOut),
+    };
+  }, [glEntries, accountRootTypeMap, accountsRaw]);
+
   const operatingNet = operatingInflows - operatingOutflows + salesInflow - purchaseOutflow;
-  const investingInflows = Math.round(journalTotal * 0.1); // Estimated from asset accounts
-  const investingOutflows = Math.round(journalTotal * 0.15);
   const investingNet = investingInflows - investingOutflows;
-  const financingInflows = Math.round(journalTotal * 0.05); // Estimated from loan/equity accounts
-  const financingOutflows = Math.round(journalTotal * 0.08);
   const financingNet = financingInflows - financingOutflows;
-
   const netChange = operatingNet + investingNet + financingNet;
-  const openingBalance = 0; // Would need account balance query
+
+  // Opening balance: try to get from Account balance method, fallback to 0
+  const openingBalance = useMemo(() => {
+    // Sum up opening balances from bank/cash accounts if available
+    // This is a simplified approach - the actual balance would need a server-side method
+    // For now, we use 0 as the base but note it in the UI
+    return 0;
+  }, []);
+
   const closingBalance = openingBalance + netChange;
 
   // Summary rows
@@ -159,8 +267,33 @@ export default function CashFlowPage() {
       else months[m].operating -= amt;
     });
 
+    // Add JE-based investing/financing to chart
+    const jeMonthMap = new Map<string, { investing: number; financing: number }>();
+    for (const gl of glEntries) {
+      const m = String(gl.posting_date ?? '').slice(0, 7);
+      if (!jeMonthMap.has(m)) jeMonthMap.set(m, { investing: 0, financing: 0 });
+      const entry = jeMonthMap.get(m)!;
+      const debit = Number(gl.debit ?? 0);
+      const credit = Number(gl.credit ?? 0);
+      const rootType = accountRootTypeMap.get(String(gl.account ?? '')) ?? '';
+      const acctInfo = accountsRaw.find(a => String(a.name) === String(gl.account));
+      const acctType = String(acctInfo?.account_type ?? '');
+
+      if (rootType === 'Asset' && acctType !== 'Bank' && acctType !== 'Cash') {
+        entry.investing += credit - debit; // credit = inflow, debit = outflow
+      } else if (rootType === 'Liability' || rootType === 'Equity') {
+        entry.financing += credit - debit;
+      }
+    }
+
+    for (const [m, data] of jeMonthMap) {
+      if (!months[m]) months[m] = { month: m, operating: 0, investing: 0, financing: 0 };
+      months[m].investing += data.investing;
+      months[m].financing += data.financing;
+    }
+
     return Object.values(months).sort((a, b) => a.month.localeCompare(b.month));
-  }, [payments]);
+  }, [payments, glEntries, accountRootTypeMap, accountsRaw]);
 
   const handleRefresh = () => {
     refetchPayments();
@@ -204,6 +337,8 @@ export default function CashFlowPage() {
           </div>
         }
       />
+
+      <ListQueryAlert error={error} onRetry={handleRefresh} />
 
       {/* Date Range Selector */}
       <div className="flex flex-wrap items-end gap-3 p-4 rounded-[var(--radius-md-ui)] border border-border/40 bg-card">
@@ -276,6 +411,12 @@ export default function CashFlowPage() {
               <span>صافي التدفقات الاستثمارية</span>
               <span className={investingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{formatCurrency(investingNet)}</span>
             </div>
+            {investingInflows === 0 && investingOutflows === 0 && (
+              <div className="flex items-start gap-1.5 rounded-md bg-muted/30 p-2 text-[10px] text-muted-foreground">
+                <Info className="h-3 w-3 shrink-0 mt-0.5" />
+                <span>يُحسب من قيود اليومية ذات حسابات الأصول (غير النقدية)</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -300,6 +441,12 @@ export default function CashFlowPage() {
               <span>صافي التدفقات التمويلية</span>
               <span className={financingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{formatCurrency(financingNet)}</span>
             </div>
+            {financingInflows === 0 && financingOutflows === 0 && (
+              <div className="flex items-start gap-1.5 rounded-md bg-muted/30 p-2 text-[10px] text-muted-foreground">
+                <Info className="h-3 w-3 shrink-0 mt-0.5" />
+                <span>يُحسب من قيود اليومية ذات حسابات الخصوم وحقوق الملكية</span>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -351,6 +498,10 @@ export default function CashFlowPage() {
                 </tr>
               </tfoot>
             </table>
+          </div>
+          <div className="mt-2 flex items-start gap-1.5 text-[10px] text-muted-foreground">
+            <Info className="h-3 w-3 shrink-0 mt-0.5" />
+            <span>التدفقات الاستثمارية والتمويلية مبنية على تحليل حسابات قيود اليومية (أصول غير نقدية = استثمارية، خصوم/حقوق ملكية = تمويلية). رصيد الافتتاح يحتاج استعلام رصيد الحسابات البنكية/النقدية عند تاريخ البداية.</span>
           </div>
         </CardContent>
       </Card>

@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +38,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/app-format';
 import { cn } from '@/lib/utils';
+import {
+  useDocList,
+  useCreateDoc,
+  useUpdateDoc,
+  useDeleteDoc,
+} from '@/lib/client/hooks';
 import {
   Wallet,
   Plus,
@@ -96,30 +103,6 @@ type ErpBudgetAccountRow = {
 const PERIOD_OPTIONS: Budget['period'][] = ['سنوي', 'نصف سنوي', 'ربعي', 'شهري'];
 const STATUS_OPTIONS: Budget['status'][] = ['مسودة', 'نشط', 'مغلق', 'متجاوز'];
 
-const COST_CENTER_OPTIONS = [
-  'الإدارة العامة',
-  'المبيعات والتسويق',
-  'المشتريات',
-  'المخزون والمستودعات',
-  'الموارد البشرية',
-  'تقنية المعلومات',
-  'الإنتاج',
-  'البحث والتطوير',
-];
-
-const ACCOUNT_OPTIONS = [
-  { code: '5001', name: 'رواتب وأجور' },
-  { code: '5002', name: 'إيجارات' },
-  { code: '5003', name: 'مصروفات تشغيلية' },
-  { code: '5004', name: 'صيانة وإصلاح' },
-  { code: '5005', name: 'نقل وشحن' },
-  { code: '5006', name: 'مواد مكتبية' },
-  { code: '5007', name: 'إعلان وتسويق' },
-  { code: '5008', name: 'اتصالات وإنترنت' },
-  { code: '5009', name: 'سفر وضيافة' },
-  { code: '5010', name: 'تأمينات' },
-];
-
 /* ─── Status Color Mapping ─── */
 const BUDGET_STATUS_MAP: Record<string, string> = {
   'مسودة': 'Draft',
@@ -141,58 +124,115 @@ function getProgressTrackColor(pct: number): string {
   return 'bg-emerald-100 dark:bg-emerald-950/40';
 }
 
-/* ─── Map ERPNext row → UI Budget ─── */
-function mapErpRowToBudget(row: ErpBudgetRow, idx: number): Budget {
-  let accounts: ErpBudgetAccountRow[] = [];
-  if (Array.isArray(row.accounts)) {
-    accounts = row.accounts;
-  } else if (typeof row.accounts === 'string') {
-    try { accounts = JSON.parse(row.accounts); } catch { accounts = []; }
-  }
-
-  const distribution: BudgetDistribution[] = accounts.map((a) => {
-    const acctInfo = ACCOUNT_OPTIONS.find((ao) => ao.code === a.account);
-    return {
-      account: a.account,
-      accountName: acctInfo?.name ?? a.account,
-      amount: a.budget_amount ?? 0,
-      spent: 0,
-    };
-  });
-
-  const allocatedAmount = distribution.reduce((s, d) => s + d.amount, 0);
-
-  const statusMap: Record<number, Budget['status']> = {
-    0: 'مسودة',
-    1: 'نشط',
-    2: 'مغلق',
-  };
-
-  return {
-    id: row.name,
-    name: row.budget_against_name || row.name,
-    costCenter: row.budget_against_name || row.budget_against,
-    fiscalYear: row.fiscal_year,
-    period: 'سنوي',
-    allocatedAmount,
-    actualSpent: 0,
-    status: statusMap[row.docstatus ?? 0] ?? 'مسودة',
-    distribution,
-    createdAt: row.name,
-  };
-}
-
 /* ═══════════════════════════════════════════════════════════
    Main Component
    ═══════════════════════════════════════════════════════════ */
 export default function BudgetsPage() {
   const { toast } = useToast();
 
+  /* ─── Fetch Cost Centers dynamically ─── */
+  const {
+    data: costCentersRaw = [],
+    isLoading: ccLoading,
+  } = useDocList<Record<string, unknown>>('Cost Center', {
+    fields: ['name', 'cost_center_name'],
+    limit: 500,
+  });
+
+  const costCenterOptions = useMemo(
+    () => costCentersRaw.map((cc) => String(cc.cost_center_name || cc.name)),
+    [costCentersRaw]
+  );
+
+  /* ─── Fetch Expense Accounts dynamically ─── */
+  const {
+    data: expenseAccountsRaw = [],
+    isLoading: acctLoading,
+  } = useDocList<Record<string, unknown>>('Account', {
+    fields: ['name', 'account_name', 'account_type'],
+    filters: [['account_type', '=', 'Expense Account']],
+    limit: 500,
+  });
+
+  const accountOptions = useMemo(
+    () => expenseAccountsRaw.map((a) => ({
+      code: String(a.name),
+      name: String(a.account_name || a.name),
+    })),
+    [expenseAccountsRaw]
+  );
+
+  /* ─── Fetch Budgets from ERPNext via hooks ─── */
+  const {
+    data: budgetsRaw = [],
+    isLoading: budgetsLoading,
+    error: budgetsError,
+    refetch: refetchBudgets,
+  } = useDocList<ErpBudgetRow>('Budget', {
+    fields: [
+      'name',
+      'budget_against',
+      'budget_against_name',
+      'fiscal_year',
+      'company',
+      'monthly_distribution',
+      'action_if_annual_budget_exceeded',
+      'action_if_accumulated_monthly_budget_exceeded',
+      'docstatus',
+    ],
+    limit: 100,
+  });
+
+  /* ─── Mutations ─── */
+  const createBudgetMutation = useCreateDoc('Budget');
+  const updateBudgetMutation = useUpdateDoc('Budget');
+  const deleteBudgetMutation = useDeleteDoc('Budget');
+
+  /* ─── Map ERPNext rows → UI Budgets ─── */
+  const budgets = useMemo(
+    () => budgetsRaw.map((row) => {
+      let accounts: ErpBudgetAccountRow[] = [];
+      if (Array.isArray(row.accounts)) {
+        accounts = row.accounts;
+      } else if (typeof row.accounts === 'string') {
+        try { accounts = JSON.parse(row.accounts); } catch { accounts = []; }
+      }
+
+      const distribution: BudgetDistribution[] = accounts.map((a) => {
+        const acctInfo = accountOptions.find((ao) => ao.code === a.account);
+        return {
+          account: a.account,
+          accountName: acctInfo?.name ?? a.account,
+          amount: a.budget_amount ?? 0,
+          spent: 0,
+        };
+      });
+
+      const allocatedAmount = distribution.reduce((s, d) => s + d.amount, 0);
+
+      const statusMap: Record<number, Budget['status']> = {
+        0: 'مسودة',
+        1: 'نشط',
+        2: 'مغلق',
+      };
+
+      return {
+        id: row.name,
+        name: row.budget_against_name || row.name,
+        costCenter: row.budget_against_name || row.budget_against,
+        fiscalYear: row.fiscal_year,
+        period: 'سنوي' as Budget['period'],
+        allocatedAmount,
+        actualSpent: 0,
+        status: statusMap[row.docstatus ?? 0] ?? 'مسودة' as Budget['status'],
+        distribution,
+        createdAt: row.name,
+      };
+    }),
+    [budgetsRaw, accountOptions]
+  );
+
   /* ─── State ─── */
-  const [budgets, setBudgets] = useState<Budget[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -212,36 +252,6 @@ export default function BudgetsPage() {
   const [distribution, setDistribution] = useState<BudgetDistribution[]>([
     { account: '', accountName: '', amount: 0, spent: 0 },
   ]);
-
-  /* ─── Refresh trigger ─── */
-  const [refreshKey, setRefreshKey] = useState(0);
-  const refreshBudgets = useCallback(() => setRefreshKey((k) => k + 1), []);
-
-  /* ─── Fetch budgets from ERPNext ─── */
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(
-          '/api/data/Budget?fields=["name","budget_against","budget_against_name","fiscal_year","company","monthly_distribution","action_if_annual_budget_exceeded","action_if_accumulated_monthly_budget_exceeded","docstatus"]&limit_page_length=100'
-        );
-        if (!res.ok) throw new Error('فشل في جلب الميزانيات');
-        const json = await res.json();
-        const raw: ErpBudgetRow[] = json.data ?? json ?? [];
-        const mapped = raw.map((r, i) => mapErpRowToBudget(r, i));
-        if (!cancelled) setBudgets(mapped);
-      } catch (err) {
-        if (!cancelled) {
-          toast({ title: 'خطأ في تحميل الميزانيات', description: String(err), variant: 'destructive' });
-          setBudgets([]);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [refreshKey]);
 
   /* ─── Computed KPIs ─── */
   const totalBudgets = budgets.length;
@@ -297,78 +307,55 @@ export default function BudgetsPage() {
     }
 
     const validDistribution = distribution.filter((d) => d.account && d.amount > 0);
-    const docstatus = form.status === 'نشط' ? 1 : form.status === 'مغلق' ? 2 : 0;
 
-    setSaving(true);
     try {
       if (editingBudget) {
-        // Update
-        const body = {
-          doctype: 'Budget',
-          budget_against: 'Cost Center',
-          budget_against_name: form.costCenter,
-          fiscal_year: form.fiscalYear,
-          company: form.name,
-          docstatus,
-          accounts: validDistribution.map((d) => ({
-            account: d.account,
-            budget_amount: d.amount,
-          })),
-        };
-        const res = await fetch(`/api/data/Budget/${editingBudget.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
+        await updateBudgetMutation.mutateAsync({
+          name: editingBudget.id,
+          doc: {
+            doctype: 'Budget',
+            budget_against: 'Cost Center',
+            budget_against_name: form.costCenter,
+            fiscal_year: form.fiscalYear,
+            company: form.name,
+            accounts: validDistribution.map((d) => ({
+              account: d.account,
+              budget_amount: d.amount,
+            })),
+          },
         });
-        if (!res.ok) throw new Error('فشل في تحديث الميزانية');
         toast({ title: 'تم تحديث الميزانية بنجاح' });
       } else {
-        // Create
-        const body = {
+        await createBudgetMutation.mutateAsync({
           doctype: 'Budget',
           budget_against: 'Cost Center',
           budget_against_name: form.costCenter,
           fiscal_year: form.fiscalYear,
           company: form.name,
-          docstatus,
           accounts: validDistribution.map((d) => ({
             account: d.account,
             budget_amount: d.amount,
           })),
-        };
-        const res = await fetch('/api/data/Budget', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
         });
-        if (!res.ok) throw new Error('فشل في إنشاء الميزانية');
         toast({ title: 'تم إنشاء الميزانية بنجاح' });
       }
       setDialogOpen(false);
-      refreshBudgets();
     } catch (err) {
       toast({ title: 'خطأ', description: String(err), variant: 'destructive' });
-    } finally {
-      setSaving(false);
     }
-  }, [form, distribution, editingBudget, refreshBudgets, toast]);
+  }, [form, distribution, editingBudget, createBudgetMutation, updateBudgetMutation, toast]);
 
   const confirmDelete = useCallback(async () => {
     if (!toDelete) return;
-    setDeleting(true);
     try {
-      const res = await fetch(`/api/data/Budget/${toDelete.id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('فشل في حذف الميزانية');
+      await deleteBudgetMutation.mutateAsync(toDelete.id);
       setDeleteOpen(false);
       setToDelete(null);
       toast({ title: 'تم حذف الميزانية' });
-      refreshBudgets();
     } catch (err) {
       toast({ title: 'خطأ في الحذف', description: String(err), variant: 'destructive' });
-    } finally {
-      setDeleting(false);
     }
-  }, [toDelete, refreshBudgets, toast]);
+  }, [toDelete, deleteBudgetMutation, toast]);
 
   /* ─── Distribution Helpers ─── */
   const addDistRow = () =>
@@ -386,7 +373,7 @@ export default function BudgetsPage() {
 
       if (field === 'account') {
         const acctCode = String(value);
-        const acctInfo = ACCOUNT_OPTIONS.find((a) => a.code === acctCode);
+        const acctInfo = accountOptions.find((a) => a.code === acctCode);
         row.account = acctCode;
         row.accountName = acctInfo?.name ?? '';
       } else {
@@ -399,6 +386,10 @@ export default function BudgetsPage() {
   };
 
   const distTotal = useMemo(() => distribution.reduce((s, d) => s + d.amount, 0), [distribution]);
+
+  const saving = createBudgetMutation.isPending || updateBudgetMutation.isPending;
+  const deleting = deleteBudgetMutation.isPending;
+  const loading = budgetsLoading;
 
   /* ─── DataTable Columns ─── */
   const columns: Column<Budget>[] = useMemo(
@@ -541,6 +532,8 @@ export default function BudgetsPage() {
           </Button>
         }
       />
+
+      <ListQueryAlert error={budgetsError} onRetry={() => refetchBudgets()} />
 
       {/* ─── KPI Strip ─── */}
       <KpiStrip cols={4}>
@@ -852,7 +845,7 @@ export default function BudgetsPage() {
                     <SelectValue placeholder="اختر مركز التكلفة" />
                   </SelectTrigger>
                   <SelectContent>
-                    {COST_CENTER_OPTIONS.map((cc) => (
+                    {costCenterOptions.map((cc) => (
                       <SelectItem key={cc} value={cc}>
                         {cc}
                       </SelectItem>
@@ -966,7 +959,7 @@ export default function BudgetsPage() {
                           <SelectValue placeholder="اختر الحساب" />
                         </SelectTrigger>
                         <SelectContent>
-                          {ACCOUNT_OPTIONS.map((a) => (
+                          {accountOptions.map((a) => (
                             <SelectItem key={a.code} value={a.code}>
                               <span className="font-mono text-[10px] ms-1">{a.code}</span>{' '}
                               {a.name}
@@ -1041,11 +1034,10 @@ export default function BudgetsPage() {
             <Button type="button" onClick={saveBudget} className="gap-1.5 min-w-[120px]" disabled={saving}>
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
-              ) : editingBudget ? (
-                'تحديث الميزانية'
               ) : (
-                'إنشاء الميزانية'
+                <CheckCircle className="h-4 w-4" />
               )}
+              {editingBudget ? 'تحديث' : 'إنشاء'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1055,27 +1047,22 @@ export default function BudgetsPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
-                <XCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <AlertDialogTitle className="text-base">تأكيد الحذف</AlertDialogTitle>
-                <AlertDialogDescription className="text-xs mt-1">
-                  هل أنت متأكد من حذف الميزانية &quot;{toDelete?.name}&quot;؟ لا يمكن التراجع عن هذا الإجراء.
-                </AlertDialogDescription>
-              </div>
-            </div>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-destructive" />
+              تأكيد حذف الميزانية
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف الميزانية «{toDelete?.name}»؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              className="bg-destructive text-destructive-foreground"
               onClick={confirmDelete}
               disabled={deleting}
             >
-              {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-              حذف
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -23,45 +23,95 @@ import {
 import { useDocList } from '@/lib/client/hooks';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // ── Types ──
 interface VaultPermission {
-  employee_id: string;
-  vault_id: string;
-  can_deposit: boolean;
-  can_withdraw: boolean;
-  can_view: boolean;
-}
-
-const STORAGE_KEY = 'erp_vault_permissions';
-
-function loadPermissions(): VaultPermission[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function savePermissions(perms: VaultPermission[]) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(perms));
+  id: string;
+  employeeId: string;
+  vaultId: string;
+  canDeposit: boolean;
+  canWithdraw: boolean;
+  canView: boolean;
 }
 
 type ViewMode = 'employee' | 'vault';
 
+// ── API helpers for local DB ──
+async function fetchPermissions(): Promise<VaultPermission[]> {
+  const res = await fetch('/api/accounting/vault-permissions');
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'فشل تحميل الصلاحيات');
+  return json.data ?? [];
+}
+
+async function saveAllPermissionsAPI(perms: Omit<VaultPermission, 'id'>[]): Promise<VaultPermission[]> {
+  const res = await fetch('/api/accounting/vault-permissions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ permissions: perms }),
+  });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'فشل حفظ الصلاحيات');
+  return json.data ?? [];
+}
+
+async function deletePermissionAPI(employeeId: string, vaultId: string): Promise<void> {
+  const params = new URLSearchParams({ employeeId, vaultId });
+  const res = await fetch(`/api/accounting/vault-permissions?${params.toString()}`, { method: 'DELETE' });
+  const json = await res.json();
+  if (!json.success) throw new Error(json.error || 'فشل حذف الصلاحية');
+}
+
 export default function VaultPermissionsPage() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>('employee');
 
-  // Load from localStorage on mount — use lazy initializer to avoid effect
-  const [permissions, setPermissions] = useState<VaultPermission[]>(() => {
-    if (typeof window === 'undefined') return [];
-    return loadPermissions();
+  // ── Fetch permissions from local DB via API ──
+  const {
+    data: permissions = [],
+    isLoading: permLoading,
+    error: permError,
+    refetch: refetchPermissions,
+  } = useQuery({
+    queryKey: ['vaultPermissions'],
+    queryFn: fetchPermissions,
   });
-  const [loaded] = useState(() => typeof window !== 'undefined');
+
+  const saveAllMutation = useMutation({
+    mutationFn: saveAllPermissionsAPI,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vaultPermissions'] });
+    },
+  });
+
+  const deletePermMutation = useMutation({
+    mutationFn: ({ employeeId, vaultId }: { employeeId: string; vaultId: string }) =>
+      deletePermissionAPI(employeeId, vaultId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vaultPermissions'] });
+    },
+  });
+
+  // ── Local state for modifications (before save) ──
+  const [localPerms, setLocalPerms] = useState<VaultPermission[]>([]);
+  const [localInitialized, setLocalInitialized] = useState(false);
+
+  // Sync local state with server data
+  useMemo(() => {
+    if (permissions.length > 0 && !localInitialized) {
+      setLocalPerms(permissions);
+      setLocalInitialized(true);
+    }
+  }, [permissions, localInitialized]);
+
+  // When permissions refetch, update local
+  useMemo(() => {
+    if (permissions.length >= 0 && localInitialized) {
+      setLocalPerms(permissions);
+    }
+  }, [permissions]);
 
   // ── Employee view state ──
   const [selectedEmployee, setSelectedEmployee] = useState('');
@@ -73,9 +123,6 @@ export default function VaultPermissionsPage() {
   const [addWithdraw, setAddWithdraw] = useState(false);
   const [addView, setAddView] = useState(true);
   const [addingEmployee, setAddingEmployee] = useState(false);
-
-  // ── Saving state ──
-  const [saving, setSaving] = useState(false);
 
   // ── Fetch employees ──
   const { data: employeesRaw, isLoading: empLoading } = useDocList<Record<string, unknown>>(
@@ -111,30 +158,30 @@ export default function VaultPermissionsPage() {
   // ── Employee view: permissions for selected employee ──
   const employeePerms = useMemo(() => {
     if (!selectedEmployee) return [];
-    return permissions.filter((p) => p.employee_id === selectedEmployee);
-  }, [permissions, selectedEmployee]);
+    return localPerms.filter((p) => p.employeeId === selectedEmployee);
+  }, [localPerms, selectedEmployee]);
 
   // ── Vault view: permissions for selected vault ──
   const vaultPerms = useMemo(() => {
     if (!selectedVault) return [];
-    return permissions.filter((p) => p.vault_id === selectedVault);
-  }, [permissions, selectedVault]);
+    return localPerms.filter((p) => p.vaultId === selectedVault);
+  }, [localPerms, selectedVault]);
 
   // ── KPIs ──
-  const totalPermissions = permissions.length;
-  const authorizedEmployees = new Set(permissions.map((p) => p.employee_id)).size;
-  const protectedVaults = new Set(permissions.map((p) => p.vault_id)).size;
+  const totalPermissions = localPerms.length;
+  const authorizedEmployees = new Set(localPerms.map((p) => p.employeeId)).size;
+  const protectedVaults = new Set(localPerms.map((p) => p.vaultId)).size;
 
   // ── Handlers ──
   const handleTogglePerm = useCallback(
-    (vaultId: string, field: 'can_deposit' | 'can_withdraw' | 'can_view', value: boolean) => {
-      setPermissions((prev) => {
+    (vaultId: string, field: 'canDeposit' | 'canWithdraw' | 'canView', value: boolean) => {
+      setLocalPerms((prev) => {
         const existing = prev.find(
-          (p) => p.employee_id === selectedEmployee && p.vault_id === vaultId
+          (p) => p.employeeId === selectedEmployee && p.vaultId === vaultId
         );
         if (existing) {
           return prev.map((p) =>
-            p.employee_id === selectedEmployee && p.vault_id === vaultId
+            p.employeeId === selectedEmployee && p.vaultId === vaultId
               ? { ...p, [field]: value }
               : p
           );
@@ -143,11 +190,12 @@ export default function VaultPermissionsPage() {
         return [
           ...prev,
           {
-            employee_id: selectedEmployee,
-            vault_id: vaultId,
-            can_deposit: field === 'can_deposit' ? value : false,
-            can_withdraw: field === 'can_withdraw' ? value : false,
-            can_view: field === 'can_view' ? value : false,
+            id: `local-${selectedEmployee}-${vaultId}`,
+            employeeId: selectedEmployee,
+            vaultId,
+            canDeposit: field === 'canDeposit' ? value : false,
+            canWithdraw: field === 'canWithdraw' ? value : false,
+            canView: field === 'canView' ? value : false,
           },
         ];
       });
@@ -156,14 +204,14 @@ export default function VaultPermissionsPage() {
   );
 
   const handleToggleVaultPerm = useCallback(
-    (empId: string, field: 'can_deposit' | 'can_withdraw' | 'can_view', value: boolean) => {
-      setPermissions((prev) => {
+    (empId: string, field: 'canDeposit' | 'canWithdraw' | 'canView', value: boolean) => {
+      setLocalPerms((prev) => {
         const existing = prev.find(
-          (p) => p.vault_id === selectedVault && p.employee_id === empId
+          (p) => p.vaultId === selectedVault && p.employeeId === empId
         );
         if (existing) {
           return prev.map((p) =>
-            p.vault_id === selectedVault && p.employee_id === empId
+            p.vaultId === selectedVault && p.employeeId === empId
               ? { ...p, [field]: value }
               : p
           );
@@ -171,11 +219,12 @@ export default function VaultPermissionsPage() {
         return [
           ...prev,
           {
-            employee_id: empId,
-            vault_id: selectedVault,
-            can_deposit: field === 'can_deposit' ? value : false,
-            can_withdraw: field === 'can_withdraw' ? value : false,
-            can_view: field === 'can_view' ? value : false,
+            id: `local-${empId}-${selectedVault}`,
+            employeeId: empId,
+            vaultId: selectedVault,
+            canDeposit: field === 'canDeposit' ? value : false,
+            canWithdraw: field === 'canWithdraw' ? value : false,
+            canView: field === 'canView' ? value : false,
           },
         ];
       });
@@ -184,29 +233,38 @@ export default function VaultPermissionsPage() {
   );
 
   const handleSave = useCallback(async () => {
-    setSaving(true);
-    // Simulate a brief delay for UX feedback
-    await new Promise((r) => setTimeout(r, 300));
-    savePermissions(permissions);
-    setSaving(false);
-    toast({ title: 'تم الحفظ', description: 'تم حفظ صلاحيات الخزائن بنجاح' });
-  }, [permissions, toast]);
+    try {
+      // Filter out local-only entries (no real id yet) and prepare for save
+      const permsToSave = localPerms.map((p) => ({
+        employeeId: p.employeeId,
+        vaultId: p.vaultId,
+        canDeposit: p.canDeposit,
+        canWithdraw: p.canWithdraw,
+        canView: p.canView,
+      }));
+      await saveAllMutation.mutateAsync(permsToSave);
+      toast({ title: 'تم الحفظ', description: 'تم حفظ صلاحيات الخزائن بنجاح' });
+    } catch (err) {
+      toast({ title: 'خطأ في الحفظ', description: String(err), variant: 'destructive' });
+    }
+  }, [localPerms, saveAllMutation, toast]);
 
   const handleAddEmployeeToVault = useCallback(() => {
     if (!addEmployeeId || !selectedVault) return;
-    setPermissions((prev) => {
+    setLocalPerms((prev) => {
       const existing = prev.find(
-        (p) => p.vault_id === selectedVault && p.employee_id === addEmployeeId
+        (p) => p.vaultId === selectedVault && p.employeeId === addEmployeeId
       );
       if (existing) return prev;
       return [
         ...prev,
         {
-          employee_id: addEmployeeId,
-          vault_id: selectedVault,
-          can_deposit: addDeposit,
-          can_withdraw: addWithdraw,
-          can_view: addView,
+          id: `local-${addEmployeeId}-${selectedVault}`,
+          employeeId: addEmployeeId,
+          vaultId: selectedVault,
+          canDeposit: addDeposit,
+          canWithdraw: addWithdraw,
+          canView: addView,
         },
       ];
     });
@@ -215,15 +273,15 @@ export default function VaultPermissionsPage() {
     setAddWithdraw(false);
     setAddView(true);
     setAddingEmployee(false);
-    toast({ title: 'تمت الإضافة', description: 'تم إضافة صلاحيات الموظف للخزينة' });
+    toast({ title: 'تمت الإضافة', description: 'تم إضافة صلاحيات الموظف للخزينة (اضغط حفظ للتأكيد)' });
   }, [addEmployeeId, selectedVault, addDeposit, addWithdraw, addView, toast]);
 
   const handleRemoveEmployeeFromVault = useCallback(
     (empId: string) => {
-      setPermissions((prev) =>
-        prev.filter((p) => !(p.vault_id === selectedVault && p.employee_id === empId))
+      setLocalPerms((prev) =>
+        prev.filter((p) => !(p.vaultId === selectedVault && p.employeeId === empId))
       );
-      toast({ title: 'تم الحذف', description: 'تم إزالة صلاحيات الموظف من الخزينة' });
+      toast({ title: 'تم الحذف', description: 'تم إزالة صلاحيات الموظف من الخزينة (اضغط حفظ للتأكيد)' });
     },
     [selectedVault, toast]
   );
@@ -232,7 +290,7 @@ export default function VaultPermissionsPage() {
   const empViewColumns: Column<VaultPermission>[] = useMemo(
     () => [
       {
-        key: 'vault_id',
+        key: 'vaultId',
         header: 'الخزينة',
         render: (v) => {
           const vault = vaults.find((va) => va.name === String(v));
@@ -240,37 +298,37 @@ export default function VaultPermissionsPage() {
         },
       },
       {
-        key: 'can_deposit',
+        key: 'canDeposit',
         header: 'إيداع',
         width: 'w-20',
         render: (_v, row) => (
           <Checkbox
-            checked={row.can_deposit}
-            onCheckedChange={(c) => handleTogglePerm(row.vault_id, 'can_deposit', !!c)}
+            checked={row.canDeposit}
+            onCheckedChange={(c) => handleTogglePerm(row.vaultId, 'canDeposit', !!c)}
             aria-label="صلاحية الإيداع"
           />
         ),
       },
       {
-        key: 'can_withdraw',
+        key: 'canWithdraw',
         header: 'سحب',
         width: 'w-20',
         render: (_v, row) => (
           <Checkbox
-            checked={row.can_withdraw}
-            onCheckedChange={(c) => handleTogglePerm(row.vault_id, 'can_withdraw', !!c)}
+            checked={row.canWithdraw}
+            onCheckedChange={(c) => handleTogglePerm(row.vaultId, 'canWithdraw', !!c)}
             aria-label="صلاحية السحب"
           />
         ),
       },
       {
-        key: 'can_view',
+        key: 'canView',
         header: 'عرض',
         width: 'w-20',
         render: (_v, row) => (
           <Checkbox
-            checked={row.can_view}
-            onCheckedChange={(c) => handleTogglePerm(row.vault_id, 'can_view', !!c)}
+            checked={row.canView}
+            onCheckedChange={(c) => handleTogglePerm(row.vaultId, 'canView', !!c)}
             aria-label="صلاحية العرض"
           />
         ),
@@ -283,7 +341,7 @@ export default function VaultPermissionsPage() {
   const vaultViewColumns: Column<VaultPermission>[] = useMemo(
     () => [
       {
-        key: 'employee_id',
+        key: 'employeeId',
         header: 'الموظف',
         render: (v) => {
           const emp = employees.find((e) => e.name === String(v));
@@ -291,37 +349,37 @@ export default function VaultPermissionsPage() {
         },
       },
       {
-        key: 'can_deposit',
+        key: 'canDeposit',
         header: 'إيداع',
         width: 'w-20',
         render: (_v, row) => (
           <Checkbox
-            checked={row.can_deposit}
-            onCheckedChange={(c) => handleToggleVaultPerm(row.employee_id, 'can_deposit', !!c)}
+            checked={row.canDeposit}
+            onCheckedChange={(c) => handleToggleVaultPerm(row.employeeId, 'canDeposit', !!c)}
             aria-label="صلاحية الإيداع"
           />
         ),
       },
       {
-        key: 'can_withdraw',
+        key: 'canWithdraw',
         header: 'سحب',
         width: 'w-20',
         render: (_v, row) => (
           <Checkbox
-            checked={row.can_withdraw}
-            onCheckedChange={(c) => handleToggleVaultPerm(row.employee_id, 'can_withdraw', !!c)}
+            checked={row.canWithdraw}
+            onCheckedChange={(c) => handleToggleVaultPerm(row.employeeId, 'canWithdraw', !!c)}
             aria-label="صلاحية السحب"
           />
         ),
       },
       {
-        key: 'can_view',
+        key: 'canView',
         header: 'عرض',
         width: 'w-20',
         render: (_v, row) => (
           <Checkbox
-            checked={row.can_view}
-            onCheckedChange={(c) => handleToggleVaultPerm(row.employee_id, 'can_view', !!c)}
+            checked={row.canView}
+            onCheckedChange={(c) => handleToggleVaultPerm(row.employeeId, 'canView', !!c)}
             aria-label="صلاحية العرض"
           />
         ),
@@ -336,7 +394,7 @@ export default function VaultPermissionsPage() {
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-destructive"
-            onClick={() => handleRemoveEmployeeFromVault(row.employee_id)}
+            onClick={() => handleRemoveEmployeeFromVault(row.employeeId)}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -349,13 +407,19 @@ export default function VaultPermissionsPage() {
   // Combine employee permissions with all vaults (show unchecked ones too)
   const employeeViewData = useMemo(() => {
     if (!selectedEmployee) return [];
-    const existingMap = new Map(employeePerms.map((p) => [p.vault_id, p]));
+    const existingMap = new Map(employeePerms.map((p) => [p.vaultId, p]));
     return vaults.map((v) => existingMap.get(v.name) || {
+      id: `local-${selectedEmployee}-${v.name}`,
       employee_id: selectedEmployee,
+      employeeId: selectedEmployee,
       vault_id: v.name,
+      vaultId: v.name,
       can_deposit: false,
+      canDeposit: false,
       can_withdraw: false,
+      canWithdraw: false,
       can_view: false,
+      canView: false,
     });
   }, [selectedEmployee, employeePerms, vaults]);
 
@@ -368,6 +432,8 @@ export default function VaultPermissionsPage() {
     () => vaults.find((v) => v.name === selectedVault)?.label || '',
     [vaults, selectedVault]
   );
+
+  const saving = saveAllMutation.isPending;
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
@@ -384,6 +450,8 @@ export default function VaultPermissionsPage() {
           </Button>
         }
       />
+
+      <ListQueryAlert error={permError} onRetry={() => refetchPermissions()} />
 
       {/* KPI Strip */}
       <KpiStrip cols={3}>
@@ -486,28 +554,28 @@ export default function VaultPermissionsPage() {
                     </thead>
                     <tbody>
                       {employeeViewData.map((perm) => {
-                        const vaultLabel = vaults.find((v) => v.name === perm.vault_id)?.label || perm.vault_id;
+                        const vaultLabel = vaults.find((v) => v.name === perm.vaultId)?.label || perm.vaultId;
                         return (
-                          <tr key={perm.vault_id} className="border-b border-border/20 hover:bg-muted/30 transition-colors">
+                          <tr key={perm.vaultId} className="border-b border-border/20 hover:bg-muted/30 transition-colors">
                             <td className="px-4 py-2.5 font-medium">{vaultLabel}</td>
                             <td className="px-4 py-2.5 text-center">
                               <Checkbox
-                                checked={perm.can_deposit}
-                                onCheckedChange={(c) => handleTogglePerm(perm.vault_id, 'can_deposit', !!c)}
+                                checked={perm.canDeposit}
+                                onCheckedChange={(c) => handleTogglePerm(perm.vaultId, 'canDeposit', !!c)}
                                 aria-label={`إيداع ${vaultLabel}`}
                               />
                             </td>
                             <td className="px-4 py-2.5 text-center">
                               <Checkbox
-                                checked={perm.can_withdraw}
-                                onCheckedChange={(c) => handleTogglePerm(perm.vault_id, 'can_withdraw', !!c)}
+                                checked={perm.canWithdraw}
+                                onCheckedChange={(c) => handleTogglePerm(perm.vaultId, 'canWithdraw', !!c)}
                                 aria-label={`سحب ${vaultLabel}`}
                               />
                             </td>
                             <td className="px-4 py-2.5 text-center">
                               <Checkbox
-                                checked={perm.can_view}
-                                onCheckedChange={(c) => handleTogglePerm(perm.vault_id, 'can_view', !!c)}
+                                checked={perm.canView}
+                                onCheckedChange={(c) => handleTogglePerm(perm.vaultId, 'canView', !!c)}
                                 aria-label={`عرض ${vaultLabel}`}
                               />
                             </td>
