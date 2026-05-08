@@ -22,7 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { apiUpdateDoc } from '@/lib/client/api';
+import { apiUpdateDoc, apiCreateDoc, apiCallMethod } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
@@ -122,11 +122,36 @@ export default function AssetDisposalPage() {
   const handleSale = async (formData: SaleFormOutput) => {
     setProcessing(true);
     try {
-      await apiUpdateDoc('Asset', formData.asset, {
-        status: 'Sold',
-        disposal_date: formData.sale_date,
-      });
-      toast({ title: 'تم بيع الأصل بنجاح', description: `تم تحديث حالة الأصل إلى «مباع» بتاريخ ${formatDate(formData.sale_date)}` });
+      // Try ERPNext's built-in Asset Capitalization method first
+      try {
+        await apiCallMethod('erpnext.assets.doctype.asset.asset.sell_asset', {
+          asset: formData.asset,
+          sale_price: Number(formData.sale_amount) || 0,
+          customer: formData.customer || undefined,
+          company: defaultCo,
+          posting_date: formData.sale_date,
+        });
+        toast({ title: 'تم بيع الأصل بنجاح عبر ERPNext' });
+      } catch {
+        // Fallback: update status + create journal entry for the sale
+        await apiUpdateDoc('Asset', formData.asset, {
+          status: 'Sold',
+          disposal_date: formData.sale_date,
+        });
+        if (Number(formData.sale_amount) > 0) {
+          await apiCreateDoc('Journal Entry', {
+            voucher_type: 'Journal Entry',
+            company: defaultCo,
+            posting_date: formData.sale_date,
+            user_remark: `بيع الأصل ${formData.asset} بمبلغ ${formData.sale_amount}`,
+            accounts: [
+              { account: formData.customer ? 'Debtors - ' + defaultCo : 'Cash - ' + defaultCo, debit: Number(formData.sale_amount) || 0, credit: 0 },
+              { account: 'Fixed Asset - ' + defaultCo, debit: 0, credit: Number(formData.sale_amount) || 0 },
+            ],
+          });
+        }
+        toast({ title: 'تم بيع الأصل وإنشاء قيد يومية', description: `تم تحديث حالة الأصل مع قيد بيع بمبلغ ${formatCurrency(Number(formData.sale_amount) || 0)}` });
+      }
       setSaleDialogOpen(false);
       saleForm.reset();
       void refetch();
@@ -141,11 +166,22 @@ export default function AssetDisposalPage() {
   const handleScrap = async (formData: ScrapFormOutput) => {
     setProcessing(true);
     try {
-      await apiUpdateDoc('Asset', formData.asset, {
-        status: 'Scrapped',
-        disposal_date: formData.scrap_date,
-      });
-      toast({ title: 'تم استهلاك الأصل بنجاح', description: `تم تحديث حالة الأصل إلى «مستهلك» بتاريخ ${formatDate(formData.scrap_date)}` });
+      // Try ERPNext's built-in scrap method first
+      try {
+        await apiCallMethod('erpnext.assets.doctype.asset.asset.scrap_asset', {
+          asset: formData.asset,
+          company: defaultCo,
+          posting_date: formData.scrap_date,
+        });
+        toast({ title: 'تم استهلاك الأصل بنجاح عبر ERPNext' });
+      } catch {
+        // Fallback: update status
+        await apiUpdateDoc('Asset', formData.asset, {
+          status: 'Scrapped',
+          disposal_date: formData.scrap_date,
+        });
+        toast({ title: 'تم استهلاك الأصل بنجاح', description: `تم تحديث حالة الأصل إلى «مستهلك» بتاريخ ${formatDate(formData.scrap_date)}` });
+      }
       setScrapDialogOpen(false);
       scrapForm.reset();
       void refetch();

@@ -125,12 +125,20 @@ export async function proxy(request: NextRequest) {
         return NextResponse.next();
       }
 
-      const sessionCookie = request.cookies.get('erp_session')?.value;
-      if (!sessionCookie?.trim()) {
+      // Try cookie first, then fall back to Authorization Bearer header
+      let sessionToken = request.cookies.get('erp_session')?.value?.trim() || '';
+      if (!sessionToken) {
+        const authHeader = request.headers.get('authorization') || '';
+        if (authHeader.startsWith('Bearer ')) {
+          sessionToken = authHeader.slice(7).trim();
+        }
+      }
+
+      if (!sessionToken) {
         return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
       }
 
-      const session = await verifySessionCookie(sessionCookie.trim());
+      const session = await verifySessionCookie(sessionToken);
       if (!session) {
         return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
       }
@@ -142,12 +150,20 @@ export async function proxy(request: NextRequest) {
       return NextResponse.next();
     }
 
-    const sessionCookie = request.cookies.get('erp_session')?.value;
-    if (!sessionCookie?.trim()) {
+    // Try cookie first, then fall back to Authorization Bearer header
+    let pageSessionToken = request.cookies.get('erp_session')?.value?.trim() || '';
+    if (!pageSessionToken) {
+      const authHeader = request.headers.get('authorization') || '';
+      if (authHeader.startsWith('Bearer ')) {
+        pageSessionToken = authHeader.slice(7).trim();
+      }
+    }
+
+    if (!pageSessionToken) {
       return redirectToLogin(request, pathname);
     }
 
-    const session = await verifySessionCookie(sessionCookie.trim());
+    const session = await verifySessionCookie(pageSessionToken);
     if (!session) {
       return redirectToLogin(request, pathname);
     }

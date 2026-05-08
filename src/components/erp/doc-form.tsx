@@ -82,6 +82,19 @@ export function DocForm({
     return initial;
   }, [fields, initialData]);
   const [formData, setFormData] = useState<Record<string, unknown>>(initialState);
+
+  // Reset form data when initialData changes (e.g. editing a different document)
+  useEffect(() => {
+    if (initialData) {
+      const next: Record<string, unknown> = {};
+      fields.forEach((f) => {
+        next[f.key] = initialData[f.key] ?? f.defaultValue ?? '';
+      });
+      setFormData(next);
+      setTouched({});
+      setSubmitAttempted(false);
+    }
+  }, [initialData, fields]);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const { readDraft, saveDraft, clearDraft, hydrated } = useFormDraft<Record<string, unknown>>({
@@ -364,7 +377,7 @@ export function DocForm({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {fields.map((field) => (
               <ErpFormField
                 key={field.key}

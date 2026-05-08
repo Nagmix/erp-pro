@@ -290,6 +290,7 @@ export async function apiExportReport(
     format,
     filters: filters || {},
   });
+  if (!result.success) throw new Error(result.error || 'فشل تصدير التقرير');
   return result.data || null;
 }
 
@@ -459,6 +460,7 @@ export async function apiBulkCreate<T>(
   docs: Record<string, unknown>[]
 ): Promise<T[] | null> {
   const result = await request<T[]>('POST', `/data/${doctype}/bulk`, { docs });
+  if (!result.success) throw new Error(result.error || `فشل الإنشاء الجماعي لـ ${doctype}`);
   return result.data || null;
 }
 

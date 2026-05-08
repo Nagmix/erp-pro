@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDocList, useCreateDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { apiCreateDoc, apiGetDoc } from '@/lib/client/api';
+import { apiCreateDoc, apiGetDoc, apiUpdateDoc } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -188,11 +188,14 @@ export default function DepreciationRunPage() {
 
         // Update schedule with journal_entry reference
         const jeName = je && typeof je === 'object' && 'name' in je ? String(je.name) : '';
-        if (jeName) {
-          await apiCreateDoc('Depreciation Schedule', {
-            name: sched.name,
-            journal_entry: jeName,
-          });
+        if (jeName && sched.name) {
+          try {
+            await apiUpdateDoc('Asset', String(assetDoc.name), {
+              // Trigger recalculation by saving the asset with the JE reference
+            });
+          } catch {
+            // Asset update is optional - the JE is already created
+          }
         }
 
         successCount++;

@@ -96,7 +96,6 @@ interface AuthState {
   login: (username: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => boolean;
-  demoLogin: () => Promise<boolean>;
   clearError: () => void;
 }
 
@@ -227,13 +226,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ isAuthenticated: true, user: reconstructedUser });
       return true;
     }
-  },
-
-  demoLogin: async () => {
-    set({ isLoading: true, error: null });
-    const success = await get().login('admin', 'admin');
-    set({ isLoading: false });
-    return success;
   },
 
   clearError: () => set({ error: null }),

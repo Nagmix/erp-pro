@@ -85,7 +85,7 @@ export default function DailyExpensesPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((row: any) =>
-        ['name', 'description'].some(key => String(row.docstatus ?? '').toLowerCase().includes(q))
+        ['name', 'description', 'employee_name', 'remark'].some(key => String(row[key] ?? '').toLowerCase().includes(q))
       );
     }
     if (dateFrom || dateTo) {

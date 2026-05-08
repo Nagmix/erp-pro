@@ -48,9 +48,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (ready && !isAuthenticated) {
-      localStorage.removeItem('erp_session');
-      localStorage.removeItem('erp_user');
-      document.cookie = 'erp_session=; max-age=0; path=/; SameSite=Lax';
+      useAuthStore.getState().logout();
       window.location.href = '/login';
     }
   }, [ready, isAuthenticated]);
