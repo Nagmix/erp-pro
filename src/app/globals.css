@@ -1,0 +1,629 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-cairo), var(--font-inter), "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-desk-row-selected: var(--desk-row-selected);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  /* Radius — مقياس واحد (fixsystem §2.3): sm/md/lg/xl بقيم ثابتة، لا سلسلة calc من --radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/*
+  ERP Pro — Vibrant SaaS (docs/fixsystem.md §6.3)
+  - أساسي Blue-600 #2563EB، ثانوي Violet-500 #8B5CF6، نجاح Emerald، تحذير Amber، خطر Rose
+  - خلفية Slate-50، حدود Slate-200، محايد Slate-600 للنصوص الثانوية
+*/
+:root {
+  /* shadcn legacy + مكوّنات ERP — يشيران لنفس مقياس @theme (--radius-*) */
+  --radius: var(--radius-lg);
+  --radius-sm-ui: var(--radius-sm);
+  --radius-md-ui: var(--radius-md);
+  --radius-lg-ui: var(--radius-lg);
+  --radius-xl-ui: var(--radius-xl);
+
+  /* Spacing scale (8px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  /* Elevation tokens */
+  --shadow-xs-ui: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm-ui: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --shadow-md-ui: 0 8px 20px rgba(15, 23, 42, 0.08);
+  --shadow-lg-ui: 0 24px 60px -12px rgba(79, 70, 229, 0.28);
+
+  /* Brand gradient stops */
+  --brand-from: oklch(0.6 0.24 268);
+  --brand-via: oklch(0.62 0.23 282);
+  --brand-to: oklch(0.66 0.22 305);
+
+  /* Surfaces — §6.3 */
+  --background: #f9fafb;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-muted: #f1f5f9;
+  --surface-elevated: #ffffff;
+
+  /* Brand — Blue-600 */
+  --primary: #4338ca;
+  --primary-foreground: #ffffff;
+  --brand: var(--primary);
+  --brand-foreground: var(--primary-foreground);
+
+  /* Secondary — بنفسجي خفيف */
+  --secondary: color-mix(in srgb, #6366f1 10%, #f9fafb);
+  --secondary-foreground: #334155;
+  --muted: #f1f5f9;
+  --muted-foreground: #475569;
+
+  --accent: color-mix(in srgb, #60a5fa 14%, #ffffff);
+  --accent-foreground: #1e3a8a;
+
+  /* Semantic — Emerald / Amber / Rose */
+  --success: #10b981;
+  --success-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #422006;
+  --info: #0ea5e9;
+  --info-foreground: #ffffff;
+  --destructive: #f43f5e;
+  --destructive-foreground: #ffffff;
+
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #4338ca;
+
+  /* Charts — تدرج SaaS */
+  --chart-1: #2563eb;
+  --chart-2: #8b5cf6;
+  --chart-3: #10b981;
+  --chart-4: #f59e0b;
+  --chart-5: #f43f5e;
+
+  /*
+    Sidebar — always slate-indigo dark even in light mode (key requirement)
+  */
+  --sidebar: oklch(0.22 0.05 268);
+  --sidebar-foreground: oklch(0.92 0.012 275);
+  --sidebar-primary: #8b5cf6;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: oklch(0.28 0.06 268);
+  --sidebar-accent-foreground: oklch(0.95 0.01 275);
+  --sidebar-border: oklch(0.32 0.04 268);
+  --sidebar-ring: oklch(0.7 0.22 268);
+  --sidebar-soft: oklch(0.27 0.05 268);
+  --sidebar-muted: oklch(0.65 0.04 270);
+
+  --desk-row-selected: oklch(0.93 0.1 95);
+}
+
+.dark {
+  /* وضع داكن متماثل مع لوحة §6.3 (سطوح أغمق + نفس ألوان العلامة) */
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  --surface: #1e293b;
+  --surface-muted: #334155;
+  --surface-elevated: #1e293b;
+
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --brand: var(--primary);
+  --brand-foreground: var(--primary-foreground);
+
+  --secondary: #334155;
+  --secondary-foreground: #f1f5f9;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+
+  --accent: color-mix(in srgb, #8b5cf6 35%, #1e293b);
+  --accent-foreground: #e9d5ff;
+
+  --success: #34d399;
+  --success-foreground: #064e3b;
+  --warning: #fbbf24;
+  --warning-foreground: #422006;
+  --info: #38bdf8;
+  --info-foreground: #0c4a6e;
+  --destructive: #fb7185;
+  --destructive-foreground: #450a0a;
+
+  --border: #334155;
+  --input: #334155;
+  --ring: #3b82f6;
+
+  --chart-1: #3b82f6;
+  --chart-2: #a78bfa;
+  --chart-3: #34d399;
+  --chart-4: #fbbf24;
+  --chart-5: #fb7185;
+
+  /* Sidebar darker than dark surface (deeper) */
+  --sidebar: oklch(0.18 0.04 268);
+  --sidebar-foreground: oklch(0.95 0.01 268);
+  --sidebar-primary: #a78bfa;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: oklch(0.26 0.05 268);
+  --sidebar-accent-foreground: oklch(0.95 0.01 268);
+  --sidebar-border: oklch(0.28 0.04 268);
+  --sidebar-ring: oklch(0.78 0.22 268);
+  --sidebar-soft: oklch(0.24 0.05 268);
+  --sidebar-muted: oklch(0.62 0.04 270);
+
+  --desk-row-selected: oklch(0.34 0.07 95);
+}
+
+@layer base {
+  /* عتامة حدود افتراضية 40% — hover/60 وتركيز/100 عبر المكوّنات (fixsystem §2.2) */
+  * {
+    @apply border-border/40 outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    direction: rtl;
+    background-image:
+      radial-gradient(1200px 600px at 100% -10%, color-mix(in oklab, var(--primary) 6%, transparent), transparent 60%),
+      radial-gradient(1000px 500px at -10% 0%, color-mix(in oklab, var(--info) 5%, transparent), transparent 65%);
+    background-attachment: fixed;
+  }
+  ::selection {
+    background-color: color-mix(in oklab, var(--primary) 30%, transparent);
+    color: var(--primary-foreground);
+  }
+}
+
+@layer utilities {
+  .bg-desk-row-selected {
+    background-color: var(--desk-row-selected);
+  }
+  .bg-sidebar-soft {
+    background-color: var(--sidebar-soft);
+  }
+  .text-sidebar-muted {
+    color: var(--sidebar-muted);
+  }
+}
+
+/* === Animations === */
+@keyframes erp-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.erp-page-enter { animation: erp-fade-in 0.32s ease-out both; }
+
+@keyframes erp-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.erp-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--muted-foreground) 8%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: erp-shimmer 1.6s linear infinite;
+}
+
+@keyframes erp-soft-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 40%, transparent); }
+  50% { box-shadow: 0 0 0 10px color-mix(in oklab, var(--primary) 0%, transparent); }
+}
+.erp-soft-pulse { animation: erp-soft-pulse 2.4s ease-in-out infinite; }
+
+/* === Surfaces & Cards === */
+.erp-shell {
+  background: var(--surface);
+  border-radius: var(--radius-lg-ui);
+  box-shadow: var(--shadow-sm-ui);
+}
+.erp-soft-surface {
+  background: var(--surface-muted);
+  border-radius: var(--radius-md-ui);
+}
+.erp-glass {
+  background: color-mix(in oklab, var(--card) 70%, transparent);
+  backdrop-filter: saturate(160%) blur(10px);
+  -webkit-backdrop-filter: saturate(160%) blur(10px);
+  border: 1px solid color-mix(in oklab, var(--border) 75%, transparent);
+}
+.erp-glass-dark {
+  background: color-mix(in oklab, var(--sidebar) 75%, transparent);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+}
+
+/* Page header accent (gradient indicator) */
+.erp-page-accent { position: relative; }
+.erp-page-accent::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -2px;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--brand-from), var(--brand-to));
+}
+
+/* Brand text gradient */
+.erp-brand-text {
+  background: linear-gradient(90deg, var(--brand-from), var(--brand-via), var(--brand-to));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glow chip */
+.erp-glow-chip { position: relative; }
+.erp-glow-chip::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  background: radial-gradient(closest-side, color-mix(in oklab, var(--primary) 28%, transparent), transparent 70%);
+  filter: blur(10px);
+  opacity: 0.4;
+  z-index: -1;
+}
+
+/* === Sidebar nav item modern style === */
+.erp-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius-lg-ui);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--sidebar-foreground) 78%, transparent);
+  transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
+}
+.erp-nav-item:hover {
+  background: var(--sidebar-soft);
+  color: var(--sidebar-foreground);
+}
+.erp-nav-item[data-active="true"] {
+  color: var(--sidebar-foreground);
+  background: color-mix(in oklab, var(--brand-from) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--brand-from) 32%, transparent);
+}
+.erp-nav-item[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-end: -10px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--brand-from) 82%, white 18%);
+}
+.erp-nav-sub {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  border-radius: var(--radius-md-ui);
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--sidebar-foreground) 65%, transparent);
+  transition: background-color 200ms ease, color 200ms ease, transform 200ms ease;
+}
+.erp-nav-sub:hover {
+  background: color-mix(in oklab, var(--sidebar-soft) 70%, transparent);
+  color: var(--sidebar-foreground);
+}
+.erp-nav-sub[data-active="true"] {
+  color: var(--sidebar-foreground);
+  background: color-mix(in oklab, var(--brand-from) 18%, transparent);
+  font-weight: 600;
+}
+
+/* Custom scrollbar (thin and on-brand) */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--muted-foreground) 25%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--muted-foreground) 45%, transparent);
+  background-clip: padding-box;
+}
+
+/* Custom scrollbar RTL utilities */
+.scrollbar-thin { scrollbar-width: thin; }
+.scrollbar-track-transparent { scrollbar-track-color: transparent; }
+.scrollbar-thumb-border { 
+  background: color-mix(in oklab, var(--border) 40%, transparent);
+  border-radius: 999px;
+}
+.scrollbar-thumb-border:hover { 
+  background: color-mix(in oklab, var(--border) 60%, transparent);
+}
+
+/* المحتوى الرئيسي تحت الهيدر — نفس سماكة الشريط الجانبي */
+.erp-main-scroll {
+  scrollbar-gutter: stable;
+}
+.erp-main-scroll::-webkit-scrollbar { width: 8px; }
+.erp-main-scroll::-webkit-scrollbar-track { background: transparent; }
+.erp-main-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--muted-foreground) 22%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.erp-main-scroll::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--muted-foreground) 42%, transparent);
+  background-clip: padding-box;
+}
+
+/* Sidebar scrollbar - RTL optimized */
+[data-sidebar-scroll]::-webkit-scrollbar { width: 6px; }
+[data-sidebar-scroll]::-webkit-scrollbar-track { background: transparent; }
+[data-sidebar-scroll]::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--sidebar-border) 30%, transparent);
+  border-radius: 999px;
+}
+[data-sidebar-scroll]::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--sidebar-border) 50%, transparent);
+}
+
+/* RTL polishing */
+[dir="rtl"] { text-align: right; }
+
+[dir="rtl"] input:not([dir="ltr"]),
+[dir="rtl"] textarea:not([dir="ltr"]),
+[dir="rtl"] select:not([dir="ltr"]) {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] label,
+[dir="rtl"] [data-slot="label"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] [data-slot="popover-trigger"],
+[dir="rtl"] button[role="combobox"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] button[role="combobox"] span {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] [data-slot="select-trigger"]:not([dir="ltr"]),
+[dir="rtl"] [data-slot="select-content"]:not([dir="ltr"]),
+[dir="rtl"] [data-slot="select-item"]:not([dir="ltr"]) {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] [data-slot="select-item-indicator"] {
+  right: auto;
+  left: 0.5rem;
+}
+
+/* Force RTL on form field wrapper elements */
+[dir="rtl"] .space-y-1\.5,
+[dir="rtl"] .space-y-2,
+[dir="rtl"] .space-y-1,
+[dir="rtl"] [class*="space-y-"] {
+  direction: rtl;
+}
+
+[dir="rtl"] .space-y-1\.5 label,
+[dir="rtl"] .space-y-2 label,
+[dir="rtl"] .space-y-1 label,
+[dir="rtl"] [class*="space-y-"] label {
+  display: block;
+  text-align: right;
+  direction: rtl;
+}
+
+/* Aggressive RTL forcing */
+[dir="rtl"] * {
+  direction: rtl;
+}
+
+[dir="rtl"] .text-left,
+[dir="rtl"] .text-left *,
+[dir="rtl"] [class*="text-left"] {
+  text-align: right !important;
+}
+
+/* Ensure Select content is RTL */
+[dir="rtl"] [data-radix-select-content-viewport] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Print styles — ERP Pro */
+@media print {
+  /* Hide non-printable elements */
+  .no-print,
+  [data-sidebar],
+  nav,
+  header,
+  footer,
+  .erp-nav-item,
+  .erp-sidebar,
+  button:not(.print-keep),
+  [data-slot="sidebar"],
+  [class*="AppSidebar"],
+  [class*="app-sidebar"],
+  [class*="AppHeader"],
+  [class*="app-header"],
+  .sidebar-trigger,
+  .breadcrumb,
+  [class*="KeyboardShortcutsDialog"],
+  .fixed,
+  .sticky {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print-only { display: block !important; }
+
+  /* Print body styling */
+  body {
+    background: #fff !important;
+    direction: rtl;
+    font-size: 12px;
+    color: #111;
+  }
+
+  /* When erp-printing class is on body, remove sidebar/header padding */
+  body.erp-printing {
+    padding: 0 !important;
+  }
+  body.erp-printing > div {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Cards get clean borders for print */
+  .card,
+  [class*="Card"] {
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+
+  /* Remove background from main content */
+  main {
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Ensure tables are printable */
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+  thead { display: table-header-group; }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* Mobile Responsive Improvements — ERP Pro */
+@media (max-width: 768px) {
+  /* Stack KPI cards on mobile */
+  .grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-4,
+  .grid-cols-2.sm\:grid-cols-3.lg\:grid-cols-5 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Full width cards on mobile */
+  .lg\:col-span-2 {
+    grid-column: span 1 / span 1 !important;
+  }
+
+  /* Better mobile table scrolling */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Adjust page header on mobile */
+  .erp-page-header {
+    padding: 12px !important;
+  }
+
+  /* Smaller filter bar on mobile */
+  .flex.flex-wrap.items-end.gap-3 {
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+}
+
+/* RTL mobile fixes */
+@media (max-width: 768px) {
+  [dir="rtl"] .flex.items-center.gap-2 {
+    flex-wrap: wrap;
+  }
+
+  [dir="rtl"] table {
+    font-size: 11px;
+  }
+
+  [dir="rtl"] .text-xs {
+    font-size: 11px !important;
+  }
+}

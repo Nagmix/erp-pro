@@ -1,0 +1,21 @@
+---
+description: معطّلة — لا تُستخدم كقاعدة تشغيلية؛ مسار التتبع عبر fixsystem-progress.md وقاعدة fixsystem-gap-analysis.mdc
+alwaysApply: false
+---
+
+# قاعدة project-contex — **معطّلة (مستثناة من العمل)**
+
+- **`alwaysApply: false`**: هذه القاعدة **لا تُحمَّل تلقائياً** وليست مرجعاً يومياً للوكيل في هذا المشروع.
+- **لا** تُلزم الوكيل بقراءة أو تحديث **`project-contex.md`** ضمن مسار إصلاحات **`docs/fixsystem.md`**.
+
+## البديل المعتمد
+
+| الغرض | الملف / القاعدة |
+|--------|------------------|
+| التحليل والفجوات | **`docs/fixsystem.md`** |
+| المنجز والمتبقي لمسار الإصلاح | **`fixsystem-progress.md`** (جذر المشروع) |
+| تعليمات الوكيل | **`fixsystem-gap-analysis.mdc`** (`alwaysApply: true`) |
+| النطاق الرسمي للمنتج عند التعارض | **`docs/DEVELOPMENT_PLAN.md`** |
+| واجهات لوحة التحكم | **`ui-design-system.mdc`** |
+
+إذا احتجت سياق الملخص القديم في **`project-contex.md`** يدوياً، افتح الملف من المستكشف — **لا يُفترض** تحديثه تلقائياً من الوكيل ضمن مسار fixsystem.

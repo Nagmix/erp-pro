@@ -1,0 +1,23 @@
+{
+  "companyName": "شركة الأفق",
+  "currency": "YER",
+  "country": "Yemen",
+  "language": "ar",
+  "adminEmail": "admin@afq.com",
+  "enabledModules": [
+    "accounting",
+    "sales",
+    "purchases",
+    "inventory",
+    "hr",
+    "crm",
+    "manufacturing",
+    "projects"
+  ],
+  "taxEnabled": true,
+  "taxRate": 5,
+  "taxName": "ضريبة المبيعات",
+  "erpnextVersion": "v15",
+  "setupComplete": true,
+  "setupDate": "2026-05-04T19:19:33.789Z"
+}

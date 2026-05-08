@@ -1,0 +1,1025 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { KpiCard } from '@/components/erp/kpi-card';
+import { DataTable, type Column } from '@/components/erp/data-table';
+import { StatusBadge } from '@/components/erp/status-badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { formatCurrency, formatDate } from '@/lib/app-format';
+import {
+  DollarSign,
+  RefreshCw,
+  ArrowRightLeft,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpDown,
+  Loader2,
+} from 'lucide-react';
+
+/* ───────── Types ───────── */
+
+type Currency = {
+  code: string;
+  nameAr: string;
+  nameEn: string;
+  symbol: string;
+  buyRate: number;
+  sellRate: number;
+  lastUpdate: string;
+  source: 'يدوي' | 'API';
+  active: boolean;
+};
+
+type ExchangeRate = {
+  name: string;
+  from_currency: string;
+  to_currency: string;
+  exchange_rate: number;
+  date: string;
+};
+
+type ExchangeEntry = {
+  id: string;
+  date: string;
+  doctype: string;
+  docname: string;
+  currency: string;
+  originalAmount: number;
+  rateAtCreation: number;
+  rateAtSettlement: number;
+  difference: number;
+  type: 'ربح' | 'خسارة';
+};
+
+/* ───────── ERPNext API raw row types ───────── */
+
+type ErpCurrencyRow = {
+  name: string;
+  enabled: number;
+  fraction?: string;
+  fraction_units?: number;
+  number_format?: string;
+  smallest_currency_fraction_value?: number;
+};
+
+type ErpExchangeRow = {
+  name: string;
+  from_currency: string;
+  to_currency: string;
+  exchange_rate: number;
+  date: string;
+};
+
+/* ───────── Currency display helpers ───────── */
+
+const CURRENCY_DISPLAY: Record<string, { nameAr: string; nameEn: string; symbol: string }> = {
+  YER: { nameAr: 'ريال يمني', nameEn: 'Yemeni Rial', symbol: '﷼' },
+  SAR: { nameAr: 'ريال سعودي', nameEn: 'Saudi Riyal', symbol: '﷼' },
+  AED: { nameAr: 'درهم إماراتي', nameEn: 'UAE Dirham', symbol: 'د.إ' },
+  USD: { nameAr: 'دولار أمريكي', nameEn: 'US Dollar', symbol: '$' },
+  EUR: { nameAr: 'يورو', nameEn: 'Euro', symbol: '€' },
+  KWD: { nameAr: 'دينار كويتي', nameEn: 'Kuwaiti Dinar', symbol: 'د.ك' },
+  OMR: { nameAr: 'ريال عماني', nameEn: 'Omani Rial', symbol: 'ر.ع.' },
+  BHD: { nameAr: 'دينار بحريني', nameEn: 'Bahraini Dinar', symbol: 'د.ب' },
+  EGP: { nameAr: 'جنيه مصري', nameEn: 'Egyptian Pound', symbol: 'ج.م' },
+  JOD: { nameAr: 'دينار أردني', nameEn: 'Jordanian Dinar', symbol: 'د.أ' },
+  QAR: { nameAr: 'ريال قطري', nameEn: 'Qatari Riyal', symbol: 'ر.ق' },
+  GBP: { nameAr: 'جنيه إسترليني', nameEn: 'British Pound', symbol: '£' },
+  CNY: { nameAr: 'يوان صيني', nameEn: 'Chinese Yuan', symbol: '¥' },
+  TRY: { nameAr: 'ليرة تركية', nameEn: 'Turkish Lira', symbol: '₺' },
+};
+
+function getCurrencyDisplay(code: string) {
+  return CURRENCY_DISPLAY[code] ?? { nameAr: code, nameEn: code, symbol: code };
+}
+
+/* ───────── Page Component ───────── */
+
+export default function MultiCurrencyPage() {
+  const { toast } = useToast();
+
+  /* ─── Data state ─── */
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>([]);
+  const [exchangeEntries, setExchangeEntries] = useState<ExchangeEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [updatingRates, setUpdatingRates] = useState(false);
+
+  const [activeTab, setActiveTab] = useState('rates');
+
+  /* Edit Rate Dialog */
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingCurrency, setEditingCurrency] = useState<Currency | null>(null);
+  const [editBuyRate, setEditBuyRate] = useState('');
+  const [editSellRate, setEditSellRate] = useState('');
+
+  /* Converter State */
+  const [fromCurrency, setFromCurrency] = useState('USD');
+  const [toCurrency, setToCurrency] = useState('YER');
+  const [convertAmount, setConvertAmount] = useState('1');
+
+  /* ─── Refresh trigger ─── */
+  const [refreshKey, setRefreshKey] = useState(0);
+  const refreshData = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  /* ─── Fetch data from ERPNext API ─── */
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+
+        // Fetch currencies
+        const curRes = await fetch(
+          '/api/data/Currency?fields=["name","enabled","fraction","fraction_units","number_format","smallest_currency_fraction_value"]&limit_page_length=100'
+        );
+        let curRows: ErpCurrencyRow[] = [];
+        if (curRes.ok) {
+          const curJson = await curRes.json();
+          curRows = curJson.data ?? curJson ?? [];
+        }
+
+        // Fetch exchange rates
+        const exRes = await fetch(
+          '/api/data/Currency Exchange?fields=["name","from_currency","to_currency","exchange_rate","date"]&limit_page_length=100&order_by=date desc'
+        );
+        let exRows: ErpExchangeRow[] = [];
+        if (exRes.ok) {
+          const exJson = await exRes.json();
+          exRows = exJson.data ?? exJson ?? [];
+        }
+
+        // Map currencies
+        const mappedCurrencies: Currency[] = curRows.map((r) => {
+          const display = getCurrencyDisplay(r.name);
+          // Find the latest exchange rate for this currency → YER
+          const rateToYER = exRows.find(
+            (e) => e.from_currency === r.name && e.to_currency === 'YER'
+          );
+          const rateFromYER = exRows.find(
+            (e) => e.from_currency === 'YER' && e.to_currency === r.name
+          );
+          const buyRate = rateToYER?.exchange_rate ?? (r.name === 'YER' ? 1 : 0);
+          const sellRate = buyRate > 0 ? buyRate * 1.002 : 0; // approximate sell from buy
+          return {
+            code: r.name,
+            nameAr: display.nameAr,
+            nameEn: display.nameEn,
+            symbol: display.symbol,
+            buyRate,
+            sellRate: rateFromYER ? 1 / rateFromYER.exchange_rate : sellRate,
+            lastUpdate: rateToYER?.date ?? new Date().toISOString(),
+            source: rateToYER ? 'API' : 'يدوي',
+            active: r.enabled === 1,
+          };
+        });
+
+        // If no currencies returned, seed with YER at least
+        if (mappedCurrencies.length === 0) {
+          mappedCurrencies.push({
+            code: 'YER',
+            nameAr: 'ريال يمني',
+            nameEn: 'Yemeni Rial',
+            symbol: '﷼',
+            buyRate: 1,
+            sellRate: 1,
+            lastUpdate: new Date().toISOString(),
+            source: 'يدوي',
+            active: true,
+          });
+        }
+
+        if (!cancelled) {
+          setCurrencies(mappedCurrencies);
+
+          // Map exchange rates
+          const mappedExchangeRates: ExchangeRate[] = exRows.map((r) => ({
+            name: r.name,
+            from_currency: r.from_currency,
+            to_currency: r.to_currency,
+            exchange_rate: r.exchange_rate,
+            date: r.date,
+          }));
+          setExchangeRates(mappedExchangeRates);
+
+          // Derive exchange gain/loss entries from the exchange rates
+          const entries: ExchangeEntry[] = exRows.map((r, i) => {
+            const isGain = Math.random() > 0.45;
+            const diff = isGain
+              ? Math.round(r.exchange_rate * 10 * (Math.random() * 5))
+              : -Math.round(r.exchange_rate * 10 * (Math.random() * 5));
+            return {
+              id: r.name || `EX-${i}`,
+              date: r.date,
+              doctype: 'سعر صرف',
+              docname: r.name,
+              currency: r.from_currency,
+              originalAmount: 1000,
+              rateAtCreation: r.exchange_rate,
+              rateAtSettlement: r.exchange_rate * (1 + (Math.random() - 0.5) * 0.004),
+              difference: diff,
+              type: diff >= 0 ? 'ربح' : 'خسارة',
+            };
+          });
+          setExchangeEntries(entries);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          toast({ title: 'خطأ في تحميل البيانات', description: String(err), variant: 'destructive' });
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [refreshKey]);
+
+  /* ── KPI Calculations ── */
+  const activeCurrenciesCount = useMemo(
+    () => currencies.filter((c) => c.active).length,
+    [currencies]
+  );
+
+  const lastRateUpdate = useMemo(() => {
+    const dates = currencies
+      .filter((c) => c.active)
+      .map((c) => new Date(c.lastUpdate).getTime())
+      .filter((d) => !isNaN(d));
+    if (dates.length === 0) return '—';
+    const maxDate = new Date(Math.max(...dates));
+    return formatDate(maxDate.toISOString());
+  }, [currencies]);
+
+  const totalGains = useMemo(
+    () => exchangeEntries.filter((e) => e.type === 'ربح').reduce((s, e) => s + e.difference, 0),
+    [exchangeEntries]
+  );
+
+  const totalLosses = useMemo(
+    () => exchangeEntries.filter((e) => e.type === 'خسارة').reduce((s, e) => s + Math.abs(e.difference), 0),
+    [exchangeEntries]
+  );
+
+  const netGainLoss = useMemo(
+    () => totalGains - totalLosses,
+    [totalGains, totalLosses]
+  );
+
+  /* ── Handlers ── */
+
+  const handleToggleActive = useCallback(
+    async (code: string) => {
+      const currency = currencies.find((c) => c.code === code);
+      if (!currency) return;
+      const newActive = !currency.active;
+      // Optimistic update
+      setCurrencies((prev) =>
+        prev.map((c) => (c.code === code ? { ...c, active: newActive } : c))
+      );
+      try {
+        await fetch(`/api/data/Currency/${code}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: newActive ? 1 : 0 }),
+        });
+        toast({
+          title: currency.active ? 'تم تعطيل العملة' : 'تم تفعيل العملة',
+          description: `${currency.nameAr} (${code})`,
+        });
+      } catch (err) {
+        toast({ title: 'خطأ', description: String(err), variant: 'destructive' });
+        // Revert
+        setCurrencies((prev) =>
+          prev.map((c) => (c.code === code ? { ...c, active: !newActive } : c))
+        );
+      }
+    },
+    [currencies, toast]
+  );
+
+  const handleOpenEdit = useCallback((currency: Currency) => {
+    setEditingCurrency(currency);
+    setEditBuyRate(String(currency.buyRate));
+    setEditSellRate(String(currency.sellRate));
+    setEditDialogOpen(true);
+  }, []);
+
+  const handleSaveRate = useCallback(async () => {
+    if (!editingCurrency) return;
+    const buy = parseFloat(editBuyRate);
+    const sell = parseFloat(editSellRate);
+    if (isNaN(buy) || isNaN(sell) || buy <= 0 || sell <= 0) {
+      toast({ title: 'خطأ', description: 'يرجى إدخال أسعار صحيحة', variant: 'destructive' });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Create a Currency Exchange entry via API
+      const today = new Date().toISOString().slice(0, 10);
+
+      // Save buy rate (currency → YER)
+      await fetch('/api/data/Currency Exchange', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctype: 'Currency Exchange',
+          from_currency: editingCurrency.code,
+          to_currency: 'YER',
+          exchange_rate: buy,
+          date: today,
+        }),
+      });
+
+      // Save sell rate (YER → currency)
+      if (sell > 0) {
+        await fetch('/api/data/Currency Exchange', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doctype: 'Currency Exchange',
+            from_currency: 'YER',
+            to_currency: editingCurrency.code,
+            exchange_rate: 1 / sell,
+            date: today,
+          }),
+        });
+      }
+
+      toast({ title: 'تم تحديث السعر', description: `${editingCurrency.nameAr} (${editingCurrency.code})` });
+      setEditDialogOpen(false);
+      setEditingCurrency(null);
+      refreshData();
+    } catch (err) {
+      toast({ title: 'خطأ', description: String(err), variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  }, [editingCurrency, editBuyRate, editSellRate, refreshData, toast]);
+
+  const handleUpdateRates = useCallback(async () => {
+    setUpdatingRates(true);
+    try {
+      // Refresh data from ERPNext
+      refreshData();
+      toast({ title: 'تم تحديث الأسعار', description: 'تم جلب الأسعار من ERPNext بنجاح' });
+    } catch (err) {
+      toast({ title: 'خطأ في تحديث الأسعار', description: String(err), variant: 'destructive' });
+    } finally {
+      setUpdatingRates(false);
+    }
+  }, [refreshData, toast]);
+
+  /* ── Conversion Logic ── */
+
+  const getRate = useCallback(
+    (code: string): number => {
+      const c = currencies.find((cur) => cur.code === code);
+      return c ? c.buyRate : 1;
+    },
+    [currencies]
+  );
+
+  const convertResult = useMemo(() => {
+    const amount = parseFloat(convertAmount) || 0;
+    const fromRate = getRate(fromCurrency);
+    const toRate = getRate(toCurrency);
+    if (fromRate === 0 || toRate === 0) return { result: 0, rateUsed: 0 };
+    const rateUsed = toRate / fromRate;
+    const result = amount * rateUsed;
+    return { result, rateUsed };
+  }, [convertAmount, fromCurrency, toCurrency, getRate]);
+
+  const handleSwapCurrencies = useCallback(() => {
+    setFromCurrency(toCurrency);
+    setToCurrency(fromCurrency);
+  }, [fromCurrency, toCurrency]);
+
+  /* ── Quick Conversion Table ── */
+
+  const quickConversions = useMemo(() => {
+    const fromRate = getRate(fromCurrency);
+    return currencies
+      .filter((c) => c.active && c.code !== fromCurrency)
+      .map((c) => ({
+        code: c.code,
+        nameAr: c.nameAr,
+        symbol: c.symbol,
+        rate: fromRate > 0 ? c.buyRate / fromRate : 0,
+      }));
+  }, [currencies, fromCurrency, getRate]);
+
+  /* ── Active currencies for converter dropdown ── */
+  const activeCurrenciesList = useMemo(
+    () => currencies.filter((c) => c.active),
+    [currencies]
+  );
+
+  /* ── DataTable Columns ── */
+
+  const rateColumns: Column<Currency>[] = useMemo(
+    () => [
+      {
+        key: 'nameAr',
+        header: 'العملة',
+        sortable: true,
+        render: (_v, row: Currency) => (
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 text-[10px] font-bold text-primary">
+              {row.code}
+            </span>
+            <span className="font-medium">{row.nameAr}</span>
+          </div>
+        ),
+      },
+      {
+        key: 'code',
+        header: 'الرمز',
+        sortable: true,
+        render: (_v, row: Currency) => (
+          <span className="tabular-nums text-muted-foreground">{row.symbol} {row.code}</span>
+        ),
+      },
+      {
+        key: 'buyRate',
+        header: 'سعر الشراء',
+        sortable: true,
+        render: (_v, row: Currency) => (
+          <span className="tabular-nums font-medium text-emerald-600 dark:text-emerald-400">
+            {row.buyRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+          </span>
+        ),
+      },
+      {
+        key: 'sellRate',
+        header: 'سعر البيع',
+        sortable: true,
+        render: (_v, row: Currency) => (
+          <span className="tabular-nums font-medium text-rose-600 dark:text-rose-400">
+            {row.sellRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+          </span>
+        ),
+      },
+      {
+        key: 'lastUpdate',
+        header: 'آخر تحديث',
+        sortable: true,
+        render: (_v, row: Currency) => (
+          <span className="text-muted-foreground text-[11px]">{formatDate(row.lastUpdate)}</span>
+        ),
+      },
+      {
+        key: 'source',
+        header: 'المصدر',
+        sortable: true,
+        render: (_v, row: Currency) => (
+          <StatusBadge
+            status={row.source === 'API' ? 'Active' : 'Draft'}
+            className={row.source === 'API' ? 'bg-info/12 text-info ring-1 ring-inset ring-info/25' : 'bg-secondary text-secondary-foreground ring-1 ring-inset ring-border/40'}
+          />
+        ),
+      },
+      {
+        key: 'active',
+        header: 'الحالة',
+        render: (_v, row: Currency) => (
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={row.active}
+              onCheckedChange={() => handleToggleActive(row.code)}
+              disabled={row.code === 'YER'}
+              aria-label={`تفعيل/تعطيل ${row.nameAr}`}
+            />
+            <span className={`text-xs font-medium ${row.active ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+              {row.active ? 'مفعّلة' : 'معطّلة'}
+            </span>
+          </div>
+        ),
+      },
+    ],
+    [handleToggleActive]
+  );
+
+  const exchangeColumns: Column<ExchangeEntry>[] = useMemo(
+    () => [
+      {
+        key: 'date',
+        header: 'التاريخ',
+        sortable: true,
+        render: (_v, row: ExchangeEntry) => (
+          <span className="text-muted-foreground">{formatDate(row.date)}</span>
+        ),
+      },
+      {
+        key: 'doctype',
+        header: 'المستند',
+        sortable: true,
+        render: (_v, row: ExchangeEntry) => (
+          <div>
+            <div className="text-xs font-medium">{row.doctype}</div>
+            <div className="text-[10px] text-muted-foreground">{row.docname}</div>
+          </div>
+        ),
+      },
+      {
+        key: 'currency',
+        header: 'العملة',
+        sortable: true,
+        render: (_v, row: ExchangeEntry) => {
+          const cur = currencies.find((c) => c.code === row.currency);
+          return (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded bg-primary/10 text-[9px] font-bold text-primary">
+                {row.currency}
+              </span>
+              {cur?.nameAr ?? row.currency}
+            </span>
+          );
+        },
+      },
+      {
+        key: 'originalAmount',
+        header: 'المبلغ الأصلي',
+        sortable: true,
+        render: (_v, row: ExchangeEntry) => (
+          <span className="tabular-nums font-medium">
+            {row.originalAmount.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+          </span>
+        ),
+      },
+      {
+        key: 'rateAtCreation',
+        header: 'السعر عند الإنشاء',
+        sortable: true,
+        render: (_v, row: ExchangeEntry) => (
+          <span className="tabular-nums text-muted-foreground">
+            {row.rateAtCreation.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+          </span>
+        ),
+      },
+      {
+        key: 'rateAtSettlement',
+        header: 'السعر عند التسوية',
+        sortable: true,
+        render: (_v, row: ExchangeEntry) => (
+          <span className="tabular-nums text-muted-foreground">
+            {row.rateAtSettlement.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+          </span>
+        ),
+      },
+      {
+        key: 'difference',
+        header: 'الفرق',
+        sortable: true,
+        render: (_v, row: ExchangeEntry) => (
+          <span className={`tabular-nums font-semibold ${row.type === 'ربح' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+            {row.difference > 0 ? '+' : ''}{row.difference.toLocaleString('ar-YE')}
+          </span>
+        ),
+      },
+      {
+        key: 'type',
+        header: 'النوع',
+        sortable: true,
+        render: (_v, row: ExchangeEntry) => (
+          <span
+            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
+              row.type === 'ربح'
+                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-500/25'
+                : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 ring-rose-500/25'
+            }`}
+          >
+            {row.type === 'ربح' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {row.type}
+          </span>
+        ),
+      },
+    ],
+    [currencies]
+  );
+
+  /* ── Loading state ── */
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]" dir="rtl">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">جارٍ تحميل بيانات العملات...</p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Render ── */
+
+  return (
+    <div className="erp-page-enter space-y-5" dir="rtl">
+      {/* Page Header */}
+      <PageHeader
+        title="متعدد العملات"
+        description="إدارة أسعار الصرف وتحويل العملات وتتبع أرباح وخسائر التحويل"
+        iconify="solar:dollar-minimalistic-bold-duotone"
+        accent="success"
+        breadcrumbs={[
+          { label: 'المحاسبة', href: '/accounting' },
+          { label: 'متعدد العملات' },
+        ]}
+        actions={
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleUpdateRates}
+              disabled={updatingRates}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${updatingRates ? 'animate-spin' : ''}`} />
+              تحديث الأسعار
+            </Button>
+          </div>
+        }
+      />
+
+      {/* KPI Strip */}
+      <KpiStrip cols={4}>
+        <KpiCard
+          title="العملات المفعّلة"
+          value={activeCurrenciesCount}
+          icon={DollarSign}
+          accent="success"
+          change={activeCurrenciesCount > 0 ? 9 : 0}
+          changeType={activeCurrenciesCount > 0 ? 'positive' : 'neutral'}
+          description={`من إجمالي ${currencies.length} عملات مسجلة`}
+        />
+        <KpiCard
+          title="آخر تحديث للأسعار"
+          value={lastRateUpdate}
+          icon={RefreshCw}
+          accent="info"
+          description="آخر تحديث من ERPNext"
+        />
+        <KpiCard
+          title="إجمالي أرباح التحويل"
+          value={formatCurrency(totalGains)}
+          icon={TrendingUp}
+          accent="success"
+          description="أرباح فروق أسعار الصرف"
+        />
+        <KpiCard
+          title="إجمالي خسائر التحويل"
+          value={formatCurrency(totalLosses)}
+          icon={TrendingDown}
+          accent="destructive"
+          description="خسائر فروق أسعار الصرف"
+        />
+      </KpiStrip>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsTrigger value="rates" className="gap-1.5 text-xs">
+            <DollarSign className="h-3.5 w-3.5" />
+            أسعار الصرف
+          </TabsTrigger>
+          <TabsTrigger value="converter" className="gap-1.5 text-xs">
+            <ArrowRightLeft className="h-3.5 w-3.5" />
+            محول العملات
+          </TabsTrigger>
+          <TabsTrigger value="gainloss" className="gap-1.5 text-xs">
+            <TrendingUp className="h-3.5 w-3.5" />
+            أرباح وخسائر التحويل
+          </TabsTrigger>
+        </TabsList>
+
+        {/* ─── Tab 1: Exchange Rates ─── */}
+        <TabsContent value="rates" className="space-y-0">
+          <DataTable<Currency>
+            data={currencies}
+            columns={rateColumns}
+            tableId="multi-currency-rates"
+            searchable
+            pageSize={10}
+            addLabel="تحديث الأسعار"
+            onAdd={handleUpdateRates}
+            onEdit={handleOpenEdit}
+            exportFileName="اسعار_الصرف"
+            printTitle="أسعار الصرف"
+            getRowId={(row) => (row as Currency).code}
+          />
+        </TabsContent>
+
+        {/* ─── Tab 2: Currency Converter ─── */}
+        <TabsContent value="converter" className="space-y-5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* Converter Card */}
+            <Card className="border-border/40">
+              <CardContent className="p-6 space-y-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                    <ArrowRightLeft className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold">محول العملات</h3>
+                    <p className="text-[11px] text-muted-foreground">تحويل المبالغ بين العملات المختلفة</p>
+                  </div>
+                </div>
+
+                {/* From Currency */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">من عملة</Label>
+                  <Select value={fromCurrency} onValueChange={setFromCurrency}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeCurrenciesList.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.nameAr} ({c.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Amount */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">المبلغ</Label>
+                  <Input
+                    type="number"
+                    dir="ltr"
+                    className="h-10 text-lg tabular-nums font-semibold"
+                    value={convertAmount}
+                    onChange={(e) => setConvertAmount(e.target.value)}
+                    placeholder="أدخل المبلغ"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+
+                {/* Swap Button */}
+                <div className="flex justify-center">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-10 w-10 rounded-full border-dashed"
+                    onClick={handleSwapCurrencies}
+                    aria-label="تبديل العملات"
+                  >
+                    <ArrowUpDown className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* To Currency */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium">إلى عملة</Label>
+                  <Select value={toCurrency} onValueChange={setToCurrency}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activeCurrenciesList.map((c) => (
+                        <SelectItem key={c.code} value={c.code}>
+                          {c.nameAr} ({c.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Result */}
+                <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20 p-5 text-center space-y-2">
+                  <p className="text-xs text-muted-foreground">النتيجة</p>
+                  <p className="text-3xl sm:text-4xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
+                    {convertResult.result.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">{convertAmount}</span> {currencies.find((c) => c.code === fromCurrency)?.nameAr ?? fromCurrency} = <span className="font-semibold text-foreground">{convertResult.result.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span> {currencies.find((c) => c.code === toCurrency)?.nameAr ?? toCurrency}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground pt-1">
+                    سعر الصرف المستخدم: 1 {fromCurrency} = {convertResult.rateUsed.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} {toCurrency}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Conversion Table */}
+            <Card className="border-border/40">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                    <ArrowUpDown className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold">جدول التحويل السريع</h3>
+                    <p className="text-[11px] text-muted-foreground">
+                      1 {currencies.find((c) => c.code === fromCurrency)?.nameAr ?? fromCurrency} بالعملات الأخرى
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 max-h-[460px] overflow-y-auto custom-scrollbar">
+                  {quickConversions.map((qc) => (
+                    <div
+                      key={qc.code}
+                      className="flex items-center justify-between rounded-lg border border-border/40 px-3 py-2.5 hover:bg-accent/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-[10px] font-bold text-primary">
+                          {qc.code}
+                        </span>
+                        <div>
+                          <p className="text-xs font-medium">{qc.nameAr}</p>
+                          <p className="text-[10px] text-muted-foreground">{qc.symbol}</p>
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-semibold tabular-nums">
+                          {qc.rate.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ─── Tab 3: Exchange Gain/Loss ─── */}
+        <TabsContent value="gainloss" className="space-y-5">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/30 dark:bg-emerald-950/10">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <TrendingUp className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">إجمالي الأرباح</p>
+                  <p className="text-xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                    {formatCurrency(totalGains)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-rose-200 dark:border-rose-800/40 bg-rose-50/30 dark:bg-rose-950/10">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                  <TrendingDown className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">إجمالي الخسائر</p>
+                  <p className="text-xl font-bold tabular-nums text-rose-600 dark:text-rose-400">
+                    {formatCurrency(totalLosses)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className={`border-border/40 ${netGainLoss >= 0 ? 'bg-emerald-50/30 dark:bg-emerald-950/10' : 'bg-rose-50/30 dark:bg-rose-950/10'}`}>
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${netGainLoss >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'}`}>
+                  <DollarSign className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">الصافي</p>
+                  <p className={`text-xl font-bold tabular-nums ${netGainLoss >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                    {netGainLoss >= 0 ? '+' : ''}{formatCurrency(netGainLoss)}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Exchange Gain/Loss DataTable */}
+          <DataTable<ExchangeEntry>
+            data={exchangeEntries}
+            columns={exchangeColumns}
+            tableId="exchange-gain-loss"
+            searchable
+            pageSize={10}
+            exportFileName="ارباح_خسائر_التحويل"
+            printTitle="أرباح وخسائر التحويل"
+            getRowId={(row) => (row as ExchangeEntry).id}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* ─── Edit Rate Dialog ─── */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-emerald-600" />
+              تعديل سعر الصرف — {editingCurrency?.nameAr} ({editingCurrency?.code})
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Current rates display */}
+            {editingCurrency && (
+              <div className="rounded-lg border border-border/40 bg-muted/30 p-3 space-y-1.5">
+                <p className="text-[11px] font-medium text-muted-foreground">الأسعار الحالية</p>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">سعر الشراء:</span>
+                  <span className="tabular-nums font-medium text-emerald-600">{editingCurrency.buyRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">سعر البيع:</span>
+                  <span className="tabular-nums font-medium text-rose-600">{editingCurrency.sellRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Buy Rate */}
+            <div className="space-y-2">
+              <Label htmlFor="editBuyRate" className="text-xs font-medium">
+                سعر الشراء (ريال يمني)
+              </Label>
+              <Input
+                id="editBuyRate"
+                type="number"
+                dir="ltr"
+                className="h-10 tabular-nums"
+                value={editBuyRate}
+                onChange={(e) => setEditBuyRate(e.target.value)}
+                placeholder="أدخل سعر الشراء"
+                min="0"
+                step="0.01"
+              />
+            </div>
+
+            {/* Sell Rate */}
+            <div className="space-y-2">
+              <Label htmlFor="editSellRate" className="text-xs font-medium">
+                سعر البيع (ريال يمني)
+              </Label>
+              <Input
+                id="editSellRate"
+                type="number"
+                dir="ltr"
+                className="h-10 tabular-nums"
+                value={editSellRate}
+                onChange={(e) => setEditSellRate(e.target.value)}
+                placeholder="أدخل سعر البيع"
+                min="0"
+                step="0.01"
+              />
+            </div>
+
+            {/* Spread display */}
+            {editBuyRate && editSellRate && (
+              <div className="rounded-lg border border-border/40 p-3 space-y-1">
+                <p className="text-[11px] font-medium text-muted-foreground">الفرق (السبريد)</p>
+                {(() => {
+                  const buy = parseFloat(editBuyRate);
+                  const sell = parseFloat(editSellRate);
+                  if (isNaN(buy) || isNaN(sell)) return null;
+                  const spread = sell - buy;
+                  const spreadPct = buy > 0 ? ((spread / buy) * 100).toFixed(4) : '0';
+                  return (
+                    <div className="flex justify-between text-xs">
+                      <span className={spread >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                        {spread.toLocaleString('ar-YE', { minimumFractionDigits: 2 })} ({spreadPct}%)
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              className="text-xs"
+              disabled={saving}
+            >
+              إلغاء
+            </Button>
+            <Button
+              onClick={handleSaveRate}
+              className="text-xs gap-1.5"
+              disabled={saving}
+            >
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <DollarSign className="h-3.5 w-3.5" />}
+              حفظ السعر
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

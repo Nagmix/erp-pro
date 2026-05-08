@@ -1,0 +1,22 @@
+{
+  "companyName": "شركة النور التجارية",
+  "currency": "YER",
+  "country": "YE",
+  "timezone": "Asia/Aden",
+  "defaultCompany": "شركة النور التجارية",
+  "fiscalYear": "2026",
+  "autoAccountRouting": true,
+  "invoiceTemplate": "Customer Name",
+  "posEnabled": false,
+  "posWarehouse": "المستودع الرئيسي",
+  "autoReceive": false,
+  "purchaseNumbering": "Supplier Name",
+  "defaultWarehouse": "المستودع الرئيسي",
+  "valuationMethod": "FIFO",
+  "reorderLevel": "10",
+  "workingHours": "8",
+  "overtimeRate": "1.5",
+  "penaltyEnabled": true,
+  "printTemplate": "Redesign",
+  "paperSize": "A4"
+}

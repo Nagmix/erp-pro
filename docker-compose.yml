@@ -1,0 +1,269 @@
+# ============================================================
+# ERP Pro - Docker Compose Configuration
+# تشغيل النظام المتكامل كمنظومة واحدة
+#
+# يتضمن:
+#   - Next.js Frontend (الواجهة الأمامية)
+#   - Frappe/ERPNext Backend (الواجهة الخلفية)
+#   - MariaDB (قاعدة البيانات)
+#   - Redis (التخزين المؤقت)
+#
+# للتشغيل: docker-compose up -d
+#
+# ملاحظة ERPNext v16:
+#   - الصور الافتراضية: frappe/erpnext:v16
+#   - يمكن الرجوع إلى v15 عبر متغير ERPNEXT_VERSION=v15
+#   - بعض مسارات API تغيرت في v16 (انظر backend.ts)
+# ============================================================
+
+version: "3.8"
+
+services:
+  # ============================================================
+  # قاعدة البيانات - MariaDB
+  # ============================================================
+  mariadb:
+    image: mariadb:10.6
+    container_name: erppro-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-erppro_root_2025}
+      MYSQL_DATABASE: ${DB_NAME:-erppro_db}
+      MYSQL_USER: ${DB_USER:-erppro_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./docker/mariadb/conf.d:/etc/mysql/conf.d
+    ports:
+      - "3306:3306"
+    networks:
+      - erppro-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+
+  # ============================================================
+  # التخزين المؤقت - Redis
+  # ============================================================
+  redis-cache:
+    image: redis:7-alpine
+    container_name: erppro-cache
+    restart: unless-stopped
+    volumes:
+      - redis_cache_data:/data
+    networks:
+      - erppro-network
+
+  redis-queue:
+    image: redis:7-alpine
+    container_name: erppro-queue
+    restart: unless-stopped
+    volumes:
+      - redis_queue_data:/data
+    networks:
+      - erppro-network
+
+  redis-socketio:
+    image: redis:7-alpine
+    container_name: erppro-socketio
+    restart: unless-stopped
+    volumes:
+      - redis_socketio_data:/data
+    networks:
+      - erppro-network
+
+  # ============================================================
+  # Frappe/ERPNext Backend
+  # يعمل داخلياً فقط - لا يُعرض للمستخدم مباشرة
+  # ============================================================
+  backend:
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v16}
+    container_name: erppro-backend
+    restart: unless-stopped
+    environment:
+      FRAPPE_SITE_NAME_HEAD: ${SITE_NAME:-erppro}
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-erppro_db}
+      DB_USER: ${DB_USER:-erppro_user}
+      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      REDIS_CACHE: redis-cache:6379
+      REDIS_QUEUE: redis-queue:6379
+      REDIS_SOCKETIO: redis-socketio:6379
+      SOCKETIO_PORT: 9000
+    volumes:
+      - backend_sites:/home/frappe/frappe-bench/sites
+      - backend_assets:/home/frappe/frappe-bench/sites/assets
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+      redis-socketio:
+        condition: service_started
+    networks:
+      - erppro-network
+    # المنفذ 8000 داخلي فقط - لا يُعرض خارجياً
+    # Next.js يتواصل معه عبر الشبكة الداخلية
+
+  # خادم الـ WebSocket الداخلي
+  socketio:
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v16}
+    container_name: erppro-socketio-server
+    restart: unless-stopped
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+    environment:
+      REDIS_CACHE: redis-cache:6379
+      REDIS_QUEUE: redis-queue:6379
+      REDIS_SOCKETIO: redis-socketio:6379
+      SOCKETIO_PORT: 9000
+    depends_on:
+      - redis-socketio
+    volumes:
+      - backend_sites:/home/frappe/frappe-bench/sites
+    networks:
+      - erppro-network
+
+  # جدولة المهام الخلفية
+  scheduler:
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v16}
+    container_name: erppro-scheduler
+    restart: unless-stopped
+    command: ["bench", "schedule"]
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-erppro_db}
+      DB_USER: ${DB_USER:-erppro_user}
+      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      REDIS_CACHE: redis-cache:6379
+      REDIS_QUEUE: redis-queue:6379
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+    volumes:
+      - backend_sites:/home/frappe/frappe-bench/sites
+    networks:
+      - erppro-network
+
+  # معالج المهام الخلفية
+  worker-default:
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v16}
+    container_name: erppro-worker-default
+    restart: unless-stopped
+    command: ["bench", "worker", "--queue", "default"]
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-erppro_db}
+      DB_USER: ${DB_USER:-erppro_user}
+      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      REDIS_CACHE: redis-cache:6379
+      REDIS_QUEUE: redis-queue:6379
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+    volumes:
+      - backend_sites:/home/frappe/frappe-bench/sites
+    networks:
+      - erppro-network
+
+  worker-long:
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v16}
+    container_name: erppro-worker-long
+    restart: unless-stopped
+    command: ["bench", "worker", "--queue", "long"]
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-erppro_db}
+      DB_USER: ${DB_USER:-erppro_user}
+      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      REDIS_CACHE: redis-cache:6379
+      REDIS_QUEUE: redis-queue:6379
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    volumes:
+      - backend_sites:/home/frappe/frappe-bench/sites
+    networks:
+      - erppro-network
+
+  worker-short:
+    image: frappe/erpnext:${ERPNEXT_VERSION:-v16}
+    container_name: erppro-worker-short
+    restart: unless-stopped
+    command: ["bench", "worker", "--queue", "short"]
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-erppro_db}
+      DB_USER: ${DB_USER:-erppro_user}
+      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      REDIS_CACHE: redis-cache:6379
+      REDIS_QUEUE: redis-queue:6379
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    volumes:
+      - backend_sites:/home/frappe/frappe-bench/sites
+    networks:
+      - erppro-network
+
+  # ============================================================
+  # Next.js Frontend - الواجهة الأمامية
+  # هذه هي الواجهة الوحيدة التي يراها المستخدم
+  # ============================================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: erppro-frontend
+    restart: unless-stopped
+    environment:
+      # يتواصل مع الباك إند عبر الشبكة الداخلية فقط
+      BACKEND_HOST: http://backend:8000
+      BACKEND_SITE_NAME: ${SITE_NAME:-erppro}
+      BACKEND_ADMIN_USER: ${ADMIN_USER:-Administrator}
+      BACKEND_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin}
+      # ERPNext version — used by backend.ts for API compatibility shims
+      BACKEND_VERSION: ${ERPNEXT_VERSION:-v16}
+      ERPNEXT_TRY_LOGIN: "true"
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-erp_pro_dev_secret_please_change}
+      DATABASE_URL: file:/app/data/custom.db
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - erppro-network
+
+# ============================================================
+# الشبكة الداخلية
+# ============================================================
+networks:
+  erppro-network:
+    driver: bridge
+
+# ============================================================
+# وحدات التخزين الدائمة
+# ============================================================
+volumes:
+  mariadb_data:
+  redis_cache_data:
+  redis_queue_data:
+  redis_socketio_data:
+  backend_sites:
+  backend_assets:
