@@ -5,6 +5,7 @@ import { DataTable, type Column } from '@/components/erp/data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -33,14 +34,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, Users, RefreshCw, FolderTree, Folder, Filter, ChevronDown, XCircle } from 'lucide-react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import {
+  Plus,
+  Trash2,
+  Users,
+  RefreshCw,
+  FolderTree,
+  Folder,
+  Filter,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  XCircle,
+  List,
+  TreePine,
+  FolderOpen,
+  ToggleLeft,
+  ToggleRight,
+} from 'lucide-react';
+import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { useToast } from '@/hooks/use-toast';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { cn } from '@/lib/utils';
+
+/* ───────────────────────────── Types & Constants ───────────────────────────── */
 
 interface CustomerGroupRow {
   name: string;
@@ -49,12 +69,19 @@ interface CustomerGroupRow {
   lft?: number;
   rgt?: number;
   old_parent?: string;
+  disabled?: number | boolean;
 }
 
 interface CustomerRow {
   name: string;
   customer_group: string;
 }
+
+/* ───────────────────────────── Helpers ───────────────────────────── */
+
+const chk = (v: unknown) => Number(v) === 1 || v === true;
+
+/* ───────────────────────────── Main Page ───────────────────────────── */
 
 export default function CustomerGroupsPage() {
   const { toast } = useToast();
@@ -63,6 +90,7 @@ export default function CustomerGroupsPage() {
   const [groupName, setGroupName] = useState('');
   const [parentGroup, setParentGroup] = useState('');
   const [isGroup, setIsGroup] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
   const [busy, setBusy] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<CustomerGroupRow | null>(null);
@@ -70,10 +98,12 @@ export default function CustomerGroupsPage() {
   const [editParentGroup, setEditParentGroup] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [groupTypeFilter, setGroupTypeFilter] = useState<'all' | 'root' | 'sub'>('all');
+  const [parentFilter, setParentFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'table' | 'tree'>('table');
 
-  // ── Data ──
+  /* ── Data ── */
   const { data: groups = [], isLoading, isError, error, refetch } = useDocList<CustomerGroupRow>('Customer Group', {
-    fields: ['name', 'is_group', 'parent_customer_group', 'lft', 'rgt', 'old_parent'],
+    fields: ['name', 'is_group', 'parent_customer_group', 'lft', 'rgt', 'old_parent', 'disabled'],
     order_by: 'name asc',
     limit: 500,
   });
@@ -87,7 +117,7 @@ export default function CustomerGroupsPage() {
   const deleteMutation = useDeleteDoc('Customer Group');
   const updateMutation = useUpdateDoc('Customer Group');
 
-  // ── Customer count per group ──
+  /* ── Customer count per group ── */
   const customerCountMap = useMemo(() => {
     const map: Record<string, number> = {};
     for (const c of customers) {
@@ -97,22 +127,129 @@ export default function CustomerGroupsPage() {
     return map;
   }, [customers]);
 
-  // ── Filtered data ──
+  /* ── Unique parent groups for filter ── */
+  const parentGroupOptions = useMemo(() => {
+    const parents = new Set<string>();
+    for (const g of groups) {
+      if (g.parent_customer_group) parents.add(g.parent_customer_group);
+    }
+    return [...parents].sort();
+  }, [groups]);
+
+  /* ── Filtered data ── */
   const filtered = useMemo(() => {
     let result = groups;
-    if (groupTypeFilter === 'root') result = result.filter((r) => Number(r.is_group) === 1 || r.is_group === true);
-    if (groupTypeFilter === 'sub') result = result.filter((r) => Number(r.is_group) === 0 || r.is_group === false);
+    if (groupTypeFilter === 'root') result = result.filter((r) => chk(r.is_group));
+    if (groupTypeFilter === 'sub') result = result.filter((r) => !chk(r.is_group));
+    if (parentFilter !== 'all') result = result.filter((r) => r.parent_customer_group === parentFilter);
     return result;
-  }, [groups, groupTypeFilter]);
+  }, [groups, groupTypeFilter, parentFilter]);
 
-  // ── KPIs ──
+  /* ── KPIs ── */
   const totalGroups = groups.length;
-  const rootGroups = groups.filter((r) => Number(r.is_group) === 1 || r.is_group === true).length;
+  const rootGroups = groups.filter((r) => chk(r.is_group)).length;
+  const subGroups = groups.filter((r) => !chk(r.is_group)).length;
   const totalCustomers = customers.length;
+  const disabledGroups = groups.filter((r) => chk(r.disabled)).length;
 
-  const chk = (v: unknown) => Number(v) === 1 || v === true;
+  /* ── Tree structure ── */
+  const treeData = useMemo(() => {
+    const groupMap = new Map<string, CustomerGroupRow & { children: (CustomerGroupRow & { children: unknown[] })[] }>();
+    const roots: (CustomerGroupRow & { children: (CustomerGroupRow & { children: unknown[] })[] })[] = [];
 
-  // ── Create Handler ──
+    for (const g of groups) {
+      groupMap.set(g.name, { ...g, children: [] });
+    }
+
+    for (const g of groups) {
+      const node = groupMap.get(g.name)!;
+      if (g.parent_customer_group && groupMap.has(g.parent_customer_group)) {
+        groupMap.get(g.parent_customer_group)!.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+
+    return roots;
+  }, [groups]);
+
+  /* ── Render tree node ── */
+  const renderTreeNode = (
+    node: CustomerGroupRow & { children: (CustomerGroupRow & { children: unknown[] })[] },
+    depth: number = 0,
+  ): React.ReactNode => {
+    const count = customerCountMap[node.name] || 0;
+    const isOpen = chk(node.is_group);
+    return (
+      <div key={node.name}>
+        <div
+          className={cn(
+            'flex items-center gap-2 py-2 px-3 rounded-lg transition-colors hover:bg-primary/5 border border-transparent',
+            depth === 0 && 'font-semibold',
+          )}
+          style={{ paddingInlineStart: `${depth * 24 + 12}px` }}
+        >
+          {/* Expand indicator */}
+          {isOpen && node.children.length > 0 ? (
+            <FolderOpen className="h-4 w-4 text-primary shrink-0" />
+          ) : isOpen ? (
+            <FolderTree className="h-4 w-4 text-primary shrink-0" />
+          ) : (
+            <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
+          )}
+
+          <span className="flex-1 text-sm truncate">{node.name}</span>
+
+          {isOpen && (
+            <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-primary/5 text-primary border-primary/20">
+              رئيسية
+            </Badge>
+          )}
+
+          {chk(node.disabled) && (
+            <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-muted/10 text-muted-foreground border-muted/30">
+              معطّلة
+            </Badge>
+          )}
+
+          <Badge variant="outline" className={cn(
+            'text-[9px] px-1.5 py-0',
+            count > 0 ? 'bg-success/5 text-success border-success/20' : 'bg-muted/10 text-muted-foreground border-muted/30',
+          )}>
+            {count} عميل
+          </Badge>
+
+          {node.parent_customer_group && (
+            <span className="text-[10px] text-muted-foreground">
+              ← {node.parent_customer_group}
+            </span>
+          )}
+
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => openEditDialog(node)}
+            >
+              <Users className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-destructive"
+              onClick={() => { setSelectedGroup(node); setDeleteDialogOpen(true); }}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+        {(node.children as (CustomerGroupRow & { children: unknown[] })[]).map((child) => renderTreeNode(child as CustomerGroupRow & { children: (CustomerGroupRow & { children: unknown[] })[] }, depth + 1))}
+      </div>
+    );
+  };
+
+  /* ── Create Handler ── */
   const handleCreate = async () => {
     if (!groupName.trim()) {
       toast({ title: 'اسم المجموعة مطلوب', variant: 'destructive' });
@@ -124,11 +261,13 @@ export default function CustomerGroupsPage() {
         customer_group_name: groupName.trim(),
         parent_customer_group: parentGroup || 'All Customer Groups',
         is_group: isGroup ? 1 : 0,
+        disabled: isDisabled ? 1 : 0,
       });
       setDialogOpen(false);
       setGroupName('');
       setParentGroup('');
       setIsGroup(false);
+      setIsDisabled(false);
       toast({ title: 'تم إنشاء مجموعة العملاء بنجاح' });
       void refetch();
     } catch (e) {
@@ -138,7 +277,7 @@ export default function CustomerGroupsPage() {
     }
   };
 
-  // ── Update Handler ──
+  /* ── Update Handler ── */
   const handleUpdate = async () => {
     if (!editGroup) return;
     setBusy(true);
@@ -160,7 +299,7 @@ export default function CustomerGroupsPage() {
     }
   };
 
-  // ── Delete Handler ──
+  /* ── Delete Handler ── */
   const handleDelete = async () => {
     if (!selectedGroup) return;
     try {
@@ -182,9 +321,12 @@ export default function CustomerGroupsPage() {
 
   const clearFilters = () => {
     setGroupTypeFilter('all');
+    setParentFilter('all');
   };
-  const hasActiveFilters = groupTypeFilter !== 'all';
 
+  const hasActiveFilters = groupTypeFilter !== 'all' || parentFilter !== 'all';
+
+  /* ── Table Columns ── */
   const columns: Column<CustomerGroupRow>[] = useMemo(
     () => [
       {
@@ -200,6 +342,11 @@ export default function CustomerGroupsPage() {
               <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
             )}
             <span className="font-medium">{String(v)}</span>
+            {chk(row.disabled) && (
+              <Badge variant="outline" className="text-[9px] px-1 py-0 bg-muted/10 text-muted-foreground border-muted/30">
+                معطّلة
+              </Badge>
+            )}
           </div>
         ),
       },
@@ -214,7 +361,7 @@ export default function CustomerGroupsPage() {
         header: 'النوع',
         width: 'w-28',
         render: (v) => (
-          <span className={`text-xs px-2 py-0.5 rounded-md ${chk(v) ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+          <span className={cn('text-xs px-2 py-0.5 rounded-md', chk(v) ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground')}>
             {chk(v) ? 'رئيسية' : 'فرعية'}
           </span>
         ),
@@ -226,7 +373,9 @@ export default function CustomerGroupsPage() {
         render: (_v, row) => {
           const count = customerCountMap[row.name] || 0;
           return (
-            <span className="tabular-nums text-sm">{count}</span>
+            <span className={cn('tabular-nums text-sm', count > 0 ? 'text-success font-medium' : 'text-muted-foreground')}>
+              {count}
+            </span>
           );
         },
       },
@@ -272,9 +421,30 @@ export default function CustomerGroupsPage() {
         actions={
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => refetch()} disabled={isLoading}>
-              <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={cn('h-3.5 w-3.5', isLoading && 'animate-spin')} />
               تحديث
             </Button>
+            {/* View Mode Toggle */}
+            <div className="flex items-center border rounded-lg overflow-hidden">
+              <Button
+                size="sm"
+                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
+                className="h-8 px-2.5 gap-1 text-xs rounded-none"
+                onClick={() => setViewMode('table')}
+              >
+                <List className="h-3.5 w-3.5" />
+                جدول
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'tree' ? 'secondary' : 'ghost'}
+                className="h-8 px-2.5 gap-1 text-xs rounded-none"
+                onClick={() => setViewMode('tree')}
+              >
+                <TreePine className="h-3.5 w-3.5" />
+                شجرة
+              </Button>
+            </div>
             <Button
               size="sm"
               className="gap-1.5"
@@ -282,6 +452,7 @@ export default function CustomerGroupsPage() {
                 setGroupName('');
                 setParentGroup('');
                 setIsGroup(false);
+                setIsDisabled(false);
                 setDialogOpen(true);
               }}
             >
@@ -293,7 +464,7 @@ export default function CustomerGroupsPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={3}>
+      <KpiStrip cols={5}>
         <KpiCard
           title="إجمالي المجموعات"
           value={totalGroups}
@@ -309,11 +480,25 @@ export default function CustomerGroupsPage() {
           description="مجموعات يمكن أن تحتوي فرعية"
         />
         <KpiCard
+          title="المجموعات الفرعية"
+          value={subGroups}
+          icon={Folder}
+          accent="info"
+          description="مجموعات فرعية (أوراق)"
+        />
+        <KpiCard
           title="إجمالي العملاء"
           value={totalCustomers}
           icon={Users}
-          accent="info"
+          accent="warning"
           description="جميع العملاء المسجلين"
+        />
+        <KpiCard
+          title="معطّلة"
+          value={disabledGroups}
+          icon={XCircle}
+          accent="destructive"
+          description={disabledGroups > 0 ? 'مجموعات غير مفعّلة' : 'لا توجد مجموعات معطّلة'}
         />
       </KpiStrip>
 
@@ -351,22 +536,56 @@ export default function CustomerGroupsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-1">
+                <Label className="text-[10px]">المجموعة الأب</Label>
+                <Select
+                  value={parentFilter}
+                  onValueChange={setParentFilter}
+                >
+                  <SelectTrigger className="h-8 text-xs w-48">
+                    <SelectValue placeholder="الكل" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">الكل</SelectItem>
+                    {parentGroupOptions.map((p) => (
+                      <SelectItem key={p} value={p}>{p}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CollapsibleContent>
         </Collapsible>
       </div>
 
+      {/* Tree View */}
+      {viewMode === 'tree' && (
+        <PageShell>
+          <div className="space-y-1 max-h-[600px] overflow-y-auto">
+            {treeData.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground text-sm">
+                لا توجد مجموعات لعرضها
+              </div>
+            ) : (
+              treeData.map((node) => renderTreeNode(node))
+            )}
+          </div>
+        </PageShell>
+      )}
+
       {/* Data Table */}
-      <DataTable
-        data={filtered}
-        columns={columns}
-        pageSize={15}
-        searchable
-        loading={isLoading}
-        tableId="sales-customer-groups"
-        exportFileName="customer-groups.csv"
-        printTitle="مجموعات العملاء"
-      />
+      {viewMode === 'table' && (
+        <DataTable
+          data={filtered}
+          columns={columns}
+          pageSize={15}
+          searchable
+          loading={isLoading}
+          tableId="sales-customer-groups"
+          exportFileName="customer-groups.csv"
+          printTitle="مجموعات العملاء"
+        />
+      )}
 
       {/* Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -402,15 +621,27 @@ export default function CustomerGroupsPage() {
                     className="h-9 text-sm"
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={isGroup}
-                    onChange={(e) => setIsGroup(e.target.checked)}
-                    className="rounded"
-                    id="isGroupCreate"
-                  />
-                  <Label htmlFor="isGroupCreate" className="text-sm cursor-pointer">مجموعة رئيسية (يمكن أن تحتوي على مجموعات فرعية)</Label>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isGroup}
+                      onChange={(e) => setIsGroup(e.target.checked)}
+                      className="rounded"
+                      id="isGroupCreate"
+                    />
+                    <Label htmlFor="isGroupCreate" className="text-sm cursor-pointer">مجموعة رئيسية (يمكن أن تحتوي على مجموعات فرعية)</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isDisabled}
+                      onChange={(e) => setIsDisabled(e.target.checked)}
+                      className="rounded"
+                      id="isDisabledCreate"
+                    />
+                    <Label htmlFor="isDisabledCreate" className="text-sm cursor-pointer text-muted-foreground">معطّلة (لن تظهر في الاختيارات)</Label>
+                  </div>
                 </div>
               </div>
             </fieldset>
@@ -457,6 +688,11 @@ export default function CustomerGroupsPage() {
                     placeholder="All Customer Groups"
                     className="h-9 text-sm"
                   />
+                </div>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span>النوع: <strong>{chk(editGroup?.is_group) ? 'رئيسية' : 'فرعية'}</strong></span>
+                  <span>العملاء: <strong>{customerCountMap[editGroup?.name || ''] || 0}</strong></span>
+                  {chk(editGroup?.disabled) && <Badge variant="outline" className="text-[9px] bg-muted/10 text-muted-foreground border-muted/30">معطّلة</Badge>}
                 </div>
               </div>
             </fieldset>

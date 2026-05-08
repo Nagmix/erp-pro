@@ -8,8 +8,24 @@ import path from 'path';
 const FILE = 'security-ui-settings.json';
 
 export type SecurityUiSettings = {
+  /** سياسة كلمات المرور */
   minPasswordLength: number;
+  requireUppercase: boolean;
+  requireLowercase: boolean;
+  requireNumbers: boolean;
+  requireSymbols: boolean;
+  /** إعدادات الجلسة */
   sessionHours: number;
+  simultaneousSessions: number;
+  forcePasswordReset: boolean;
+  forcePasswordResetDays: number;
+  /** المصادقة الثنائية */
+  twoFactorEnabled: boolean;
+  twoFactorMethod: string;
+  /** تحديد محاولات الدخول */
+  maxLoginAttempts: number;
+  lockoutDuration: number;
+  /** تقييد IP */
   ipRestriction: boolean;
   allowedIps: string;
   updatedAt?: string;
@@ -17,7 +33,18 @@ export type SecurityUiSettings = {
 
 const defaults: SecurityUiSettings = {
   minPasswordLength: 10,
+  requireUppercase: true,
+  requireLowercase: true,
+  requireNumbers: true,
+  requireSymbols: false,
   sessionHours: 8,
+  simultaneousSessions: 3,
+  forcePasswordReset: false,
+  forcePasswordResetDays: 90,
+  twoFactorEnabled: false,
+  twoFactorMethod: 'OTP App',
+  maxLoginAttempts: 5,
+  lockoutDuration: 15,
   ipRestriction: false,
   allowedIps: '',
 };

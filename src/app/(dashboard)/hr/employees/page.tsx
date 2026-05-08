@@ -1,9 +1,8 @@
-﻿'use client';
+'use client';
 
 import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,8 +24,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Users, UserCheck, UserX, Building2, Filter, ChevronDown, Upload, X } from 'lucide-react';
-import { PageHeader } from '@/components/erp/page-header';
+import {
+  Plus,
+  Users,
+  UserCheck,
+  UserX,
+  UserPlus,
+  Building2,
+  Filter,
+  ChevronDown,
+  X,
+  Briefcase,
+  Phone,
+  Calendar,
+  Search,
+  RefreshCw,
+  MapPin,
+} from 'lucide-react';
+import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -39,74 +55,203 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+/* ────────────────────────────────────────────
+   أنواع البيانات
+   ──────────────────────────────────────────── */
 type EmployeeRow = {
   name: string;
   employee_name?: string;
   first_name?: string;
   last_name?: string;
-  department?: string;
   designation?: string;
+  department?: string;
+  branch?: string;
   company?: string;
   status?: string;
   date_of_joining?: string;
   gender?: string;
   cell_number?: string;
-  company_email?: string;
+  prefered_email?: string;
 };
 
+/* ────────────────────────────────────────────
+   أعمدة الجدول
+   ──────────────────────────────────────────── */
 const columns: Column<EmployeeRow>[] = [
-  { key: 'name', header: 'الرقم', sortable: true, width: 'w-24', render: (value) => <span className="font-medium text-primary">{String(value)}</span> },
-  { key: 'employee_name', header: 'اسم الموظف', sortable: true, render: (_, row) => (
-    <div className="flex items-center gap-2">
-      <Avatar className="h-7 w-7"><AvatarFallback className="text-[10px] bg-primary/10 text-primary">{(row.first_name || '?').charAt(0)}{(row.last_name || '?').charAt(0)}</AvatarFallback></Avatar>
-      <div>
-        <span className="font-medium block">{row.employee_name || `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim()}</span>
-        <span className="text-[10px] text-muted-foreground">{row.designation || '—'}</span>
+  {
+    key: 'name',
+    header: 'الرقم',
+    sortable: true,
+    width: 'w-24',
+    render: (value) => (
+      <span className="font-medium text-primary">{String(value)}</span>
+    ),
+  },
+  {
+    key: 'employee_name',
+    header: 'اسم الموظف',
+    sortable: true,
+    render: (_, row) => (
+      <div className="flex items-center gap-2">
+        <Avatar className="h-7 w-7">
+          <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+            {(row.first_name || '?').charAt(0)}
+            {(row.last_name || '?').charAt(0)}
+          </AvatarFallback>
+        </Avatar>
+        <div>
+          <span className="font-medium block">
+            {row.employee_name || `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim()}
+          </span>
+          <span className="text-[10px] text-muted-foreground">
+            {row.designation || '—'}
+          </span>
+        </div>
       </div>
-    </div>
-  )},
-  { key: 'department', header: 'القسم', render: (value) => String(value || '—') },
-  { key: 'gender', header: 'الجنس', render: (value) => <span className="text-xs">{String(value) === 'Female' ? 'أنثى' : String(value) === 'Male' ? 'ذكر' : String(value || '—')}</span> },
-  { key: 'date_of_joining', header: 'تاريخ الالتحاق', sortable: true, render: (value) => (value ? formatDate(String(value)) : '—') },
-  { key: 'cell_number', header: 'الهاتف', render: (value) => <span className="text-muted-foreground text-[10px]" dir="ltr">{String(value || '—')}</span> },
-  { key: 'company_email', header: 'البريد', render: (value) => <span className="text-muted-foreground text-[10px]" dir="ltr">{String(value || '—')}</span> },
-  { key: 'status', header: 'الحالة', render: (value) => <StatusBadge status={String(value || '')} /> },
+    ),
+  },
+  {
+    key: 'designation',
+    header: 'المسمى الوظيفي',
+    sortable: true,
+    render: (value) => (
+      <div className="flex items-center gap-1.5">
+        <Briefcase className="h-3 w-3 text-muted-foreground shrink-0" />
+        <span>{String(value || '—')}</span>
+      </div>
+    ),
+  },
+  {
+    key: 'department',
+    header: 'القسم',
+    sortable: true,
+    render: (value) => (
+      <div className="flex items-center gap-1.5">
+        <Building2 className="h-3 w-3 text-muted-foreground shrink-0" />
+        <span>{String(value || '—')}</span>
+      </div>
+    ),
+  },
+  {
+    key: 'branch',
+    header: 'الفرع',
+    render: (value) => (
+      <div className="flex items-center gap-1.5">
+        <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
+        <span>{String(value || '—')}</span>
+      </div>
+    ),
+  },
+  {
+    key: 'company',
+    header: 'الشركة',
+    render: (value) => <span>{String(value || '—')}</span>,
+  },
+  {
+    key: 'status',
+    header: 'الحالة',
+    render: (value) => <StatusBadge status={String(value || '')} />,
+  },
+  {
+    key: 'date_of_joining',
+    header: 'تاريخ الالتحاق',
+    sortable: true,
+    render: (value) => (
+      <div className="flex items-center gap-1.5">
+        <Calendar className="h-3 w-3 text-muted-foreground shrink-0" />
+        <span>{value ? formatDate(String(value)) : '—'}</span>
+      </div>
+    ),
+  },
+  {
+    key: 'gender',
+    header: 'الجنس',
+    render: (value) => (
+      <span className="text-xs">
+        {String(value) === 'Female'
+          ? 'أنثى'
+          : String(value) === 'Male'
+            ? 'ذكر'
+            : String(value || '—')}
+      </span>
+    ),
+  },
+  {
+    key: 'cell_number',
+    header: 'الهاتف',
+    render: (value) => (
+      <div className="flex items-center gap-1.5">
+        <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
+        <span className="text-muted-foreground text-[10px]" dir="ltr">
+          {String(value || '—')}
+        </span>
+      </div>
+    ),
+  },
 ];
 
+/* ────────────────────────────────────────────
+   بيانات النموذج الافتراضية
+   ──────────────────────────────────────────── */
 const initialFormData = {
   first_name: '',
   last_name: '',
   department: '',
   designation: '',
-  gender: 'Male',
-  date_of_joining: '',
-  company_email: '',
-  cell_number: '',
-  date_of_birth: '',
   branch: '',
-  employment_type: '',
-  status: 'Active'};
+  company: '',
+  gender: 'Male',
+  date_of_birth: '',
+  date_of_joining: '',
+  cell_number: '',
+  prefered_email: '',
+  status: 'Active',
+};
 
+/* ────────────────────────────────────────────
+   الصفحة الرئيسية
+   ──────────────────────────────────────────── */
 export default function EmployeesPage() {
-  const [deptFilter, setDeptFilter] = useState('all');
+  /* ── الحالة ── */
   const [statusFilter, setStatusFilter] = useState('all');
+  const [deptFilter, setDeptFilter] = useState('all');
+  const [genderFilter, setGenderFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<EmployeeRow | null>(null);
   const [formData, setFormData] = useState({ ...initialFormData });
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [employeeStatusFilter, setEmployeeStatusFilter] = useState('all');
-  const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
 
-  const { data, isLoading, isError, error, refetch } = useDocList<EmployeeRow>('Employee', {
-    fields: ['name', 'employee_name', 'first_name', 'last_name', 'department', 'designation', 'company', 'status', 'date_of_joining', 'gender', 'cell_number', 'company_email'],
-    limit: 500,
-  });
+  const { company: defaultCompany, isLoading: coLoading } =
+    useDefaultCompanyName();
+
+  /* ── جلب البيانات ── */
+  const { data, isLoading, isError, error, refetch } =
+    useDocList<EmployeeRow>('Employee', {
+      fields: [
+        'name',
+        'employee_name',
+        'first_name',
+        'last_name',
+        'designation',
+        'department',
+        'branch',
+        'company',
+        'status',
+        'date_of_joining',
+        'gender',
+        'cell_number',
+        'prefered_email',
+      ],
+      limit: 500,
+    });
+
   const createMutation = useCreateDoc('Employee');
   const deleteMutation = useDeleteDoc('Employee');
 
   const employees = data || [];
 
+  /* ── اشتقاقات القوائم ── */
   const departments = useMemo(() => {
     const s = new Set<string>();
     employees.forEach((e) => {
@@ -115,14 +260,47 @@ export default function EmployeesPage() {
     return Array.from(s).sort();
   }, [employees]);
 
+  const designations = useMemo(() => {
+    const s = new Set<string>();
+    employees.forEach((e) => {
+      if (e.designation) s.add(String(e.designation));
+    });
+    return Array.from(s).sort();
+  }, [employees]);
+
+  /* ── فلاتر ── */
   let filtered = employees;
-  if (deptFilter !== 'all') filtered = filtered.filter((e) => e.department === deptFilter);
-  if (statusFilter !== 'all') filtered = filtered.filter((e) => e.status === statusFilter);
+  if (statusFilter !== 'all')
+    filtered = filtered.filter((e) => e.status === statusFilter);
+  if (deptFilter !== 'all')
+    filtered = filtered.filter((e) => e.department === deptFilter);
+  if (genderFilter !== 'all')
+    filtered = filtered.filter((e) => e.gender === genderFilter);
 
+  /* ── مؤشرات الأداء ── */
+  const totalCount = employees.length;
   const activeCount = employees.filter((e) => e.status === 'Active').length;
-  const leftCount = employees.filter((e) => e.status === 'Left').length;
-  const deptCount = departments.length;
+  const inactiveCount = employees.filter(
+    (e) => e.status === 'Inactive' || e.status === 'Left'
+  ).length;
 
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const newThisMonth = employees.filter((e) =>
+    e.date_of_joining?.startsWith(thisMonth)
+  ).length;
+
+  const hasActiveFilters =
+    statusFilter !== 'all' || deptFilter !== 'all' || genderFilter !== 'all';
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setDeptFilter('all');
+    setGenderFilter('all');
+    setSearch('');
+  };
+
+  /* ── إنشاء موظف ── */
   const handleCreate = () => {
     if (!formData.first_name || !formData.last_name) {
       toast.error('يرجى إدخال الاسم الأول واسم العائلة');
@@ -142,10 +320,10 @@ export default function EmployeesPage() {
       department: formData.department || undefined,
       designation: formData.designation || undefined,
       cell_number: formData.cell_number || undefined,
-      company_email: formData.company_email || undefined,
+      company_email: formData.prefered_email || undefined,
       date_of_birth: formData.date_of_birth || undefined,
       branch: formData.branch || undefined,
-      employment_type: formData.employment_type || undefined});
+    });
     const body = prepareFrappeDocForCreate(mapped);
     createMutation.mutate(body, {
       onSuccess: () => {
@@ -153,105 +331,353 @@ export default function EmployeesPage() {
         setDialogOpen(false);
         setFormData({ ...initialFormData });
       },
-      onError: () => toast.error('تعذر إنشاء الموظف، يرجى التحقق من البيانات المدخلة')});
+      onError: () =>
+        toast.error('تعذر إنشاء الموظف، يرجى التحقق من البيانات المدخلة'),
+    });
   };
 
+  /* ── حذف موظف ── */
   const handleDelete = (row: EmployeeRow) => {
     deleteMutation.mutate(row.name, {
-      onSuccess: () => { toast.success('تم حذف الموظف بنجاح'); setDeleteDialog(null); },
-      onError: () => toast.error('حدث خطأ أثناء حذف الموظف')});
+      onSuccess: () => {
+        toast.success('تم حذف الموظف بنجاح');
+        setDeleteDialog(null);
+      },
+      onError: () => toast.error('حدث خطأ أثناء حذف الموظف'),
+    });
   };
-  const clearFilters = () => { setStatusFilter('all'); setSearch(''); setEmployeeStatusFilter('all'); };
 
-
+  /* ──────────────────────────────────────────
+     واجهة المستخدم
+     ────────────────────────────────────────── */
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
+      {/* ═══ رأس الصفحة ═══ */}
       <PageHeader
         title="الموظفين"
         description="إدارة بيانات الموظفين، الأقسام، المسميات الوظيفية، الحالة الوظيفية وروابطها"
         iconify="solar:users-group-rounded-bold-duotone"
         accent="success"
-        breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الموظفون' }]}
+        breadcrumbs={[
+          { label: 'الموارد البشرية', href: '/hr' },
+          { label: 'الموظفون' },
+        ]}
         actions={
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1.5" disabled={coLoading}>
                 <Plus className="h-3.5 w-3.5" />
-موظف جديد
+                موظف جديد
               </Button>
             </DialogTrigger>
-          <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>إضافة موظف جديد</DialogTitle></DialogHeader>
-            <Tabs defaultValue="personal" className="w-full">
-              <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/35 p-1">
-                <TabsTrigger value="personal" className="text-xs">شخصي</TabsTrigger>
-                <TabsTrigger value="job" className="text-xs">وظيفي</TabsTrigger>
-                <TabsTrigger value="contact" className="text-xs">اتصال وفرع</TabsTrigger>
-              </TabsList>
-              <TabsContent value="personal" className="space-y-4 py-4 outline-none">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="text-xs font-medium">الاسم الأول <span className="text-destructive">*</span></Label><Input placeholder="الاسم الأول" value={formData.first_name} onChange={(e) => setFormData((prev) => ({ ...prev, first_name: e.target.value }))} /></div>
-                <div className="space-y-2"><Label className="text-xs font-medium">اسم العائلة <span className="text-destructive">*</span></Label><Input placeholder="اسم العائلة" value={formData.last_name} onChange={(e) => setFormData((prev) => ({ ...prev, last_name: e.target.value }))} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="text-xs font-medium">الجنس</Label>
-                  <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={formData.gender} onChange={(e) => setFormData((prev) => ({ ...prev, gender: e.target.value }))}>
-                    <option value="Male">ذكر</option>
-                    <option value="Female">أنثى</option>
-                  </select>
-                </div>
-                <div className="space-y-2"><Label className="text-xs font-medium">تاريخ الميلاد</Label><Input type="date" dir="ltr" value={formData.date_of_birth} onChange={(e) => setFormData((prev) => ({ ...prev, date_of_birth: e.target.value }))} /></div>
-              </div>
-              </TabsContent>
-              <TabsContent value="job" className="space-y-4 py-4 outline-none">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="text-xs font-medium">القسم</Label><ErpLinkCombobox doctype="Department" value={formData.department} onChange={(v) => setFormData((prev) => ({ ...prev, department: v }))} placeholder="قسم..." /></div>
-                <div className="space-y-2"><Label className="text-xs font-medium">المسمى الوظيفي</Label><ErpLinkCombobox doctype="Designation" value={formData.designation} onChange={(v) => setFormData((prev) => ({ ...prev, designation: v }))} placeholder="مسمى..." /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="text-xs font-medium">تاريخ الالتحاق</Label><Input type="date" dir="ltr" value={formData.date_of_joining} onChange={(e) => setFormData((prev) => ({ ...prev, date_of_joining: e.target.value }))} /></div>
-                <div className="space-y-2"><Label className="text-xs font-medium">نوع التوظيف</Label>
-                  <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={formData.employment_type} onChange={(e) => setFormData((prev) => ({ ...prev, employment_type: e.target.value }))}>
-                    <option value="">—</option>
-                    <option value="Full-time">دوام كامل</option>
-                    <option value="Part-time">دوام جزئي</option>
-                    <option value="Intern">تدريب</option>
-                    <option value="Contract">عقد</option>
-                  </select>
-                </div>
-              </div>
-              <div className="space-y-2"><Label className="text-xs font-medium">الحالة</Label>
-                <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={formData.status} onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}>
-                  <option value="Active">نشط</option>
-                  <option value="Inactive">غير نشط</option>
-                  <option value="Left">مغادر</option>
-                </select>
-              </div>
-              </TabsContent>
-              <TabsContent value="contact" className="space-y-4 py-4 outline-none">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="text-xs font-medium">البريد الإلكتروني</Label><Input type="email" placeholder="email@company.sa" dir="ltr" value={formData.company_email} onChange={(e) => setFormData((prev) => ({ ...prev, company_email: e.target.value }))} /></div>
-                <div className="space-y-2"><Label className="text-xs font-medium">رقم الهاتف</Label><Input placeholder="05XXXXXXXX" dir="ltr" value={formData.cell_number} onChange={(e) => setFormData((prev) => ({ ...prev, cell_number: e.target.value }))} /></div>
-              </div>
-              <div className="space-y-2"><Label className="text-xs font-medium">الفرع</Label><ErpLinkCombobox doctype="Branch" value={formData.branch} onChange={(v) => setFormData((prev) => ({ ...prev, branch: v }))} placeholder="اختياري" /></div>
-              <p className="text-[10px] text-muted-foreground">الشركة: {defaultCompany || '—'}</p>
-              </TabsContent>
-            </Tabs>
-              <Button className="w-full" onClick={handleCreate} disabled={createMutation.isPending || coLoading}>{createMutation.isPending ? 'جاري الحفظ...' : 'حفظ الموظف'}</Button>
-          </DialogContent>
+            <DialogContent
+              dir="rtl"
+              className="max-w-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <UserPlus className="h-5 w-5 text-primary" />
+                  إضافة موظف جديد
+                </DialogTitle>
+              </DialogHeader>
+              <Tabs defaultValue="personal" className="w-full">
+                <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/35 p-1">
+                  <TabsTrigger value="personal" className="text-xs">
+                    بيانات شخصية
+                  </TabsTrigger>
+                  <TabsTrigger value="job" className="text-xs">
+                    بيانات وظيفية
+                  </TabsTrigger>
+                  <TabsTrigger value="contact" className="text-xs">
+                    اتصال وفرع
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* ── تبويب البيانات الشخصية ── */}
+                <TabsContent
+                  value="personal"
+                  className="space-y-4 py-4 outline-none"
+                >
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        الاسم الأول <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        placeholder="الاسم الأول"
+                        value={formData.first_name}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            first_name: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        اسم العائلة <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        placeholder="اسم العائلة"
+                        value={formData.last_name}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            last_name: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">الجنس</Label>
+                      <Select
+                        value={formData.gender}
+                        onValueChange={(v) =>
+                          setFormData((prev) => ({ ...prev, gender: v }))
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Male">ذكر</SelectItem>
+                          <SelectItem value="Female">أنثى</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        تاريخ الميلاد
+                      </Label>
+                      <Input
+                        type="date"
+                        dir="ltr"
+                        value={formData.date_of_birth}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            date_of_birth: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* ── تبويب البيانات الوظيفية ── */}
+                <TabsContent
+                  value="job"
+                  className="space-y-4 py-4 outline-none"
+                >
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        المسمى الوظيفي
+                      </Label>
+                      <ErpLinkCombobox
+                        doctype="Designation"
+                        value={formData.designation}
+                        onChange={(v) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            designation: v,
+                          }))
+                        }
+                        placeholder="اختر المسمى..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">القسم</Label>
+                      <ErpLinkCombobox
+                        doctype="Department"
+                        value={formData.department}
+                        onChange={(v) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            department: v,
+                          }))
+                        }
+                        placeholder="اختر القسم..."
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        تاريخ الالتحاق
+                      </Label>
+                      <Input
+                        type="date"
+                        dir="ltr"
+                        value={formData.date_of_joining}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            date_of_joining: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">الحالة</Label>
+                      <Select
+                        value={formData.status}
+                        onValueChange={(v) =>
+                          setFormData((prev) => ({ ...prev, status: v }))
+                        }
+                      >
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Active">نشط</SelectItem>
+                          <SelectItem value="Inactive">غير نشط</SelectItem>
+                          <SelectItem value="Left">مغادر</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* ── تبويب الاتصال والفرع ── */}
+                <TabsContent
+                  value="contact"
+                  className="space-y-4 py-4 outline-none"
+                >
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">
+                        البريد الإلكتروني المفضّل
+                      </Label>
+                      <Input
+                        type="email"
+                        placeholder="email@company.sa"
+                        dir="ltr"
+                        value={formData.prefered_email}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            prefered_email: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">رقم الهاتف</Label>
+                      <Input
+                        placeholder="05XXXXXXXX"
+                        dir="ltr"
+                        value={formData.cell_number}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            cell_number: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">الفرع</Label>
+                      <ErpLinkCombobox
+                        doctype="Branch"
+                        value={formData.branch}
+                        onChange={(v) =>
+                          setFormData((prev) => ({ ...prev, branch: v }))
+                        }
+                        placeholder="اختر الفرع..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-medium">الشركة</Label>
+                      <ErpLinkCombobox
+                        doctype="Company"
+                        value={formData.company || defaultCompany || ''}
+                        onChange={(v) =>
+                          setFormData((prev) => ({ ...prev, company: v }))
+                        }
+                        placeholder="الشركة..."
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    الشركة الافتراضية: {defaultCompany || '—'}
+                  </p>
+                </TabsContent>
+              </Tabs>
+              <Button
+                className="w-full"
+                onClick={handleCreate}
+                disabled={createMutation.isPending || coLoading}
+              >
+                {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ الموظف'}
+              </Button>
+            </DialogContent>
           </Dialog>
         }
       />
 
-      {/* شريط البحث والفلاتر */}
+      {/* ═══ بطاقات مؤشرات الأداء ═══ */}
+      <KpiStrip cols={4}>
+        <KpiCard
+          title="إجمالي الموظفين"
+          value={totalCount}
+          icon={Users}
+          accent="primary"
+          description="جميع الموظفين المسجّلين في النظام"
+        />
+        <KpiCard
+          title="نشطون"
+          value={activeCount}
+          icon={UserCheck}
+          accent="success"
+          description="موظفون في الخدمة حالياً"
+        />
+        <KpiCard
+          title="غير نشط / مغادر"
+          value={inactiveCount}
+          icon={UserX}
+          accent="destructive"
+          description="موظفون غير نشطين أو غادروا"
+        />
+        <KpiCard
+          title="جدد هذا الشهر"
+          value={newThisMonth}
+          icon={UserPlus}
+          accent="info"
+          description="التحقوا خلال الشهر الحالي"
+        />
+      </KpiStrip>
+
+      {/* ═══ شريط البحث والفلاتر ═══ */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          {/* بحث سريع */}
           <div className="flex-1 min-w-[200px]">
-            <Input placeholder="بحث باسم الموظف..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
+            <div className="relative">
+              <Search className="pointer-events-none absolute end-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="بحث باسم الموظف أو الرقم..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-8 text-xs pe-8"
+              />
+            </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs gap-1.5"
+            onClick={() => void refetch()}
+          >
+            <RefreshCw className="h-3 w-3" />
+            تحديث
+          </Button>
         </div>
 
         {/* فلاتر متقدمة (قابلة للطي) */}
@@ -260,52 +686,150 @@ export default function EmployeesPage() {
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
                 <Filter className="h-3 w-3" /> فلاتر متقدمة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
+                <ChevronDown
+                  className={cn(
+                    'h-3 w-3 transition-transform',
+                    filtersOpen && 'rotate-180'
+                  )}
+                />
               </Button>
             </CollapsibleTrigger>
-            {(employeeStatusFilter !== 'all' || search) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-7 text-xs gap-1"
+              >
                 <X className="h-3 w-3" /> مسح الفلاتر
               </Button>
             )}
           </div>
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
+              {/* فلتر الحالة */}
               <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
-            <Select value={employeeStatusFilter} onValueChange={setEmployeeStatusFilter}>
-              <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="Active">نشط</SelectItem>
-                <SelectItem value="Inactive">غير نشط</SelectItem>
-                <SelectItem value="Left">مغادر</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                <Label className="text-[10px]">الحالة</Label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={setStatusFilter}
+                >
+                  <SelectTrigger className="h-8 text-xs w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">الكل</SelectItem>
+                    <SelectItem value="Active">نشط</SelectItem>
+                    <SelectItem value="Inactive">غير نشط</SelectItem>
+                    <SelectItem value="Left">مغادر</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* فلتر القسم */}
+              <div className="space-y-1">
+                <Label className="text-[10px]">القسم</Label>
+                <Select value={deptFilter} onValueChange={setDeptFilter}>
+                  <SelectTrigger className="h-8 text-xs w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">كل الأقسام</SelectItem>
+                    {departments.map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* فلتر الجنس */}
+              <div className="space-y-1">
+                <Label className="text-[10px]">الجنس</Label>
+                <Select
+                  value={genderFilter}
+                  onValueChange={setGenderFilter}
+                >
+                  <SelectTrigger className="h-8 text-xs w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">الكل</SelectItem>
+                    <SelectItem value="Male">ذكر</SelectItem>
+                    <SelectItem value="Female">أنثى</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CollapsibleContent>
         </Collapsible>
       </div>
 
+      {/* ═══ تبويبات الحالة السريعة ═══ */}
       <div className="flex gap-3 flex-wrap">
         <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-          <TabsList className="bg-muted/35"><TabsTrigger value="all" className="text-xs">الكل</TabsTrigger><TabsTrigger value="Active" className="text-xs">نشط</TabsTrigger><TabsTrigger value="Inactive" className="text-xs">غير نشط</TabsTrigger><TabsTrigger value="Left" className="text-xs">مغادر</TabsTrigger></TabsList>
+          <TabsList className="bg-muted/35">
+            <TabsTrigger value="all" className="text-xs">
+              الكل ({totalCount})
+            </TabsTrigger>
+            <TabsTrigger value="Active" className="text-xs">
+              نشط ({activeCount})
+            </TabsTrigger>
+            <TabsTrigger value="Inactive" className="text-xs">
+              غير نشط
+            </TabsTrigger>
+            <TabsTrigger value="Left" className="text-xs">
+              مغادر
+            </TabsTrigger>
+          </TabsList>
         </Tabs>
         <Tabs value={deptFilter} onValueChange={setDeptFilter}>
           <TabsList className="bg-muted/35 flex flex-wrap h-auto gap-1 py-1">
-            <TabsTrigger value="all" className="text-xs">كل الأقسام</TabsTrigger>
-            {departments.slice(0, 12).map((d) => (
-              <TabsTrigger key={d} value={d} className="text-xs max-w-[140px] truncate">{d}</TabsTrigger>
+            <TabsTrigger value="all" className="text-xs">
+              كل الأقسام
+            </TabsTrigger>
+            {departments.slice(0, 8).map((d) => (
+              <TabsTrigger key={d} value={d} className="text-xs max-w-[140px] truncate">
+                {d}
+              </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
       </div>
 
-      <DataTable data={filtered} columns={columns} searchable loading={isLoading} onDelete={(row) => setDeleteDialog(row)} />
+      {/* ═══ جدول البيانات ═══ */}
+      <DataTable
+        data={filtered}
+        columns={columns}
+        searchable
+        loading={isLoading}
+        tableId="hr-employees"
+        exportFileName="الموظفين"
+        onDelete={(row) => setDeleteDialog(row)}
+      />
 
+      {/* ═══ حوار تأكيد الحذف ═══ */}
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
-        <AlertDialogContent dir="rtl"><AlertDialogHeader><AlertDialogTitle>تأكيد الحذف</AlertDialogTitle><AlertDialogDescription>هل أنت متأكد من حذف الموظف {deleteDialog?.employee_name || deleteDialog?.name}؟</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>إلغاء</AlertDialogCancel><AlertDialogAction onClick={() => deleteDialog && handleDelete(deleteDialog)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف الموظف{' '}
+              {deleteDialog?.employee_name || deleteDialog?.name}؟ لا يمكن التراجع
+              عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteDialog && handleDelete(deleteDialog)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </div>
   );
