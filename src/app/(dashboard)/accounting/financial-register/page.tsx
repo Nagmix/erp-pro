@@ -21,6 +21,7 @@ import { translateAccountName } from '@/lib/core/arabic-labels';
 import { useToast } from '@/hooks/use-toast';
 import { BookOpen, ArrowUpLeft, ArrowDownLeft, FileText, Landmark, Receipt, Scale } from 'lucide-react';
 import Link from 'next/link';
+import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 
 type GLRow = {
   name: string;
@@ -125,7 +126,7 @@ export default function FinancialRegisterPage() {
       sortable: true,
       filterable: true,
       render: (v) => (
-        <Link href={`/doc/journal-entry/${encodeURIComponent(String(v))}`} className="font-medium text-primary hover:underline">
+        <Link href={(() => { const h = docDetailPath('Journal Entry', String(v)); return h || '#'; })()} className="font-medium text-primary hover:underline">
           {String(v)}
         </Link>
       ),
@@ -154,7 +155,7 @@ export default function FinancialRegisterPage() {
       sortable: true,
       filterable: true,
       render: (v) => (
-        <Link href={`/doc/payment-entry/${encodeURIComponent(String(v))}`} className="font-medium text-primary hover:underline">
+        <Link href={(() => { const h = docDetailPath('Payment Entry', String(v)); return h || '#'; })()} className="font-medium text-primary hover:underline">
           {String(v)}
         </Link>
       ),

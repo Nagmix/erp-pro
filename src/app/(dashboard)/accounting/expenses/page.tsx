@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Receipt, Trash2, CheckCircle, Clock, FileX, Upload, Filter, ChevronDown, X } from 'lucide-react';
+import { Plus, Receipt, Trash2, CheckCircle, Clock, FileX, Upload, Filter, ChevronDown, X, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
@@ -38,6 +38,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { buildExpenseClaimCreate } from '@/lib/erp/erpnext-payloads';
+import { apiCreateDoc } from '@/lib/client/api';
+import type { ParsedExpenseLine } from '@/lib/erp/parse-expense-import-xlsx';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
@@ -97,6 +99,17 @@ export default function ExpensesPage() {
   const [expenseStatusFilter, setExpenseStatusFilter] = useState('all');
   const [selected, setSelected] = useState<ExpenseRow | null>(null);
   const [items, setItems] = useState<ExpenseItem[]>(() => [emptyItem(new Date().toISOString().split('T')[0]!)]);
+
+  // استيراد مباشر من Excel
+  const headerImportRef = useRef<HTMLInputElement>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importEmployee, setImportEmployee] = useState('');
+  const [importDate, setImportDate] = useState(() => new Date().toISOString().split('T')[0]!);
+  const [importCostCenter, setImportCostCenter] = useState('');
+  const [importRemark, setImportRemark] = useState('');
+  const [importLines, setImportLines] = useState<ParsedExpenseLine[]>([]);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importFileLoading, setImportFileLoading] = useState(false);
 
   const { toast } = useToast();
   const { company: defaultCompany, isLoading: companyLoading } = useDefaultCompanyName();
@@ -292,20 +305,39 @@ export default function ExpensesPage() {
         accent="warning"
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'المصروفات' }]}
         actions={
-          <Button
-            size="sm"
-            className="gap-1.5"
-            disabled={companyLoading}
-            onClick={() => {
-              const t = new Date().toISOString().split('T')[0]!;
-              form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1 });
-              setItems([emptyItem(t)]);
-              setDialogOpen(true);
-            }}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            مطالبة جديدة
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              disabled={companyLoading}
+              onClick={() => {
+                setImportEmployee('');
+                setImportDate(new Date().toISOString().split('T')[0]!);
+                setImportCostCenter('');
+                setImportRemark('');
+                setImportLines([]);
+                setImportDialogOpen(true);
+              }}
+            >
+              <FileSpreadsheet className="h-3.5 w-3.5" />
+              استيراد Excel
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1.5"
+              disabled={companyLoading}
+              onClick={() => {
+                const t = new Date().toISOString().split('T')[0]!;
+                form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1 });
+                setItems([emptyItem(t)]);
+                setDialogOpen(true);
+              }}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              مطالبة جديدة
+            </Button>
+          </div>
         }
       />
 
@@ -538,6 +570,167 @@ export default function ExpensesPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* حوار استيراد Excel المباشر */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>استيراد مطالبات مصروفات من Excel</DialogTitle>
+          </DialogHeader>
+          <input
+            ref={headerImportRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              setImportFileLoading(true);
+              try {
+                const buf = await f.arrayBuffer();
+                const { parseExpenseImportXlsx } = await import('@/lib/erp/parse-expense-import-xlsx');
+                const rows = await parseExpenseImportXlsx(buf);
+                if (!rows.length) {
+                  toast({ title: 'لم تُستخرج بنود من الملف', variant: 'destructive' });
+                } else {
+                  setImportLines(rows);
+                  toast({ title: `تم استخراج ${rows.length} بنداً من الملف` });
+                }
+              } catch {
+                toast({ title: 'فشل قراءة الملف', variant: 'destructive' });
+              } finally {
+                setImportFileLoading(false);
+                e.target.value = '';
+              }
+            }}
+          />
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">الموظف *</Label>
+                <ErpLinkCombobox
+                  doctype="Employee"
+                  value={importEmployee}
+                  onChange={setImportEmployee}
+                  displayKey="employee_name"
+                  placeholder="اختر الموظف..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">تاريخ الترحيل *</Label>
+                <Input type="date" dir="ltr" value={importDate} onChange={(e) => setImportDate(e.target.value)} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">مركز التكلفة</Label>
+                <ErpLinkCombobox
+                  doctype="Cost Center"
+                  value={importCostCenter}
+                  onChange={setImportCostCenter}
+                  placeholder="اختياري"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-medium">ملاحظات</Label>
+                <Input
+                  placeholder="ملاحظات إضافية..."
+                  value={importRemark}
+                  onChange={(e) => setImportRemark(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs"
+                disabled={importFileLoading}
+                onClick={() => headerImportRef.current?.click()}
+              >
+                {importFileLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                اختيار ملف Excel
+              </Button>
+              <span className="text-[10px] text-muted-foreground">
+                أعمدة: تاريخ، نوع المصروف، المبلغ، وصف، مركز تكلفة
+              </span>
+            </div>
+
+            {importLines.length > 0 && (
+              <>
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-muted/50 px-3 py-2 grid grid-cols-12 gap-2 text-xs font-semibold">
+                    <div className="col-span-2">التاريخ</div>
+                    <div className="col-span-3">النوع</div>
+                    <div className="col-span-2">المبلغ</div>
+                    <div className="col-span-3">الوصف</div>
+                    <div className="col-span-2">مركز التكلفة</div>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {importLines.map((line, idx) => (
+                      <div key={idx} className="px-3 py-1.5 grid grid-cols-12 gap-2 text-xs border-b last:border-b-0">
+                        <div className="col-span-2 text-muted-foreground">{line.expense_date}</div>
+                        <div className="col-span-3">{line.expense_type}</div>
+                        <div className="col-span-2 font-semibold tabular-nums">{formatCurrency(line.amount)}</div>
+                        <div className="col-span-3 truncate">{line.description || '—'}</div>
+                        <div className="col-span-2 truncate text-muted-foreground">{line.cost_center || '—'}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-3 flex justify-between text-sm font-bold">
+                  <span>إجمالي البنود ({importLines.length})</span>
+                  <span className="tabular-nums">{formatCurrency(importLines.reduce((s, l) => s + l.amount, 0))}</span>
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="ghost" onClick={() => setImportDialogOpen(false)} className="text-muted-foreground">
+              إلغاء
+            </Button>
+            <Button
+              type="button"
+              disabled={importLoading || !importEmployee || !importDate || importLines.length === 0}
+              onClick={async () => {
+                if (!defaultCompany || !importEmployee || !importDate || importLines.length === 0) return;
+                setImportLoading(true);
+                try {
+                  const doc = buildExpenseClaimCreate({
+                    employee: importEmployee,
+                    company: defaultCompany,
+                    posting_date: importDate,
+                    remark: importRemark?.trim() || undefined,
+                    cost_center: importCostCenter?.trim() || undefined,
+                    expenses: importLines.map((l) => ({
+                      expense_date: l.expense_date || importDate,
+                      expense_type: l.expense_type,
+                      amount: l.amount,
+                      description: l.description,
+                      cost_center: l.cost_center?.trim() || importCostCenter?.trim() || undefined,
+                    })),
+                  });
+                  await apiCreateDoc('Expense Claim', doc);
+                  toast({ title: `تم إنشاء مطالبة مصروفات بنجاح (${importLines.length} بنداً)` });
+                  setImportDialogOpen(false);
+                  setImportLines([]);
+                  void refetch();
+                } catch (err: any) {
+                  toast({ title: 'فشل إنشاء المطالبة', description: err?.message || 'خطأ غير معروف', variant: 'destructive' });
+                } finally {
+                  setImportLoading(false);
+                }
+              }}
+              className="gap-1.5 min-w-[130px]"
+            >
+              {importLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+              {importLoading ? 'جاري الإنشاء...' : 'إنشاء المطالبة'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

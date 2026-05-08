@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Loader2, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import { Plus, Loader2, Filter, ChevronDown, Upload, X, CreditCard, ArrowDownToLine, ArrowUpFromLine, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { apiChequeLifecycleFieldStatus, apiEnsureChequeLifecycleField } from '@/lib/client/api';
 import { useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { CHEQUE_LIFECYCLE_FIELD, CHEQUE_LIFECYCLE_OPTIONS, chequeLifecycleLabel } from '@/lib/erp/cheque-lifecycle';
@@ -64,6 +64,7 @@ export default function ChequesPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [lifecycleFilter, setLifecycleFilter] = useState<string>('all');
 
   const fields = useMemo(() => {
     const f = [...BASE_FIELDS];
@@ -109,7 +110,7 @@ export default function ChequesPage() {
     };
   }, []);
 
-  const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setStatusFilter('all'); setTypeFilter('all'); };
+  const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setStatusFilter('all'); setTypeFilter('all'); setLifecycleFilter('all'); };
 
   const rows = useMemo(() => {
     const all = data || [];
@@ -126,9 +127,30 @@ export default function ChequesPage() {
   }, [data]);
 
   const filtered = useMemo(() => {
-    if (typeFilter === 'all') return rows;
-    return rows.filter((p) => p.payment_type === typeFilter);
-  }, [rows, typeFilter]);
+    let list = rows;
+    if (typeFilter !== 'all') list = list.filter((p) => p.payment_type === typeFilter);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((p) =>
+        ['name', 'party', 'reference_no', 'mode_of_payment'].some(
+          (k) => String((p as any)[k] ?? '').toLowerCase().includes(q)
+        )
+      );
+    }
+    if (dateFrom || dateTo) {
+      list = list.filter((p) => {
+        const d = p.posting_date || '';
+        if (dateFrom && d < dateFrom) return false;
+        if (dateTo && d > dateTo) return false;
+        return true;
+      });
+    }
+    if (statusFilter !== 'all') list = list.filter((p) => String(p.docstatus) === statusFilter);
+    if (lifecycleFilter !== 'all' && includeLifecycle) {
+      list = list.filter((p) => (p[CHEQUE_LIFECYCLE_FIELD] || '__none__') === lifecycleFilter);
+    }
+    return list;
+  }, [rows, typeFilter, search, dateFrom, dateTo, statusFilter, lifecycleFilter, includeLifecycle]);
 
   const onStageChange = useCallback(
     (name: string, stage: string) => {
@@ -219,6 +241,17 @@ export default function ChequesPage() {
       count: rows.filter((p) => p.payment_type === 'Internal Transfer').length},
   ];
 
+  // KPI strip — مؤشرات الشيكات
+  const kpis = useMemo(() => {
+    const lcField = CHEQUE_LIFECYCLE_FIELD;
+    const issued = rows.filter((p) => (p as any)[lcField] === 'Issued').length;
+    const deposited = rows.filter((p) => (p as any)[lcField] === 'Deposited').length;
+    const cleared = rows.filter((p) => (p as any)[lcField] === 'Cleared').length;
+    const bounced = rows.filter((p) => (p as any)[lcField] === 'Bounced').length;
+    const noStage = rows.filter((p) => !(p as any)[lcField]).length;
+    return { total: rows.length, issued, deposited, cleared, bounced, noStage };
+  }, [rows]);
+
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
@@ -257,7 +290,7 @@ export default function ChequesPage() {
                 <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
               </Button>
             </CollapsibleTrigger>
-            {(dateFrom || dateTo || statusFilter !== 'all' || search) && (
+            {(dateFrom || dateTo || statusFilter !== 'all' || search || lifecycleFilter !== 'all') && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
                 <X className="h-3 w-3" /> مسح الفلاتر
               </Button>
@@ -285,6 +318,21 @@ export default function ChequesPage() {
               </SelectContent>
             </Select>
           </div>
+          {includeLifecycle && (
+            <div className="space-y-1">
+              <Label className="text-[10px]">دورة الشيك</Label>
+              <Select value={lifecycleFilter} onValueChange={setLifecycleFilter}>
+                <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="__none__">بدون مرحلة</SelectItem>
+                  {CHEQUE_LIFECYCLE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt} value={opt}>{chequeLifecycleLabel(opt)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -311,6 +359,57 @@ export default function ChequesPage() {
             </Button>
           </AlertDescription>
         </Alert>
+      )}
+
+      {/* شريط مؤشرات الشيكات */}
+      {includeLifecycle && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <CreditCard className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground font-medium">إجمالي الشيكات</p>
+              <p className="text-lg font-bold tabular-nums">{kpis.total}</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+              <ArrowUpFromLine className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground font-medium">إصدار</p>
+              <p className="text-lg font-bold tabular-nums">{kpis.issued}</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
+              <ArrowDownToLine className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground font-medium">إيداع</p>
+              <p className="text-lg font-bold tabular-nums">{kpis.deposited}</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+              <CheckCircle2 className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground font-medium">مقاصة</p>
+              <p className="text-lg font-bold tabular-nums">{kpis.cleared}</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-red-500/10 text-red-600 flex items-center justify-center">
+              <AlertTriangle className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground font-medium">ارتداد</p>
+              <p className="text-lg font-bold tabular-nums">{kpis.bounced}</p>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-[var(--shadow-xs-ui)] p-3">

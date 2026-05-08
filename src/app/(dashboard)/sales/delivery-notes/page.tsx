@@ -26,7 +26,7 @@ import {
 import { Plus, Trash2, Truck, Send, Undo2, FileText, Filter, ChevronDown, Upload, X } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { useToast } from '@/hooks/use-toast';
 import { buildDeliveryNote } from '@/lib/erp/erpnext-payloads';
@@ -34,6 +34,16 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface DNRow {
   name: string;
@@ -65,6 +75,8 @@ export default function DeliveryNotesPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dnStatusFilter, setDnStatusFilter] = useState('all');
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<DNRow | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); };
@@ -87,6 +99,7 @@ export default function DeliveryNotesPage() {
   const createMutation = useCreateDoc<DNRow>('Delivery Note');
   const submitMutation = useSubmitDoc<DNRow>('Delivery Note');
   const cancelMutation = useCancelDoc<DNRow>('Delivery Note');
+  const deleteMutation = useDeleteDoc('Delivery Note');
 
   const rows = data || [];
   const filtered = filter === 'all' ? rows : rows.filter((d) => d.status === filter);
@@ -164,21 +177,32 @@ export default function DeliveryNotesPage() {
           const ds = Number(row.docstatus);
           if (ds === 0) {
             return (
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                className="h-7 text-[10px] gap-1"
-                disabled={submitMutation.isPending}
-                onClick={() =>
-                  submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
-                }
-              >
-                <Send className="h-3 w-3" />
-                ترحيل
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 text-[10px] gap-1"
+                  disabled={submitMutation.isPending}
+                  onClick={() =>
+                    submitMutation.mutate(row.name, {
+                      onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
+                      onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                  }
+                >
+                  <Send className="h-3 w-3" />
+                  ترحيل
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-[10px] text-destructive"
+                  onClick={() => { setSelectedNote(row); setDeleteDialogOpen(true); }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
             );
           }
           if (ds === 1) {
@@ -201,7 +225,7 @@ export default function DeliveryNotesPage() {
           return '—';
         }},
     ],
-    [submitMutation, cancelMutation, toast, refetch]
+    [submitMutation, cancelMutation, deleteMutation, toast, refetch]
   );
 
   return (
@@ -370,8 +394,41 @@ export default function DeliveryNotesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-base">تأكيد حذف إشعار التسليم</AlertDialogTitle>
+                <AlertDialogDescription className="text-xs mt-1">هل أنت متأكد من حذف إشعار التسليم &quot;{selectedNote?.name}&quot;؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedNote) {
+                  deleteMutation.mutate(selectedNote.name, {
+                    onSuccess: () => { toast({ title: 'تم حذف إشعار التسليم' }); void refetch(); },
+                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
-
 

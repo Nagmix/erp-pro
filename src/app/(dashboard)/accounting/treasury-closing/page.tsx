@@ -19,6 +19,7 @@ import { translateAccountName } from '@/lib/core/arabic-labels';
 import { useToast } from '@/hooks/use-toast';
 import { Lock, Wallet, CheckCircle2, AlertTriangle, ArrowUpLeft, ArrowDownLeft, Scale, DoorOpen } from 'lucide-react';
 import Link from 'next/link';
+import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 
 type VaultRow = {
   name: string;
@@ -151,11 +152,10 @@ export default function TreasuryClosingPage() {
         header: 'رقم',
         sortable: true,
         filterable: true,
-        render: (v) => (
-          <Link href={`/doc/payment-entry/${encodeURIComponent(String(v))}`} className="font-medium text-primary hover:underline">
-            {String(v)}
-          </Link>
-        ),
+        render: (v) => {
+          const href = docDetailPath('Payment Entry', String(v));
+          return href ? <Link href={href} className="font-medium text-primary hover:underline">{String(v)}</Link> : <span>{String(v)}</span>;
+        },
       },
       {
         key: 'payment_type',

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader } from '@/components/erp/page-header';
+import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { ErpListDateStatusFilters } from '@/components/erp/erp-list-date-status-filters';
@@ -19,8 +19,10 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeftRight, ArrowRightLeft, Send, Wallet, Banknote } from 'lucide-react';
+import { ArrowLeftRight, ArrowRightLeft, Send, Wallet, Banknote, DollarSign, Clock, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { docDetailPath } from '@/lib/erp/doc-detail-routes';
+import { KpiCard } from '@/components/erp/kpi-card';
 
 type TransferRow = {
   name: string;
@@ -146,11 +148,10 @@ export default function TreasuryTransferPage() {
         header: 'رقم القيد',
         sortable: true,
         filterable: true,
-        render: (v) => (
-          <Link href={`/doc/journal-entry/${encodeURIComponent(String(v))}`} className="font-medium text-primary hover:underline">
-            {String(v)}
-          </Link>
-        ),
+        render: (v) => {
+          const href = docDetailPath('Journal Entry', String(v));
+          return href ? <Link href={href} className="font-medium text-primary hover:underline">{String(v)}</Link> : <span>{String(v)}</span>;
+        },
       },
       { key: 'posting_date', header: 'التاريخ', sortable: true, render: (v) => v ? formatDate(String(v)) : '\u2014' },
       {
@@ -168,14 +169,10 @@ export default function TreasuryTransferPage() {
       {
         key: 'actions',
         header: 'إجراءات',
-        render: (_v, row) => (
-          <Link
-            href={`/doc/journal-entry/${encodeURIComponent(row.name)}`}
-            className="text-xs text-primary hover:underline"
-          >
-            عرض التفاصيل
-          </Link>
-        ),
+        render: (_v, row) => {
+          const href = docDetailPath('Journal Entry', row.name);
+          return href ? <Link href={href} className="text-xs text-primary hover:underline">عرض التفاصيل</Link> : <span className="text-xs text-muted-foreground">عرض التفاصيل</span>;
+        },
       },
     ],
     []
@@ -193,8 +190,11 @@ export default function TreasuryTransferPage() {
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'التحويل بين الخزائن' }]}
       />
 
-      <>
-        </>
+      <KpiStrip>
+        <KpiCard title="إجمالي التحويلات" value={formatCurrency(totalTransferred)} icon={DollarSign} accent="info" />
+        <KpiCard title="قيد الانتظار" value={pendingCount} icon={Clock} accent="warning" />
+        <KpiCard title="تم التحويل" value={submittedCount} icon={CheckCircle2} accent="success" />
+      </KpiStrip>
 
       {/* Transfer Form */}
       <Card className="border-primary/20">

@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import Link from 'next/link';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
+import { KpiCard } from '@/components/erp/kpi-card';
+import { KpiStrip } from '@/components/erp/page-header';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -16,17 +19,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Trash2, RefreshCw, Send, Undo2, Eye, FileText, Minus, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import { Plus, Trash2, Send, Undo2, Eye, Upload, FileSpreadsheet, Minus } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
 import { PageHeader } from '@/components/erp/page-header';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { Label } from '@/components/ui/label';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { isBranchesEnabled } from '@/lib/core/setup-config';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { Input } from '@/components/ui/input';
+import { apiCreateDoc } from '@/lib/client/api';
+import { buildJournalEntry } from '@/lib/erp/erpnext-payloads';
+import { parseJournalImportXlsx } from '@/lib/erp/parse-journal-import-xlsx';
+import type { JournalLineInput } from '@/lib/erp/erpnext-payloads';
+import { useToast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -34,9 +42,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
 
 interface JournalRow {
   name: string;
@@ -47,6 +52,7 @@ interface JournalRow {
   total_credit?: number | string | null;
   user_remark?: string | null;
   docstatus?: number | string | null;
+  branch?: string | null;
 }
 
 const voucherTypeLabels: Record<string, string> = {
@@ -59,12 +65,20 @@ const voucherTypeLabels: Record<string, string> = {
   'Debit Note': 'إشعار مدين',
   'Credit Note': 'إشعار دائن',
   'Contra Entry': 'قيد مقابل',
-  'Exchange Rate Revaluation': 'إعادة تقييم سعر الصرف'};
+  'Exchange Rate Revaluation': 'إعادة تقييم سعر الصرف',
+};
 
 const asNumber = (value: unknown) => {
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
 };
+
+const statusTabs: ErpStatusTab[] = [
+  { value: 'all', label: 'الكل' },
+  { value: '0', label: 'مسودة' },
+  { value: '1', label: 'مرحّل' },
+  { value: '2', label: 'ملغي' },
+];
 
 export default function JournalEntryPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -75,8 +89,9 @@ export default function JournalEntryPage() {
   const branchesEnabled = isBranchesEnabled();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<JournalRow | null>(null);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
@@ -90,6 +105,7 @@ export default function JournalEntryPage() {
       'total_credit',
       'user_remark',
       'docstatus',
+      ...(branchesEnabled ? ['branch'] : []),
     ],
     filters: branchFilter.trim() ? [['branch', '=', branchFilter.trim()]] : undefined,
     order_by: 'posting_date desc',
@@ -102,7 +118,17 @@ export default function JournalEntryPage() {
 
   const entries = data || [];
 
-  // Filtered data
+  // ── KPI calculations ──
+  const kpis = useMemo(() => {
+    const total = entries.length;
+    const totalDebit = entries.reduce((s, j) => s + asNumber(j.total_debit), 0);
+    const totalCredit = entries.reduce((s, j) => s + asNumber(j.total_credit), 0);
+    const draftCount = entries.filter((j) => asNumber(j.docstatus) === 0).length;
+    const submittedCount = entries.filter((j) => asNumber(j.docstatus) === 1).length;
+    return { total, totalDebit, totalCredit, draftCount, submittedCount };
+  }, [entries]);
+
+  // ── Filtered data ──
   const filteredData = useMemo(() => {
     let list = entries;
     if (search.trim()) {
@@ -121,13 +147,57 @@ export default function JournalEntryPage() {
       list = list.filter((j) => String(j.voucher_type || '') === voucherTypeFilter);
     }
     return list;
-  }, [entries, dateFrom, dateTo, statusFilter, voucherTypeFilter]);
-// Get unique voucher types
-  const voucherTypes = useMemo(() => {
-    const types = new Set(entries.map(e => String(e.voucher_type || '')).filter(Boolean));
-    return Array.from(types).sort();
-  }, [entries]);
+  }, [entries, dateFrom, dateTo, statusFilter, voucherTypeFilter, search]);
 
+  // ── Excel import handler ──
+  const handleImport = useCallback(async () => {
+    const input = fileInputRef.current;
+    if (!input) return;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!defaultCompany) {
+      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      return;
+    }
+
+    setImporting(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const lines: JournalLineInput[] = await parseJournalImportXlsx(buffer);
+
+      if (!lines.length) {
+        toast({ title: 'لم يتم العثور على بنود صالحة في الملف', variant: 'destructive' });
+        return;
+      }
+
+      // Build and create the Journal Entry
+      const doc = buildJournalEntry({
+        company: defaultCompany,
+        posting_date: new Date().toISOString().split('T')[0],
+        voucher_type: 'Journal Entry',
+        title: `استيراد — ${file.name}`,
+        user_remark: `تم الاستيراد من ملف: ${file.name}`,
+        lines,
+      });
+
+      await apiCreateDoc('Journal Entry', doc);
+      toast({ title: `تم استيراد القيد بنجاح (${lines.length} بند)` });
+      void refetch();
+    } catch (err: any) {
+      toast({
+        title: 'فشل الاستيراد',
+        description: err?.message || 'تحقق من تنسيق الملف',
+        variant: 'destructive',
+      });
+    } finally {
+      setImporting(false);
+      // Reset file input so same file can be re-selected
+      input.value = '';
+    }
+  }, [defaultCompany, toast, refetch]);
+
+  // ── Table columns ──
   const columns: Column<JournalRow>[] = useMemo(
     () => [
       {
@@ -149,7 +219,8 @@ export default function JournalEntryPage() {
         key: 'posting_date',
         header: 'التاريخ',
         sortable: true,
-        render: (value) => (value ? formatDate(String(value)) : '—')},
+        render: (value) => (value ? formatDate(String(value)) : '—'),
+      },
       {
         key: 'voucher_type',
         header: 'النوع',
@@ -163,7 +234,7 @@ export default function JournalEntryPage() {
         header: 'إجمالي المدين',
         sortable: true,
         render: (value) => (
-          <span className="font-semibold text-blue-600 tabular-nums" dir="ltr">
+          <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums" dir="ltr">
             {formatCurrency(asNumber(value))}
           </span>
         )},
@@ -172,7 +243,7 @@ export default function JournalEntryPage() {
         header: 'إجمالي الدائن',
         sortable: true,
         render: (value) => (
-          <span className="font-semibold text-orange-600 tabular-nums" dir="ltr">
+          <span className="font-semibold text-orange-600 dark:text-orange-400 tabular-nums" dir="ltr">
             {formatCurrency(asNumber(value))}
           </span>
         )},
@@ -180,11 +251,13 @@ export default function JournalEntryPage() {
         key: 'user_remark',
         header: 'البيان',
         filterable: true,
-        render: (value) => <span className="text-muted-foreground text-xs truncate max-w-[200px] block">{String(value || '—')}</span>},
+        render: (value) => <span className="text-muted-foreground text-xs truncate max-w-[200px] block">{String(value || '—')}</span>,
+      },
       {
         key: 'docstatus',
         header: 'الحالة',
-        render: (value) => <DocStatusBadge docstatus={asNumber(value) as 0 | 1 | 2} />},
+        render: (value) => <DocStatusBadge docstatus={asNumber(value) as 0 | 1 | 2} />,
+      },
       {
         key: 'actions',
         header: 'إجراءات',
@@ -207,7 +280,8 @@ export default function JournalEntryPage() {
                 onClick={() =>
                   submitMutation.mutate(row.name, {
                     onSuccess: () => { toast({ title: 'تم ترحيل القيد' }); void refetch(); },
-                    onError: () => toast({ title: 'فشل الترحيل — تحقق من البيانات', variant: 'destructive' })})
+                    onError: () => toast({ title: 'فشل الترحيل — تحقق من البيانات', variant: 'destructive' }),
+                  })
                 }
               >
                 <Send className="h-3 w-3 ms-1" />ترحيل
@@ -222,7 +296,8 @@ export default function JournalEntryPage() {
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast({ title: 'تم إلغاء القيد' }); void refetch(); },
-                    onError: () => toast({ title: 'فشل الإلغاء', variant: 'destructive' })})
+                    onError: () => toast({ title: 'فشل الإلغاء', variant: 'destructive' }),
+                  })
                 }
               >
                 <Undo2 className="h-3 w-3 ms-1" />إلغاء
@@ -244,8 +319,17 @@ export default function JournalEntryPage() {
     ],
     [submitMutation, cancelMutation, refetch, toast]
   );
-  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setSearch(''); setVoucherTypeFilter('all'); };
 
+  const clearFilters = () => {
+    setDateFrom('');
+    setDateTo('');
+    setStatusFilter('all');
+    setSearch('');
+    setVoucherTypeFilter('all');
+    setBranchFilter('');
+  };
+
+  const hasActiveFilters = dateFrom || dateTo || statusFilter !== 'all' || voucherTypeFilter !== 'all' || search || branchFilter;
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
@@ -258,83 +342,144 @@ export default function JournalEntryPage() {
         accent="success"
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'القيود اليومية' }]}
         actions={
-          <Button size="sm" className="gap-1.5" asChild>
-            <Link href="/accounting/journal-entry/new">
-              <Plus className="h-3.5 w-3.5" />
-              قيد جديد
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* زر استيراد Excel */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              disabled={importing}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {importing ? (
+                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <Upload className="h-3.5 w-3.5" />
+              )}
+              {importing ? 'جاري الاستيراد...' : 'استيراد Excel'}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+              onChange={handleImport}
+            />
+            <Button size="sm" className="gap-1.5" asChild>
+              <Link href="/accounting/journal-entry/new">
+                <Plus className="h-3.5 w-3.5" />
+                قيد جديد
+              </Link>
+            </Button>
+          </div>
         }
       />
 
-      {/* شريط البحث والفلاتر */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* بحث سريع */}
-          <div className="flex-1 min-w-[200px]">
-            <Input placeholder="بحث بالرقم أو البيان..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
-          </div>
-        </div>
+      {/* ── شريط مؤشرات الأداء (KPI Strip) ── */}
+      <KpiStrip cols={4}>
+        <KpiCard
+          title="إجمالي القيود"
+          value={kpis.total}
+          icon={FileSpreadsheet}
+          accent="info"
+          compact
+          description="جميع القيود في الفترة"
+        />
+        <KpiCard
+          title="إجمالي المدين"
+          value={formatCurrency(kpis.totalDebit)}
+          icon={Plus}
+          accent="success"
+          compact
+          description="مجموع حركة المدين"
+        />
+        <KpiCard
+          title="إجمالي الدائن"
+          value={formatCurrency(kpis.totalCredit)}
+          icon={Minus}
+          accent="warning"
+          compact
+          description="مجموع حركة الدائن"
+        />
+        <KpiCard
+          title="مسودة / مرحّل"
+          value={`${kpis.draftCount} / ${kpis.submittedCount}`}
+          icon={Send}
+          accent="primary"
+          compact
+          description="عدد القيود مسودة مقابل المرحّلة"
+        />
+      </KpiStrip>
 
-        {/* فلاتر متقدمة (قابلة للطي) */}
-        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-                <Filter className="h-3 w-3" /> فلاتر متقدمة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            {(dateFrom || dateTo || statusFilter !== 'all' || voucherTypeFilter !== 'all' || search) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-                <X className="h-3 w-3" /> مسح الفلاتر
+      {/* ── فلاتر التاريخ والحالة والنوع والفرع ── */}
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            {/* نوع القيد */}
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">نوع القيد</Label>
+              <Select value={voucherTypeFilter} onValueChange={setVoucherTypeFilter}>
+                <SelectTrigger className="h-9 text-xs w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="Journal Entry">قيد يومية</SelectItem>
+                  <SelectItem value="Opening Entry">قيد افتتاحي</SelectItem>
+                  <SelectItem value="Bank Entry">قيد بنكي</SelectItem>
+                  <SelectItem value="Cash Entry">قيد نقدي</SelectItem>
+                  <SelectItem value="Credit Card Entry">قيد بطاقة ائتمان</SelectItem>
+                  <SelectItem value="Debit Note">إشعار مدين</SelectItem>
+                  <SelectItem value="Credit Note">إشعار دائن</SelectItem>
+                  <SelectItem value="Contra Entry">قيد مقابل</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {/* فرع */}
+            {branchesEnabled && (
+              <div className="space-y-1">
+                <Label className="text-[10px] text-muted-foreground">الفرع</Label>
+                <ErpLinkCombobox
+                  doctype="Branch"
+                  value={branchFilter}
+                  onChange={setBranchFilter}
+                  placeholder="كل الفروع"
+                  className="h-9 w-36"
+                />
+              </div>
+            )}
+            {/* بحث سريع */}
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">بحث</Label>
+              <Input
+                placeholder="رقم أو بيان..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="h-9 text-xs w-44"
+              />
+            </div>
+            {/* مسح */}
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs"
+                onClick={clearFilters}
+              >
+                مسح الكل
               </Button>
             )}
           </div>
-          <CollapsibleContent>
-            <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-8 text-xs w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="0">مسودة</SelectItem>
-                <SelectItem value="1">مرحّل</SelectItem>
-                <SelectItem value="2">ملغي</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-[10px]">نوع القيد</Label>
-            <Select value={voucherTypeFilter} onValueChange={setVoucherTypeFilter}>
-              <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="Journal Entry">قيد يومية</SelectItem>
-                <SelectItem value="Opening Entry">قيد افتتاحي</SelectItem>
-                <SelectItem value="Bank Entry">قيد بنكي</SelectItem>
-                <SelectItem value="Cash Entry">قيد نقدي</SelectItem>
-                <SelectItem value="Credit Card Entry">قيد بطاقة ائتمان</SelectItem>
-                <SelectItem value="Debit Note">إشعار مدين</SelectItem>
-                <SelectItem value="Credit Note">إشعار دائن</SelectItem>
-                <SelectItem value="Contra Entry">قيد مقابل</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+        }
+      />
 
+      {/* ── جدول البيانات ── */}
       <DataTable
         data={filteredData}
         columns={columns}
@@ -348,6 +493,7 @@ export default function JournalEntryPage() {
         printTitle="القيود اليومية"
       />
 
+      {/* ─ـ حوار تأكيد الحذف ─ـ */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
@@ -368,7 +514,8 @@ export default function JournalEntryPage() {
                 if (selectedEntry) {
                   deleteMutation.mutate(selectedEntry.name, {
                     onSuccess: () => { toast({ title: 'تم حذف القيد' }); void refetch(); },
-                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' }),
+                  });
                   setDeleteDialogOpen(false);
                 }
               }}

@@ -27,7 +27,7 @@ import {
 import { Plus, Trash2, FileText, Send, Undo2, ShoppingCart, Filter, ChevronDown, Upload, X } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { useToast } from '@/hooks/use-toast';
 import { buildQuotation, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -36,6 +36,16 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { apiCallMethod, apiCreateDoc } from '@/lib/client/api';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface QuotationRow {
   name: string;
@@ -78,6 +88,8 @@ export default function QuotationsPage() {
   const [quotationStatusFilter, setQuotationStatusFilter] = useState('all');
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
   const [converting, setConverting] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedQuotation, setSelectedQuotation] = useState<QuotationRow | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); };
@@ -101,6 +113,7 @@ export default function QuotationsPage() {
   const createMutation = useCreateDoc<QuotationRow>('Quotation');
   const submitMutation = useSubmitDoc<QuotationRow>('Quotation');
   const cancelMutation = useCancelDoc<QuotationRow>('Quotation');
+  const deleteMutation = useDeleteDoc('Quotation');
 
   const rows = data || [];
   const filtered = filter === 'all' ? rows : rows.filter((q) => q.status === filter);
@@ -252,11 +265,22 @@ export default function QuotationsPage() {
                   <Undo2 className="h-3 w-3" />
                 </Button>
               )}
+              {ds === 0 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-[10px] text-destructive"
+                  onClick={() => { setSelectedQuotation(row); setDeleteDialogOpen(true); }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
             </div>
           );
         }},
     ],
-    [converting, submitMutation, cancelMutation, toast, refetch, queryClient]
+    [converting, submitMutation, cancelMutation, deleteMutation, toast, refetch, queryClient]
   );
 
   return (
@@ -477,6 +501,40 @@ export default function QuotationsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-base">تأكيد حذف عرض السعر</AlertDialogTitle>
+                <AlertDialogDescription className="text-xs mt-1">هل أنت متأكد من حذف عرض السعر &quot;{selectedQuotation?.name}&quot;؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedQuotation) {
+                  deleteMutation.mutate(selectedQuotation.name, {
+                    onSuccess: () => { toast({ title: 'تم حذف عرض السعر' }); void refetch(); },
+                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

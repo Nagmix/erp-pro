@@ -29,7 +29,7 @@ import { FormField } from '@/components/erp/form-field';
 import { Plus, Trash2, ShoppingCart, Send, Undo2, FileText, Truck, User, Calendar, Coins, Hash, Filter, ChevronDown, Upload, X } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { useToast } from '@/hooks/use-toast';
 import { buildSalesOrder, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -39,6 +39,16 @@ import { apiCallMethod, apiCreateDoc } from '@/lib/client/api';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface SORow {
   name: string;
@@ -78,6 +88,8 @@ export default function SalesOrdersPage() {
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
   /** e.g. `si:SO-0001` | `dn:SO-0001` */
   const [pending, setPending] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<SORow | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); };
@@ -103,6 +115,7 @@ export default function SalesOrdersPage() {
   const createMutation = useCreateDoc<SORow>('Sales Order');
   const submitMutation = useSubmitDoc<SORow>('Sales Order');
   const cancelMutation = useCancelDoc<SORow>('Sales Order');
+  const deleteMutation = useDeleteDoc('Sales Order');
 
   const rows = data || [];
   const filtered = filter === 'all' ? rows : rows.filter((o) => o.status === filter);
@@ -273,21 +286,32 @@ export default function SalesOrdersPage() {
           const ds = Number(row.docstatus);
           if (ds === 0) {
             return (
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                className="h-7 text-[10px] gap-1"
-                disabled={submitMutation.isPending}
-                onClick={() =>
-                  submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
-                }
-              >
-                <Send className="h-3 w-3" />
-                ترحيل
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 text-[10px] gap-1"
+                  disabled={submitMutation.isPending}
+                  onClick={() =>
+                    submitMutation.mutate(row.name, {
+                      onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
+                      onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                  }
+                >
+                  <Send className="h-3 w-3" />
+                  ترحيل
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-[10px] text-destructive"
+                  onClick={() => { setSelectedOrder(row); setDeleteDialogOpen(true); }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
             );
           }
           if (ds === 1) {
@@ -311,7 +335,7 @@ export default function SalesOrdersPage() {
           return '—';
         }},
     ],
-    [pending, submitMutation, cancelMutation, toast, refetch, mapAndInsert]
+    [pending, submitMutation, cancelMutation, deleteMutation, toast, refetch, mapAndInsert]
   );
 
   return (
@@ -615,6 +639,40 @@ export default function SalesOrdersPage() {
             </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-base">تأكيد حذف أمر البيع</AlertDialogTitle>
+                <AlertDialogDescription className="text-xs mt-1">هل أنت متأكد من حذف أمر البيع &quot;{selectedOrder?.name}&quot;؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedOrder) {
+                  deleteMutation.mutate(selectedOrder.name, {
+                    onSuccess: () => { toast({ title: 'تم حذف أمر البيع' }); void refetch(); },
+                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

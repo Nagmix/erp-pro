@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader } from '@/components/erp/page-header';
+import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
@@ -19,8 +19,10 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Receipt, Send, CheckCircle2, XCircle, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import { Plus, Receipt, Send, CheckCircle2, XCircle, Filter, ChevronDown, Upload, X, DollarSign, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { docDetailPath } from '@/lib/erp/doc-detail-routes';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -97,7 +99,21 @@ export default function DailyExpensesPage() {
     return list;
   }, [expenses, dateFrom, dateTo, statusFilter]);
 
-  // KPIs  // Create expense
+  // KPIs
+  const totalExpensesAmount = useMemo(
+    () => filteredExpenses.reduce((s, e) => s + (Number(e.total_claimed_amount) || 0), 0),
+    [filteredExpenses]
+  );
+  const draftCount = useMemo(
+    () => filteredExpenses.filter(e => e.docstatus === 0).length,
+    [filteredExpenses]
+  );
+  const approvedCount = useMemo(
+    () => filteredExpenses.filter(e => e.docstatus === 1).length,
+    [filteredExpenses]
+  );
+
+  // Create expense
   const handleCreateExpense = useCallback(async () => {
     if (!employee || !expenseType || !amount) {
       toast({ title: 'يرجى تعبئة جميع الحقول المطلوبة', variant: 'destructive' });
@@ -169,11 +185,10 @@ export default function DailyExpensesPage() {
         header: 'رقم المصروف',
         sortable: true,
         filterable: true,
-        render: (v) => (
-          <Link href={`/doc/expense-claim/${encodeURIComponent(String(v))}`} className="font-medium text-primary hover:underline">
-            {String(v)}
-          </Link>
-        )},
+        render: (v) => {
+          const href = docDetailPath('Expense Claim', String(v));
+          return href ? <Link href={href} className="font-medium text-primary hover:underline">{String(v)}</Link> : <span>{String(v)}</span>;
+        }},
       { key: 'posting_date', header: 'التاريخ', sortable: true, render: (v) => v ? formatDate(String(v)) : '\u2014' },
       { key: 'employee_name', header: 'الموظف', filterable: true, render: (v) => String(v || '\u2014') },
       { key: 'expense_type', header: 'نوع المصروف', filterable: true, render: (v) => String(v || '\u2014') },
@@ -223,12 +238,7 @@ export default function DailyExpensesPage() {
                 إلغاء
               </Button>
             )}
-            <Link
-              href={`/doc/expense-claim/${encodeURIComponent(row.name)}`}
-              className="text-xs text-primary hover:underline"
-            >
-              عرض
-            </Link>
+            {(() => { const href = docDetailPath('Expense Claim', row.name); return href ? <Link href={href} className="text-xs text-primary hover:underline">عرض</Link> : <span className="text-xs text-muted-foreground">عرض</span>; })()}
           </div>
         )},
     ],
@@ -248,6 +258,12 @@ export default function DailyExpensesPage() {
         accent="warning"
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'المصاريف اليومية' }]}
       />
+
+      <KpiStrip>
+        <KpiCard title="إجمالي المصروفات" value={formatCurrency(totalExpensesAmount)} icon={DollarSign} accent="warning" />
+        <KpiCard title="مسودات" value={draftCount} icon={FileText} accent="primary" />
+        <KpiCard title="معتمدة" value={approvedCount} icon={CheckCircle2} accent="success" />
+      </KpiStrip>
 
       {/* شريط البحث والفلاتر */}
       <div className="space-y-3">
