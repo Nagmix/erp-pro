@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDocList } from '@/lib/client/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
-import { useToast } from '@/hooks/use-toast';
 import {
   Loader2,
   Key,
@@ -32,7 +32,10 @@ import {
   XCircle,
   Clock,
   Zap,
+  Database,
+  ArrowRightLeft,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 type ApiKeyRow = { id: string; label: string; key: string; scopes: string[]; createdAt: string; revokedAt?: string };
 type WebhookRow = { id: string; event: string; url: string; createdAt: string; enabled?: boolean };
@@ -63,10 +66,15 @@ const METHOD_COLORS: Record<string, string> = {
   PATCH: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
 };
 
+/** تحديد نجاح حالة التسليم — يدعم القيم من المخزن المحلي (delivered/failed/queued) والقيم القديمة (Success/success) */
+function isDeliverySuccess(status: string): boolean {
+  const s = status.toLowerCase();
+  return s === 'delivered' || s === 'success';
+}
+
 export default function DeveloperApiPage() {
-  const { toast } = useToast();
   const [keys, setKeys] = useState<ApiKeyRow[]>([]);
-  const [hooks, setHooks] = useState<WebhookRow[]>([]);
+  const [localHooks, setLocalHooks] = useState<WebhookRow[]>([]);
   const [deliveries, setDeliveries] = useState<DeliveryRow[]>([]);
   const [openapi, setOpenapi] = useState<Record<string, unknown> | null>(null);
   const [keyLabel, setKeyLabel] = useState('');
@@ -90,6 +98,24 @@ export default function DeveloperApiPage() {
   const [testResponse, setTestResponse] = useState('');
   const [testLoading, setTestLoading] = useState(false);
 
+  // ── ERPNext Webhooks ──
+  const erpNextWebhooksQuery = useDocList<Record<string, unknown>>('Webhook', {
+    fields: ['name', 'webhook_doctype', 'webhook_doctype_event', 'enabled', 'request_url', 'creation'],
+    limit: 50,
+  });
+
+  const erpNextWebhooks = useMemo(() => {
+    if (!erpNextWebhooksQuery.data) return [];
+    return erpNextWebhooksQuery.data.map((w) => ({
+      id: String(w.name ?? ''),
+      event: String(w.webhook_doctype_event ?? w.webhook_doctype ?? ''),
+      url: String(w.request_url ?? ''),
+      createdAt: String(w.creation ?? ''),
+      enabled: w.enabled === 1 || w.enabled === true,
+      source: 'erpnext' as const,
+    }));
+  }, [erpNextWebhooksQuery.data]);
+
   const load = useCallback(async () => {
     try {
       const [k, h, o] = await Promise.all([
@@ -99,16 +125,16 @@ export default function DeveloperApiPage() {
       ]);
       queueMicrotask(() => {
         setKeys(k.data || []);
-        setHooks(h.data?.hooks || []);
+        setLocalHooks(h.data?.hooks || []);
         setDeliveries(h.data?.deliveries || []);
         setOpenapi(o.data || null);
       });
     } catch {
-      toast({ title: 'تعذر تحميل البيانات', variant: 'destructive' });
+      toast.error('تعذر تحميل البيانات');
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     void load();
@@ -117,13 +143,15 @@ export default function DeveloperApiPage() {
   // ── KPIs ──
   const activeKeys = useMemo(() => keys.filter((k) => !k.revokedAt).length, [keys]);
   const revokedKeys = useMemo(() => keys.filter((k) => k.revokedAt).length, [keys]);
-  const activeWebhooks = useMemo(() => hooks.length, [hooks]);
-  const recentDeliveries = useMemo(() => deliveries.length, [deliveries]);
+  const totalLocalWebhooks = localHooks.length;
+  const totalErpWebhooks = erpNextWebhooks.length;
+  const totalWebhooks = totalLocalWebhooks + totalErpWebhooks;
+  const recentDeliveries = deliveries.length;
 
   // ── إنشاء مفتاح ──
   const createKey = async () => {
     if (!keyLabel.trim()) {
-      toast({ title: 'أدخل اسم المفتاح', variant: 'destructive' });
+      toast.error('أدخل اسم المفتاح');
       return;
     }
     setCreatingKey(true);
@@ -134,14 +162,14 @@ export default function DeveloperApiPage() {
         body: JSON.stringify({ label: keyLabel, scopes: scopes.split(',').map((s) => s.trim()).filter(Boolean) }),
       });
       if (!res.ok) {
-        toast({ title: 'تعذر إنشاء المفتاح', variant: 'destructive' });
+        toast.error('تعذر إنشاء المفتاح');
         return;
       }
       setKeyLabel('');
-      toast({ title: 'تم إنشاء مفتاح الواجهة البرمجية' });
+      toast.success('تم إنشاء مفتاح الواجهة البرمجية');
       void load();
     } catch {
-      toast({ title: 'حدث خطأ أثناء إنشاء المفتاح', variant: 'destructive' });
+      toast.error('حدث خطأ أثناء إنشاء المفتاح');
     } finally {
       setCreatingKey(false);
     }
@@ -151,13 +179,13 @@ export default function DeveloperApiPage() {
     try {
       const res = await fetch(`/api/developer/api-keys?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       if (!res.ok) {
-        toast({ title: 'تعذر إلغاء المفتاح', variant: 'destructive' });
+        toast.error('تعذر إلغاء المفتاح');
         return;
       }
-      toast({ title: 'تم إلغاء المفتاح' });
+      toast.success('تم إلغاء المفتاح');
       void load();
     } catch {
-      toast({ title: 'حدث خطأ أثناء إلغاء المفتاح', variant: 'destructive' });
+      toast.error('حدث خطأ أثناء إلغاء المفتاح');
     }
   };
 
@@ -172,13 +200,13 @@ export default function DeveloperApiPage() {
 
   const copyToClipboard = (text: string) => {
     void navigator.clipboard.writeText(text);
-    toast({ title: 'تم النسخ إلى الحافظة' });
+    toast.success('تم النسخ إلى الحافظة');
   };
 
   // ── إنشاء خطاف ويب ──
   const createWebhook = async () => {
     if (!event.trim() || !url.trim()) {
-      toast({ title: 'أدخل اسم الحدث ورابط الاستقبال', variant: 'destructive' });
+      toast.error('أدخل اسم الحدث ورابط الاستقبال');
       return;
     }
     setCreatingWebhook(true);
@@ -189,14 +217,14 @@ export default function DeveloperApiPage() {
         body: JSON.stringify({ event, url }),
       });
       if (!res.ok) {
-        toast({ title: 'تعذر إنشاء خطاف الويب', variant: 'destructive' });
+        toast.error('تعذر إنشاء خطاف الويب');
         return;
       }
       setUrl('');
-      toast({ title: 'تم إنشاء خطاف الويب' });
+      toast.success('تم إنشاء خطاف الويب');
       void load();
     } catch {
-      toast({ title: 'حدث خطأ أثناء إنشاء خطاف الويب', variant: 'destructive' });
+      toast.error('حدث خطأ أثناء إنشاء خطاف الويب');
     } finally {
       setCreatingWebhook(false);
     }
@@ -206,13 +234,13 @@ export default function DeveloperApiPage() {
     try {
       const res = await fetch(`/api/developer/webhooks?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       if (!res.ok) {
-        toast({ title: 'تعذر حذف خطاف الويب', variant: 'destructive' });
+        toast.error('تعذر حذف خطاف الويب');
         return;
       }
-      toast({ title: 'تم حذف خطاف الويب' });
+      toast.success('تم حذف خطاف الويب');
       void load();
     } catch {
-      toast({ title: 'حدث خطأ أثناء حذف خطاف الويب', variant: 'destructive' });
+      toast.error('حدث خطأ أثناء حذف خطاف الويب');
     }
   };
 
@@ -225,14 +253,14 @@ export default function DeveloperApiPage() {
         body: JSON.stringify({ id: editWebhookId, event: editWebhookEvent, url: editWebhookUrl }),
       });
       if (!res.ok) {
-        toast({ title: 'تعذر تحديث خطاف الويب', variant: 'destructive' });
+        toast.error('تعذر تحديث خطاف الويب');
         return;
       }
       setEditWebhookId(null);
-      toast({ title: 'تم تحديث خطاف الويب' });
+      toast.success('تم تحديث خطاف الويب');
       void load();
     } catch {
-      toast({ title: 'حدث خطأ أثناء التحديث', variant: 'destructive' });
+      toast.error('حدث خطأ أثناء التحديث');
     }
   };
 
@@ -242,7 +270,7 @@ export default function DeveloperApiPage() {
     try {
       parsed = payload ? JSON.parse(payload) : {};
     } catch {
-      toast({ title: 'بيانات الإرسال ليست JSON صالح', variant: 'destructive' });
+      toast.error('بيانات الإرسال ليست JSON صالح');
       return;
     }
     setDispatching(true);
@@ -253,13 +281,13 @@ export default function DeveloperApiPage() {
         body: JSON.stringify({ event, payload: parsed }),
       });
       if (!res.ok) {
-        toast({ title: 'فشل الإرسال التجريبي', variant: 'destructive' });
+        toast.error('فشل الإرسال التجريبي');
         return;
       }
-      toast({ title: 'تم الإرسال التجريبي بنجاح' });
+      toast.success('تم الإرسال التجريبي بنجاح');
       void load();
     } catch {
-      toast({ title: 'حدث خطأ أثناء الإرسال التجريبي', variant: 'destructive' });
+      toast.error('حدث خطأ أثناء الإرسال التجريبي');
     } finally {
       setDispatching(false);
     }
@@ -317,10 +345,16 @@ export default function DeveloperApiPage() {
         accent="primary"
         breadcrumbs={[{ label: 'التشغيل', href: '/operations' }, { label: 'واجهة برمجة التطبيقات' }]}
         actions={
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void load()}>
-            <RefreshCw className="h-3.5 w-3.5" />
-            تحديث
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void erpNextWebhooksQuery.refetch()}>
+              <Database className="h-3.5 w-3.5" />
+              تحديث ERPNext
+            </Button>
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void load()}>
+              <RefreshCw className="h-3.5 w-3.5" />
+              تحديث
+            </Button>
+          </div>
         }
       />
 
@@ -335,10 +369,10 @@ export default function DeveloperApiPage() {
         />
         <KpiCard
           title="خطافات الويب"
-          value={activeWebhooks}
+          value={totalWebhooks}
           icon={Webhook}
           accent="primary"
-          description="خطافات مسجلة"
+          description={`${totalLocalWebhooks} محلي · ${totalErpWebhooks} ERPNext`}
         />
         <KpiCard
           title="سجلات التسليم"
@@ -437,7 +471,7 @@ export default function DeveloperApiPage() {
                           <p className="text-[11px] text-muted-foreground mt-0.5">النطاقات: {(key.scopes || []).join(', ')}</p>
                         </div>
                         {!key.revokedAt && (
-                          <Button size="sm" variant="outline" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => revokeKey(key.id)}>
+                          <Button size="sm" variant="outline" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => void revokeKey(key.id)}>
                             إلغاء
                           </Button>
                         )}
@@ -487,16 +521,23 @@ export default function DeveloperApiPage() {
             </CardContent>
           </Card>
 
+          {/* Local Webhooks */}
           <Card className="border-border/40">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">خطافات الويب ({hooks.length})</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Webhook className="h-4 w-4" />
+                  خطافات الويب المحلية ({localHooks.length})
+                </CardTitle>
+                <Badge variant="outline" className="text-[10px]">محلي</Badge>
+              </div>
             </CardHeader>
             <CardContent>
-              {hooks.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">لا توجد خطافات ويب بعد</p>
+              {localHooks.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-8">لا توجد خطافات ويب محلية بعد</p>
               ) : (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {hooks.map((hook) => (
+                  {localHooks.map((hook) => (
                     <div key={hook.id} className="rounded-lg border border-border/40 p-3 text-sm hover:border-border/60 transition-colors">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
@@ -527,6 +568,68 @@ export default function DeveloperApiPage() {
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* ERPNext Webhooks */}
+          <Card className="border-border/40">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  خطافات الويب من ERPNext ({erpNextWebhooks.length})
+                </CardTitle>
+                <Badge variant="outline" className="text-[10px] gap-1">
+                  <Database className="h-2.5 w-2.5" />
+                  ERPNext
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {erpNextWebhooksQuery.isLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              ) : erpNextWebhooksQuery.isError ? (
+                <div className="text-center py-8">
+                  <p className="text-xs text-muted-foreground">تعذر تحميل خطافات الويب من ERPNext</p>
+                  <Button size="sm" variant="outline" className="mt-2 gap-1.5" onClick={() => void erpNextWebhooksQuery.refetch()}>
+                    <RefreshCw className="h-3 w-3" />
+                    إعادة المحاولة
+                  </Button>
+                </div>
+              ) : erpNextWebhooks.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-8">لا توجد خطافات ويب في ERPNext بعد</p>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {erpNextWebhooks.map((hook) => (
+                    <div key={hook.id} className="rounded-lg border border-border/40 p-3 text-sm hover:border-border/60 transition-colors">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-[10px] font-mono">{hook.event}</Badge>
+                            {hook.enabled ? (
+                              <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-200">مفعّل</Badge>
+                            ) : (
+                              <Badge variant="secondary" className="text-[10px]">معطّل</Badge>
+                            )}
+                          </div>
+                          {hook.url && (
+                            <p className="text-[11px] text-muted-foreground font-mono mt-1" dir="ltr">{hook.url}</p>
+                          )}
+                          <p className="text-[10px] text-muted-foreground mt-0.5 font-mono" dir="ltr">
+                            {hook.id}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-[9px] gap-1">
+                          <Database className="h-2.5 w-2.5" />
+                          ERPNext
+                        </Badge>
                       </div>
                     </div>
                   ))}
@@ -730,37 +833,40 @@ console.log(data);`}
                 <p className="text-xs text-muted-foreground text-center py-8">لا توجد سجلات تسليم بعد</p>
               ) : (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {deliveries.map((d) => (
-                    <div key={d.id} className="rounded-lg border border-border/40 p-3 text-sm hover:border-border/60 transition-colors">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          {d.status === 'Success' || d.status === 'success' ? (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-rose-500" />
-                          )}
-                          <code className="text-xs font-mono">{d.event}</code>
+                  {deliveries.map((d) => {
+                    const success = isDeliverySuccess(d.status);
+                    return (
+                      <div key={d.id} className="rounded-lg border border-border/40 p-3 text-sm hover:border-border/60 transition-colors">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            {success ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-rose-500" />
+                            )}
+                            <code className="text-xs font-mono">{d.event}</code>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] ${
+                              success
+                                ? 'text-emerald-600 border-emerald-200'
+                                : 'text-rose-600 border-rose-200'
+                            }`}
+                          >
+                            {success ? 'نجاح' : 'فشل'}
+                          </Badge>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] ${
-                            d.status === 'Success' || d.status === 'success'
-                              ? 'text-emerald-600 border-emerald-200'
-                              : 'text-rose-600 border-rose-200'
-                          }`}
-                        >
-                          {d.status === 'Success' || d.status === 'success' ? 'نجاح' : 'فشل'}
-                        </Badge>
+                        <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            المحاولات: {d.attempts}
+                          </span>
+                          {d.lastError && <span className="text-rose-500">خطأ: {d.lastError}</span>}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          المحاولات: {d.attempts}
-                        </span>
-                        {d.lastError && <span className="text-rose-500">خطأ: {d.lastError}</span>}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>

@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
-import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +19,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   MessageSquare,
@@ -40,38 +39,59 @@ import {
   Activity,
   Shield,
   ExternalLink,
+  Zap,
+  Database,
+  Clock,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 
-/* ─── Integration Type ─── */
-type IntegrationStatus = 'connected' | 'disconnected' | 'error' | 'unknown';
+/* ─── Types ─── */
+type IntegrationStatus = 'connected' | 'disconnected' | 'error';
 
-type IntegrationCard = {
-  id: string;
+type IntegrationStatusResult = {
   key: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  accent: 'primary' | 'success' | 'warning' | 'info' | 'destructive' | 'purple';
   status: IntegrationStatus;
-  enabled: boolean;
+  configured: boolean;
   lastSync: string | null;
-  settingsPath: string;
-  category: string;
+  details: string;
+  erpNextDocCount: number;
+};
+
+type IntegrationsStatusResponse = {
+  integrations: IntegrationStatusResult[];
+  kpis: {
+    configured: number;
+    connected: number;
+    disconnected: number;
+    errors: number;
+    total: number;
+  };
+  backendAvailable: boolean;
+};
+
+type IntegrationsLocalData = {
+  shopify: string;
+  salla: string;
+  zid: string;
+  woo: string;
+  smsProvider: string;
+  waProvider: string;
+  notes: string;
 };
 
 /* ─── Integration Definitions ─── */
-const INTEGRATION_DEFS: Omit<IntegrationCard, 'status' | 'enabled' | 'lastSync'>[] = [
+const INTEGRATION_DEFS = [
   {
     id: 'sms-gateway',
     key: 'sms',
     title: 'بوابة الرسائل النصية',
     description: 'إرسال رسائل SMS للعملاء والموظفين عبر مزودي مثل Unifonic و Twilio',
     icon: MessageSquare,
-    accent: 'success',
+    accent: 'success' as const,
     settingsPath: '/settings/sms-gateway',
     category: 'التواصل',
+    erpNextDoctypes: ['SMS Settings'],
   },
   {
     id: 'email-smtp',
@@ -79,9 +99,10 @@ const INTEGRATION_DEFS: Omit<IntegrationCard, 'status' | 'enabled' | 'lastSync'>
     title: 'بريد SMTP',
     description: 'ضبط خادم البريد الصادر لإرسال الفواتير والإشعارات تلقائياً',
     icon: Mail,
-    accent: 'info',
+    accent: 'info' as const,
     settingsPath: '/settings/email-smtp',
     category: 'التواصل',
+    erpNextDoctypes: ['Email Account'],
   },
   {
     id: 'payment-gateways',
@@ -89,9 +110,10 @@ const INTEGRATION_DEFS: Omit<IntegrationCard, 'status' | 'enabled' | 'lastSync'>
     title: 'بوابات الدفع',
     description: 'ربط بوابات الدفع الإلكتروني لاستقبال المدفوعات عبر الإنترنت',
     icon: CreditCard,
-    accent: 'warning',
+    accent: 'warning' as const,
     settingsPath: '/settings/payment-gateways',
     category: 'المالية',
+    erpNextDoctypes: ['PayPal Settings', 'Stripe Settings', 'Razorpay Settings', 'Payment Gateway'],
   },
   {
     id: 'ecommerce',
@@ -99,9 +121,10 @@ const INTEGRATION_DEFS: Omit<IntegrationCard, 'status' | 'enabled' | 'lastSync'>
     title: 'التجارة الإلكترونية',
     description: 'مزامنة الطلبات والمخزون مع Salla و Zid و Shopify و WooCommerce',
     icon: Globe,
-    accent: 'purple',
+    accent: 'purple' as const,
     settingsPath: '/settings/ecommerce-integration',
     category: 'المبيعات',
+    erpNextDoctypes: ['Shopify Log', 'E Commerce Item'],
   },
   {
     id: 'webhooks',
@@ -109,11 +132,12 @@ const INTEGRATION_DEFS: Omit<IntegrationCard, 'status' | 'enabled' | 'lastSync'>
     title: 'ويب هوكس',
     description: 'إرسال أحداث النظام تلقائياً إلى أنظمة خارجية عبر HTTP Webhooks',
     icon: Webhook,
-    accent: 'primary',
+    accent: 'primary' as const,
     settingsPath: '/operations/developer-api',
     category: 'التطوير',
+    erpNextDoctypes: ['Webhook'],
   },
-];
+] as const;
 
 /* ─── Status helpers ─── */
 function statusBadge(status: IntegrationStatus) {
@@ -139,13 +163,6 @@ function statusBadge(status: IntegrationStatus) {
           خطأ
         </Badge>
       );
-    default:
-      return (
-        <Badge variant="outline" className="text-[10px] gap-1 px-1.5 py-0 h-5 border-amber-300 text-amber-700 bg-amber-50">
-          <AlertTriangle className="h-3 w-3" />
-          غير معروف
-        </Badge>
-      );
   }
 }
 
@@ -157,8 +174,6 @@ function statusIcon(status: IntegrationStatus) {
       return <XCircle className="h-4 w-4 text-muted-foreground" />;
     case 'error':
       return <AlertTriangle className="h-4 w-4 text-rose-500" />;
-    default:
-      return <AlertTriangle className="h-4 w-4 text-amber-500" />;
   }
 }
 
@@ -172,21 +187,18 @@ const accentSurface: Record<string, string> = {
   purple: 'bg-purple-500/[0.09] text-purple-900 dark:text-purple-300',
 };
 
-/* ─── Load integrations data from API ─── */
-type IntegrationsData = {
-  shopify: string;
-  salla: string;
-  zid: string;
-  woo: string;
-  smsProvider: string;
-  waProvider: string;
-  notes: string;
-};
+/* ─── Fetch helpers ─── */
+async function fetchIntegrationStatus(): Promise<IntegrationsStatusResponse> {
+  const res = await fetch('/api/settings/integrations/status');
+  const j = (await res.json()) as { success?: boolean; data?: IntegrationsStatusResponse };
+  if (!j.data) throw new Error('تعذر تحميل حالة التكاملات');
+  return j.data;
+}
 
-async function loadIntegrationsData(): Promise<IntegrationsData | null> {
+async function fetchLocalData(): Promise<IntegrationsLocalData | null> {
   try {
     const res = await fetch('/api/settings/integrations-local');
-    const j = (await res.json()) as { data?: IntegrationsData };
+    const j = (await res.json()) as { data?: IntegrationsLocalData };
     return j.data ?? null;
   } catch {
     return null;
@@ -195,45 +207,25 @@ async function loadIntegrationsData(): Promise<IntegrationsData | null> {
 
 /* ─── Main Component ─── */
 export default function SettingsIntegrationsPage() {
-  const [loading, setLoading] = useState(true);
-  const [healthChecking, setHealthChecking] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Integration data from API
-  const [integrationsData, setIntegrationsData] = useState<IntegrationsData | null>(null);
-
-  // Local toggle state for each integration
-  const [enabledMap, setEnabledMap] = useState<Record<string, boolean>>({
-    sms: false,
-    email: false,
-    payment: false,
-    ecommerce: false,
-    webhooks: false,
+  // Fetch integration status from ERPNext
+  const statusQuery = useQuery({
+    queryKey: ['integrationsStatus'],
+    queryFn: fetchIntegrationStatus,
+    staleTime: 30_000,
   });
 
-  // Status map
-  const [statusMap, setStatusMap] = useState<Record<string, IntegrationStatus>>({
-    sms: 'unknown',
-    email: 'unknown',
-    payment: 'unknown',
-    ecommerce: 'unknown',
-    webhooks: 'unknown',
+  // Fetch local integrations data (e-commerce form)
+  const localQuery = useQuery({
+    queryKey: ['integrationsLocal'],
+    queryFn: fetchLocalData,
+    staleTime: 30_000,
   });
 
-  // Last sync map
-  const [lastSyncMap, setLastSyncMap] = useState<Record<string, string | null>>({
-    sms: null,
-    email: null,
-    payment: null,
-    ecommerce: null,
-    webhooks: null,
-  });
+  const loading = statusQuery.isLoading || localQuery.isLoading;
 
-  // Configure dialog
-  const [configOpen, setConfigOpen] = useState(false);
-  const [configKey, setConfigKey] = useState<string>('');
-
-  // E-commerce form fields
+  // Local state for e-commerce form fields
   const [shopify, setShopify] = useState('');
   const [salla, setSalla] = useState('');
   const [zid, setZid] = useState('');
@@ -242,146 +234,137 @@ export default function SettingsIntegrationsPage() {
   const [waProvider, setWaProvider] = useState('Meta');
   const [notes, setNotes] = useState('');
 
-  /* ─── Load data ─── */
-  useEffect(() => {
-    void (async () => {
-      const data = await loadIntegrationsData();
-      if (data) {
-        setIntegrationsData(data);
-        setShopify(data.shopify);
-        setSalla(data.salla);
-        setZid(data.zid);
-        setWoo(data.woo);
-        setSmsProvider(data.smsProvider);
-        setWaProvider(data.waProvider);
-        setNotes(data.notes);
+  // Initialize form fields from local data
+  const localData = localQuery.data;
+  if (localData && !shopify && !salla && !zid && !woo && localData.shopify) {
+    setShopify(localData.shopify);
+    setSalla(localData.salla);
+    setZid(localData.zid);
+    setWoo(localData.woo);
+    setSmsProvider(localData.smsProvider || 'Unifonic');
+    setWaProvider(localData.waProvider || 'Meta');
+    setNotes(localData.notes || '');
+  }
 
-        // Infer statuses from data
-        const hasEcommerce = !!(data.shopify || data.salla || data.zid || data.woo);
-        const hasSms = !!data.smsProvider;
-        const hasEmail = false; // Requires separate SMTP check
+  // Local toggle state for each integration
+  const [enabledMap, setEnabledMap] = useState<Record<string, boolean>>(() => {
+    const map: Record<string, boolean> = {};
+    INTEGRATION_DEFS.forEach((def) => {
+      map[def.key] = false;
+    });
+    return map;
+  });
 
-        setEnabledMap({
-          sms: hasSms,
-          email: hasEmail,
-          payment: false,
-          ecommerce: hasEcommerce,
-          webhooks: false,
-        });
+  // Update enabled state from status data
+  const statusData = statusQuery.data;
+  if (statusData) {
+    const newEnabled: Record<string, boolean> = {};
+    let needsUpdate = false;
+    statusData.integrations.forEach((intg) => {
+      const shouldBe = intg.configured;
+      if (enabledMap[intg.key] !== shouldBe) needsUpdate = true;
+      newEnabled[intg.key] = shouldBe;
+    });
+    if (needsUpdate) setEnabledMap(newEnabled);
+  }
 
-        setStatusMap({
-          sms: hasSms ? 'connected' : 'disconnected',
-          email: hasEmail ? 'connected' : 'disconnected',
-          payment: 'disconnected',
-          ecommerce: hasEcommerce ? 'connected' : 'disconnected',
-          webhooks: 'disconnected',
-        });
+  // Configure dialog
+  const [configOpen, setConfigOpen] = useState(false);
+  const [configKey, setConfigKey] = useState<string>('');
 
-        if (hasEcommerce) {
-          setLastSyncMap((prev) => ({ ...prev, ecommerce: new Date().toISOString() }));
-        }
-        if (hasSms) {
-          setLastSyncMap((prev) => ({ ...prev, sms: new Date().toISOString() }));
-        }
-      }
-      setLoading(false);
-    })();
-  }, []);
-
-  /* ─── Build integration cards ─── */
-  const integrationCards: IntegrationCard[] = INTEGRATION_DEFS.map((def) => ({
-    ...def,
-    status: statusMap[def.key] ?? 'unknown',
-    enabled: enabledMap[def.key] ?? false,
-    lastSync: lastSyncMap[def.key] ?? null,
-  }));
-
-  /* ─── KPI counts ─── */
-  const totalConnected = integrationCards.filter((c) => c.status === 'connected').length;
-  const totalDisconnected = integrationCards.filter((c) => c.status === 'disconnected').length;
-  const totalErrors = integrationCards.filter((c) => c.status === 'error').length;
-  const totalEnabled = integrationCards.filter((c) => c.enabled).length;
-
-  /* ─── Toggle integration ─── */
-  const toggleIntegration = useCallback((key: string, enabled: boolean) => {
-    setEnabledMap((prev) => ({ ...prev, [key]: enabled }));
-    if (!enabled) {
-      setStatusMap((prev) => ({ ...prev, [key]: 'disconnected' }));
-    }
-    toast.success(enabled ? 'تم تفعيل التكامل' : 'تم تعطيل التكامل');
-  }, []);
-
-  /* ─── Health check ─── */
-  const runHealthCheck = useCallback(async () => {
-    setHealthChecking(true);
-    try {
-      const res = await fetch('/api/integrations/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shopify, salla, zid, woo }),
-      });
-      const j = (await res.json()) as { success?: boolean; data?: { messages?: string[] }; error?: string };
-
-      // Update status based on results
-      const hasEcommerce = !!(shopify || salla || zid || woo);
-      const hasSms = !!smsProvider;
-
-      setStatusMap((prev) => ({
-        ...prev,
-        ecommerce: hasEcommerce ? 'connected' : 'disconnected',
-        sms: hasSms ? 'connected' : 'disconnected',
-        email: prev.email,
-        payment: prev.payment,
-        webhooks: prev.webhooks,
-      }));
-
-      if (hasEcommerce) {
-        setLastSyncMap((prev) => ({ ...prev, ecommerce: new Date().toISOString() }));
-      }
-      if (hasSms) {
-        setLastSyncMap((prev) => ({ ...prev, sms: new Date().toISOString() }));
-      }
-
-      if (!res.ok || !j.success) {
-        toast.error(j.error || 'فشل التحقق من صحة التكاملات');
-      } else {
-        const msgs = j.data?.messages ?? [];
-        toast.success(msgs.join(' · ') || 'تم فحص التكاملات بنجاح');
-      }
-    } catch {
-      toast.error('تعذّر الاتصال بالخادم');
-    } finally {
-      setHealthChecking(false);
-    }
-  }, [shopify, salla, zid, woo, smsProvider]);
-
-  /* ─── Save ─── */
-  const save = useCallback(async () => {
-    setSaving(true);
-    try {
+  /* ─── Save local settings ─── */
+  const saveMutation = useMutation({
+    mutationFn: async () => {
       const res = await fetch('/api/settings/integrations-local', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ shopify, salla, zid, woo, smsProvider, waProvider, notes }),
       });
       const j = await res.json();
-      if (!res.ok || !j.success) {
-        toast.error('فشل الحفظ');
-        return;
-      }
+      if (!res.ok || !j.success) throw new Error('فشل الحفظ');
+      return j;
+    },
+    onSuccess: () => {
       toast.success('تم حفظ إعدادات التكاملات بنجاح');
-    } catch {
+      void queryClient.invalidateQueries({ queryKey: ['integrationsLocal'] });
+      void queryClient.invalidateQueries({ queryKey: ['integrationsStatus'] });
+    },
+    onError: () => {
       toast.error('فشل الحفظ');
-    } finally {
-      setSaving(false);
-    }
-  }, [shopify, salla, zid, woo, smsProvider, waProvider, notes]);
+    },
+  });
+
+  /* ─── Health check (refresh statuses) ─── */
+  const healthCheckMutation = useMutation({
+    mutationFn: async () => {
+      // First save local data if changed
+      await fetch('/api/settings/integrations-local', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shopify, salla, zid, woo, smsProvider, waProvider, notes }),
+      }).catch(() => {});
+      // Then test connectivity
+      const res = await fetch('/api/integrations/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shopify, salla, zid, woo }),
+      });
+      const j = (await res.json()) as { success?: boolean; data?: { messages?: string[] }; error?: string };
+      if (!res.ok || !j.success) throw new Error(j.error || 'فشل التحقق');
+      return j;
+    },
+    onSuccess: (data) => {
+      const msgs = data.data?.messages ?? [];
+      toast.success(msgs.join(' · ') || 'تم فحص التكاملات بنجاح');
+      void queryClient.invalidateQueries({ queryKey: ['integrationsStatus'] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : 'فشل التحقق من صحة التكاملات');
+    },
+  });
+
+  /* ─── Sync integration ─── */
+  const syncMutation = useMutation({
+    mutationFn: async (key: string) => {
+      const res = await fetch('/api/settings/integrations/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key }),
+      });
+      const j = (await res.json()) as { success?: boolean; error?: string };
+      if (!res.ok || !j.success) throw new Error(j.error || 'فشلت المزامنة');
+      return j;
+    },
+    onSuccess: (_, key) => {
+      const def = INTEGRATION_DEFS.find((d) => d.key === key);
+      toast.success(`تم تسجيل طلب المزامنة لـ ${def?.title ?? key}`);
+      void queryClient.invalidateQueries({ queryKey: ['integrationsStatus'] });
+    },
+    onError: () => {
+      toast.error('فشلت المزامنة');
+    },
+  });
+
+  /* ─── Toggle integration ─── */
+  const toggleIntegration = useCallback((key: string, enabled: boolean) => {
+    setEnabledMap((prev) => ({ ...prev, [key]: enabled }));
+    toast.success(enabled ? 'تم تفعيل التكامل' : 'تم تعطيل التكامل');
+  }, []);
 
   /* ─── Open config dialog ─── */
   const openConfig = (key: string) => {
     setConfigKey(key);
     setConfigOpen(true);
   };
+
+  /* ─── Build status map from query ─── */
+  const statusMap: Record<string, IntegrationStatusResult | undefined> = {};
+  statusData?.integrations.forEach((intg) => {
+    statusMap[intg.key] = intg;
+  });
+
+  /* ─── KPI counts from real data ─── */
+  const kpis = statusData?.kpis ?? { configured: 0, connected: 0, disconnected: 0, errors: 0, total: INTEGRATION_DEFS.length };
 
   /* ─── Render ─── */
   return (
@@ -398,10 +381,24 @@ export default function SettingsIntegrationsPage() {
               size="sm"
               variant="outline"
               className="gap-1.5"
-              onClick={() => void runHealthCheck()}
-              disabled={healthChecking}
+              onClick={() => void queryClient.invalidateQueries({ queryKey: ['integrationsStatus'] })}
+              disabled={statusQuery.isFetching}
             >
-              {healthChecking ? (
+              {statusQuery.isFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              تحديث الحالة
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => void healthCheckMutation.mutateAsync()}
+              disabled={healthCheckMutation.isPending}
+            >
+              {healthCheckMutation.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 <Activity className="h-3.5 w-3.5" />
@@ -412,39 +409,50 @@ export default function SettingsIntegrationsPage() {
         }
       />
 
+      {/* Backend availability notice */}
+      {statusData && !statusData.backendAvailable && (
+        <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-sm text-amber-800">خادم ERPNext غير متاح</AlertTitle>
+          <AlertDescription className="text-xs text-amber-700 leading-relaxed">
+            تعذّر الاتصال بخادم ERPNext. يتم عرض حالة التكاملات المحلية فقط. تحقق من صفحة إعداد الخادم.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* KPI Strip */}
       <KpiStrip cols={4}>
         <KpiCard
-          title="تكاملات متصلة"
-          value={totalConnected}
-          icon={Wifi}
+          title="تكاملات مُعدّة"
+          value={kpis.configured}
+          icon={Zap}
           accent="success"
           compact
-          description="تكاملات تعمل بشكل طبيعي"
+          description="تكاملات تم إعدادها"
+        />
+        <KpiCard
+          title="متصلة"
+          value={kpis.connected}
+          icon={Wifi}
+          accent="info"
+          compact
+          description="تعمل بشكل طبيعي"
         />
         <KpiCard
           title="غير متصلة"
-          value={totalDisconnected}
+          value={kpis.disconnected}
           icon={WifiOff}
           accent="destructive"
           compact
-          description="تكاملات بحاجة إلى إعداد"
+          description="بحاجة إلى إعداد"
         />
         <KpiCard
           title="أخطاء"
-          value={totalErrors}
+          value={kpis.errors}
           icon={AlertTriangle}
           accent="warning"
           compact
-          description="تكاملات بها مشاكل اتصال"
-        />
-        <KpiCard
-          title="مفعّلة"
-          value={totalEnabled}
-          icon={Shield}
-          accent="info"
-          compact
-          description="تكاملات مفعّلة حالياً"
+          description="مشاكل اتصال"
         />
       </KpiStrip>
 
@@ -464,13 +472,21 @@ export default function SettingsIntegrationsPage() {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {integrationCards.map((integration) => {
-            const Icon = integration.icon;
+          {INTEGRATION_DEFS.map((def) => {
+            const Icon = def.icon;
+            const intgStatus = statusMap[def.key];
+            const status: IntegrationStatus = intgStatus?.status ?? 'disconnected';
+            const configured = intgStatus?.configured ?? false;
+            const lastSync = intgStatus?.lastSync ?? null;
+            const details = intgStatus?.details ?? '';
+            const erpDocCount = intgStatus?.erpNextDocCount ?? 0;
+            const enabled = enabledMap[def.key] ?? false;
+
             return (
               <Card
-                key={integration.id}
+                key={def.id}
                 className={`border-border/40 transition-all duration-200 hover:border-border/60 hover:shadow-sm ${
-                  integration.enabled ? 'bg-card' : 'bg-muted/20 opacity-80'
+                  enabled ? 'bg-card' : 'bg-muted/20 opacity-80'
                 }`}
               >
                 <CardContent className="p-5 space-y-4">
@@ -478,29 +494,44 @@ export default function SettingsIntegrationsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 min-w-0">
                       <div
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${accentSurface[integration.accent]}`}
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${accentSurface[def.accent]}`}
                       >
                         <Icon className="h-5 w-5" strokeWidth={1.75} />
                       </div>
                       <div className="min-w-0 space-y-1">
-                        <h3 className="text-sm font-semibold leading-tight">{integration.title}</h3>
+                        <h3 className="text-sm font-semibold leading-tight">{def.title}</h3>
                         <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
-                          {integration.description}
+                          {def.description}
                         </p>
                       </div>
                     </div>
-                    {statusIcon(integration.status)}
+                    {statusIcon(status)}
                   </div>
 
                   {/* Status row */}
                   <div className="flex items-center justify-between gap-2">
-                    {statusBadge(integration.status)}
+                    {statusBadge(status)}
                     <span className="text-[10px] text-muted-foreground">
-                      {integration.lastSync
-                        ? `آخر مزامنة: ${new Date(integration.lastSync).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`
+                      {lastSync
+                        ? `آخر مزامنة: ${new Date(lastSync).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`
                         : 'لا توجد مزامنة'}
                     </span>
                   </div>
+
+                  {/* Details row */}
+                  {details && (
+                    <p className="text-[11px] text-muted-foreground leading-relaxed bg-muted/30 rounded px-2 py-1.5">
+                      {details}
+                    </p>
+                  )}
+
+                  {/* ERPNext docs indicator */}
+                  {erpDocCount > 0 && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                      <Database className="h-3 w-3" />
+                      <span>{erpDocCount} سجل في ERPNext</span>
+                    </div>
+                  )}
 
                   <Separator className="bg-border/30" />
 
@@ -508,30 +539,47 @@ export default function SettingsIntegrationsPage() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <Switch
-                        checked={integration.enabled}
-                        onCheckedChange={(checked) => toggleIntegration(integration.key, checked)}
-                        aria-label={`تفعيل ${integration.title}`}
+                        checked={enabled}
+                        onCheckedChange={(checked) => toggleIntegration(def.key, checked)}
+                        aria-label={`تفعيل ${def.title}`}
                       />
                       <span className="text-[11px] text-muted-foreground">
-                        {integration.enabled ? 'مفعّل' : 'معطّل'}
+                        {enabled ? 'مفعّل' : 'معطّل'}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
+                      {/* Configure button */}
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => openConfig(integration.key)}
-                        aria-label={`إعدادات ${integration.title}`}
+                        onClick={() => openConfig(def.key)}
+                        aria-label={`إعدادات ${def.title}`}
                       >
                         <Settings className="h-4 w-4" />
                       </Button>
-                      <Link href={integration.settingsPath}>
+                      {/* Sync Now button */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => void syncMutation.mutateAsync(def.key)}
+                        disabled={syncMutation.isPending || !configured}
+                        aria-label={`مزامنة ${def.title}`}
+                      >
+                        {syncMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4" />
+                        )}
+                      </Button>
+                      {/* Open settings page */}
+                      <Link href={def.settingsPath}>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
-                          aria-label={`فتح صفحة ${integration.title}`}
+                          aria-label={`فتح صفحة ${def.title}`}
                         >
                           <ExternalLink className="h-4 w-4" />
                         </Button>
@@ -542,8 +590,13 @@ export default function SettingsIntegrationsPage() {
                   {/* Category badge */}
                   <div className="flex items-center gap-1.5">
                     <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4">
-                      {integration.category}
+                      {def.category}
                     </Badge>
+                    {def.erpNextDoctypes.length > 0 && (
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 font-mono" dir="ltr">
+                        {def.erpNextDoctypes[0]}
+                      </Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -564,10 +617,10 @@ export default function SettingsIntegrationsPage() {
               size="sm"
               variant="outline"
               className="gap-1.5"
-              onClick={() => void runHealthCheck()}
-              disabled={healthChecking}
+              onClick={() => void healthCheckMutation.mutateAsync()}
+              disabled={healthCheckMutation.isPending}
             >
-              {healthChecking ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+              {healthCheckMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Activity className="h-3.5 w-3.5" />}
               تحقق من الاتصال
             </Button>
           </div>
@@ -605,9 +658,9 @@ export default function SettingsIntegrationsPage() {
           </div>
 
           <div className="flex gap-2 flex-wrap">
-            <Button size="sm" disabled={saving} onClick={() => void save()}>
-              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-              {saving ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
+            <Button size="sm" disabled={saveMutation.isPending} onClick={() => void saveMutation.mutateAsync()}>
+              {saveMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+              {saveMutation.isPending ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
             </Button>
           </div>
         </CardContent>
@@ -618,7 +671,8 @@ export default function SettingsIntegrationsPage() {
         <Link2 className="h-4 w-4" />
         <AlertTitle className="text-sm">ملاحظات حول التكاملات</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
-          مزامنة الطلبات والمخزون مع Salla / Zid / Shopify تتطلب مفاتيح API وواجهة خلفية مخصصة. الحقول تُخزَّن في ملف البيانات المحلي مع مرآة في SQLite للاسترداد.
+          حالات الاتصال تُجلب مباشرة من سجلات ERPNext (SMS Settings، Email Account، Payment Gateway، Webhook...).
+          مزامنة الطلبات والمخزون مع Salla / Zid / Shopify تتطلب مفاتيح API وواجهة خلفية مخصصة.
           لتفعيل البريد الصادر، انتقل إلى صفحة إعدادات SMTP. لبوابات الدفع، تأكد من ضبط مفاتيح API من صفحة بوابات الدفع.
         </AlertDescription>
       </Alert>
@@ -666,6 +720,27 @@ export default function SettingsIntegrationsPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            {/* Status info */}
+            {statusMap[configKey] && (
+              <div className="rounded-lg border border-border/40 p-3 space-y-2 bg-muted/20">
+                <div className="flex items-center gap-2">
+                  {statusIcon(statusMap[configKey]!.status)}
+                  <span className="text-xs font-medium">
+                    الحالة: {statusMap[configKey]!.status === 'connected' ? 'متصل' : statusMap[configKey]!.status === 'disconnected' ? 'غير متصل' : 'خطأ'}
+                  </span>
+                </div>
+                {statusMap[configKey]!.details && (
+                  <p className="text-[11px] text-muted-foreground">{statusMap[configKey]!.details}</p>
+                )}
+                {statusMap[configKey]!.erpNextDocCount > 0 && (
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Database className="h-3 w-3" />
+                    {statusMap[configKey]!.erpNextDocCount} سجل في ERPNext
+                  </p>
+                )}
+              </div>
+            )}
+
             {configKey === 'ecommerce' && (
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">
@@ -707,7 +782,7 @@ export default function SettingsIntegrationsPage() {
             {configKey === 'email' && (
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">
-                  لإعداد البريد الصادر، انتقل إلى صفحة إعدادات SMTP المخصصة.
+                  لإعداد البريد الصادر، انتقل إلى صفحة إعدادات SMTP المخصصة أو تحقق من حسابات البريد في ERPNext.
                 </p>
                 <Link href="/settings/email-smtp">
                   <Button variant="outline" size="sm" className="gap-1.5">
@@ -720,7 +795,7 @@ export default function SettingsIntegrationsPage() {
             {configKey === 'payment' && (
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">
-                  لإعداد بوابات الدفع الإلكتروني، انتقل إلى صفحة بوابات الدفع.
+                  لإعداد بوابات الدفع الإلكتروني، انتقل إلى صفحة بوابات الدفع أو تحقق من إعدادات PayPal/Stripe/Razorpay في ERPNext.
                 </p>
                 <Link href="/settings/payment-gateways">
                   <Button variant="outline" size="sm" className="gap-1.5">
@@ -733,7 +808,7 @@ export default function SettingsIntegrationsPage() {
             {configKey === 'webhooks' && (
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">
-                  لإعداد Webhooks، انتقل إلى صفحة واجهة المطور حيث يمكنك إدارة نقاط النهاية.
+                  لإعداد Webhooks، انتقل إلى صفحة واجهة المطور حيث يمكنك إدارة نقاط النهاية. يمكنك أيضاً إنشاء خطافات ويب مباشرة في ERPNext.
                 </p>
                 <Link href="/operations/developer-api">
                   <Button variant="outline" size="sm" className="gap-1.5">
@@ -753,8 +828,8 @@ export default function SettingsIntegrationsPage() {
             <Button variant="outline" size="sm" onClick={() => setConfigOpen(false)}>
               إغلاق
             </Button>
-            <Button size="sm" disabled={saving} onClick={() => void save()}>
-              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+            <Button size="sm" disabled={saveMutation.isPending} onClick={() => { void saveMutation.mutateAsync(); setConfigOpen(false); }}>
+              {saveMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
               حفظ
             </Button>
           </DialogFooter>

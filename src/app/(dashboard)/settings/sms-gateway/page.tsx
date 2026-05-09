@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useMemo, useSyncExternalStore, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { DataTable, type Column } from '@/components/erp/data-table';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,8 +37,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { formatCurrency, formatDate } from '@/lib/app-format';
+import { formatDate } from '@/lib/app-format';
+import {
+  useDocList,
+  useDoc,
+  useCreateDoc,
+  useUpdateDoc,
+  useDeleteDoc,
+} from '@/lib/client/hooks';
 import {
   MessageSquare,
   Send,
@@ -45,47 +54,49 @@ import {
   ListChecks,
   Wallet,
   TestTube,
+  Loader2,
+  Plus,
 } from 'lucide-react';
 
-/* ─── localStorage Keys ─── */
-const LS_PROVIDER = 'erp_sms_provider_config';
-const LS_TEMPLATES = 'erp_sms_templates';
-const LS_RULES = 'erp_sms_rules';
-const LS_LOG = 'erp_sms_log';
-
 /* ─── Types ─── */
-type SmsProvider = 'Twilio' | 'Vonage' | 'Unifonic' | 'SMS Misr' | 'Custom';
-type ProviderConfig = {
-  provider: SmsProvider;
-  apiKey: string;
-  apiSecret: string;
-  senderId: string;
-  baseUrl: string;
-};
-type SmsTemplate = {
-  id: string;
+interface SmsGatewayRow {
   name: string;
-  content: string;
-  doctype: string;
-};
-type SmsRule = {
-  id: string;
+  gateway_name?: string;
+  gateway_url?: string;
+  message_parameter?: string;
+  receiver_parameter?: string;
+  use_post?: number;
+  use_csrf?: number;
+}
+
+interface SmsSettingsDoc {
   name: string;
-  doctype: string;
-  event: string;
-  templateId: string;
-  recipient: string;
-  delay: number;
-  active: boolean;
-};
-type SmsLogEntry = {
-  id: string;
-  date: string;
-  recipient: string;
-  template: string;
-  status: 'ناجح' | 'فاشل';
-  cost: number;
-};
+  sms_gateway_url?: string;
+  message_parameter?: string;
+  receiver_parameter?: string;
+}
+
+interface NotificationRow {
+  name: string;
+  subject?: string;
+  document_type?: string;
+  event?: string;
+  channel?: string;
+  enabled?: number;
+  message?: string;
+}
+
+interface CommunicationRow {
+  name: string;
+  communication_type?: string;
+  communication_medium?: string;
+  subject?: string;
+  content?: string;
+  recipients?: string;
+  status?: string;
+  creation?: string;
+  sent_or_received?: string;
+}
 
 const DOCTYPE_OPTIONS = [
   { value: 'Sales Invoice', label: 'فاتورة مبيعات' },
@@ -95,241 +106,349 @@ const DOCTYPE_OPTIONS = [
 ];
 
 const EVENT_OPTIONS = [
-  { value: 'on_submit', label: 'عند التقديم' },
-  { value: 'on_cancel', label: 'عند الإلغاء' },
-  { value: 'on_create', label: 'عند الإنشاء' },
+  { value: 'New', label: 'جديد' },
+  { value: 'Save', label: 'حفظ' },
+  { value: 'Submit', label: 'اعتماد' },
+  { value: 'Cancel', label: 'إلغاء' },
+  { value: 'Value Change', label: 'تغيير قيمة' },
 ];
 
-const RECIPIENT_OPTIONS = [
-  { value: 'Customer', label: 'العميل' },
-  { value: 'Supplier', label: 'المورد' },
-  { value: 'Contact', label: 'جهة الاتصال' },
+const CHANNEL_OPTIONS = [
+  { value: 'Email', label: 'بريد إلكتروني' },
+  { value: 'SMS', label: 'رسالة SMS' },
+  { value: 'System Notification', label: 'إشعار نظام' },
 ];
-
-const PROVIDERS: SmsProvider[] = ['Twilio', 'Vonage', 'Unifonic', 'SMS Misr', 'Custom'];
-
-function uid(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
-
-function loadJson<T>(key: string, fallback: T): T {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveJson(key: string, data: unknown) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(key, JSON.stringify(data));
-}
-
-const defaultProvider: ProviderConfig = {
-  provider: 'Unifonic',
-  apiKey: '',
-  apiSecret: '',
-  senderId: '',
-  baseUrl: '',
-};
-
-const emptySubscribe = () => () => {};
 
 export default function SmsGatewayPage() {
   const { toast } = useToast();
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
 
-  // Provider config
-  const [config, setConfig] = useState<ProviderConfig>(() => loadJson(LS_PROVIDER, defaultProvider));
-  const [testing, setTesting] = useState(false);
+  /* ─── ERPNext Data Hooks ─── */
+  // SMS Gateway list
+  const {
+    data: gatewaysData,
+    isLoading: gatewaysLoading,
+    isError: gatewaysIsError,
+    error: gatewaysError,
+    refetch: refetchGateways,
+  } = useDocList<SmsGatewayRow>('SMS Gateway', {
+    fields: ['name', 'gateway_name', 'gateway_url', 'message_parameter', 'receiver_parameter', 'use_post', 'use_csrf'],
+    limit: 200,
+  });
 
-  // Templates
-  const [templates, setTemplates] = useState<SmsTemplate[]>(() => loadJson(LS_TEMPLATES, []));
-  const [tplDialog, setTplDialog] = useState<'create' | 'edit' | null>(null);
-  const [tplForm, setTplForm] = useState<Partial<SmsTemplate>>({});
-  const [editingTpl, setEditingTpl] = useState<SmsTemplate | null>(null);
+  // SMS Settings (Single DocType)
+  const { data: smsSettings, isLoading: settingsLoading } = useDoc<SmsSettingsDoc>(
+    'SMS Settings',
+    'SMS Settings',
+  );
 
-  // Rules
-  const [rules, setRules] = useState<SmsRule[]>(() => loadJson(LS_RULES, []));
-  const [ruleDialog, setRuleDialog] = useState<'create' | 'edit' | null>(null);
-  const [ruleForm, setRuleForm] = useState<Partial<SmsRule>>({});
-  const [editingRule, setEditingRule] = useState<SmsRule | null>(null);
+  // Notification rules (SMS channel)
+  const {
+    data: notifData,
+    isLoading: notifLoading,
+    isError: notifIsError,
+    error: notifError,
+    refetch: refetchNotif,
+  } = useDocList<NotificationRow>('Notification', {
+    fields: ['name', 'subject', 'document_type', 'event', 'channel', 'enabled', 'message'],
+    limit: 200,
+  });
 
-  // Log
-  const [log, setLog] = useState<SmsLogEntry[]>(() => loadJson(LS_LOG, []));
+  // Communication log (SMS type)
+  const {
+    data: logData,
+    isLoading: logLoading,
+    isError: logIsError,
+    error: logError,
+    refetch: refetchLog,
+  } = useDocList<CommunicationRow>('Communication', {
+    fields: ['name', 'communication_type', 'communication_medium', 'subject', 'content', 'recipients', 'status', 'creation', 'sent_or_received'],
+    filters: [['communication_medium', '=', 'SMS']],
+    limit: 200,
+    order_by: 'creation desc',
+  });
+
+  // Mutations
+  const createGateway = useCreateDoc<SmsGatewayRow>('SMS Gateway');
+  const updateGateway = useUpdateDoc<SmsGatewayRow>('SMS Gateway');
+  const deleteGateway = useDeleteDoc('SMS Gateway');
+  const updateSmsSettings = useUpdateDoc<SmsSettingsDoc>('SMS Settings');
+  const createNotif = useCreateDoc<NotificationRow>('Notification');
+  const updateNotif = useUpdateDoc<NotificationRow>('Notification');
+  const deleteNotif = useDeleteDoc('Notification');
+
+  /* ─── Local State ─── */
+  const [activeTab, setActiveTab] = useState('provider');
+
+  // Settings form
+  const [settingsForm, setSettingsForm] = useState<Partial<SmsSettingsDoc>>({});
+  const [settingsInitialized, setSettingsInitialized] = useState(false);
+
+  // Gateway dialog
+  const [gwDialog, setGwDialog] = useState<'create' | 'edit' | null>(null);
+  const [gwForm, setGwForm] = useState<Partial<SmsGatewayRow>>({});
+  const [editingGw, setEditingGw] = useState<SmsGatewayRow | null>(null);
+
+  // Notification dialog
+  const [notifDialog, setNotifDialog] = useState<'create' | 'edit' | null>(null);
+  const [notifForm, setNotifForm] = useState<Partial<NotificationRow & { _doctype: string; _event: string; _channel: string }>>({});
+  const [editingNotif, setEditingNotif] = useState<NotificationRow | null>(null);
 
   // Delete confirm
-  const [deleteType, setDeleteType] = useState<'template' | 'rule' | null>(null);
-  const [toDelete, setToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState(false);
+  const [toDelete, setToDelete] = useState<{ type: 'gateway' | 'notif'; name: string; label: string } | null>(null);
 
-  // ─── Provider Actions ───
-  const saveConfig = useCallback(() => {
-    saveJson(LS_PROVIDER, config);
-    toast({ title: 'تم حفظ إعدادات المزود' });
-  }, [config, toast]);
+  // Test SMS
+  const [testing, setTesting] = useState(false);
 
-  const testSms = useCallback(async () => {
-    if (!config.apiKey) {
-      toast({ title: 'أدخل مفتاح API أولاً', variant: 'destructive' });
+  /* ─── Initialize settings form from API data ─── */
+  const gateways = gatewaysData || [];
+  const notifications = (notifData || []).filter(n => n.channel === 'SMS');
+  const log = logData || [];
+
+  // Sync settings form when data loads
+  if (smsSettings && !settingsInitialized) {
+    setSettingsForm({
+      sms_gateway_url: smsSettings.sms_gateway_url || '',
+      message_parameter: smsSettings.message_parameter || '',
+      receiver_parameter: smsSettings.receiver_parameter || '',
+    });
+    setSettingsInitialized(true);
+  }
+
+  /* ─── KPIs ─── */
+  const totalGateways = gateways.length;
+  const activeGateways = gateways.filter(g => g.use_post === 1).length;
+  const smsSentToday = log.filter(l => {
+    if (!l.creation) return false;
+    const today = new Date().toISOString().slice(0, 10);
+    return l.creation.startsWith(today) && l.sent_or_received === 'Sent';
+  }).length;
+  const smsFailedToday = log.filter(l => {
+    if (!l.creation) return false;
+    const today = new Date().toISOString().slice(0, 10);
+    return l.creation.startsWith(today) && l.status === 'Error';
+  }).length;
+
+  /* ─── Settings Actions ─── */
+  const saveSettings = async () => {
+    try {
+      await updateSmsSettings.mutateAsync({
+        name: 'SMS Settings',
+        doc: {
+          sms_gateway_url: settingsForm.sms_gateway_url || '',
+          message_parameter: settingsForm.message_parameter || '',
+          receiver_parameter: settingsForm.receiver_parameter || '',
+        },
+      });
+      toast({ title: 'تم حفظ إعدادات SMS' });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({ title: 'فشل حفظ الإعدادات', description: msg, variant: 'destructive' });
+    }
+  };
+
+  const testSms = async () => {
+    if (!settingsForm.sms_gateway_url) {
+      toast({ title: 'أدخل رابط البوابة أولاً', variant: 'destructive' });
       return;
     }
     setTesting(true);
-    // Simulate test SMS
-    await new Promise((r) => setTimeout(r, 1500));
-    const newLog: SmsLogEntry = {
-      id: uid(),
-      date: new Date().toISOString(),
-      recipient: '966500000000',
-      template: 'رسالة اختبار',
-      status: Math.random() > 0.2 ? 'ناجح' : 'فاشل',
-      cost: 0.05,
-    };
-    const updated = [newLog, ...log];
-    setLog(updated);
-    saveJson(LS_LOG, updated);
-    setTesting(false);
-    toast({ title: newLog.status === 'ناجح' ? 'تم إرسال رسالة الاختبار بنجاح' : 'فشل إرسال رسالة الاختبار' });
-  }, [config.apiKey, log, toast]);
-
-  // ─── Template Actions ───
-  const openCreateTemplate = () => {
-    setTplForm({ name: '', content: '', doctype: 'Sales Invoice' });
-    setEditingTpl(null);
-    setTplDialog('create');
+    try {
+      const res = await fetch('/api/settings/crm-messaging', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sms_provider: 'Custom',
+          sms_api_key: 'test',
+        }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        toast({ title: 'تم اختبار الاتصال بالبوابة بنجاح' });
+      } else {
+        toast({ title: 'فشل اختبار الاتصال', description: result.error || 'خطأ غير معروف', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'فشل الاتصال بالخادم', variant: 'destructive' });
+    } finally {
+      setTesting(false);
+    }
   };
 
-  const openEditTemplate = (row: SmsTemplate) => {
-    setTplForm({ ...row });
-    setEditingTpl(row);
-    setTplDialog('edit');
+  /* ─── Gateway Actions ─── */
+  const openCreateGateway = () => {
+    setGwForm({ gateway_name: '', gateway_url: '', message_parameter: 'message', receiver_parameter: 'receiver', use_post: 1, use_csrf: 0 });
+    setEditingGw(null);
+    setGwDialog('create');
   };
 
-  const saveTemplate = () => {
-    if (!tplForm.name?.trim() || !tplForm.content?.trim()) {
-      toast({ title: 'أدخل اسم القالب ومحتوى الرسالة', variant: 'destructive' });
+  const openEditGateway = (row: SmsGatewayRow) => {
+    setGwForm({ ...row });
+    setEditingGw(row);
+    setGwDialog('edit');
+  };
+
+  const saveGateway = async () => {
+    if (!gwForm.gateway_name?.trim() || !gwForm.gateway_url?.trim()) {
+      toast({ title: 'أدخل اسم البوابة والرابط', variant: 'destructive' });
       return;
     }
-    let updated: SmsTemplate[];
-    if (editingTpl) {
-      updated = templates.map((t) =>
-        t.id === editingTpl.id
-          ? { ...t, name: tplForm.name!, content: tplForm.content!, doctype: tplForm.doctype ?? 'Sales Invoice' }
-          : t
-      );
-    } else {
-      updated = [
-        ...templates,
-        { id: uid(), name: tplForm.name!, content: tplForm.content!, doctype: tplForm.doctype ?? 'Sales Invoice' },
-      ];
+    try {
+      if (editingGw) {
+        await updateGateway.mutateAsync({
+          name: editingGw.name,
+          doc: {
+            gateway_name: gwForm.gateway_name,
+            gateway_url: gwForm.gateway_url,
+            message_parameter: gwForm.message_parameter || 'message',
+            receiver_parameter: gwForm.receiver_parameter || 'receiver',
+            use_post: gwForm.use_post ? 1 : 0,
+            use_csrf: gwForm.use_csrf ? 1 : 0,
+          },
+        });
+        toast({ title: 'تم تحديث البوابة' });
+      } else {
+        await createGateway.mutateAsync({
+          doctype: 'SMS Gateway',
+          gateway_name: gwForm.gateway_name,
+          gateway_url: gwForm.gateway_url,
+          message_parameter: gwForm.message_parameter || 'message',
+          receiver_parameter: gwForm.receiver_parameter || 'receiver',
+          use_post: gwForm.use_post ? 1 : 0,
+          use_csrf: gwForm.use_csrf ? 1 : 0,
+        });
+        toast({ title: 'تم إنشاء البوابة' });
+      }
+      setGwDialog(null);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({ title: 'فشل حفظ البوابة', description: msg, variant: 'destructive' });
     }
-    setTemplates(updated);
-    saveJson(LS_TEMPLATES, updated);
-    setTplDialog(null);
-    toast({ title: editingTpl ? 'تم تحديث القالب' : 'تم إنشاء القالب' });
   };
 
-  const confirmDeleteTemplate = () => {
+  const confirmDelete = async () => {
     if (!toDelete) return;
-    const updated = templates.filter((t) => t.id !== toDelete.id);
-    setTemplates(updated);
-    saveJson(LS_TEMPLATES, updated);
-    setDeleteType(null);
+    try {
+      if (toDelete.type === 'gateway') {
+        await deleteGateway.mutateAsync(toDelete.name);
+        toast({ title: 'تم حذف البوابة' });
+      } else {
+        await deleteNotif.mutateAsync(toDelete.name);
+        toast({ title: 'تم حذف قاعدة الإرسال' });
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({ title: 'فشل الحذف', description: msg, variant: 'destructive' });
+    }
+    setDeleteDialog(false);
     setToDelete(null);
-    toast({ title: 'تم حذف القالب' });
   };
 
-  // ─── Rule Actions ───
-  const openCreateRule = () => {
-    setRuleForm({ name: '', doctype: 'Sales Invoice', event: 'on_submit', templateId: '', recipient: 'Customer', delay: 0, active: true });
-    setEditingRule(null);
-    setRuleDialog('create');
+  /* ─── Notification Actions ─── */
+  const openCreateNotif = () => {
+    setNotifForm({ _doctype: 'Sales Invoice', _event: 'Submit', _channel: 'SMS', subject: '', message: '' });
+    setEditingNotif(null);
+    setNotifDialog('create');
   };
 
-  const openEditRule = (row: SmsRule) => {
-    setRuleForm({ ...row });
-    setEditingRule(row);
-    setRuleDialog('edit');
+  const openEditNotif = (row: NotificationRow) => {
+    setNotifForm({
+      subject: row.subject || '',
+      message: row.message || '',
+      _doctype: row.document_type || 'Sales Invoice',
+      _event: row.event || 'Submit',
+      _channel: row.channel || 'SMS',
+    });
+    setEditingNotif(row);
+    setNotifDialog('edit');
   };
 
-  const saveRule = () => {
-    if (!ruleForm.name?.trim() || !ruleForm.templateId) {
-      toast({ title: 'أدخل اسم القاعدة واختر القالب', variant: 'destructive' });
+  const saveNotif = async () => {
+    if (!notifForm.subject?.trim()) {
+      toast({ title: 'أدخل عنوان القاعدة', variant: 'destructive' });
       return;
     }
-    let updated: SmsRule[];
-    const data: SmsRule = {
-      id: editingRule?.id ?? uid(),
-      name: ruleForm.name!,
-      doctype: ruleForm.doctype ?? 'Sales Invoice',
-      event: ruleForm.event ?? 'on_submit',
-      templateId: ruleForm.templateId!,
-      recipient: ruleForm.recipient ?? 'Customer',
-      delay: ruleForm.delay ?? 0,
-      active: ruleForm.active ?? true,
-    };
-    if (editingRule) {
-      updated = rules.map((r) => (r.id === editingRule.id ? data : r));
-    } else {
-      updated = [...rules, data];
+    try {
+      if (editingNotif) {
+        await updateNotif.mutateAsync({
+          name: editingNotif.name,
+          doc: {
+            subject: notifForm.subject,
+            message: notifForm.message || '',
+            document_type: notifForm._doctype || 'Sales Invoice',
+            event: notifForm._event || 'Submit',
+            channel: notifForm._channel || 'SMS',
+            enabled: editingNotif.enabled ?? 1,
+          },
+        });
+        toast({ title: 'تم تحديث قاعدة الإرسال' });
+      } else {
+        const nm = notifForm.subject.trim().replace(/\s+/g, '-');
+        await createNotif.mutateAsync({
+          doctype: 'Notification',
+          name: nm,
+          enabled: 1,
+          channel: notifForm._channel || 'SMS',
+          document_type: notifForm._doctype || 'Sales Invoice',
+          event: notifForm._event || 'Submit',
+          subject: notifForm.subject.trim(),
+          message: notifForm.message?.trim() || '{{ doc.name }}',
+          condition_type: 'Python',
+          send_to_all_assignees: 1,
+        });
+        toast({ title: 'تم إنشاء قاعدة الإرسال' });
+      }
+      setNotifDialog(null);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({ title: 'فشل حفظ القاعدة', description: msg, variant: 'destructive' });
     }
-    setRules(updated);
-    saveJson(LS_RULES, updated);
-    setRuleDialog(null);
-    toast({ title: editingRule ? 'تم تحديث القاعدة' : 'تم إنشاء القاعدة' });
   };
 
-  const confirmDeleteRule = () => {
-    if (!toDelete) return;
-    const updated = rules.filter((r) => r.id !== toDelete.id);
-    setRules(updated);
-    saveJson(LS_RULES, updated);
-    setDeleteType(null);
-    setToDelete(null);
-    toast({ title: 'تم حذف القاعدة' });
-  };
-
-  // ─── KPIs ───
-  const balance = 1000 - log.filter((l) => l.status === 'ناجح').length;
-  const sentCount = log.filter((l) => l.status === 'ناجح').length;
-  const failedCount = log.filter((l) => l.status === 'فاشل').length;
-  const totalCost = log.reduce((s, l) => s + l.cost, 0);
-
-  // ─── DataTable Columns ───
-  const tplColumns: Column<SmsTemplate>[] = useMemo(
+  /* ─── DataTable Columns ─── */
+  const gwColumns: Column<SmsGatewayRow>[] = useMemo(
     () => [
-      { key: 'name', header: 'اسم القالب', sortable: true },
+      { key: 'gateway_name', header: 'اسم البوابة', sortable: true },
       {
-        key: 'doctype',
-        header: 'نوع المستند',
-        render: (v) => {
-          const opt = DOCTYPE_OPTIONS.find((o) => o.value === v);
-          return <span className="text-xs">{opt?.label ?? String(v)}</span>;
-        },
+        key: 'gateway_url',
+        header: 'رابط API',
+        render: (v) => (
+          <span className="text-xs font-mono line-clamp-1 max-w-[300px]" dir="ltr" title={String(v)}>
+            {String(v || '—')}
+          </span>
+        ),
       },
       {
-        key: 'content',
-        header: 'محتوى الرسالة',
+        key: 'message_parameter',
+        header: 'معامل الرسالة',
+        render: (v) => <span className="text-xs">{String(v || '—')}</span>,
+      },
+      {
+        key: 'receiver_parameter',
+        header: 'معامل المستلم',
+        render: (v) => <span className="text-xs">{String(v || '—')}</span>,
+      },
+      {
+        key: 'use_post',
+        header: 'الطريقة',
         render: (v) => (
-          <span className="text-xs line-clamp-2 max-w-[300px]" title={String(v)}>
-            {String(v)}
-          </span>
+          <StatusBadge status={Number(v) === 1 ? 'Active' : 'Inactive'} />
         ),
       },
     ],
     []
   );
 
-  const ruleColumns: Column<SmsRule>[] = useMemo(
+  const notifColumns: Column<NotificationRow>[] = useMemo(
     () => [
-      { key: 'name', header: 'اسم القاعدة', sortable: true },
+      { key: 'name', header: 'المعرّف', sortable: true },
+      { key: 'subject', header: 'العنوان', sortable: true },
       {
-        key: 'doctype',
+        key: 'document_type',
         header: 'نوع المستند',
         render: (v) => {
           const opt = DOCTYPE_OPTIONS.find((o) => o.value === v);
-          return <span className="text-xs">{opt?.label ?? String(v)}</span>;
+          return <span className="text-xs">{opt?.label ?? String(v || '—')}</span>;
         },
       },
       {
@@ -337,87 +456,80 @@ export default function SmsGatewayPage() {
         header: 'الحدث',
         render: (v) => {
           const opt = EVENT_OPTIONS.find((o) => o.value === v);
-          return <span className="text-xs">{opt?.label ?? String(v)}</span>;
+          return <span className="text-xs">{opt?.label ?? String(v || '—')}</span>;
         },
       },
       {
-        key: 'templateId',
-        header: 'القالب',
-        render: (v) => {
-          const tpl = templates.find((t) => t.id === v);
-          return <span className="text-xs">{tpl?.name ?? String(v)}</span>;
-        },
-      },
-      {
-        key: 'active',
+        key: 'enabled',
         header: 'الحالة',
         render: (v) => (
-          <StatusBadge status={v ? 'Active' : 'Inactive'} />
+          <StatusBadge status={Number(v) === 1 ? 'Active' : 'Inactive'} />
         ),
-      },
-    ],
-    [templates]
-  );
-
-  const logColumns: Column<SmsLogEntry>[] = useMemo(
-    () => [
-      {
-        key: 'date',
-        header: 'التاريخ',
-        sortable: true,
-        render: (v) => <span className="text-xs">{formatDate(String(v))}</span>,
-      },
-      { key: 'recipient', header: 'المستلم' },
-      { key: 'template', header: 'القالب' },
-      {
-        key: 'status',
-        header: 'الحالة',
-        render: (v) => (
-          <StatusBadge status={v === 'ناجح' ? 'Sent' : 'Overdue'} />
-        ),
-      },
-      {
-        key: 'cost',
-        header: 'التكلفة',
-        render: (v) => <span className="text-xs">{formatCurrency(Number(v))}</span>,
       },
     ],
     []
   );
 
-  if (!mounted) return null;
+  const logColumns: Column<CommunicationRow>[] = useMemo(
+    () => [
+      {
+        key: 'creation',
+        header: 'التاريخ',
+        sortable: true,
+        render: (v) => <span className="text-xs">{formatDate(String(v))}</span>,
+      },
+      {
+        key: 'recipients',
+        header: 'المستلم',
+        render: (v) => <span className="text-xs line-clamp-1 max-w-[150px]">{String(v || '—')}</span>,
+      },
+      {
+        key: 'subject',
+        header: 'الموضوع',
+        render: (v) => <span className="text-xs line-clamp-1 max-w-[200px]">{String(v || '—')}</span>,
+      },
+      {
+        key: 'status',
+        header: 'الحالة',
+        render: (v) => (
+          <StatusBadge status={String(v) === 'Sent' || String(v) === 'Open' ? 'Sent' : 'Overdue'} />
+        ),
+      },
+    ],
+    []
+  );
 
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
       <PageHeader
         title="إعدادات الرسائل النصية"
-        description="إدارة مزود خدمة الرسائل النصية والقوالب وقواعد الإرسال التلقائي"
+        description="إدارة بوابات الرسائل النصية وإعدادات SMS وقواعد الإرسال التلقائي"
         iconify="solar:chat-round-dots-bold-duotone"
         accent="info"
         breadcrumbs={[{ label: 'الإعدادات' }, { label: 'الرسائل النصية' }]}
       />
 
-      <Tabs defaultValue="provider" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="provider" className="gap-1.5 text-xs">
             <MessageSquare className="h-3.5 w-3.5" />
-            مزود الخدمة
+            إعدادات SMS
           </TabsTrigger>
-          <TabsTrigger value="templates" className="gap-1.5 text-xs">
-            <FileText className="h-3.5 w-3.5" />
-            قوالب الرسائل
+          <TabsTrigger value="gateways" className="gap-1.5 text-xs">
+            <Send className="h-3.5 w-3.5" />
+            بوابات SMS
           </TabsTrigger>
           <TabsTrigger value="rules" className="gap-1.5 text-xs">
             <ListChecks className="h-3.5 w-3.5" />
             قواعد الإرسال
           </TabsTrigger>
-          <TabsTrigger value="balance" className="gap-1.5 text-xs">
+          <TabsTrigger value="log" className="gap-1.5 text-xs">
             <Wallet className="h-3.5 w-3.5" />
-            رصيد الرسائل
+            سجل الرسائل
           </TabsTrigger>
         </TabsList>
 
-        {/* ─── Tab 1: Provider ─── */}
+        {/* ─── Tab 1: SMS Settings ─── */}
         <TabsContent value="provider">
           <Card className="border-border/40 bg-card">
             <CardContent className="p-5 space-y-5">
@@ -426,272 +538,242 @@ export default function SmsGatewayPage() {
                   <Send className="h-4 w-4 text-info" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold">مزود الخدمة</h2>
-                  <p className="text-xs text-muted-foreground">اختر مزود الرسائل النصية وأدخل بيانات الربط</p>
+                  <h2 className="text-sm font-semibold">إعدادات SMS العامة</h2>
+                  <p className="text-xs text-muted-foreground">رابط بوابة الرسائل ومعاملات الإرسال الأساسية</p>
                 </div>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">مزود الخدمة *</Label>
-                  <Select
-                    value={config.provider}
-                    onValueChange={(v) =>
-                      setConfig((c) => ({ ...c, provider: v as SmsProvider }))
-                    }
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROVIDERS.map((p) => (
-                        <SelectItem key={p} value={p}>
-                          {p}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {settingsLoading ? (
+                <div className="flex items-center justify-center py-8 gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  جاري تحميل الإعدادات...
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">معرّف المرسل</Label>
-                  <Input
-                    className="h-9"
-                    value={config.senderId}
-                    onChange={(e) => setConfig((c) => ({ ...c, senderId: e.target.value }))}
-                    placeholder="ERP-PRO"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">مفتاح API *</Label>
-                  <Input
-                    dir="ltr"
-                    className="h-9 font-mono text-xs"
-                    value={config.apiKey}
-                    onChange={(e) => setConfig((c) => ({ ...c, apiKey: e.target.value }))}
-                    placeholder="API Key"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">سرّ API</Label>
-                  <Input
-                    dir="ltr"
-                    type="password"
-                    className="h-9 font-mono text-xs"
-                    value={config.apiSecret}
-                    onChange={(e) => setConfig((c) => ({ ...c, apiSecret: e.target.value }))}
-                    placeholder="API Secret"
-                  />
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2 space-y-1.5">
+                      <Label className="text-xs font-semibold">رابط بوابة SMS *</Label>
+                      <Input
+                        dir="ltr"
+                        className="h-9 font-mono text-xs"
+                        value={settingsForm.sms_gateway_url || ''}
+                        onChange={(e) => setSettingsForm((f) => ({ ...f, sms_gateway_url: e.target.value }))}
+                        placeholder="https://api.example.com/v1/sms"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">معامل الرسالة</Label>
+                      <Input
+                        dir="ltr"
+                        className="h-9 font-mono text-xs"
+                        value={settingsForm.message_parameter || ''}
+                        onChange={(e) => setSettingsForm((f) => ({ ...f, message_parameter: e.target.value }))}
+                        placeholder="message"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-semibold">معامل المستلم</Label>
+                      <Input
+                        dir="ltr"
+                        className="h-9 font-mono text-xs"
+                        value={settingsForm.receiver_parameter || ''}
+                        onChange={(e) => setSettingsForm((f) => ({ ...f, receiver_parameter: e.target.value }))}
+                        placeholder="receiver"
+                      />
+                    </div>
+                  </div>
 
-              {config.provider === 'Custom' && (
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold">رابط API الأساسي</Label>
-                  <Input
-                    dir="ltr"
-                    className="h-9 font-mono text-xs"
-                    value={config.baseUrl}
-                    onChange={(e) => setConfig((c) => ({ ...c, baseUrl: e.target.value }))}
-                    placeholder="https://api.example.com/v1/sms"
-                  />
-                </div>
-              )}
-
-              <div className="flex flex-wrap gap-2 pt-2">
-                <Button size="sm" onClick={saveConfig}>
-                  حفظ الإعدادات
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="gap-1.5"
-                  disabled={testing}
-                  onClick={testSms}
-                >
-                  <TestTube className="h-3.5 w-3.5" />
-                  {testing ? 'جاري الإرسال…' : 'إرسال رسالة اختبار'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ─── Tab 2: Templates ─── */}
-        <TabsContent value="templates">
-          <DataTable
-            data={templates}
-            columns={tplColumns}
-            tableId="sms-templates"
-            searchable
-            addLabel="إنشاء قالب"
-            onAdd={openCreateTemplate}
-            onEdit={openEditTemplate}
-            onDelete={(row) => {
-              setToDelete({ id: row.id, name: row.name });
-              setDeleteType('template');
-            }}
-          />
-
-          {/* Variables help */}
-          <Card className="mt-4 border-dashed border-border/50 bg-muted/20">
-            <CardContent className="p-4">
-              <h3 className="text-xs font-semibold mb-2">المتغيرات المتاحة</h3>
-              <div className="flex flex-wrap gap-2 text-[10px]">
-                {['{{customer_name}}', '{{invoice_no}}', '{{amount}}', '{{date}}', '{{due_date}}', '{{company_name}}'].map(
-                  (v) => (
-                    <code
-                      key={v}
-                      className="rounded bg-background px-1.5 py-0.5 font-mono text-primary border border-border/40"
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <Button
+                      size="sm"
+                      onClick={saveSettings}
+                      disabled={updateSmsSettings.isPending}
                     >
-                      {v}
-                    </code>
-                  )
-                )}
-              </div>
-              <p className="text-[10px] text-muted-foreground mt-2">
-                أدخل المتغيرات بين أقواس مزدوجة في محتوى الرسالة وسيتم استبدالها تلقائياً عند الإرسال.
-              </p>
+                      {updateSmsSettings.isPending ? (
+                        <><Loader2 className="h-3.5 w-3.5 animate-spin ms-1" /> جاري الحفظ...</>
+                      ) : 'حفظ الإعدادات'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="gap-1.5"
+                      disabled={testing}
+                      onClick={testSms}
+                    >
+                      <TestTube className="h-3.5 w-3.5" />
+                      {testing ? 'جاري الاختبار…' : 'اختبار الاتصال'}
+                    </Button>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* ─── Tab 3: Rules ─── */}
-        <TabsContent value="rules">
+        {/* ─── Tab 2: SMS Gateways ─── */}
+        <TabsContent value="gateways">
+          <KpiStrip cols={4}>
+            <KpiCard title="إجمالي البوابات" value={totalGateways} icon={Send} accent="info" />
+            <KpiCard title="بوابات POST" value={activeGateways} icon={MessageSquare} accent="success" />
+            <KpiCard title="رسائل مرسلة اليوم" value={smsSentToday} icon={Send} accent="primary" />
+            <KpiCard title="فاشلة اليوم" value={smsFailedToday} icon={MessageSquare} accent="destructive" />
+          </KpiStrip>
+
+          <ListQueryAlert error={gatewaysIsError ? gatewaysError : null} onRetry={() => refetchGateways()} />
+
           <DataTable
-            data={rules}
-            columns={ruleColumns}
-            tableId="sms-rules"
+            data={gateways}
+            columns={gwColumns}
+            tableId="sms-gateways"
             searchable
-            addLabel="إنشاء قاعدة"
-            onAdd={openCreateRule}
-            onEdit={openEditRule}
+            loading={gatewaysLoading}
+            addLabel="إنشاء بوابة"
+            onAdd={openCreateGateway}
+            onEdit={openEditGateway}
             onDelete={(row) => {
-              setToDelete({ id: row.id, name: row.name });
-              setDeleteType('rule');
+              setToDelete({ type: 'gateway', name: row.name, label: row.gateway_name || row.name });
+              setDeleteDialog(true);
             }}
           />
         </TabsContent>
 
-        {/* ─── Tab 4: Balance / Log ─── */}
-        <TabsContent value="balance" className="space-y-5">
-          <KpiStrip cols={4}>
-            <KpiCard
-              title="الرصيد المتبقي"
-              value={balance}
-              icon={Wallet}
-              accent="info"
-            />
-            <KpiCard
-              title="الرسائل المرسلة"
-              value={sentCount}
-              icon={Send}
-              accent="success"
-            />
-            <KpiCard
-              title="الرسائل الفاشلة"
-              value={failedCount}
-              icon={MessageSquare}
-              accent="destructive"
-            />
-            <KpiCard
-              title="التكلفة الإجمالية"
-              value={formatCurrency(totalCost)}
-              icon={Wallet}
-              accent="warning"
-            />
-          </KpiStrip>
+        {/* ─── Tab 3: Notification Rules (SMS) ─── */}
+        <TabsContent value="rules">
+          <ListQueryAlert error={notifIsError ? notifError : null} onRetry={() => refetchNotif()} />
+
+          <DataTable
+            data={notifications}
+            columns={notifColumns}
+            tableId="sms-notif-rules"
+            searchable
+            loading={notifLoading}
+            addLabel="إنشاء قاعدة"
+            onAdd={openCreateNotif}
+            onEdit={openEditNotif}
+            onDelete={(row) => {
+              setToDelete({ type: 'notif', name: row.name, label: row.subject || row.name });
+              setDeleteDialog(true);
+            }}
+          />
+        </TabsContent>
+
+        {/* ─── Tab 4: Communication Log ─── */}
+        <TabsContent value="log" className="space-y-5">
+          <ListQueryAlert error={logIsError ? logError : null} onRetry={() => refetchLog()} />
 
           <DataTable
             data={log}
             columns={logColumns}
             tableId="sms-log"
             searchable
+            loading={logLoading}
             exportFileName="سجل-الرسائل-النصية"
           />
         </TabsContent>
       </Tabs>
 
-      {/* ─── Template Dialog ─── */}
-      <Dialog open={tplDialog !== null} onOpenChange={(o) => !o && setTplDialog(null)}>
+      {/* ─── Gateway Dialog ─── */}
+      <Dialog open={gwDialog !== null} onOpenChange={(o) => !o && setGwDialog(null)}>
         <DialogContent dir="rtl" className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingTpl ? 'تعديل القالب' : 'إنشاء قالب جديد'}</DialogTitle>
+            <DialogTitle>{editingGw ? 'تعديل البوابة' : 'إنشاء بوابة جديدة'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">اسم القالب *</Label>
+              <Label className="text-xs">اسم البوابة *</Label>
               <Input
                 className="h-9"
-                value={tplForm.name ?? ''}
-                onChange={(e) => setTplForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="مثال: إشعار فاتورة مبيعات"
+                value={gwForm.gateway_name ?? ''}
+                onChange={(e) => setGwForm((f) => ({ ...f, gateway_name: e.target.value }))}
+                placeholder="مثال: بوابة أونيفونيك"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">نوع المستند</Label>
-              <Select
-                value={tplForm.doctype ?? 'Sales Invoice'}
-                onValueChange={(v) => setTplForm((f) => ({ ...f, doctype: v }))}
-              >
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DOCTYPE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">محتوى الرسالة *</Label>
-              <Textarea
-                rows={5}
-                value={tplForm.content ?? ''}
-                onChange={(e) => setTplForm((f) => ({ ...f, content: e.target.value }))}
-                placeholder="مرحباً {{customer_name}}، فاتورتك رقم {{invoice_no}} بمبلغ {{amount}} مستحقة في {{due_date}}"
-                className="font-mono text-xs"
+              <Label className="text-xs">رابط API *</Label>
+              <Input
+                dir="ltr"
+                className="h-9 font-mono text-xs"
+                value={gwForm.gateway_url ?? ''}
+                onChange={(e) => setGwForm((f) => ({ ...f, gateway_url: e.target.value }))}
+                placeholder="https://api.example.com/v1/sms"
               />
-              <p className="text-[10px] text-muted-foreground">
-                استخدم المتغيرات: {'{{customer_name}}'}, {'{{invoice_no}}'}, {'{{amount}}'}, {'{{date}}'}
-              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs">معامل الرسالة</Label>
+                <Input
+                  dir="ltr"
+                  className="h-9 font-mono text-xs"
+                  value={gwForm.message_parameter ?? 'message'}
+                  onChange={(e) => setGwForm((f) => ({ ...f, message_parameter: e.target.value }))}
+                  placeholder="message"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">معامل المستلم</Label>
+                <Input
+                  dir="ltr"
+                  className="h-9 font-mono text-xs"
+                  value={gwForm.receiver_parameter ?? 'receiver'}
+                  onChange={(e) => setGwForm((f) => ({ ...f, receiver_parameter: e.target.value }))}
+                  placeholder="receiver"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="gw-use-post"
+                  checked={Boolean(gwForm.use_post)}
+                  onCheckedChange={(v) => setGwForm((f) => ({ ...f, use_post: v ? 1 : 0 }))}
+                />
+                <Label htmlFor="gw-use-post" className="text-xs cursor-pointer">استخدام POST</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="gw-use-csrf"
+                  checked={Boolean(gwForm.use_csrf)}
+                  onCheckedChange={(v) => setGwForm((f) => ({ ...f, use_csrf: v ? 1 : 0 }))}
+                />
+                <Label htmlFor="gw-use-csrf" className="text-xs cursor-pointer">استخدام CSRF</Label>
+              </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setTplDialog(null)}>
+            <Button variant="outline" size="sm" onClick={() => setGwDialog(null)}>
               إلغاء
             </Button>
-            <Button size="sm" onClick={saveTemplate}>
-              {editingTpl ? 'تحديث' : 'إنشاء'}
+            <Button size="sm" onClick={saveGateway} disabled={createGateway.isPending || updateGateway.isPending}>
+              {createGateway.isPending || updateGateway.isPending ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin ms-1" /> جاري الحفظ...</>
+              ) : editingGw ? 'تحديث' : 'إنشاء'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* ─── Rule Dialog ─── */}
-      <Dialog open={ruleDialog !== null} onOpenChange={(o) => !o && setRuleDialog(null)}>
+      {/* ─── Notification Rule Dialog ─── */}
+      <Dialog open={notifDialog !== null} onOpenChange={(o) => !o && setNotifDialog(null)}>
         <DialogContent dir="rtl" className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingRule ? 'تعديل القاعدة' : 'إنشاء قاعدة جديدة'}</DialogTitle>
+            <DialogTitle>{editingNotif ? 'تعديل قاعدة الإرسال' : 'إنشاء قاعدة إرسال جديدة'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">اسم القاعدة *</Label>
+              <Label className="text-xs">العنوان *</Label>
               <Input
                 className="h-9"
-                value={ruleForm.name ?? ''}
-                onChange={(e) => setRuleForm((f) => ({ ...f, name: e.target.value }))}
+                value={notifForm.subject ?? ''}
+                onChange={(e) => setNotifForm((f) => ({ ...f, subject: e.target.value }))}
                 placeholder="مثال: إرسال SMS عند تقديم فاتورة"
               />
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs">نوع المستند *</Label>
+                <Label className="text-xs">نوع المستند</Label>
                 <Select
-                  value={ruleForm.doctype ?? 'Sales Invoice'}
-                  onValueChange={(v) => setRuleForm((f) => ({ ...f, doctype: v }))}
+                  value={notifForm._doctype ?? 'Sales Invoice'}
+                  onValueChange={(v) => setNotifForm((f) => ({ ...f, _doctype: v }))}
                 >
                   <SelectTrigger className="h-9">
                     <SelectValue />
@@ -706,10 +788,10 @@ export default function SmsGatewayPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">الحدث *</Label>
+                <Label className="text-xs">الحدث</Label>
                 <Select
-                  value={ruleForm.event ?? 'on_submit'}
-                  onValueChange={(v) => setRuleForm((f) => ({ ...f, event: v }))}
+                  value={notifForm._event ?? 'Submit'}
+                  onValueChange={(v) => setNotifForm((f) => ({ ...f, _event: v }))}
                 >
                   <SelectTrigger className="h-9">
                     <SelectValue />
@@ -724,74 +806,47 @@ export default function SmsGatewayPage() {
                 </Select>
               </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs">قالب الرسالة *</Label>
-                <Select
-                  value={ruleForm.templateId ?? ''}
-                  onValueChange={(v) => setRuleForm((f) => ({ ...f, templateId: v }))}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="اختر القالب" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">المستلم *</Label>
-                <Select
-                  value={ruleForm.recipient ?? 'Customer'}
-                  onValueChange={(v) => setRuleForm((f) => ({ ...f, recipient: v }))}
-                >
-                  <SelectTrigger className="h-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RECIPIENT_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">القناة</Label>
+              <Select
+                value={notifForm._channel ?? 'SMS'}
+                onValueChange={(v) => setNotifForm((f) => ({ ...f, _channel: v }))}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CHANNEL_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs">التأخير (دقائق)</Label>
-                <Input
-                  className="h-9"
-                  type="number"
-                  dir="ltr"
-                  min={0}
-                  value={ruleForm.delay ?? 0}
-                  onChange={(e) => setRuleForm((f) => ({ ...f, delay: Number(e.target.value) }))}
-                />
-              </div>
-              <div className="flex items-center gap-3 pt-6">
-                <Checkbox
-                  id="rule-active"
-                  checked={ruleForm.active ?? true}
-                  onCheckedChange={(v) => setRuleForm((f) => ({ ...f, active: v === true }))}
-                />
-                <Label htmlFor="rule-active" className="text-xs cursor-pointer">
-                  نشط
-                </Label>
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">محتوى الرسالة (يدعم Jinja)</Label>
+              <Textarea
+                rows={5}
+                value={notifForm.message ?? ''}
+                onChange={(e) => setNotifForm((f) => ({ ...f, message: e.target.value }))}
+                placeholder="مرحباً {{ doc.customer_name }}، فاتورتك رقم {{ doc.name }}"
+                className="font-mono text-xs"
+                dir="ltr"
+              />
+              <p className="text-[10px] text-muted-foreground">
+                استخدم المتغيرات: {'{{ doc.name }}'}, {'{{ doc.customer_name }}'}, {'{{ doc.grand_total }}'}
+              </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setRuleDialog(null)}>
+            <Button variant="outline" size="sm" onClick={() => setNotifDialog(null)}>
               إلغاء
             </Button>
-            <Button size="sm" onClick={saveRule}>
-              {editingRule ? 'تحديث' : 'إنشاء'}
+            <Button size="sm" onClick={saveNotif} disabled={createNotif.isPending || updateNotif.isPending}>
+              {createNotif.isPending || updateNotif.isPending ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin ms-1" /> جاري الحفظ...</>
+              ) : editingNotif ? 'تحديث' : 'إنشاء'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -799,10 +854,10 @@ export default function SmsGatewayPage() {
 
       {/* ─── Delete Confirm ─── */}
       <AlertDialog
-        open={deleteType !== null}
+        open={deleteDialog}
         onOpenChange={(o) => {
           if (!o) {
-            setDeleteType(null);
+            setDeleteDialog(false);
             setToDelete(null);
           }
         }}
@@ -811,16 +866,17 @@ export default function SmsGatewayPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
             <AlertDialogDescription>
-              هل أنت متأكد من حذف «{toDelete?.name}»؟ لا يمكن التراجع عن هذا الإجراء.
+              هل أنت متأكد من حذف «{toDelete?.label}»؟ لا يمكن التراجع عن هذا الإجراء.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground"
-              onClick={deleteType === 'template' ? confirmDeleteTemplate : confirmDeleteRule}
+              onClick={confirmDelete}
+              disabled={deleteGateway.isPending || deleteNotif.isPending}
             >
-              حذف
+              {deleteGateway.isPending || deleteNotif.isPending ? 'جاري الحذف...' : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useSyncExternalStore, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,25 +35,25 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import {
   Mail,
   Eye,
-  FileText,
   Info,
+  Loader2,
 } from 'lucide-react';
 
-/* ─── Types ─── */
+/* ─── ERPNext Email Template Doctype Fields ─── */
 type EmailTemplate = {
-  id: string;
   name: string;
-  subject: string;
-  htmlContent: string;
-  doctype: string;
-  attachPdf: boolean;
-  createdAt: string;
+  subject?: string;
+  response?: string;
+  reference_doctype?: string;
+  reference_name?: string;
+  use_html?: number | boolean;
+  owner?: string;
+  modified?: string;
 };
-
-const LS_KEY = 'erp_email_templates';
 
 const DOCTYPE_OPTIONS = [
   { value: 'Sales Invoice', label: 'فاتورة مبيعات' },
@@ -81,20 +82,6 @@ const SAMPLE_DATA: Record<string, Record<string, string>> = {
   'Delivery Note': { name: 'DN-001', customer_name: 'شركة النور', posting_date: '2025-01-20' },
 };
 
-function uid(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
-
-function loadTemplates(): EmailTemplate[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    return raw ? (JSON.parse(raw) as EmailTemplate[]) : [];
-  } catch {
-    return [];
-  }
-}
-
 function renderPreview(html: string, doctype: string): string {
   const sample = SAMPLE_DATA[doctype] ?? {};
   let rendered = html;
@@ -104,15 +91,18 @@ function renderPreview(html: string, doctype: string): string {
   return rendered;
 }
 
-const emptySubscribe = () => () => {};
-
 export default function EmailTemplatesPage() {
   const { toast } = useToast();
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
-  const [templates, setTemplates] = useState<EmailTemplate[]>(() => loadTemplates());
+
+  /* ─── State ─── */
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<EmailTemplate | null>(null);
-  const [form, setForm] = useState<Partial<EmailTemplate>>({});
+  const [editingDoc, setEditingDoc] = useState<EmailTemplate | null>(null);
+  const [formName, setFormName] = useState('');
+  const [formSubject, setFormSubject] = useState('');
+  const [formResponse, setFormResponse] = useState('');
+  const [formRefDoctype, setFormRefDoctype] = useState('');
+  const [formRefName, setFormRefName] = useState('');
+  const [formUseHtml, setFormUseHtml] = useState(false);
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
@@ -120,80 +110,116 @@ export default function EmailTemplatesPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<EmailTemplate | null>(null);
 
-  // ─── Actions ───
+  /* ─── ERPNext Data Hooks ─── */
+  const list = useDocList<EmailTemplate>('Email Template', {
+    fields: ['name', 'subject', 'response', 'reference_doctype', 'reference_name', 'use_html', 'owner', 'modified'],
+    limit: 500,
+    order_by: 'modified desc',
+  });
+
+  const createMut = useCreateDoc('Email Template');
+  const updateMut = useUpdateDoc('Email Template');
+  const deleteMut = useDeleteDoc('Email Template');
+
+  const rows = list.data || [];
+
+  /* ─── Dialog Handlers ─── */
   const openCreate = () => {
-    setForm({ name: '', subject: '', htmlContent: '', doctype: 'Sales Invoice', attachPdf: false });
-    setEditing(null);
+    setEditingDoc(null);
+    setFormName('');
+    setFormSubject('');
+    setFormResponse('');
+    setFormRefDoctype('');
+    setFormRefName('');
+    setFormUseHtml(false);
     setDialogOpen(true);
   };
 
   const openEdit = (row: EmailTemplate) => {
-    setForm({ ...row });
-    setEditing(row);
+    setEditingDoc(row);
+    setFormName(row.name || '');
+    setFormSubject(row.subject || '');
+    setFormResponse(row.response || '');
+    setFormRefDoctype(row.reference_doctype || '');
+    setFormRefName(row.reference_name || '');
+    setFormUseHtml(Number(row.use_html) === 1);
     setDialogOpen(true);
   };
 
   const saveTemplate = () => {
-    if (!form.name?.trim() || !form.subject?.trim() || !form.htmlContent?.trim()) {
+    if (!formName.trim() || !formSubject.trim() || !formResponse.trim()) {
       toast({ title: 'أدخل اسم القالب والموضوع والمحتوى', variant: 'destructive' });
       return;
     }
-    let updated: EmailTemplate[];
-    if (editing) {
-      updated = templates.map((t) =>
-        t.id === editing.id
-          ? {
-              ...t,
-              name: form.name!,
-              subject: form.subject!,
-              htmlContent: form.htmlContent!,
-              doctype: form.doctype ?? 'Sales Invoice',
-              attachPdf: form.attachPdf ?? false,
-            }
-          : t
+
+    const doc: Record<string, unknown> = {
+      doctype: 'Email Template',
+      __newname: formName.trim(),
+      subject: formSubject.trim(),
+      response: formResponse.trim(),
+      reference_doctype: formRefDoctype || undefined,
+      reference_name: formRefName || undefined,
+      use_html: formUseHtml ? 1 : 0,
+    };
+
+    if (editingDoc) {
+      // When editing, don't send __newname
+      const updateDoc: Record<string, unknown> = {
+        subject: formSubject.trim(),
+        response: formResponse.trim(),
+        reference_doctype: formRefDoctype || undefined,
+        reference_name: formRefName || undefined,
+        use_html: formUseHtml ? 1 : 0,
+      };
+      updateMut.mutate(
+        { name: editingDoc.name, doc: updateDoc },
+        {
+          onSuccess: () => {
+            toast({ title: 'تم تحديث القالب' });
+            setDialogOpen(false);
+            setEditingDoc(null);
+          },
+          onError: () => toast({ title: 'فشل التحديث — تحقق من الصلاحيات', variant: 'destructive' }),
+        }
       );
     } else {
-      updated = [
-        ...templates,
-        {
-          id: uid(),
-          name: form.name!,
-          subject: form.subject!,
-          htmlContent: form.htmlContent!,
-          doctype: form.doctype ?? 'Sales Invoice',
-          attachPdf: form.attachPdf ?? false,
-          createdAt: new Date().toISOString(),
+      createMut.mutate(doc, {
+        onSuccess: () => {
+          toast({ title: 'تم إنشاء القالب' });
+          setDialogOpen(false);
         },
-      ];
+        onError: () => toast({ title: 'فشل الإنشاء — قد يكون الاسم مكرراً', variant: 'destructive' }),
+      });
     }
-    setTemplates(updated);
-    localStorage.setItem(LS_KEY, JSON.stringify(updated));
-    setDialogOpen(false);
-    toast({ title: editing ? 'تم تحديث القالب' : 'تم إنشاء القالب' });
   };
 
   const confirmDelete = () => {
     if (!toDelete) return;
-    const updated = templates.filter((t) => t.id !== toDelete.id);
-    setTemplates(updated);
-    localStorage.setItem(LS_KEY, JSON.stringify(updated));
-    setDeleteOpen(false);
-    setToDelete(null);
-    toast({ title: 'تم حذف القالب' });
+    deleteMut.mutate(toDelete.name, {
+      onSuccess: () => {
+        toast({ title: 'تم حذف القالب' });
+        setDeleteOpen(false);
+        setToDelete(null);
+      },
+      onError: () => toast({ title: 'تعذر الحذف — تحقق من الصلاحيات', variant: 'destructive' }),
+    });
   };
 
   const openPreview = (row: EmailTemplate) => {
-    setPreviewHtml(renderPreview(row.htmlContent, row.doctype));
+    const doctype = row.reference_doctype || 'Sales Invoice';
+    setPreviewHtml(renderPreview(row.response || '', doctype));
     setPreviewOpen(true);
   };
 
   const previewCurrentForm = () => {
-    const doctype = form.doctype ?? 'Sales Invoice';
-    setPreviewHtml(renderPreview(form.htmlContent ?? '', doctype));
+    const doctype = formRefDoctype || 'Sales Invoice';
+    setPreviewHtml(renderPreview(formResponse, doctype));
     setPreviewOpen(true);
   };
 
-  // ─── Columns ───
+  const isSaving = createMut.isPending || updateMut.isPending;
+
+  /* ─── Columns ─── */
   const columns: Column<EmailTemplate>[] = useMemo(
     () => [
       {
@@ -206,57 +232,67 @@ export default function EmailTemplatesPage() {
         key: 'subject',
         header: 'الموضوع',
         render: (v) => (
-          <span className="text-xs line-clamp-1 max-w-[250px]">{String(v)}</span>
+          <span className="text-xs line-clamp-1 max-w-[250px]">{String(v || '—')}</span>
         ),
       },
       {
-        key: 'doctype',
+        key: 'reference_doctype',
         header: 'نوع المستند',
         render: (v) => {
+          if (!v) return <span className="text-xs text-muted-foreground">—</span>;
           const opt = DOCTYPE_OPTIONS.find((o) => o.value === v);
           return <span className="text-xs">{opt?.label ?? String(v)}</span>;
         },
       },
       {
-        key: 'attachPdf',
-        header: 'مرفق PDF',
+        key: 'use_html',
+        header: 'HTML',
         render: (v) => (
-          <span className="text-xs">{v ? 'نعم' : 'لا'}</span>
+          <span className="text-xs">{Number(v) === 1 ? 'نعم' : 'لا'}</span>
         ),
       },
       {
-        key: 'createdAt',
-        header: 'تاريخ الإنشاء',
+        key: 'owner',
+        header: 'المُنشئ',
+        render: (v) => (
+          <span className="text-xs text-muted-foreground">{String(v || '—')}</span>
+        ),
+      },
+      {
+        key: 'modified',
+        header: 'آخر تعديل',
         sortable: true,
         render: (v) => {
-          if (!v) return '—';
-          return <span className="text-xs">{new Date(String(v)).toLocaleDateString('ar-YE')}</span>;
+          if (!v) return <span className="text-xs text-muted-foreground">—</span>;
+          return <span className="text-xs text-muted-foreground">{new Date(String(v)).toLocaleDateString('ar-YE')}</span>;
         },
       },
     ],
     []
   );
 
-  // ─── Variables for current doctype ───
-  const currentVariables = VARIABLES_BY_DOCTYPE[form.doctype ?? 'Sales Invoice'] ?? [];
-
-  if (!mounted) return null;
+  /* ─── Variables for current doctype ─── */
+  const currentDoctype = formRefDoctype || 'Sales Invoice';
+  const currentVariables = VARIABLES_BY_DOCTYPE[currentDoctype] ?? [];
 
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
       <PageHeader
         title="قوالب البريد الإلكتروني"
-        description="إنشاء وإدارة قوالب البريد الإلكتروني للمستندات والفواتير"
+        description="إنشاء وإدارة قوالب البريد الإلكتروني للمستندات والفواتير من ERPNext"
         iconify="solar:letter-bold-duotone"
         accent="purple"
         breadcrumbs={[{ label: 'الإعدادات' }, { label: 'قوالب البريد' }]}
       />
 
+      <ListQueryAlert error={list.isError ? list.error : null} onRetry={() => list.refetch()} />
+
       <DataTable
-        data={templates}
+        data={rows}
         columns={columns}
         tableId="email-templates"
         searchable
+        loading={list.isLoading}
         addLabel="إنشاء قالب"
         onAdd={openCreate}
         onEdit={openEdit}
@@ -265,6 +301,7 @@ export default function EmailTemplatesPage() {
           setDeleteOpen(true);
         }}
         onView={(row) => openPreview(row)}
+        exportFileName="قوالب-البريد-الإلكتروني"
       />
 
       {/* Variables Help Section */}
@@ -306,7 +343,7 @@ export default function EmailTemplatesPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="h-4 w-4" />
-              {editing ? 'تعديل القالب' : 'إنشاء قالب جديد'}
+              {editingDoc ? 'تعديل القالب' : 'إنشاء قالب جديد'}
             </DialogTitle>
           </DialogHeader>
 
@@ -316,21 +353,26 @@ export default function EmailTemplatesPage() {
                 <Label className="text-xs">اسم القالب *</Label>
                 <Input
                   className="h-9"
-                  value={form.name ?? ''}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
                   placeholder="مثال: إشعار فاتورة مبيعات"
+                  disabled={!!editingDoc}
                 />
+                {editingDoc && (
+                  <p className="text-[10px] text-muted-foreground">لا يمكن تغيير اسم القالب بعد الإنشاء</p>
+                )}
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs">نوع المستند</Label>
+                <Label className="text-xs">نوع المستند المرجعي</Label>
                 <Select
-                  value={form.doctype ?? 'Sales Invoice'}
-                  onValueChange={(v) => setForm((f) => ({ ...f, doctype: v }))}
+                  value={formRefDoctype || '__none__'}
+                  onValueChange={(v) => setFormRefDoctype(v === '__none__' ? '' : v)}
                 >
                   <SelectTrigger className="h-9">
-                    <SelectValue />
+                    <SelectValue placeholder="اختر نوع المستند" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__">— بدون —</SelectItem>
                     {DOCTYPE_OPTIONS.map((o) => (
                       <SelectItem key={o.value} value={o.value}>
                         {o.label}
@@ -341,19 +383,32 @@ export default function EmailTemplatesPage() {
               </div>
             </div>
 
+            {formRefDoctype && (
+              <div className="space-y-1.5">
+                <Label className="text-xs">اسم المستند المرجعي</Label>
+                <Input
+                  className="h-9"
+                  value={formRefName}
+                  onChange={(e) => setFormRefName(e.target.value)}
+                  placeholder="مثال: SINV-001"
+                  dir="ltr"
+                />
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label className="text-xs">الموضوع *</Label>
               <Input
                 className="h-9"
-                value={form.subject ?? ''}
-                onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
+                value={formSubject}
+                onChange={(e) => setFormSubject(e.target.value)}
                 placeholder="فاتورة مبيعات {{doc.name}} — {{doc.customer_name}}"
               />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label className="text-xs">محتوى HTML *</Label>
+                <Label className="text-xs">محتوى القالب *</Label>
                 <Button
                   type="button"
                   variant="ghost"
@@ -367,8 +422,8 @@ export default function EmailTemplatesPage() {
               </div>
               <Textarea
                 rows={12}
-                value={form.htmlContent ?? ''}
-                onChange={(e) => setForm((f) => ({ ...f, htmlContent: e.target.value }))}
+                value={formResponse}
+                onChange={(e) => setFormResponse(e.target.value)}
                 placeholder={`<div style="font-family: system-ui, sans-serif; direction: rtl;">\n  <h2>فاتورة مبيعات</h2>\n  <p>العميل: {{doc.customer_name}}</p>\n  <p>رقم الفاتورة: {{doc.name}}</p>\n  <p>الإجمالي: {{doc.grand_total}}</p>\n</div>`}
                 className="font-mono text-xs"
               />
@@ -376,7 +431,7 @@ export default function EmailTemplatesPage() {
 
             {/* Inline variables hint for selected doctype */}
             <div className="rounded-lg border border-purple-200/40 bg-purple-50/50 p-2.5 space-y-1">
-              <p className="text-[10px] font-semibold text-purple-700">متغيرات {DOCTYPE_OPTIONS.find((o) => o.value === form.doctype)?.label ?? ''}</p>
+              <p className="text-[10px] font-semibold text-purple-700">متغيرات {DOCTYPE_OPTIONS.find((o) => o.value === formRefDoctype)?.label ?? 'المستند'}</p>
               <div className="flex flex-wrap gap-1">
                 {currentVariables.map((v) => (
                   <button
@@ -385,7 +440,7 @@ export default function EmailTemplatesPage() {
                     className="rounded border border-purple-200 bg-white px-1.5 py-0.5 text-[9px] font-mono text-purple-700 hover:bg-purple-100 transition-colors"
                     onClick={() => {
                       const insertion = `{{${v}}}`;
-                      setForm((f) => ({ ...f, htmlContent: (f.htmlContent ?? '') + insertion }));
+                      setFormResponse((prev) => prev + insertion);
                     }}
                   >
                     {`{{${v}}}`}
@@ -397,22 +452,31 @@ export default function EmailTemplatesPage() {
 
             <div className="flex items-center gap-2">
               <Checkbox
-                id="attach-pdf"
-                checked={form.attachPdf ?? false}
-                onCheckedChange={(v) => setForm((f) => ({ ...f, attachPdf: v === true }))}
+                id="use-html"
+                checked={formUseHtml}
+                onCheckedChange={(v) => setFormUseHtml(v === true)}
               />
-              <Label htmlFor="attach-pdf" className="text-xs cursor-pointer">
-                إرفاق PDF المستند مع البريد
+              <Label htmlFor="use-html" className="text-xs cursor-pointer">
+                استخدام وضع HTML
               </Label>
             </div>
+
+            {editingDoc && (
+              <div className="rounded-lg border border-purple-200/40 bg-purple-50/50 p-2.5 space-y-1">
+                <p className="text-[10px] font-semibold text-purple-700">
+                  جاري تعديل: {editingDoc.name}
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
             <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>
               إلغاء
             </Button>
-            <Button size="sm" onClick={saveTemplate}>
-              {editing ? 'تحديث' : 'إنشاء'}
+            <Button size="sm" onClick={saveTemplate} disabled={isSaving}>
+              {isSaving && <Loader2 className="h-4 w-4 animate-spin ms-1" />}
+              {editingDoc ? 'تحديث' : 'إنشاء'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -458,7 +522,8 @@ export default function EmailTemplatesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={confirmDelete}>
+            <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={confirmDelete} disabled={deleteMut.isPending}>
+              {deleteMut.isPending && <Loader2 className="h-4 w-4 animate-spin ms-1" />}
               حذف
             </AlertDialogAction>
           </AlertDialogFooter>

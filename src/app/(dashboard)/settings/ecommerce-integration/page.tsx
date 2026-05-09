@@ -1,436 +1,546 @@
 'use client';
 
-import { useCallback, useMemo, useSyncExternalStore, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { StatusBadge } from '@/components/erp/status-badge';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { formatDate } from '@/lib/app-format';
+import { useDocList, useDoc, useUpdateDoc } from '@/lib/client/hooks';
 import {
   RefreshCw,
   Plug,
   CheckCircle2,
   XCircle,
   Store,
-  ArrowRightLeft,
   Clock,
   TestTube,
+  Loader2,
+  Package,
+  ShoppingCart,
+  Settings,
+  Save,
 } from 'lucide-react';
 
 /* ─── Types ─── */
-type PlatformId = 'salla' | 'zid' | 'shopify' | 'woocommerce';
-
-type PlatformConfig = {
-  platform: PlatformId;
-  apiUrl: string;
-  apiKey: string;
-  apiSecret: string;
-  storeUrl: string;
-  syncProducts: boolean;
-  syncOrders: boolean;
-  syncStock: boolean;
-  syncInterval: string;
-  syncDirection: string;
-  lastSync: string | null;
-  lastSyncStatus: 'success' | 'failed' | null;
+type ECommerceSettingsDoc = {
+  name: string;
+  enabled?: number | boolean;
+  default_customer_group?: string;
+  company?: string;
+  price_list?: string;
+  show_price?: number | boolean;
+  show_quantity?: number | boolean;
+  show_add_to_cart_button?: number | boolean;
+  allow_items_not_in_stock?: number | boolean;
+  hide_variants?: number | boolean;
+  enable_wishlist?: number | boolean;
+  enable_reviews?: number | boolean;
+  enable_variants?: number | boolean;
+  show_contact_us_button?: number | boolean;
+  enable_enquiry?: number | boolean;
+  products_per_page?: number;
+  home_page?: string;
+  modified?: string;
+  owner?: string;
 };
 
-type SyncLogEntry = {
-  id: string;
-  date: string;
-  platform: PlatformId;
-  type: string;
-  records: number;
-  status: 'ناجح' | 'فاشل';
+type ECommerceItemRow = {
+  name: string;
+  item?: string;
+  item_name?: string;
+  website_image?: string;
+  published?: number | boolean;
+  website_status?: string;
+  modified?: string;
+  owner?: string;
 };
 
-const LS_CONFIG = 'erp_ecommerce_configs';
-const LS_LOG = 'erp_ecommerce_sync_log';
-
-const PLATFORM_META: Record<PlatformId, { name: string; nameAr: string; icon: string }> = {
-  salla: { name: 'Salla', nameAr: 'سلة', icon: 'solar:shop-bold-duotone' },
-  zid: { name: 'Zid', nameAr: 'زِد', icon: 'solar:shop-bold-duotone' },
-  shopify: { name: 'Shopify', nameAr: 'شوبيفاي', icon: 'solar:shop-bold-duotone' },
-  woocommerce: { name: 'WooCommerce', nameAr: 'ووكومرس', icon: 'solar:shop-bold-duotone' },
-};
-
-const SYNC_INTERVALS = [
-  { value: '15m', label: 'كل 15 دقيقة' },
-  { value: '1h', label: 'كل ساعة' },
-  { value: '6h', label: 'كل 6 ساعات' },
-  { value: '1d', label: 'يومياً' },
-];
-
-const SYNC_DIRECTIONS = [
-  { value: 'import', label: 'استيراد فقط' },
-  { value: 'export', label: 'تصدير فقط' },
-  { value: 'bidirectional', label: 'ثنائي' },
-];
-
-const SYNC_TYPES = ['منتجات', 'طلبات', 'مخزون'];
-
-function uid(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+/** Helper to get boolean value from ERPNext (0/1 or true/false) */
+function asBool(v: number | boolean | undefined): boolean {
+  return Number(v) === 1;
 }
-
-function loadJson<T>(key: string, fallback: T): T {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-const defaultConfigs: PlatformConfig[] = [
-  { platform: 'salla', apiUrl: '', apiKey: '', apiSecret: '', storeUrl: '', syncProducts: false, syncOrders: false, syncStock: false, syncInterval: '1h', syncDirection: 'import', lastSync: null, lastSyncStatus: null },
-  { platform: 'zid', apiUrl: '', apiKey: '', apiSecret: '', storeUrl: '', syncProducts: false, syncOrders: false, syncStock: false, syncInterval: '1h', syncDirection: 'import', lastSync: null, lastSyncStatus: null },
-  { platform: 'shopify', apiUrl: '', apiKey: '', apiSecret: '', storeUrl: '', syncProducts: false, syncOrders: false, syncStock: false, syncInterval: '1h', syncDirection: 'import', lastSync: null, lastSyncStatus: null },
-  { platform: 'woocommerce', apiUrl: '', apiKey: '', apiSecret: '', storeUrl: '', syncProducts: false, syncOrders: false, syncStock: false, syncInterval: '1h', syncDirection: 'import', lastSync: null, lastSyncStatus: null },
-];
-
-const emptySubscribe = () => () => {};
 
 export default function EcommerceIntegrationPage() {
   const { toast } = useToast();
-  const mounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
-  const [configs, setConfigs] = useState<PlatformConfig[]>(() => loadJson(LS_CONFIG, defaultConfigs));
-  const [log, setLog] = useState<SyncLogEntry[]>(() => loadJson(LS_LOG, []));
-  const [testing, setTesting] = useState<PlatformId | null>(null);
 
-  const updateConfig = useCallback(
-    (platform: PlatformId, patch: Partial<PlatformConfig>) => {
-      setConfigs((prev) => {
-        const updated = prev.map((c) => (c.platform === platform ? { ...c, ...patch } : c));
-        localStorage.setItem(LS_CONFIG, JSON.stringify(updated));
-        return updated;
-      });
-    },
-    []
+  /* ─── State ─── */
+  const [testing, setTesting] = useState(false);
+  const [activeTab, setActiveTab] = useState('settings');
+
+  /* ─── ERPNext Data Hooks ─── */
+  const settingsQuery = useDoc<ECommerceSettingsDoc>(
+    'E Commerce Settings',
+    'E Commerce Settings'
   );
 
-  const saveConfig = useCallback(
-    (platform: PlatformId) => {
-      localStorage.setItem(LS_CONFIG, JSON.stringify(configs));
-      toast({ title: `تم حفظ إعدادات ${PLATFORM_META[platform].nameAr}` });
-    },
-    [configs, toast]
-  );
+  const itemsQuery = useDocList<ECommerceItemRow>('E Commerce Item', {
+    fields: ['name', 'item', 'item_name', 'published', 'website_status', 'modified', 'owner'],
+    limit: 500,
+    order_by: 'modified desc',
+  });
 
-  const testConnection = useCallback(
-    async (platform: PlatformId) => {
-      const cfg = configs.find((c) => c.platform === platform);
-      if (!cfg?.apiKey) {
-        toast({ title: 'أدخل مفتاح API أولاً', variant: 'destructive' });
-        return;
+  const updateSettingsMut = useUpdateDoc('E Commerce Settings');
+
+  /* ─── Local overrides pattern ───
+   * We store only user-modified values in overrides.
+   * For display, we merge: override value → API value → default.
+   * Overrides are cleared on successful save.
+   */
+  const [overrides, setOverrides] = useState<Partial<ECommerceSettingsDoc>>({});
+  const settings = settingsQuery.data;
+
+  /** Get a setting value: override → API → fallback */
+  const get = <K extends keyof ECommerceSettingsDoc>(key: K, fallback: ECommerceSettingsDoc[K]): ECommerceSettingsDoc[K] => {
+    if (key in overrides) return overrides[key] as ECommerceSettingsDoc[K];
+    if (settings && key in settings) return settings[key] as ECommerceSettingsDoc[K];
+    return fallback;
+  };
+
+  const getBool = (key: keyof ECommerceSettingsDoc): boolean => {
+    const val = get(key, 0);
+    return asBool(val as number | boolean | undefined);
+  };
+
+  const setOverride = useCallback((patch: Partial<ECommerceSettingsDoc>) => {
+    setOverrides((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  /* ─── Save settings ─── */
+  const saveSettings = () => {
+    // Merge current overrides with current API data for a complete doc
+    const doc: Record<string, unknown> = {
+      enabled: getBool('enabled') ? 1 : 0,
+      show_price: getBool('show_price') ? 1 : 0,
+      show_quantity: getBool('show_quantity') ? 1 : 0,
+      show_add_to_cart_button: getBool('show_add_to_cart_button') ? 1 : 0,
+      allow_items_not_in_stock: getBool('allow_items_not_in_stock') ? 1 : 0,
+      hide_variants: getBool('hide_variants') ? 1 : 0,
+      enable_wishlist: getBool('enable_wishlist') ? 1 : 0,
+      enable_reviews: getBool('enable_reviews') ? 1 : 0,
+      enable_variants: getBool('enable_variants') ? 1 : 0,
+      show_contact_us_button: getBool('show_contact_us_button') ? 1 : 0,
+      enable_enquiry: getBool('enable_enquiry') ? 1 : 0,
+      default_customer_group: get('default_customer_group', '') || undefined,
+      company: get('company', '') || undefined,
+      price_list: get('price_list', '') || undefined,
+      products_per_page: get('products_per_page', 20) || 20,
+      home_page: get('home_page', '') || undefined,
+    };
+    updateSettingsMut.mutate(
+      { name: 'E Commerce Settings', doc },
+      {
+        onSuccess: () => {
+          setOverrides({});
+          toast({ title: 'تم حفظ إعدادات التجارة الإلكترونية' });
+        },
+        onError: () => toast({ title: 'فشل حفظ الإعدادات', variant: 'destructive' }),
       }
-      setTesting(platform);
-      await new Promise((r) => setTimeout(r, 2000));
-      const success = Math.random() > 0.3;
-      updateConfig(platform, {
-        lastSync: new Date().toISOString(),
-        lastSyncStatus: success ? 'success' : 'failed',
-      });
-      setTesting(null);
-      toast({
-        title: success
-          ? `تم الاتصال بـ ${PLATFORM_META[platform].nameAr} بنجاح`
-          : `فشل الاتصال بـ ${PLATFORM_META[platform].nameAr}`,
-        variant: success ? undefined : 'destructive',
-      });
-    },
-    [configs, toast, updateConfig]
-  );
+    );
+  };
 
-  const runSync = useCallback(
-    (platform: PlatformId, type: string) => {
-      const newEntry: SyncLogEntry = {
-        id: uid(),
-        date: new Date().toISOString(),
-        platform,
-        type,
-        records: Math.floor(Math.random() * 50) + 1,
-        status: Math.random() > 0.2 ? 'ناجح' : 'فاشل',
-      };
-      const updated = [newEntry, ...log];
-      setLog(updated);
-      localStorage.setItem(LS_LOG, JSON.stringify(updated));
-      updateConfig(platform, {
-        lastSync: newEntry.date,
-        lastSyncStatus: newEntry.status === 'ناجح' ? 'success' : 'failed',
-      });
-      toast({
-        title: newEntry.status === 'ناجح'
-          ? `تمت مزامنة ${type} (${newEntry.records} سجل)`
-          : `فشلت مزامنة ${type}`,
-      });
-    },
-    [log, toast, updateConfig]
-  );
+  /* ─── Test connection ─── */
+  const testConnection = async () => {
+    setTesting(true);
+    await new Promise((r) => setTimeout(r, 1500));
+    try {
+      await settingsQuery.refetch();
+      toast({ title: 'تم الاتصال بنجاح بخدمة التجارة الإلكترونية' });
+    } catch {
+      toast({ title: 'فشل الاتصال', variant: 'destructive' });
+    }
+    setTesting(false);
+  };
 
-  const logColumns: Column<SyncLogEntry>[] = useMemo(
+  /* ─── Stats ─── */
+  const items = itemsQuery.data || [];
+  const publishedCount = items.filter((i) => Number(i.published) === 1).length;
+  const unpublishedCount = items.filter((i) => Number(i.published) !== 1).length;
+  const isEcomEnabled = asBool(settings?.enabled);
+
+  /* ─── E Commerce Items columns ─── */
+  const itemColumns: Column<ECommerceItemRow>[] = useMemo(
     () => [
       {
-        key: 'date',
-        header: 'التاريخ',
+        key: 'item',
+        header: 'رمز الصنف',
         sortable: true,
-        render: (v) => <span className="text-xs">{formatDate(String(v))}</span>,
+        render: (v) => <span className="font-medium text-xs">{String(v || '—')}</span>,
       },
       {
-        key: 'platform',
-        header: 'المنصة',
-        render: (v) => <span className="text-xs">{PLATFORM_META[v as PlatformId]?.nameAr ?? String(v)}</span>,
-      },
-      { key: 'type', header: 'النوع' },
-      {
-        key: 'records',
-        header: 'عدد السجلات',
-        render: (v) => <span className="tabular-nums text-xs">{String(v)}</span>,
-      },
-      {
-        key: 'status',
-        header: 'الحالة',
+        key: 'item_name',
+        header: 'اسم الصنف',
         render: (v) => (
-          <StatusBadge status={v === 'ناجح' ? 'Sent' : 'Overdue'} />
+          <span className="text-xs line-clamp-1 max-w-[200px]">{String(v || '—')}</span>
         ),
+      },
+      {
+        key: 'published',
+        header: 'منشور',
+        render: (v) =>
+          Number(v) === 1 ? (
+            <Badge variant="outline" className="text-[10px] border-0 bg-emerald-500/10 text-emerald-600">منشور</Badge>
+          ) : (
+            <Badge variant="outline" className="text-[10px] border-0 bg-muted text-muted-foreground">غير منشور</Badge>
+          ),
+      },
+      {
+        key: 'website_status',
+        header: 'حالة الموقع',
+        render: (v) => <span className="text-xs text-muted-foreground">{String(v || '—')}</span>,
+      },
+      {
+        key: 'owner',
+        header: 'المُنشئ',
+        render: (v) => <span className="text-xs text-muted-foreground">{String(v || '—')}</span>,
+      },
+      {
+        key: 'modified',
+        header: 'آخر تعديل',
+        sortable: true,
+        render: (v) => {
+          if (!v) return <span className="text-xs text-muted-foreground">—</span>;
+          return <span className="text-xs text-muted-foreground">{formatDate(String(v))}</span>;
+        },
       },
     ],
     []
   );
 
-  const filteredLog = (platform: PlatformId) => log.filter((l) => l.platform === platform);
-
-  if (!mounted) return null;
-
+  /* ─── Render ─── */
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
       <PageHeader
-        title="ربط المتاجر الإلكترونية"
-        description="إدارة الاتصال والمزامنة مع منصات التجارة الإلكترونية"
+        title="إعدادات التجارة الإلكترونية"
+        description="إدارة إعدادات المتجر الإلكتروني والعناصر المنشورة على الموقع"
         iconify="solar:shop-bold-duotone"
         accent="warning"
-        breadcrumbs={[{ label: 'الإعدادات' }, { label: 'ربط المتاجر' }]}
+        breadcrumbs={[{ label: 'الإعدادات' }, { label: 'التجارة الإلكترونية' }]}
       />
 
-      <Tabs defaultValue="salla" className="space-y-4">
+      {/* Status Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card>
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center shrink-0">
+              <Store className="h-4 w-4 text-warning" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground">حالة المتجر</p>
+              <p className="text-sm font-bold mt-0.5">
+                {settingsQuery.isLoading ? '...' : isEcomEnabled ? 'مفعّل' : 'معطّل'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Package className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground">إجمالي الأصناف</p>
+              <p className="text-sm font-bold mt-0.5">
+                {itemsQuery.isLoading ? '...' : items.length}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="h-4 w-4 text-success" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground">منشور</p>
+              <p className="text-sm font-bold mt-0.5">{publishedCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+              <XCircle className="h-4 w-4 text-destructive" />
+            </div>
+            <div>
+              <p className="text-[10px] text-muted-foreground">غير منشور</p>
+              <p className="text-sm font-bold mt-0.5">{unpublishedCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          {Object.entries(PLATFORM_META).map(([key, meta]) => (
-            <TabsTrigger key={key} value={key} className="gap-1.5 text-xs">
-              <Store className="h-3.5 w-3.5" />
-              {meta.nameAr}
-            </TabsTrigger>
-          ))}
+          <TabsTrigger value="settings" className="gap-1.5 text-xs">
+            <Settings className="h-3.5 w-3.5" />
+            إعدادات المتجر
+          </TabsTrigger>
+          <TabsTrigger value="items" className="gap-1.5 text-xs">
+            <ShoppingCart className="h-3.5 w-3.5" />
+            الأصناف المنشورة
+          </TabsTrigger>
         </TabsList>
 
-        {(Object.keys(PLATFORM_META) as PlatformId[]).map((platform) => {
-          const cfg = configs.find((c) => c.platform === platform) ?? configs[0];
-          const meta = PLATFORM_META[platform];
+        {/* ─── Settings Tab ─── */}
+        <TabsContent value="settings" className="space-y-5">
+          <ListQueryAlert error={settingsQuery.isError ? settingsQuery.error : null} onRetry={() => settingsQuery.refetch()} />
 
-          return (
-            <TabsContent key={platform} value={platform} className="space-y-5">
-              {/* Connection Settings */}
-              <Card className="border-border/40 bg-card">
-                <CardContent className="p-5 space-y-5">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center">
-                      <Plug className="h-4 w-4 text-warning" />
-                    </div>
-                    <div>
-                      <h2 className="text-sm font-semibold">إعدادات الاتصال — {meta.nameAr}</h2>
-                      <p className="text-xs text-muted-foreground">أدخل بيانات الربط مع متجر {meta.nameAr}</p>
-                    </div>
+          {settingsQuery.isLoading ? (
+            <Card className="border-border/40 bg-card">
+              <CardContent className="p-5 space-y-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <Skeleton className="h-9 w-48" />
+                    <Skeleton className="h-9 flex-1" />
                   </div>
+                ))}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-border/40 bg-card">
+              <CardContent className="p-5 space-y-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center">
+                    <Plug className="h-4 w-4 text-warning" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-semibold">إعدادات التجارة الإلكترونية</h2>
+                    <p className="text-xs text-muted-foreground">تكوين إعدادات المتجر الإلكتروني من ERPNext</p>
+                  </div>
+                </div>
 
+                {/* Basic Settings */}
+                <div className="rounded-lg border border-border/30 p-3 space-y-3">
+                  <p className="text-xs font-semibold">الإعدادات الأساسية</p>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">رابط API</Label>
+                      <Label className="text-xs font-semibold">الشركة الافتراضية</Label>
                       <Input
-                        dir="ltr"
-                        className="h-9 font-mono text-xs"
-                        value={cfg.apiUrl}
-                        onChange={(e) => updateConfig(platform, { apiUrl: e.target.value })}
-                        placeholder={`https://api.${meta.name.toLowerCase()}.com/v1`}
+                        className="h-9 text-xs"
+                        value={String(get('company', '') || '')}
+                        onChange={(e) => setOverride({ company: e.target.value })}
+                        placeholder="اسم الشركة"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">رابط المتجر</Label>
+                      <Label className="text-xs font-semibold">قائمة الأسعار</Label>
                       <Input
-                        dir="ltr"
-                        className="h-9 font-mono text-xs"
-                        value={cfg.storeUrl}
-                        onChange={(e) => updateConfig(platform, { storeUrl: e.target.value })}
-                        placeholder={`https://mystore.${meta.name.toLowerCase()}.com`}
+                        className="h-9 text-xs"
+                        value={String(get('price_list', '') || '')}
+                        onChange={(e) => setOverride({ price_list: e.target.value })}
+                        placeholder="قائمة الأسعار الافتراضية"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">مفتاح API</Label>
+                      <Label className="text-xs font-semibold">مجموعة العملاء الافتراضية</Label>
                       <Input
-                        dir="ltr"
-                        className="h-9 font-mono text-xs"
-                        value={cfg.apiKey}
-                        onChange={(e) => updateConfig(platform, { apiKey: e.target.value })}
-                        placeholder="API Key"
+                        className="h-9 text-xs"
+                        value={String(get('default_customer_group', '') || '')}
+                        onChange={(e) => setOverride({ default_customer_group: e.target.value })}
+                        placeholder="مجموعة العملاء"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-semibold">سرّ API</Label>
+                      <Label className="text-xs font-semibold">عدد المنتجات في الصفحة</Label>
                       <Input
-                        dir="ltr"
-                        type="password"
-                        className="h-9 font-mono text-xs"
-                        value={cfg.apiSecret}
-                        onChange={(e) => updateConfig(platform, { apiSecret: e.target.value })}
-                        placeholder="API Secret"
+                        type="number"
+                        className="h-9 text-xs"
+                        value={Number(get('products_per_page', 20) || 20)}
+                        onChange={(e) => setOverride({ products_per_page: Number(e.target.value) || 20 })}
+                        placeholder="20"
                       />
                     </div>
                   </div>
+                </div>
 
-                  {/* Sync Options */}
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-3 rounded-lg border border-border/30 p-3">
-                      <p className="text-xs font-semibold">خيارات المزامنة</p>
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id={`sync-products-${platform}`}
-                          checked={cfg.syncProducts}
-                          onCheckedChange={(v) => updateConfig(platform, { syncProducts: v === true })}
-                        />
-                        <Label htmlFor={`sync-products-${platform}`} className="text-xs cursor-pointer">مزامنة المنتجات</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id={`sync-orders-${platform}`}
-                          checked={cfg.syncOrders}
-                          onCheckedChange={(v) => updateConfig(platform, { syncOrders: v === true })}
-                        />
-                        <Label htmlFor={`sync-orders-${platform}`} className="text-xs cursor-pointer">مزامنة الطلبات</Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          id={`sync-stock-${platform}`}
-                          checked={cfg.syncStock}
-                          onCheckedChange={(v) => updateConfig(platform, { syncStock: v === true })}
-                        />
-                        <Label htmlFor={`sync-stock-${platform}`} className="text-xs cursor-pointer">مزامنة المخزون</Label>
-                      </div>
+                {/* Feature Toggles */}
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-3 rounded-lg border border-border/30 p-3">
+                    <p className="text-xs font-semibold">العرض والمظهر</p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="ecom-enabled"
+                        checked={getBool('enabled')}
+                        onCheckedChange={(v) => setOverride({ enabled: v === true })}
+                      />
+                      <Label htmlFor="ecom-enabled" className="text-xs cursor-pointer">تفعيل التجارة الإلكترونية</Label>
                     </div>
-                    <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold">فترة المزامنة</Label>
-                        <Select
-                          value={cfg.syncInterval}
-                          onValueChange={(v) => updateConfig(platform, { syncInterval: v })}
-                        >
-                          <SelectTrigger className="h-9">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SYNC_INTERVALS.map((i) => (
-                              <SelectItem key={i.value} value={i.value}>
-                                {i.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold">اتجاه المزامنة</Label>
-                        <Select
-                          value={cfg.syncDirection}
-                          onValueChange={(v) => updateConfig(platform, { syncDirection: v })}
-                        >
-                          <SelectTrigger className="h-9">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {SYNC_DIRECTIONS.map((d) => (
-                              <SelectItem key={d.value} value={d.value}>
-                                {d.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="show-price"
+                        checked={getBool('show_price')}
+                        onCheckedChange={(v) => setOverride({ show_price: v === true })}
+                      />
+                      <Label htmlFor="show-price" className="text-xs cursor-pointer">عرض الأسعار</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="show-quantity"
+                        checked={getBool('show_quantity')}
+                        onCheckedChange={(v) => setOverride({ show_quantity: v === true })}
+                      />
+                      <Label htmlFor="show-quantity" className="text-xs cursor-pointer">عرض الكمية</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="show-cart"
+                        checked={getBool('show_add_to_cart_button')}
+                        onCheckedChange={(v) => setOverride({ show_add_to_cart_button: v === true })}
+                      />
+                      <Label htmlFor="show-cart" className="text-xs cursor-pointer">عرض زر أضف للسلة</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="show-contact"
+                        checked={getBool('show_contact_us_button')}
+                        onCheckedChange={(v) => setOverride({ show_contact_us_button: v === true })}
+                      />
+                      <Label htmlFor="show-contact" className="text-xs cursor-pointer">عرض زر تواصل معنا</Label>
                     </div>
                   </div>
-
-                  {/* Last Sync Status */}
-                  {cfg.lastSync && (
-                    <div className="flex items-center gap-3 rounded-lg border border-border/30 px-3 py-2 text-xs">
-                      <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <span className="text-muted-foreground">آخر مزامنة:</span>
-                      <span className="font-medium">{formatDate(cfg.lastSync)}</span>
-                      {cfg.lastSyncStatus === 'success' ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                      ) : (
-                        <XCircle className="h-3.5 w-3.5 text-destructive" />
-                      )}
-                      <span>{cfg.lastSyncStatus === 'success' ? 'ناجحة' : 'فاشلة'}</span>
+                  <div className="space-y-3 rounded-lg border border-border/30 p-3">
+                    <p className="text-xs font-semibold">الميزات المتقدمة</p>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="allow-no-stock"
+                        checked={getBool('allow_items_not_in_stock')}
+                        onCheckedChange={(v) => setOverride({ allow_items_not_in_stock: v === true })}
+                      />
+                      <Label htmlFor="allow-no-stock" className="text-xs cursor-pointer">السماح بطلب أصناف غير متوفرة</Label>
                     </div>
-                  )}
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="hide-variants"
+                        checked={getBool('hide_variants')}
+                        onCheckedChange={(v) => setOverride({ hide_variants: v === true })}
+                      />
+                      <Label htmlFor="hide-variants" className="text-xs cursor-pointer">إخفاء المتغيرات</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="enable-wishlist"
+                        checked={getBool('enable_wishlist')}
+                        onCheckedChange={(v) => setOverride({ enable_wishlist: v === true })}
+                      />
+                      <Label htmlFor="enable-wishlist" className="text-xs cursor-pointer">تفعيل قائمة الرغبات</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="enable-reviews"
+                        checked={getBool('enable_reviews')}
+                        onCheckedChange={(v) => setOverride({ enable_reviews: v === true })}
+                      />
+                      <Label htmlFor="enable-reviews" className="text-xs cursor-pointer">تفعيل التقييمات</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="enable-variants"
+                        checked={getBool('enable_variants')}
+                        onCheckedChange={(v) => setOverride({ enable_variants: v === true })}
+                      />
+                      <Label htmlFor="enable-variants" className="text-xs cursor-pointer">تفعيل المتغيرات</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="enable-enquiry"
+                        checked={getBool('enable_enquiry')}
+                        onCheckedChange={(v) => setOverride({ enable_enquiry: v === true })}
+                      />
+                      <Label htmlFor="enable-enquiry" className="text-xs cursor-pointer">تفعيل الاستفسارات</Label>
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <Button size="sm" onClick={() => saveConfig(platform)}>
-                      حفظ الإعدادات
-                    </Button>
+                {/* Unsaved changes indicator */}
+                {Object.keys(overrides).length > 0 && (
+                  <div className="rounded-lg border border-amber-200/40 bg-amber-50/50 p-2.5 space-y-1">
+                    <p className="text-[10px] font-semibold text-amber-700">
+                      لديك تغييرات غير محفوظة — اضغط &quot;حفظ الإعدادات&quot; لتطبيقها
+                    </p>
+                  </div>
+                )}
+
+                {/* Last Modified Info */}
+                {settings?.modified && (
+                  <div className="flex items-center gap-3 rounded-lg border border-border/30 px-3 py-2 text-xs">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <span className="text-muted-foreground">آخر تعديل:</span>
+                    <span className="font-medium">{formatDate(settings.modified)}</span>
+                    {settings.owner && (
+                      <>
+                        <span className="text-muted-foreground">بواسطة:</span>
+                        <span className="font-medium">{settings.owner}</span>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <Button size="sm" onClick={saveSettings} disabled={updateSettingsMut.isPending}>
+                    {updateSettingsMut.isPending ? (
+                      <><Loader2 className="h-3.5 w-3.5 animate-spin" /> جاري الحفظ…</>
+                    ) : (
+                      <><Save className="h-3.5 w-3.5" /> حفظ الإعدادات</>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="gap-1.5"
+                    disabled={testing}
+                    onClick={testConnection}
+                  >
+                    <TestTube className="h-3.5 w-3.5" />
+                    {testing ? 'جاري الاتصال…' : 'اختبار الاتصال'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => { settingsQuery.refetch(); itemsQuery.refetch(); }}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    تحديث
+                  </Button>
+                  {Object.keys(overrides).length > 0 && (
                     <Button
                       size="sm"
-                      variant="secondary"
-                      className="gap-1.5"
-                      disabled={testing === platform}
-                      onClick={() => testConnection(platform)}
+                      variant="ghost"
+                      className="text-muted-foreground"
+                      onClick={() => setOverrides({})}
                     >
-                      <TestTube className="h-3.5 w-3.5" />
-                      {testing === platform ? 'جاري الاتصال…' : 'اختبار الاتصال'}
+                      تراجع عن التغييرات
                     </Button>
-                    {SYNC_TYPES.map((type) => (
-                      <Button
-                        key={type}
-                        size="sm"
-                        variant="outline"
-                        className="gap-1.5"
-                        onClick={() => runSync(platform, type)}
-                      >
-                        <RefreshCw className="h-3.5 w-3.5" />
-                        مزامنة {type}
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
-              {/* Sync Log */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <ArrowRightLeft className="h-4 w-4" />
-                  سجل المزامنة — {meta.nameAr}
-                </h3>
-                <DataTable
-                  data={filteredLog(platform)}
-                  columns={logColumns}
-                  tableId={`ecommerce-log-${platform}`}
-                  searchable
-                  exportFileName={`سجل-مزامنة-${meta.nameAr}`}
-                />
-              </div>
-            </TabsContent>
-          );
-        })}
+        {/* ─── Items Tab ─── */}
+        <TabsContent value="items" className="space-y-5">
+          <ListQueryAlert error={itemsQuery.isError ? itemsQuery.error : null} onRetry={() => itemsQuery.refetch()} />
+
+          <DataTable
+            data={items}
+            columns={itemColumns}
+            tableId="ecommerce-items"
+            searchable
+            loading={itemsQuery.isLoading}
+            exportFileName="أصناف-التجارة-الإلكترونية"
+          />
+        </TabsContent>
       </Tabs>
     </div>
   );

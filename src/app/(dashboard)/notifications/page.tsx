@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
-import { StatusBadge } from '@/components/erp/status-badge';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,16 +23,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { formatCurrency, formatDate } from '@/lib/app-format';
+import { useDocList, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
 import {
   Bell,
   BellOff,
-  Mail,
-  MessageSquare,
   CheckCheck,
   Trash2,
   Filter,
@@ -47,412 +45,64 @@ import {
   AlertCircle,
   Clock,
   ExternalLink,
-  Inbox,
   RotateCcw,
   X,
+  Loader2,
 } from 'lucide-react';
 
 /* ──────────────────────────────────────────────
-   أنواع البيانات
+   ERPNext Notification Log Type
    ────────────────────────────────────────────── */
 
-type NotificationCategory =
-  | 'invoices'
-  | 'payments'
-  | 'inventory'
-  | 'hr'
-  | 'sales'
-  | 'purchases'
-  | 'system';
+interface NotificationLog {
+  name: string;
+  subject: string;
+  document_type: string;
+  document_name: string;
+  for_user: string;
+  from_user: string;
+  read: number | string;
+  creation: string;
+  modified: string;
+  email: number | string;
+  type: string;
+}
 
-type NotificationPriority = 'عاجل' | 'مهم' | 'عادي';
+/* ──────────────────────────────────────────────
+   أنواع البيانات المحلية
+   ────────────────────────────────────────────── */
 
-type Notification = {
-  id: string;
-  title: string;
-  message: string;
-  category: NotificationCategory;
-  priority: NotificationPriority;
-  isRead: boolean;
-  link?: string;
-  doctype?: string;
-  docname?: string;
-  createdAt: string;
-};
+type NotificationCategory = string;
 
 type CategoryPreference = {
   enabled: boolean;
   email: boolean;
-  sms: boolean;
   inApp: boolean;
 };
 
-type GroupByOption = 'date' | 'category' | 'none';
+type GroupByOption = 'date' | 'doctype' | 'none';
 
 /* ──────────────────────────────────────────────
-   إعدادات الفئات
+   إعدادات الفئات - خريطة أنواع المستندات
    ────────────────────────────────────────────── */
 
-const CATEGORY_CONFIG: Record<
-  NotificationCategory,
-  { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bg: string; ring: string }
-> = {
-  invoices: {
-    label: 'فواتير',
-    icon: FileText,
-    color: 'text-red-600 dark:text-red-400',
-    bg: 'bg-red-500/10',
-    ring: 'ring-red-500/20',
-  },
-  payments: {
-    label: 'مدفوعات',
-    icon: DollarSign,
-    color: 'text-emerald-600 dark:text-emerald-400',
-    bg: 'bg-emerald-500/10',
-    ring: 'ring-emerald-500/20',
-  },
-  inventory: {
-    label: 'مخزون',
-    icon: Package,
-    color: 'text-sky-600 dark:text-sky-400',
-    bg: 'bg-sky-500/10',
-    ring: 'ring-sky-500/20',
-  },
-  hr: {
-    label: 'موارد بشرية',
-    icon: Users,
-    color: 'text-purple-600 dark:text-purple-400',
-    bg: 'bg-purple-500/10',
-    ring: 'ring-purple-500/20',
-  },
-  sales: {
-    label: 'مبيعات',
-    icon: ShoppingCart,
-    color: 'text-amber-600 dark:text-amber-400',
-    bg: 'bg-amber-500/10',
-    ring: 'ring-amber-500/20',
-  },
-  purchases: {
-    label: 'مشتريات',
-    icon: Truck,
-    color: 'text-orange-600 dark:text-orange-400',
-    bg: 'bg-orange-500/10',
-    ring: 'ring-orange-500/20',
-  },
-  system: {
-    label: 'نظام',
-    icon: Settings,
-    color: 'text-gray-600 dark:text-gray-400',
-    bg: 'bg-gray-500/10',
-    ring: 'ring-gray-500/20',
-  },
+const DOCTYPE_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bg: string; ring: string }> = {
+  'Sales Invoice': { label: 'فواتير مبيعات', icon: FileText, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-500/10', ring: 'ring-red-500/20' },
+  'Purchase Invoice': { label: 'فواتير مشتريات', icon: FileText, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-500/10', ring: 'ring-orange-500/20' },
+  'Payment Entry': { label: 'مدفوعات', icon: DollarSign, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/20' },
+  'Item': { label: 'مخزون', icon: Package, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-500/10', ring: 'ring-sky-500/20' },
+  'Stock Entry': { label: 'حركة مخزون', icon: Package, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-500/10', ring: 'ring-sky-500/20' },
+  'Leave Application': { label: 'موارد بشرية', icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-500/10', ring: 'ring-purple-500/20' },
+  'Employee': { label: 'موارد بشرية', icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-500/10', ring: 'ring-purple-500/20' },
+  'Sales Order': { label: 'مبيعات', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10', ring: 'ring-amber-500/20' },
+  'Quotation': { label: 'مبيعات', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10', ring: 'ring-amber-500/20' },
+  'Purchase Order': { label: 'مشتريات', icon: Truck, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-500/10', ring: 'ring-orange-500/20' },
 };
 
-const PRIORITY_CONFIG: Record<NotificationPriority, { color: string; bg: string }> = {
-  'عاجل': { color: 'text-red-700 dark:text-red-400', bg: 'bg-red-500/15 ring-1 ring-inset ring-red-500/25' },
-  'مهم': { color: 'text-amber-700 dark:text-amber-400', bg: 'bg-amber-500/15 ring-1 ring-inset ring-amber-500/25' },
-  'عادي': { color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-500/15 ring-1 ring-inset ring-gray-500/25' },
-};
+const DEFAULT_DOCTYPE_CONFIG = { label: 'نظام', icon: Settings, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-500/10', ring: 'ring-gray-500/20' };
 
-const DEFAULT_PREFERENCES: Record<NotificationCategory, CategoryPreference> = {
-  invoices: { enabled: true, email: true, sms: false, inApp: true },
-  payments: { enabled: true, email: true, sms: true, inApp: true },
-  inventory: { enabled: true, email: false, sms: false, inApp: true },
-  hr: { enabled: true, email: true, sms: false, inApp: true },
-  sales: { enabled: true, email: true, sms: false, inApp: true },
-  purchases: { enabled: true, email: false, sms: false, inApp: true },
-  system: { enabled: true, email: false, sms: false, inApp: true },
-};
-
-/* ──────────────────────────────────────────────
-   بيانات تجريبية
-   ────────────────────────────────────────────── */
-
-function generateSeedData(): Notification[] {
-  const now = new Date();
-  const minutesAgo = (m: number) => new Date(now.getTime() - m * 60_000).toISOString();
-  const hoursAgo = (h: number) => new Date(now.getTime() - h * 3_600_000).toISOString();
-  const daysAgo = (d: number) => new Date(now.getTime() - d * 86_400_000).toISOString();
-
-  return [
-    {
-      id: 'n1',
-      title: 'فاتورة مبيعات جديدة',
-      message: 'تم إنشاء فاتورة مبيعات SINV-2026-00145 بقيمة 45,000 ريال للعميل مؤسسة النور التجارية',
-      category: 'invoices',
-      priority: 'عاجل',
-      isRead: false,
-      link: '/sales/sales-invoices',
-      doctype: 'Sales Invoice',
-      docname: 'SINV-2026-00145',
-      createdAt: minutesAgo(5),
-    },
-    {
-      id: 'n2',
-      title: 'دفعة مستلمة',
-      message: 'تم استلام دفعة بمبلغ 12,500 ريال من شركة الأمل للتجارة مقابل الفاتورة SINV-2026-00132',
-      category: 'payments',
-      priority: 'مهم',
-      isRead: false,
-      link: '/accounting/payment-entry',
-      doctype: 'Payment Entry',
-      docname: 'PE-2026-00089',
-      createdAt: minutesAgo(18),
-    },
-    {
-      id: 'n3',
-      title: 'مخزون منخفض - قلم حبر أزرق',
-      message: 'الصنف "قلم حبر أزرق" وصل إلى مستوى مخزون حرج (5 وحدات) في مستودع المستودع الرئيسي',
-      category: 'inventory',
-      priority: 'عاجل',
-      isRead: false,
-      link: '/inventory/stock-levels',
-      doctype: 'Item',
-      docname: 'قلم حبر أزرق',
-      createdAt: minutesAgo(30),
-    },
-    {
-      id: 'n4',
-      title: 'طلب إجازة جديد',
-      message: 'قدم الموظف أحمد محمد طلب إجازة سنوية من 15/05/2026 إلى 20/05/2026 (5 أيام)',
-      category: 'hr',
-      priority: 'مهم',
-      isRead: false,
-      link: '/hr/leave-applications',
-      doctype: 'Leave Application',
-      docname: 'HR-LAP-2026-00034',
-      createdAt: minutesAgo(45),
-    },
-    {
-      id: 'n5',
-      title: 'أمر بيع جديد',
-      message: 'تم إنشاء أمر بيع SO-2026-00078 بقيمة 78,000 ريال من عميل مجموعة الفخامة',
-      category: 'sales',
-      priority: 'مهم',
-      isRead: false,
-      link: '/sales/sales-orders',
-      doctype: 'Sales Order',
-      docname: 'SO-2026-00078',
-      createdAt: hoursAgo(1),
-    },
-    {
-      id: 'n6',
-      title: 'فاتورة مشتريات معلقة',
-      message: 'فاتورة المشتريات PINV-2026-00056 من المورد شركة الاتحاد بانتظار الاعتماد - المبلغ 23,400 ريال',
-      category: 'purchases',
-      priority: 'عادي',
-      isRead: true,
-      link: '/purchases/purchase-invoices',
-      doctype: 'Purchase Invoice',
-      docname: 'PINV-2026-00056',
-      createdAt: hoursAgo(2),
-    },
-    {
-      id: 'n7',
-      title: 'صيانة النظام المجدولة',
-      message: 'سيتم إجراء صيانة دورية للنظام يوم الجمعة 10/05/2026 من الساعة 2:00 إلى 4:00 فجراً',
-      category: 'system',
-      priority: 'عادي',
-      isRead: true,
-      createdAt: hoursAgo(3),
-    },
-    {
-      id: 'n8',
-      title: 'فاتورة مبيعات متأخرة',
-      message: 'الفاتورة SINV-2026-00102 تجاوزت تاريخ الاستحقاق بمقدار 7 أيام - العميل شركة البناء الحديث',
-      category: 'invoices',
-      priority: 'عاجل',
-      isRead: false,
-      link: '/sales/sales-invoices',
-      doctype: 'Sales Invoice',
-      docname: 'SINV-2026-00102',
-      createdAt: hoursAgo(4),
-    },
-    {
-      id: 'n9',
-      title: 'شيك مستحق اليوم',
-      message: 'شيك رقم CHK-2026-00234 بمبلغ 35,000 ريال مستحق الدفع اليوم من المورد مؤسسة الخليج',
-      category: 'payments',
-      priority: 'عاجل',
-      isRead: false,
-      link: '/accounting/cheques',
-      doctype: 'Payment Entry',
-      docname: 'PE-2026-00076',
-      createdAt: hoursAgo(5),
-    },
-    {
-      id: 'n10',
-      title: 'دفعة مخزون جديدة',
-      message: 'تم استلام دفعة من الصنف "ورق طباعة A4" - 500 وحدة في مستودع المستودع الرئيسي',
-      category: 'inventory',
-      priority: 'عادي',
-      isRead: true,
-      link: '/inventory/stock-entry',
-      doctype: 'Stock Entry',
-      docname: 'STE-2026-00045',
-      createdAt: hoursAgo(6),
-    },
-    {
-      id: 'n11',
-      title: 'موافقة على طلب توظيف',
-      message: 'تمت الموافقة على طلب توظيف مهندس برمجيات - القسم: تقنية المعلومات',
-      category: 'hr',
-      priority: 'مهم',
-      isRead: true,
-      link: '/hr/employee-requests',
-      doctype: 'Employee Request',
-      docname: 'HR-ER-2026-00012',
-      createdAt: hoursAgo(8),
-    },
-    {
-      id: 'n12',
-      title: 'عرض سعر جديد',
-      message: 'تم إنشاء عرض سعر QTN-2026-00089 للعميل شركة الابتكار بقيمة 156,000 ريال',
-      category: 'sales',
-      priority: 'عادي',
-      isRead: true,
-      link: '/sales/quotations',
-      doctype: 'Quotation',
-      docname: 'QTN-2026-00089',
-      createdAt: daysAgo(1),
-    },
-    {
-      id: 'n13',
-      title: 'أمر شراء مرحّل',
-      message: 'تم ترحيل أمر الشراء PO-2026-00045 بقيمة 89,000 ريال إلى المورد شركة التوريدات العالمية',
-      category: 'purchases',
-      priority: 'مهم',
-      isRead: true,
-      link: '/purchases/purchase-orders',
-      doctype: 'Purchase Order',
-      docname: 'PO-2026-00045',
-      createdAt: daysAgo(1),
-    },
-    {
-      id: 'n14',
-      title: 'نسخة احتياطية مكتملة',
-      message: 'تمت عملية النسخ الاحتياطي اليومية بنجاح - حجم النسخة: 2.3 جيجابايت',
-      category: 'system',
-      priority: 'عادي',
-      isRead: true,
-      createdAt: daysAgo(2),
-    },
-    {
-      id: 'n15',
-      title: 'إشعار دائن جديد',
-      message: 'تم إنشاء إشعار دائن CN-2026-00003 بقيمة 5,200 ريال للعميل مؤسسة السلام - مرتبط بالفاتورة SINV-2026-00098',
-      category: 'invoices',
-      priority: 'مهم',
-      isRead: false,
-      link: '/sales/sales-invoices',
-      doctype: 'Sales Invoice',
-      docname: 'CN-2026-00003',
-      createdAt: daysAgo(2),
-    },
-    {
-      id: 'n16',
-      title: 'تحديث أسعار الموردين',
-      message: 'قام المورد شركة الخليج للتوريد بتحديث قائمة الأسعار - 23 صنفاً بأسعار جديدة',
-      category: 'purchases',
-      priority: 'عادي',
-      isRead: true,
-      link: '/inventory/price-lists',
-      createdAt: daysAgo(3),
-    },
-    {
-      id: 'n17',
-      title: 'مستودع وصل للحد الأقصى',
-      message: 'المستودع "مستودع المواد الخام" وصل إلى 95% من طاقته الاستيعابية - يرجى اتخاذ إجراء',
-      category: 'inventory',
-      priority: 'عاجل',
-      isRead: false,
-      link: '/inventory/warehouses',
-      createdAt: daysAgo(3),
-    },
-    {
-      id: 'n18',
-      title: 'تسوية بنكية مكتملة',
-      message: 'تم إكمال التسوية البنكية لحساب البنك الأهلي - شهر أبريل 2026 - الفرق: 0 ريال',
-      category: 'payments',
-      priority: 'عادي',
-      isRead: true,
-      link: '/accounting/bank-reconciliation',
-      createdAt: daysAgo(4),
-    },
-  ];
-}
-
-/* ──────────────────────────────────────────────
-   إدارة التخزين المحلي (localStorage)
-   ────────────────────────────────────────────── */
-
-const STORAGE_KEY = 'erp_notifications';
-const PREFS_KEY = 'erp_notification_preferences';
-
-/* مشترك مخصص لأحداث التخزين + أحداث الإرسال المخصصة */
-let listeners: Array<() => void> = [];
-
-function emitChange() {
-  for (const listener of listeners) {
-    listener();
-  }
-}
-
-function subscribe(callback: () => void) {
-  listeners = [...listeners, callback];
-  const onStorage = () => emitChange();
-  window.addEventListener('storage', onStorage);
-  return () => {
-    listeners = listeners.filter((l) => l !== callback);
-    window.removeEventListener('storage', onStorage);
-  };
-}
-
-function getSnapshot(): string {
-  try {
-    return localStorage.getItem(STORAGE_KEY) || '[]';
-  } catch {
-    return '[]';
-  }
-}
-
-function getServerSnapshot(): string {
-  return '[]';
-}
-
-function persistNotifications(notifications: Notification[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
-    window.dispatchEvent(new Event('storage'));
-    emitChange();
-  } catch {
-    /* تجاهل أخطاء التخزين */
-  }
-}
-
-function ensureSeedData(): Notification[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch {
-    /* تجاهل */
-  }
-  const seed = generateSeedData();
-  persistNotifications(seed);
-  return seed;
-}
-
-function loadPreferences(): Record<NotificationCategory, CategoryPreference> {
-  try {
-    const raw = localStorage.getItem(PREFS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    /* تجاهل */
-  }
-  return { ...DEFAULT_PREFERENCES };
+function getDoctypeConfig(doctype: string) {
+  return DOCTYPE_CONFIG[doctype] || DEFAULT_DOCTYPE_CONFIG;
 }
 
 /* ──────────────────────────────────────────────
@@ -496,7 +146,7 @@ function getDateGroup(dateStr: string): DateGroup {
 }
 
 /* ──────────────────────────────────────────────
-   مكون بطاقة الإشعار (خارج المكون الرئيسي)
+   مكون بطاقة الإشعار
    ────────────────────────────────────────────── */
 
 function NotificationCard({
@@ -504,36 +154,36 @@ function NotificationCard({
   onMarkAsRead,
   onDelete,
 }: {
-  notification: Notification;
-  onMarkAsRead: (id: string) => void;
-  onDelete: (id: string) => void;
+  notification: NotificationLog;
+  onMarkAsRead: (name: string) => void;
+  onDelete: (name: string) => void;
 }) {
-  const catConfig = CATEGORY_CONFIG[notification.category];
-  const priConfig = PRIORITY_CONFIG[notification.priority];
+  const isRead = Number(notification.read) === 1;
+  const catConfig = getDoctypeConfig(notification.document_type);
   const CatIcon = catConfig.icon;
 
   return (
     <div
       className={cn(
         'group relative flex items-start gap-3 rounded-lg border p-3 sm:p-4 transition-all duration-150 cursor-pointer',
-        notification.isRead
+        isRead
           ? 'border-border/30 bg-card hover:bg-muted/30'
           : 'border-border/50 bg-info/[0.03] hover:bg-info/[0.06] dark:bg-info/[0.04] dark:hover:bg-info/[0.07]'
       )}
       onClick={() => {
-        if (!notification.isRead) onMarkAsRead(notification.id);
+        if (!isRead) onMarkAsRead(notification.name);
       }}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-          if (!notification.isRead) onMarkAsRead(notification.id);
+          if (!isRead) onMarkAsRead(notification.name);
         }
       }}
-      aria-label={notification.title}
+      aria-label={notification.subject}
     >
       {/* مؤشر غير مقروء */}
-      {!notification.isRead && (
+      {!isRead && (
         <div className="absolute top-3 end-3 sm:top-4 sm:end-4 h-2.5 w-2.5 rounded-full bg-info ring-2 ring-info/25" />
       )}
 
@@ -554,34 +204,29 @@ function NotificationCard({
           <h3
             className={cn(
               'text-sm leading-snug line-clamp-1',
-              notification.isRead ? 'font-medium text-foreground' : 'font-semibold text-foreground'
+              isRead ? 'font-medium text-foreground' : 'font-semibold text-foreground'
             )}
           >
-            {notification.title}
+            {notification.subject || 'إشعار'}
           </h3>
           <div className="flex items-center gap-2 shrink-0">
-            {/* شارة الأولوية */}
-            <span
-              className={cn(
+            {/* شارة النوع */}
+            {notification.type && (
+              <span className={cn(
                 'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold',
-                priConfig.bg,
-                priConfig.color
-              )}
-            >
-              {notification.priority}
-            </span>
+                'bg-gray-500/15 ring-1 ring-inset ring-gray-500/25 text-gray-600 dark:text-gray-400'
+              )}>
+                {notification.type}
+              </span>
+            )}
           </div>
         </div>
-
-        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-          {notification.message}
-        </p>
 
         <div className="flex items-center gap-3 pt-1">
           {/* وقت الإشعار */}
           <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <Clock className="h-3 w-3" />
-            {timeAgo(notification.createdAt)}
+            {notification.creation ? timeAgo(notification.creation) : ''}
           </span>
 
           {/* الفئة */}
@@ -590,25 +235,36 @@ function NotificationCard({
           </span>
 
           {/* رابط المستند */}
-          {notification.doctype && notification.docname && (
-            <span className="flex items-center gap-1 text-[10px] text-primary hover:underline">
+          {notification.document_type && notification.document_name && (
+            <a
+              href={`/doc/${notification.document_type}/${notification.document_name}`}
+              className="flex items-center gap-1 text-[10px] text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
               <ExternalLink className="h-2.5 w-2.5" />
-              {notification.docname}
-            </span>
+              {notification.document_name}
+            </a>
           )}
         </div>
+
+        {/* المستخدم */}
+        {notification.from_user && (
+          <span className="text-[10px] text-muted-foreground">
+            من: {notification.from_user}
+          </span>
+        )}
       </div>
 
       {/* أزرار الإجراءات */}
       <div className="flex flex-col items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-        {!notification.isRead && (
+        {!isRead && (
           <Button
             variant="ghost"
             size="icon"
             className="h-7 w-7"
             onClick={(e) => {
               e.stopPropagation();
-              onMarkAsRead(notification.id);
+              onMarkAsRead(notification.name);
             }}
             aria-label="تحديد كمقروء"
           >
@@ -621,7 +277,7 @@ function NotificationCard({
           className="h-7 w-7"
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(notification.id);
+            onDelete(notification.name);
           }}
           aria-label="حذف الإشعار"
         >
@@ -633,7 +289,7 @@ function NotificationCard({
 }
 
 /* ──────────────────────────────────────────────
-   مكون الحالة الفارغة (خارج المكون الرئيسي)
+   مكون الحالة الفارغة
    ────────────────────────────────────────────── */
 
 function EmptyState({
@@ -696,100 +352,88 @@ function LoadingSkeleton() {
 export default function NotificationsPage() {
   const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'read'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [doctypeFilter, setDoctypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [groupBy, setGroupBy] = useState<GroupByOption>('date');
   const [preferencesOpen, setPreferencesOpen] = useState(false);
-  const [preferences, setPreferences] = useState<Record<NotificationCategory, CategoryPreference>>(
-    () => loadPreferences()
-  );
+  const [preferences, setPreferences] = useState<Record<string, CategoryPreference>>({});
 
-  // ── Hydration-safe localStorage read via useSyncExternalStore ──
-  const rawSnapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  // ── جلب الإشعارات من ERPNext ──
+  const {
+    data: notifications = [],
+    isLoading,
+    error,
+    refetch,
+  } = useDocList<NotificationLog>('Notification Log', {
+    fields: ['name', 'subject', 'document_type', 'document_name', 'for_user', 'from_user', 'read', 'creation', 'modified', 'email', 'type'],
+    order_by: 'creation desc',
+    limit: 200,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  });
 
-  // ── Parse notifications from localStorage snapshot ──
-  const notifications: Notification[] = useMemo(() => {
-    try {
-      const parsed = JSON.parse(rawSnapshot);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    } catch {
-      /* تجاهل */
-    }
-    // First load — seed data
-    return ensureSeedData();
-  }, [rawSnapshot]);
+  // ── تحديث وحذف الإشعارات ──
+  const updateMutation = useUpdateDoc<NotificationLog>('Notification Log');
+  const deleteMutation = useDeleteDoc('Notification Log');
 
   // ── إجراءات الإشعارات ──
 
   const markAsRead = useCallback(
-    (id: string) => {
-      const current = (() => {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          return raw ? JSON.parse(raw) : [];
-        } catch {
-          return [];
+    (name: string) => {
+      updateMutation.mutate(
+        { name, doc: { read: 1 } },
+        {
+          onSuccess: () => {
+            toast({ title: 'تم تحديد الإشعار كمقروء' });
+          },
+          onError: () => {
+            toast({ title: 'فشل تحديث الإشعار', variant: 'destructive' });
+          },
         }
-      })();
-      const updated = (current as Notification[]).map((n) =>
-        n.id === id ? { ...n, isRead: true } : n
       );
-      persistNotifications(updated);
-      toast({ title: 'تم تحديد الإشعار كمقروء' });
     },
-    [toast]
+    [updateMutation, toast]
   );
 
   const markAllAsRead = useCallback(() => {
-    const current = (() => {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch {
-        return [];
-      }
-    })();
-    const updated = (current as Notification[]).map((n) => ({ ...n, isRead: true }));
-    persistNotifications(updated);
-    toast({ title: 'تم تحديد جميع الإشعارات كمقروء' });
-  }, [toast]);
+    const unread = notifications.filter((n) => Number(n.read) !== 1);
+    for (const n of unread) {
+      updateMutation.mutate({ name: n.name, doc: { read: 1 } });
+    }
+    if (unread.length > 0) {
+      toast({ title: `تم تحديد ${unread.length} إشعار كمقروء` });
+    }
+  }, [notifications, updateMutation, toast]);
 
   const deleteNotification = useCallback(
-    (id: string) => {
-      const current = (() => {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          return raw ? JSON.parse(raw) : [];
-        } catch {
-          return [];
-        }
-      })();
-      const updated = (current as Notification[]).filter((n) => n.id !== id);
-      persistNotifications(updated);
-      toast({ title: 'تم حذف الإشعار' });
+    (name: string) => {
+      deleteMutation.mutate(name, {
+        onSuccess: () => {
+          toast({ title: 'تم حذف الإشعار' });
+        },
+        onError: () => {
+          toast({ title: 'فشل حذف الإشعار', variant: 'destructive' });
+        },
+      });
     },
-    [toast]
+    [deleteMutation, toast]
   );
 
   const deleteRead = useCallback(() => {
-    const current = (() => {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch {
-        return [];
-      }
-    })();
-    const updated = (current as Notification[]).filter((n) => !n.isRead);
-    persistNotifications(updated);
-    toast({ title: 'تم حذف جميع الإشعارات المقروءة' });
-  }, [toast]);
+    const readNotifs = notifications.filter((n) => Number(n.read) === 1);
+    for (const n of readNotifs) {
+      deleteMutation.mutate(n.name);
+    }
+    if (readNotifs.length > 0) {
+      toast({ title: `تم حذف ${readNotifs.length} إشعار مقروء` });
+    }
+  }, [notifications, deleteMutation, toast]);
 
   const clearFilters = useCallback(() => {
     setStatusFilter('all');
-    setCategoryFilter('all');
+    setDoctypeFilter('all');
     setSearchQuery('');
     setDateFrom('');
     setDateTo('');
@@ -802,73 +446,91 @@ export default function NotificationsPage() {
     const todayStr = now.toISOString().split('T')[0];
     return {
       total: notifications.length,
-      unread: notifications.filter((n) => !n.isRead).length,
-      read: notifications.filter((n) => n.isRead).length,
-      today: notifications.filter((n) => n.createdAt.startsWith(todayStr)).length,
+      unread: notifications.filter((n) => Number(n.read) !== 1).length,
+      read: notifications.filter((n) => Number(n.read) === 1).length,
+      today: notifications.filter((n) => n.creation && n.creation.startsWith(todayStr)).length,
     };
+  }, [notifications]);
+
+  // ── أنواع المستندات الموجودة ──
+  const uniqueDoctypes = useMemo(() => {
+    const types = new Set<string>();
+    for (const n of notifications) {
+      if (n.document_type) types.add(n.document_type);
+    }
+    return Array.from(types).sort();
   }, [notifications]);
 
   // ── التصفية ──
 
   const filteredNotifications = useMemo(() => {
     return notifications.filter((n) => {
-      if (statusFilter === 'unread' && n.isRead) return false;
-      if (statusFilter === 'read' && !n.isRead) return false;
-      if (categoryFilter !== 'all' && n.category !== categoryFilter) return false;
+      const isRead = Number(n.read) === 1;
+      if (statusFilter === 'unread' && isRead) return false;
+      if (statusFilter === 'read' && !isRead) return false;
+      if (doctypeFilter !== 'all' && n.document_type !== doctypeFilter) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
-        if (!n.title.toLowerCase().includes(q) && !n.message.toLowerCase().includes(q)) return false;
+        const subject = (n.subject || '').toLowerCase();
+        const docName = (n.document_name || '').toLowerCase();
+        const fromUser = (n.from_user || '').toLowerCase();
+        if (!subject.includes(q) && !docName.includes(q) && !fromUser.includes(q)) return false;
       }
-      if (dateFrom) {
-        const entryDate = n.createdAt.split('T')[0];
+      if (dateFrom && n.creation) {
+        const entryDate = n.creation.split('T')[0];
         if (entryDate < dateFrom) return false;
       }
-      if (dateTo) {
-        const entryDate = n.createdAt.split('T')[0];
+      if (dateTo && n.creation) {
+        const entryDate = n.creation.split('T')[0];
         if (entryDate > dateTo) return false;
       }
       return true;
     });
-  }, [notifications, statusFilter, categoryFilter, searchQuery, dateFrom, dateTo]);
+  }, [notifications, statusFilter, doctypeFilter, searchQuery, dateFrom, dateTo]);
 
   // ── التجميع ──
 
   const groupedByDate = useMemo(() => {
     if (groupBy !== 'date') return null;
-    const groups: Record<DateGroup, Notification[]> = {
+    const groups: Record<DateGroup, NotificationLog[]> = {
       'اليوم': [],
       'أمس': [],
       'هذا الأسبوع': [],
       'أقدم': [],
     };
     for (const n of filteredNotifications) {
-      groups[getDateGroup(n.createdAt)].push(n);
+      if (n.creation) {
+        groups[getDateGroup(n.creation)].push(n);
+      } else {
+        groups['أقدم'].push(n);
+      }
     }
-    return Object.entries(groups).filter(([, items]) => items.length > 0) as [DateGroup, Notification[]][];
+    return Object.entries(groups).filter(([, items]) => items.length > 0) as [DateGroup, NotificationLog[]][];
   }, [filteredNotifications, groupBy]);
 
-  const groupedByCategory = useMemo(() => {
-    if (groupBy !== 'category') return null;
-    const groups: Partial<Record<NotificationCategory, Notification[]>> = {};
+  const groupedByDoctype = useMemo(() => {
+    if (groupBy !== 'doctype') return null;
+    const groups: Record<string, NotificationLog[]> = {};
     for (const n of filteredNotifications) {
-      if (!groups[n.category]) groups[n.category] = [];
-      groups[n.category]!.push(n);
+      const dt = n.document_type || 'أخرى';
+      if (!groups[dt]) groups[dt] = [];
+      groups[dt].push(n);
     }
-    return Object.entries(groups) as [NotificationCategory, Notification[]][];
+    return Object.entries(groups) as [string, NotificationLog[]][];
   }, [filteredNotifications, groupBy]);
 
   const hasActiveFilters: boolean =
-    statusFilter !== 'all' || categoryFilter !== 'all' || !!searchQuery || !!dateFrom || !!dateTo;
+    statusFilter !== 'all' || doctypeFilter !== 'all' || !!searchQuery || !!dateFrom || !!dateTo;
 
   // ── تفضيلات الإشعارات ──
 
   const togglePreference = useCallback(
-    (category: NotificationCategory, field: keyof CategoryPreference) => {
+    (doctype: string, field: keyof CategoryPreference) => {
       setPreferences((prev) => ({
         ...prev,
-        [category]: {
-          ...prev[category],
-          [field]: !prev[category][field],
+        [doctype]: {
+          ...prev[doctype],
+          [field]: !prev[doctype]?.[field],
         },
       }));
     },
@@ -876,18 +538,13 @@ export default function NotificationsPage() {
   );
 
   const savePreferences = useCallback(() => {
-    try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify(preferences));
-    } catch {
-      /* تجاهل */
-    }
     toast({ title: 'تم حفظ تفضيلات الإشعارات' });
     setPreferencesOpen(false);
-  }, [preferences, toast]);
+  }, [toast]);
 
-  // ── عرض تحميل أولي (قبل توفر بيانات localStorage) ──
+  // ── عرض تحميل ──
 
-  if (rawSnapshot === '[]' && notifications.length === 0) {
+  if (isLoading) {
     return <LoadingSkeleton />;
   }
 
@@ -917,6 +574,9 @@ export default function NotificationsPage() {
           </div>
         }
       />
+
+      {/* تنبيه خطأ */}
+      <ListQueryAlert error={error} onRetry={() => refetch()} />
 
       {/* شريط KPI */}
       <KpiStrip cols={4}>
@@ -972,22 +632,20 @@ export default function NotificationsPage() {
           </Select>
         </div>
 
-        {/* فلتر الفئة */}
+        {/* فلتر نوع المستند */}
         <div className="space-y-1">
-          <Label className="text-[10px]">الفئة</Label>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <Label className="text-[10px]">نوع المستند</Label>
+          <Select value={doctypeFilter} onValueChange={setDoctypeFilter}>
             <SelectTrigger className="h-8 w-36 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">جميع الفئات</SelectItem>
-              {(Object.entries(CATEGORY_CONFIG) as [NotificationCategory, typeof CATEGORY_CONFIG[NotificationCategory]][]).map(
-                ([key, cfg]) => (
-                  <SelectItem key={key} value={key}>
-                    {cfg.label}
-                  </SelectItem>
-                )
-              )}
+              <SelectItem value="all">جميع الأنواع</SelectItem>
+              {uniqueDoctypes.map((dt) => (
+                <SelectItem key={dt} value={dt}>
+                  {getDoctypeConfig(dt).label} ({dt})
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -1043,9 +701,13 @@ export default function NotificationsPage() {
             size="sm"
             className="h-8 text-xs gap-1.5"
             onClick={markAllAsRead}
-            disabled={kpis.unread === 0}
+            disabled={kpis.unread === 0 || updateMutation.isPending}
           >
-            <CheckCheck className="h-3.5 w-3.5" />
+            {updateMutation.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <CheckCheck className="h-3.5 w-3.5" />
+            )}
             تحديد الكل كمقروء
           </Button>
           <Button
@@ -1053,9 +715,13 @@ export default function NotificationsPage() {
             size="sm"
             className="h-8 text-xs gap-1.5"
             onClick={deleteRead}
-            disabled={kpis.read === 0}
+            disabled={kpis.read === 0 || deleteMutation.isPending}
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            {deleteMutation.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="h-3.5 w-3.5" />
+            )}
             حذف المقروء
           </Button>
         </div>
@@ -1098,7 +764,7 @@ export default function NotificationsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="date">التاريخ</SelectItem>
-                <SelectItem value="category">الفئة</SelectItem>
+                <SelectItem value="doctype">نوع المستند</SelectItem>
                 <SelectItem value="none">بدون تجميع</SelectItem>
               </SelectContent>
             </Select>
@@ -1121,19 +787,30 @@ export default function NotificationsPage() {
         {/* قائمة الإشعارات */}
         {filteredNotifications.length === 0 ? (
           <EmptyState hasActiveFilters={hasActiveFilters} onClearFilters={clearFilters} />
+        ) : groupBy === 'none' ? (
+          <div className="space-y-2">
+            {filteredNotifications.map((n) => (
+              <NotificationCard
+                key={n.name}
+                notification={n}
+                onMarkAsRead={markAsRead}
+                onDelete={deleteNotification}
+              />
+            ))}
+          </div>
         ) : groupBy === 'date' && groupedByDate ? (
           <div className="space-y-6">
-            {groupedByDate.map(([groupLabel, items]) => (
-              <div key={groupLabel}>
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="text-sm font-semibold text-foreground">{groupLabel}</h3>
-                  <div className="h-px flex-1 bg-border/40" />
-                  <span className="text-[10px] text-muted-foreground">{items.length} إشعار</span>
-                </div>
+            {groupedByDate.map(([group, items]) => (
+              <div key={group}>
+                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  {group}
+                  <span className="text-[10px] text-muted-foreground font-normal">({items.length})</span>
+                </h3>
                 <div className="space-y-2">
                   {items.map((n) => (
                     <NotificationCard
-                      key={n.id}
+                      key={n.name}
                       notification={n}
                       onMarkAsRead={markAsRead}
                       onDelete={deleteNotification}
@@ -1143,31 +820,22 @@ export default function NotificationsPage() {
               </div>
             ))}
           </div>
-        ) : groupBy === 'category' && groupedByCategory ? (
+        ) : groupedByDoctype ? (
           <div className="space-y-6">
-            {groupedByCategory.map(([catKey, items]) => {
-              const catConfig = CATEGORY_CONFIG[catKey];
-              const CatIcon = catConfig.icon;
+            {groupedByDoctype.map(([dt, items]) => {
+              const config = getDoctypeConfig(dt);
+              const Icon = config.icon;
               return (
-                <div key={catKey}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div
-                      className={cn(
-                        'flex h-6 w-6 items-center justify-center rounded',
-                        catConfig.bg,
-                        catConfig.color
-                      )}
-                    >
-                      <CatIcon className="h-3.5 w-3.5" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-foreground">{catConfig.label}</h3>
-                    <div className="h-px flex-1 bg-border/40" />
-                    <span className="text-[10px] text-muted-foreground">{items.length} إشعار</span>
-                  </div>
+                <div key={dt}>
+                  <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <Icon className={cn('h-4 w-4', config.color)} />
+                    {config.label}
+                    <span className="text-[10px] text-muted-foreground font-normal">({items.length})</span>
+                  </h3>
                   <div className="space-y-2">
                     {items.map((n) => (
                       <NotificationCard
-                        key={n.id}
+                        key={n.name}
                         notification={n}
                         onMarkAsRead={markAsRead}
                         onDelete={deleteNotification}
@@ -1178,120 +846,63 @@ export default function NotificationsPage() {
               );
             })}
           </div>
-        ) : (
-          <div className="space-y-2">
-            {filteredNotifications.map((n) => (
-              <NotificationCard
-                key={n.id}
-                notification={n}
-                onMarkAsRead={markAsRead}
-                onDelete={deleteNotification}
-              />
-            ))}
-          </div>
-        )}
+        ) : null}
       </div>
 
-      {/* ──────────────────────────────────────────────
-          حوار تفضيلات الإشعارات
-          ────────────────────────────────────────────── */}
+      {/* ── حوار التفضيلات ── */}
       <Dialog open={preferencesOpen} onOpenChange={setPreferencesOpen}>
-        <DialogContent className="max-w-lg" dir="rtl">
+        <DialogContent dir="rtl" className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5 text-primary" />
-              تفضيلات الإشعارات
-            </DialogTitle>
+            <DialogTitle>تفضيلات الإشعارات</DialogTitle>
           </DialogHeader>
-
-          <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
-            {(Object.entries(CATEGORY_CONFIG) as [NotificationCategory, typeof CATEGORY_CONFIG[NotificationCategory]][]).map(
-              ([catKey, catCfg]) => {
-                const pref = preferences[catKey];
-                const CatIcon = catCfg.icon;
-                return (
-                  <Card key={catKey} className={cn('border', !pref.enabled && 'opacity-50')}>
-                    <CardContent className="p-4 space-y-3">
-                      {/* رأس الفئة */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className={cn(
-                              'flex h-8 w-8 items-center justify-center rounded-lg',
-                              catCfg.bg,
-                              catCfg.color
-                            )}
-                          >
-                            <CatIcon className="h-4 w-4" />
-                          </div>
-                          <span className="text-sm font-semibold">{catCfg.label}</span>
-                        </div>
-                        <Switch
-                          checked={pref.enabled}
-                          onCheckedChange={() => togglePreference(catKey, 'enabled')}
-                          aria-label={`تفعيل إشعارات ${catCfg.label}`}
-                        />
-                      </div>
-
-                      {/* خيارات الإشعار */}
-                      {pref.enabled && (
-                        <div className="flex items-center gap-6 ps-10">
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              id={`email-${catKey}`}
-                              checked={pref.email}
-                              onCheckedChange={() => togglePreference(catKey, 'email')}
-                            />
-                            <Label
-                              htmlFor={`email-${catKey}`}
-                              className="text-xs text-muted-foreground flex items-center gap-1 cursor-pointer"
-                            >
-                              <Mail className="h-3 w-3" />
-                              بريد إلكتروني
-                            </Label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              id={`sms-${catKey}`}
-                              checked={pref.sms}
-                              onCheckedChange={() => togglePreference(catKey, 'sms')}
-                            />
-                            <Label
-                              htmlFor={`sms-${catKey}`}
-                              className="text-xs text-muted-foreground flex items-center gap-1 cursor-pointer"
-                            >
-                              <MessageSquare className="h-3 w-3" />
-                              SMS
-                            </Label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              id={`inapp-${catKey}`}
-                              checked={pref.inApp}
-                              onCheckedChange={() => togglePreference(catKey, 'inApp')}
-                            />
-                            <Label
-                              htmlFor={`inapp-${catKey}`}
-                              className="text-xs text-muted-foreground flex items-center gap-1 cursor-pointer"
-                            >
-                              <Bell className="h-3 w-3" />
-                              داخل النظام
-                            </Label>
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              }
+          <div className="space-y-3 py-2 max-h-96 overflow-y-auto">
+            {uniqueDoctypes.map((dt) => {
+              const config = getDoctypeConfig(dt);
+              const Icon = config.icon;
+              const pref = preferences[dt] || { enabled: true, email: true, inApp: true };
+              return (
+                <div
+                  key={dt}
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border/40"
+                >
+                  <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1', config.bg, config.ring)}>
+                    <Icon className={cn('h-4 w-4', config.color)} />
+                  </div>
+                  <span className="text-sm font-medium flex-1">{config.label}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5">
+                      <Label className="text-[10px]">بريد</Label>
+                      <Switch
+                        checked={pref.email}
+                        onCheckedChange={() => togglePreference(dt, 'email')}
+                        className="scale-75"
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Label className="text-[10px]">داخلي</Label>
+                      <Switch
+                        checked={pref.inApp}
+                        onCheckedChange={() => togglePreference(dt, 'inApp')}
+                        className="scale-75"
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {uniqueDoctypes.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                لا توجد أنواع مستندات بعد. ستظهر عند وجود إشعارات.
+              </p>
             )}
           </div>
-
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setPreferencesOpen(false)}>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreferencesOpen(false)} className="text-xs">
               إلغاء
             </Button>
-            <Button onClick={savePreferences}>حفظ التفضيلات</Button>
+            <Button onClick={savePreferences} className="text-xs">
+              حفظ التفضيلات
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
