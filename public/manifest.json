@@ -1,0 +1,17 @@
+{
+  "name": "ERP Pro - نظام إدارة موارد المؤسسة",
+  "short_name": "ERP Pro",
+  "description": "نظام إدارة موارد المؤسسة المتكامل - محاسبة، مبيعات، مشتريات، مخزون، موارد بشرية",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "dir": "rtl",
+  "lang": "ar",
+  "orientation": "any",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "categories": ["business", "finance", "productivity"]
+}

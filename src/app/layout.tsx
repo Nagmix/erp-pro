@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cairo, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
+import { PwaRegister } from "@/components/erp/pwa-register";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -19,10 +20,15 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: "ERP Pro - نظام إدارة موارد المؤسسات",
   description: "نظام إدارة موارد المؤسسات المتكامل - ERP Pro",
+  manifest: "/manifest.json",
   icons: {
     icon: "/favicon.ico",
     apple: "/logo.svg",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#2563eb",
 };
 
 export default function RootLayout({
@@ -37,6 +43,7 @@ export default function RootLayout({
       >
         <Providers>
           {children}
+          <PwaRegister />
         </Providers>
         <Toaster
           position="top-left"

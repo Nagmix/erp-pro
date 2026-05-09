@@ -27,6 +27,11 @@ export const SYSTEM_MODULES: SystemModule[] = [
       { id: 'financial-statements', name: 'Financial Statements', nameAr: 'القوائم المالية', path: '/accounting/financial-statements', doctype: 'GL Entry' },
       { id: 'cash-flow', name: 'Cash Flow', nameAr: 'التدفقات النقدية', path: '/accounting/cash-flow' },
       { id: 'advanced-reports', name: 'Advanced Reports', nameAr: 'التقارير المحاسبية', path: '/accounting/advanced-reports', doctype: 'GL Entry' },
+      { id: 'accounting-dashboard', name: 'Accounting Dashboard', nameAr: 'لوحة التحكم', path: '/accounting/dashboard' },
+      { id: 'trial-balance', name: 'Trial Balance', nameAr: 'ميزان المراجعة', path: '/accounting/trial-balance' },
+      { id: 'aging-report', name: 'Aging Report', nameAr: 'أعمار الذمم', path: '/accounting/aging-report' },
+      { id: 'profit-loss-monthly', name: 'Profit & Loss Monthly', nameAr: 'الأرباح والخسائر الشهرية', path: '/accounting/profit-loss-monthly' },
+      { id: 'tax-report', name: 'Tax Report', nameAr: 'التقرير الضريبي', path: '/accounting/tax-report' },
       { id: 'budgets', name: 'Budgets', nameAr: 'إدارة الميزانيات', path: '/accounting/budgets', doctype: 'Budget' },
       { id: 'multi-currency', name: 'Multi Currency', nameAr: 'متعدد العملات', path: '/accounting/multi-currency' },
     ],
@@ -42,6 +47,10 @@ export const SYSTEM_MODULES: SystemModule[] = [
           { id: 'op-bank-reconciliation', nameAr: 'التسوية البنكية', path: '/accounting/bank-reconciliation' },
           { id: 'op-recurring-entries', nameAr: 'القيود المتكررة', path: '/accounting/recurring-entries' },
           { id: 'op-vault-permissions', nameAr: 'صلاحيات الخزائن', path: '/accounting/vault-permissions' },
+          { id: 'op-trial-balance', nameAr: 'ميزان المراجعة التفصيلي', path: '/accounting/trial-balance' },
+          { id: 'op-aging-report', nameAr: 'أعمار الذمم', path: '/accounting/aging-report' },
+          { id: 'op-profit-loss-monthly', nameAr: 'أرباح وخسائر شهرية', path: '/accounting/profit-loss-monthly' },
+          { id: 'op-tax-report', nameAr: 'التقرير الضريبي', path: '/accounting/tax-report' },
         ],
       },
       {
@@ -67,6 +76,7 @@ export const SYSTEM_MODULES: SystemModule[] = [
     path: '/sales',
     color: 'green',
     subModules: [
+      { id: 'sales-dashboard', name: 'Sales Dashboard', nameAr: 'لوحة التحكم', path: '/sales/dashboard' },
       { id: 'sales-invoices', name: 'Sales Invoices', nameAr: 'فواتير المبيعات', path: '/sales/sales-invoices', doctype: 'Sales Invoice' },
       { id: 'customers', name: 'Customers', nameAr: 'العملاء', path: '/sales/customers', doctype: 'Customer' },
       { id: 'quotations', name: 'Quotations', nameAr: 'عروض الأسعار', path: '/sales/quotations', doctype: 'Quotation' },
@@ -111,6 +121,9 @@ export const SYSTEM_MODULES: SystemModule[] = [
       { id: 'pos-sessions', name: 'POS Sessions', nameAr: 'إدارة الورديات', path: '/pos/sessions', doctype: 'POS Opening Entry' },
       { id: 'pos-invoices', name: 'POS Invoices', nameAr: 'فواتير نقطة البيع', path: '/pos/invoices', doctype: 'POS Invoice' },
       { id: 'pos-settings', name: 'POS Settings', nameAr: 'إعدادات نقاط البيع', path: '/pos/settings', doctype: 'POS Profile' },
+      { id: 'pos-returns', name: 'POS Returns', nameAr: 'المرتجعات', path: '/pos/returns' },
+      { id: 'pos-past-orders', name: 'Past Orders', nameAr: 'طلبات سابقة', path: '/pos/past-orders' },
+      { id: 'pos-reports', name: 'POS Reports', nameAr: 'تقارير', path: '/pos/reports' },
     ],
     settingsGroups: [
       {
@@ -138,6 +151,7 @@ export const SYSTEM_MODULES: SystemModule[] = [
     path: '/purchases',
     color: 'amber',
     subModules: [
+      { id: 'purchases-dashboard', name: 'Purchases Dashboard', nameAr: 'لوحة التحكم', path: '/purchases/dashboard' },
       { id: 'purchase-invoices', name: 'Purchase Invoices', nameAr: 'فواتير المشتريات', path: '/purchases/purchase-invoices', doctype: 'Purchase Invoice' },
       { id: 'purchase-suppliers', name: 'Suppliers', nameAr: 'الموردون', path: '/purchases/suppliers', doctype: 'Supplier' },
       { id: 'purchase-orders-p', name: 'Purchase Orders', nameAr: 'أوامر الشراء', path: '/purchases/purchase-orders', doctype: 'Purchase Order' },
@@ -166,6 +180,7 @@ export const SYSTEM_MODULES: SystemModule[] = [
     path: '/inventory',
     color: 'orange',
     subModules: [
+      { id: 'inventory-dashboard', name: 'Inventory Dashboard', nameAr: 'لوحة التحكم', path: '/inventory/dashboard' },
       { id: 'items', name: 'Items', nameAr: 'الأصناف', path: '/inventory/items', doctype: 'Item' },
       { id: 'warehouses', name: 'Warehouses', nameAr: 'المستودعات', path: '/inventory/warehouses', doctype: 'Warehouse' },
       { id: 'stock-entry', name: 'Stock Entry', nameAr: 'حركة المخزون', path: '/inventory/stock-entry', doctype: 'Stock Entry' },
@@ -197,6 +212,7 @@ export const SYSTEM_MODULES: SystemModule[] = [
     path: '/hr',
     color: 'purple',
     subModules: [
+      { id: 'hr-dashboard', name: 'HR Dashboard', nameAr: 'لوحة التحكم', path: '/hr/dashboard' },
       { id: 'employees', name: 'Employees', nameAr: 'الموظفين', path: '/hr/employees', doctype: 'Employee' },
       { id: 'attendance', name: 'Attendance', nameAr: 'الحضور والانصراف', path: '/hr/attendance', doctype: 'Attendance' },
       { id: 'leave-applications', name: 'Leave Applications', nameAr: 'طلبات الإجازة', path: '/hr/leave-applications', doctype: 'Leave Application' },
