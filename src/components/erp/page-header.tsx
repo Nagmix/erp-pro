@@ -117,13 +117,14 @@ export function KpiStrip({
 }: {
   children: React.ReactNode;
   className?: string;
-  cols?: 2 | 3 | 4 | 5;
+  cols?: 2 | 3 | 4 | 5 | 6;
 }) {
   const colClasses: Record<number, string> = {
     2: 'grid-cols-1 sm:grid-cols-2',
     3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
     4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
     5: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5',
+    6: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6',
   };
   return (
     <div className={cn('grid gap-3 lg:gap-4 mb-5', colClasses[cols], className)}>
