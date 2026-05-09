@@ -22,7 +22,7 @@ import { useDocList, useCreateDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { buildMinimalPosProfile } from '@/lib/erp/erpnext-payloads';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 type PosProfileRow = {
   name: string;
@@ -74,7 +74,6 @@ const columns: Column<PosProfileRow>[] = [
 ];
 
 export default function PosProfilesSettingsPage() {
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
   const [createOpen, setCreateOpen] = useState(false);
   const [warehouse, setWarehouse] = useState('');
@@ -104,15 +103,15 @@ export default function PosProfilesSettingsPage() {
   const handleCreate = async () => {
     const co = defaultCompany?.trim();
     if (!co) {
-      toast({ title: 'اضبط الشركة الافتراضية من الإعدادات', variant: 'destructive' });
+      toast.error('اضبط الشركة الافتراضية من الإعدادات');
       return;
     }
     if (!warehouse.trim() || !priceList.trim()) {
-      toast({ title: 'المستودع وقائمة الأسعار مطلوبان', variant: 'destructive' });
+      toast.error('المستودع وقائمة الأسعار مطلوبان');
       return;
     }
     if (!payMode.trim()) {
-      toast({ title: 'اختر وسيلة دفع افتراضية', variant: 'destructive' });
+      toast.error('اختر وسيلة دفع افتراضية');
       return;
     }
     try {
@@ -128,19 +127,12 @@ export default function PosProfilesSettingsPage() {
         created && typeof created === 'object' && created !== null && 'name' in created
           ? String((created as { name?: string }).name ?? '').trim()
           : '';
-      toast({
-        title: 'تم إنشاء ملف نقطة البيع',
-        description: name || undefined,
-      });
+      toast.success('تم إنشاء ملف نقطة البيع', { description: name || undefined });
       setCreateOpen(false);
       resetForm();
       void refetch();
     } catch (e) {
-      toast({
-        title: 'فشل الإنشاء',
-        description: e instanceof Error ? e.message : undefined,
-        variant: 'destructive',
-      });
+      toast.error('فشل الإنشاء', { description: e instanceof Error ? e.message : undefined });
     }
   };
 

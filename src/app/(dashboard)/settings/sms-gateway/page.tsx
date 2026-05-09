@@ -38,7 +38,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatDate } from '@/lib/app-format';
 import {
   useDocList,
@@ -120,8 +120,6 @@ const CHANNEL_OPTIONS = [
 ];
 
 export default function SmsGatewayPage() {
-  const { toast } = useToast();
-
   /* ─── ERPNext Data Hooks ─── */
   // SMS Gateway list
   const {
@@ -240,16 +238,16 @@ export default function SmsGatewayPage() {
           receiver_parameter: settingsForm.receiver_parameter || '',
         },
       });
-      toast({ title: 'تم حفظ إعدادات SMS' });
+      toast.success('تم حفظ إعدادات SMS');
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل حفظ الإعدادات', description: msg, variant: 'destructive' });
+      toast.error('فشل حفظ الإعدادات', { description: msg });
     }
   };
 
   const testSms = async () => {
     if (!settingsForm.sms_gateway_url) {
-      toast({ title: 'أدخل رابط البوابة أولاً', variant: 'destructive' });
+      toast.error('أدخل رابط البوابة أولاً');
       return;
     }
     setTesting(true);
@@ -264,12 +262,12 @@ export default function SmsGatewayPage() {
       });
       const result = await res.json();
       if (result.success) {
-        toast({ title: 'تم اختبار الاتصال بالبوابة بنجاح' });
+        toast.success('تم اختبار الاتصال بالبوابة بنجاح');
       } else {
-        toast({ title: 'فشل اختبار الاتصال', description: result.error || 'خطأ غير معروف', variant: 'destructive' });
+        toast.error('فشل اختبار الاتصال', { description: result.error || 'خطأ غير معروف' });
       }
     } catch {
-      toast({ title: 'فشل الاتصال بالخادم', variant: 'destructive' });
+      toast.error('فشل الاتصال بالخادم');
     } finally {
       setTesting(false);
     }
@@ -290,7 +288,7 @@ export default function SmsGatewayPage() {
 
   const saveGateway = async () => {
     if (!gwForm.gateway_name?.trim() || !gwForm.gateway_url?.trim()) {
-      toast({ title: 'أدخل اسم البوابة والرابط', variant: 'destructive' });
+      toast.error('أدخل اسم البوابة والرابط');
       return;
     }
     try {
@@ -306,7 +304,7 @@ export default function SmsGatewayPage() {
             use_csrf: gwForm.use_csrf ? 1 : 0,
           },
         });
-        toast({ title: 'تم تحديث البوابة' });
+        toast.success('تم تحديث البوابة');
       } else {
         await createGateway.mutateAsync({
           doctype: 'SMS Gateway',
@@ -317,12 +315,12 @@ export default function SmsGatewayPage() {
           use_post: gwForm.use_post ? 1 : 0,
           use_csrf: gwForm.use_csrf ? 1 : 0,
         });
-        toast({ title: 'تم إنشاء البوابة' });
+        toast.success('تم إنشاء البوابة');
       }
       setGwDialog(null);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل حفظ البوابة', description: msg, variant: 'destructive' });
+      toast.error('فشل حفظ البوابة', { description: msg });
     }
   };
 
@@ -331,14 +329,14 @@ export default function SmsGatewayPage() {
     try {
       if (toDelete.type === 'gateway') {
         await deleteGateway.mutateAsync(toDelete.name);
-        toast({ title: 'تم حذف البوابة' });
+        toast.success('تم حذف البوابة');
       } else {
         await deleteNotif.mutateAsync(toDelete.name);
-        toast({ title: 'تم حذف قاعدة الإرسال' });
+        toast.success('تم حذف قاعدة الإرسال');
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل الحذف', description: msg, variant: 'destructive' });
+      toast.error('فشل الحذف', { description: msg });
     }
     setDeleteDialog(false);
     setToDelete(null);
@@ -365,7 +363,7 @@ export default function SmsGatewayPage() {
 
   const saveNotif = async () => {
     if (!notifForm.subject?.trim()) {
-      toast({ title: 'أدخل عنوان القاعدة', variant: 'destructive' });
+      toast.error('أدخل عنوان القاعدة');
       return;
     }
     try {
@@ -381,7 +379,7 @@ export default function SmsGatewayPage() {
             enabled: editingNotif.enabled ?? 1,
           },
         });
-        toast({ title: 'تم تحديث قاعدة الإرسال' });
+        toast.success('تم تحديث قاعدة الإرسال');
       } else {
         const nm = notifForm.subject.trim().replace(/\s+/g, '-');
         await createNotif.mutateAsync({
@@ -396,12 +394,12 @@ export default function SmsGatewayPage() {
           condition_type: 'Python',
           send_to_all_assignees: 1,
         });
-        toast({ title: 'تم إنشاء قاعدة الإرسال' });
+        toast.success('تم إنشاء قاعدة الإرسال');
       }
       setNotifDialog(null);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل حفظ القاعدة', description: msg, variant: 'destructive' });
+      toast.error('فشل حفظ القاعدة', { description: msg });
     }
   };
 

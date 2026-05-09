@@ -31,7 +31,7 @@ import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildSalesOrder, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -93,7 +93,6 @@ export default function SalesOrdersPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); };
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
 
@@ -139,19 +138,19 @@ export default function SalesOrdersPage() {
 
   const handleCreate = () => {
     if (!customer) {
-      toast({ title: 'اختر العميل', variant: 'destructive' });
+      toast.error('اختر العميل');
       return;
     }
     if (!defaultCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (lines.some((l) => l.item_code && !l.warehouse)) {
-      toast({ title: 'أدخل مستودعاً لكل بند', variant: 'destructive' });
+      toast.error('أدخل مستودعاً لكل بند');
       return;
     }
     if (lines.every((l) => !l.item_code)) {
-      toast({ title: 'أضف صنفاً', variant: 'destructive' });
+      toast.error('أضف صنفاً');
       return;
     }
     const doc = buildSalesOrder({
@@ -173,7 +172,7 @@ export default function SalesOrdersPage() {
           warehouse: l.warehouse}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء أمر البيع' });
+        toast.success('تم إنشاء أمر البيع');
         setDialogOpen(false);
         setCustomer('');
         setLines([emptyLine()]);
@@ -182,7 +181,7 @@ export default function SalesOrdersPage() {
         setConversionRate(1);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' })});
+      onError: () => toast.error('تعذر الحفظ')});
   };
 
   const mapAndInsert = useCallback(
@@ -193,10 +192,10 @@ export default function SalesOrdersPage() {
         if (!mapped) throw new Error('لا استجابة');
         const body = prepareFrappeDocForCreate(mapped);
         await apiCreateDoc(targetDoctype, body);
-        toast({ title: okMsg });
+        toast.success(okMsg);
         void queryClient.invalidateQueries({ queryKey: ['docList', targetDoctype] });
       } catch (e) {
-        toast({ title: (e as Error).message || 'تعذر التحويل', variant: 'destructive' });
+        toast.error((e as Error).message || 'تعذر التحويل');
       } finally {
         setPending(null);
       }
@@ -295,8 +294,8 @@ export default function SalesOrdersPage() {
                   disabled={submitMutation.isPending}
                   onClick={() =>
                     submitMutation.mutate(row.name, {
-                      onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                      onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                      onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                      onError: () => toast.error('تعذر الترحيل')})
                   }
                 >
                   <Send className="h-3 w-3" />
@@ -323,8 +322,8 @@ export default function SalesOrdersPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'أُلغي الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الإلغاء', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('أُلغي الترحيل'); void refetch(); },
+                    onError: () => toast.error('تعذر الإلغاء')})
                 }
               >
                 <Undo2 className="h-3 w-3" />
@@ -660,8 +659,8 @@ export default function SalesOrdersPage() {
               onClick={() => {
                 if (selectedOrder) {
                   deleteMutation.mutate(selectedOrder.name, {
-                    onSuccess: () => { toast({ title: 'تم حذف أمر البيع' }); void refetch(); },
-                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+                    onSuccess: () => { toast.success('تم حذف أمر البيع'); void refetch(); },
+                    onError: () => toast.error('حدث خطأ أثناء الحذف')});
                   setDeleteDialogOpen(false);
                 }
               }}

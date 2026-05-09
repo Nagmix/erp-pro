@@ -46,7 +46,7 @@ import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
 import { formatDate, formatNumber, formatCurrency } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildLandedCostVoucher } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -109,7 +109,6 @@ const DOC_STATUS_OPTIONS = [
 /* ──────────────── Component ──────────────── */
 
 export default function LandedCostVoucherPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
 
   /* Dialog state */
@@ -263,11 +262,11 @@ export default function LandedCostVoucherPage() {
                   onClick={() =>
                     submitMutation.mutate(row.name, {
                       onSuccess: () => {
-                        toast({ title: 'تم الترحيل بنجاح' });
+                        toast.success('تم الترحيل بنجاح');
                         void refetch();
                       },
                       onError: () =>
-                        toast({ title: 'تعذر الترحيل', variant: 'destructive' }),
+                        toast.error('تعذر الترحيل'),
                     })
                   }
                 >
@@ -296,11 +295,11 @@ export default function LandedCostVoucherPage() {
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => {
-                      toast({ title: 'تم إلغاء المستند' });
+                      toast.success('تم إلغاء المستند');
                       void refetch();
                     },
                     onError: () =>
-                      toast({ title: 'تعذر الإلغاء', variant: 'destructive' }),
+                      toast.error('تعذر الإلغاء'),
                   })
                 }
               >
@@ -320,17 +319,17 @@ export default function LandedCostVoucherPage() {
   const handleCreate = () => {
     const useCompany = selectedCompany || company;
     if (!useCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     const validReceipts = receipts.filter((r) => r.receipt_document);
     if (validReceipts.length === 0) {
-      toast({ title: 'حدد إيصال استلام واحد على الأقل', variant: 'destructive' });
+      toast.error('حدد إيصال استلام واحد على الأقل');
       return;
     }
     const validTaxes = taxes.filter((t) => t.expense_account && Number(t.amount) > 0);
     if (validTaxes.length === 0) {
-      toast({ title: 'أضف بند تكلفة واحد على الأقل مع مبلغ أكبر من صفر', variant: 'destructive' });
+      toast.error('أضف بند تكلفة واحد على الأقل مع مبلغ أكبر من صفر');
       return;
     }
 
@@ -355,7 +354,7 @@ export default function LandedCostVoucherPage() {
     });
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء مستند التكلفة الإضافية' });
+        toast.success('تم إنشاء مستند التكلفة الإضافية');
         setDialogOpen(false);
         setReceipts([emptyReceipt()]);
         setTaxes([emptyTax()]);
@@ -364,10 +363,7 @@ export default function LandedCostVoucherPage() {
         void refetch();
       },
       onError: () =>
-        toast({
-          title: 'تعذر الحفظ — راجع صلاحيات الحساب وإيصال الاستلام',
-          variant: 'destructive',
-        }),
+        toast.error('تعذر الحفظ — راجع صلاحيات الحساب وإيصال الاستلام'),
     });
   };
 
@@ -534,12 +530,12 @@ export default function LandedCostVoucherPage() {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
                   onSuccess: () => {
-                    toast({ title: 'تم حذف المستند' });
+                    toast.success('تم حذف المستند');
                     setDeleteName(null);
                     void refetch();
                   },
                   onError: () =>
-                    toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+                    toast.error('تعذر الحذف'),
                 });
               }}
             >

@@ -38,7 +38,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { useDocList, useCreateDoc, useSubmitDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatNumber, formatDate, STATUS_COLORS } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Clock,
   Play,
@@ -131,7 +131,6 @@ function getSessionState(row: PosSessionRow): 'open' | 'closed' | 'cancelled' {
    ──────────────────────────────────────────────── */
 
 export default function PosSessionsListPage() {
-  const { toast } = useToast();
   const { company } = useDefaultCompanyName();
 
   /* ── حالة الفلاتر ── */
@@ -207,12 +206,12 @@ export default function PosSessionsListPage() {
 
   const handleOpenSession = () => {
     if (!openProfile) {
-      toast({ title: 'اختر ملف نقطة البيع', variant: 'destructive' });
+      toast.error('اختر ملف نقطة البيع');
       return;
     }
     const selCompany = openCompany || company;
     if (!selCompany) {
-      toast({ title: 'حدد الشركة', variant: 'destructive' });
+      toast.error('حدد الشركة');
       return;
     }
     createMutation.mutate(
@@ -229,7 +228,7 @@ export default function PosSessionsListPage() {
           if (docName) {
             submitMutation.mutate(String(docName), {
               onSuccess: () => {
-                toast({ title: 'تم فتح الوردية بنجاح' });
+                toast.success('تم فتح الوردية بنجاح');
                 setOpenDialogOpen(false);
                 setOpenProfile('');
                 setOpenBalance('0');
@@ -237,19 +236,19 @@ export default function PosSessionsListPage() {
                 void refetch();
               },
               onError: () => {
-                toast({ title: 'تم الإنشاء لكن فشل الترحيل', variant: 'destructive' });
+                toast.error('تم الإنشاء لكن فشل الترحيل');
                 setOpenDialogOpen(false);
                 void refetch();
               },
             });
           } else {
-            toast({ title: 'تم فتح الوردية' });
+            toast.success('تم فتح الوردية');
             setOpenDialogOpen(false);
             void refetch();
           }
         },
         onError: () => {
-          toast({ title: 'تعذر فتح الوردية', variant: 'destructive' });
+          toast.error('تعذر فتح الوردية');
         },
       },
     );
@@ -258,7 +257,7 @@ export default function PosSessionsListPage() {
   /* ── إغلاق وردية ── */
   const handleCloseSession = () => {
     if (!closeSessionName) {
-      toast({ title: 'حدد الجلسة للإغلاق', variant: 'destructive' });
+      toast.error('حدد الجلسة للإغلاق');
       return;
     }
     // البحث عن إغلاق موجود
@@ -268,13 +267,13 @@ export default function PosSessionsListPage() {
     if (existingClose) {
       submitMutation.mutate(existingClose.name, {
         onSuccess: () => {
-          toast({ title: 'تم إغلاق الوردية بنجاح' });
+          toast.success('تم إغلاق الوردية بنجاح');
           setCloseDialogOpen(false);
           setCloseSessionName('');
           setCloseBalance('');
           void refetch();
         },
-        onError: () => toast({ title: 'فشل ترحيل الإغلاق', variant: 'destructive' }),
+        onError: () => toast.error('فشل ترحيل الإغلاق'),
       });
       return;
     }
@@ -291,17 +290,17 @@ export default function PosSessionsListPage() {
           if (docName) {
             submitMutation.mutate(String(docName), {
               onSuccess: () => {
-                toast({ title: 'تم إغلاق الوردية بنجاح' });
+                toast.success('تم إغلاق الوردية بنجاح');
                 setCloseDialogOpen(false);
                 setCloseSessionName('');
                 setCloseBalance('');
                 void refetch();
               },
-              onError: () => toast({ title: 'فشل ترحيل الإغلاق', variant: 'destructive' }),
+              onError: () => toast.error('فشل ترحيل الإغلاق'),
             });
           }
         },
-        onError: () => toast({ title: 'تعذر إغلاق الوردية', variant: 'destructive' }),
+        onError: () => toast.error('تعذر إغلاق الوردية'),
       },
     );
   };

@@ -387,7 +387,7 @@ export default function ActivitiesPage() {
             <TabsTrigger value="all" className="text-xs px-3 gap-1.5">
               <Activity className="h-3.5 w-3.5" />
               الكل
-              <Badge variant="outline" className="h-4 px-1 text-[9px] ml-1">{totalActivities}</Badge>
+              <Badge variant="outline" className="h-4 px-1 text-[9px] ms-1">{totalActivities}</Badge>
             </TabsTrigger>
             <TabsTrigger value="Phone" className="text-xs px-3 gap-1.5">
               <Phone className="h-3.5 w-3.5" />

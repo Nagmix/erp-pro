@@ -33,7 +33,7 @@ import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -110,8 +110,6 @@ export default function ExpensesPage() {
   const [importLines, setImportLines] = useState<ParsedExpenseLine[]>([]);
   const [importLoading, setImportLoading] = useState(false);
   const [importFileLoading, setImportFileLoading] = useState(false);
-
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: companyLoading } = useDefaultCompanyName();
   const { data, isLoading, isError, error, refetch } = useDocList<ExpenseRow>('Expense Claim', {
     fields: [
@@ -230,11 +228,11 @@ export default function ExpensesPage() {
 
   const handleCreate = (formData: ExpenseFormOutput) => {
     if (items.every((i) => !i.expense_type)) {
-      toast({ title: 'يرجى إضافة بند مصروف واحد على الأقل', variant: 'destructive' });
+      toast.error('يرجى إضافة بند مصروف واحد على الأقل');
       return;
     }
     if (!defaultCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     const doc = buildExpenseClaimCreate({
@@ -253,20 +251,20 @@ export default function ExpensesPage() {
         cost_center: i.cost_center?.trim() || formData.cost_center?.trim() || undefined}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء مطالبة المصروفات بنجاح' });
+        toast.success('تم إنشاء مطالبة المصروفات بنجاح');
         setDialogOpen(false);
         const t = new Date().toISOString().split('T')[0]!;
         form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1 });
         setItems([emptyItem(t)]);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء إنشاء مطالبة المصروفات', variant: 'destructive' })});
+      onError: () => toast.error('حدث خطأ أثناء إنشاء مطالبة المصروفات')});
   };
 
   const applyExpenseLinesFromExcel = async (buffer: ArrayBuffer) => {
     const { parseExpenseImportXlsx } = await import('@/lib/erp/parse-expense-import-xlsx');
     const rows = await parseExpenseImportXlsx(buffer);
     if (!rows.length) {
-      toast({ title: 'لم تُستخرج بنود من الملف', variant: 'destructive' });
+      toast.error('لم تُستخرج بنود من الملف');
       return;
     }
     const baseDate = form.getValues('posting_date') || new Date().toISOString().split('T')[0]!;
@@ -278,18 +276,18 @@ export default function ExpensesPage() {
         description: r.description,
         cost_center: r.cost_center}))
     );
-    toast({ title: `تم استيراد ${rows.length} بنداً من Excel` });
+    toast.success(`تم استيراد ${rows.length} بنداً من Excel`);
   };
 
   const handleDelete = () => {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف المطالبة بنجاح' });
+        toast.success('تم حذف المطالبة بنجاح');
         setDeleteDialogOpen(false);
         setSelected(null);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+      onError: () => toast.error('حدث خطأ أثناء الحذف')});
   };
   const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setSearch(''); setExpenseStatusFilter('all'); };
 
@@ -401,7 +399,7 @@ export default function ExpensesPage() {
         onEdit={(row) => {
           const href = docDetailPath('Expense Claim', row.name);
           if (href) router.push(href);
-          else toast({ title: 'تعذر فتح التفصيل' });
+          else toast.success('تعذر فتح التفصيل');
         }}
         onDelete={(row) => {
           setSelected(row);
@@ -593,13 +591,13 @@ export default function ExpensesPage() {
                 const { parseExpenseImportXlsx } = await import('@/lib/erp/parse-expense-import-xlsx');
                 const rows = await parseExpenseImportXlsx(buf);
                 if (!rows.length) {
-                  toast({ title: 'لم تُستخرج بنود من الملف', variant: 'destructive' });
+                  toast.error('لم تُستخرج بنود من الملف');
                 } else {
                   setImportLines(rows);
-                  toast({ title: `تم استخراج ${rows.length} بنداً من الملف` });
+                  toast.success(`تم استخراج ${rows.length} بنداً من الملف`);
                 }
               } catch {
-                toast({ title: 'فشل قراءة الملف', variant: 'destructive' });
+                toast.error('فشل قراءة الملف');
               } finally {
                 setImportFileLoading(false);
                 e.target.value = '';
@@ -715,12 +713,12 @@ export default function ExpensesPage() {
                     })),
                   });
                   await apiCreateDoc('Expense Claim', doc);
-                  toast({ title: `تم إنشاء مطالبة مصروفات بنجاح (${importLines.length} بنداً)` });
+                  toast.success(`تم إنشاء مطالبة مصروفات بنجاح (${importLines.length} بنداً)`);
                   setImportDialogOpen(false);
                   setImportLines([]);
                   void refetch();
                 } catch (err: any) {
-                  toast({ title: 'فشل إنشاء المطالبة', description: err?.message || 'خطأ غير معروف', variant: 'destructive' });
+                  toast.error('فشل إنشاء المطالبة', { description: err?.message || 'خطأ غير معروف' });
                 } finally {
                   setImportLoading(false);
                 }

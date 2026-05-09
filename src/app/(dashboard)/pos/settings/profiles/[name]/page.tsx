@@ -15,7 +15,7 @@ import { PageHeader } from '@/components/erp/page-header';
 import { useDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 function num01(v: unknown): boolean {
   return v === 1 || v === true || v === '1';
@@ -34,7 +34,6 @@ export default function PosProfileDetailSettingsPage() {
   const params = useParams();
   const raw = typeof params?.name === 'string' ? decodeURIComponent(params.name) : '';
   const name = raw.trim();
-  const { toast } = useToast();
   const qc = useQueryClient();
 
   const { data, isLoading, isError, error, refetch } = useDoc<Record<string, unknown>>(
@@ -98,15 +97,11 @@ export default function PosProfileDetailSettingsPage() {
     if (!name) return;
     try {
       await updateMut.mutateAsync({ name, doc: patch });
-      toast({ title: 'تم الحفظ' });
+      toast.success('تم الحفظ');
       void qc.invalidateQueries({ queryKey: ['pos', 'profile-data', name] });
       void refetch();
     } catch (e) {
-      toast({
-        title: 'فشل الحفظ',
-        description: e instanceof Error ? e.message : undefined,
-        variant: 'destructive',
-      });
+      toast.error('فشل الحفظ', { description: e instanceof Error ? e.message : undefined });
       void refetch();
     }
   };

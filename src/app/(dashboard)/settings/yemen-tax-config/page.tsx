@@ -40,7 +40,7 @@ import {
   AlertTriangle,
   ArrowDownUp,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { formatCurrency } from '@/lib/app-format';
 import { apiSetupTaxPackage, type SetupTaxPackageData } from '@/lib/client/api';
@@ -132,7 +132,6 @@ function saveSettings(s: YemenTaxSettings) {
 
 export default function YemenTaxConfigPage() {
   const qc = useQueryClient();
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
 
   const [company, setCompany] = useState('');
@@ -213,10 +212,7 @@ export default function YemenTaxConfigPage() {
       }),
     onSuccess: (data) => {
       setLastSetup(data);
-      toast({
-        title: 'تم إعداد الضريبة بالكامل',
-        description: `قوالب: ${data.salesTaxTemplateTitle}، ${data.purchaseTaxTemplateTitle}`,
-      });
+      toast.success('تم إعداد الضريبة بالكامل', { description: `قوالب: ${data.salesTaxTemplateTitle}، ${data.purchaseTaxTemplateTitle}` });
       qc.invalidateQueries({ queryKey: ['docList', 'Account'] });
       qc.invalidateQueries({ queryKey: ['docList', 'Sales Taxes and Charges Template'] });
       qc.invalidateQueries({ queryKey: ['docList', 'Purchase Taxes and Charges Template'] });
@@ -224,7 +220,7 @@ export default function YemenTaxConfigPage() {
       setTaxRate('5');
     },
     onError: (e: Error) => {
-      toast({ title: 'فشل الإعداد', description: e.message, variant: 'destructive' });
+      toast.error('فشل الإعداد', { description: e.message });
     },
   });
 
@@ -249,16 +245,16 @@ export default function YemenTaxConfigPage() {
     try {
       const newVal = Boolean(account.disabled) ? 0 : 1;
       await updateAccount.mutateAsync({ name: account.name, doc: { disabled: newVal } });
-      toast({ title: 'تم بنجاح', description: Boolean(account.disabled) ? 'تم تفعيل الحساب' : 'تم تعطيل الحساب' });
+      toast.success('تم بنجاح', { description: Boolean(account.disabled) ? 'تم تفعيل الحساب' : 'تم تعطيل الحساب' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ', description: msg, variant: 'destructive' });
+      toast.error('خطأ', { description: msg });
     }
   };
 
   const handleSaveSettings = () => {
     saveSettings(settings);
-    toast({ title: 'تم الحفظ', description: 'تم حفظ إعدادات الضرائب اليمنية' });
+    toast.success('تم الحفظ', { description: 'تم حفظ إعدادات الضرائب اليمنية' });
   };
 
   const handleExportFiling = () => {
@@ -280,7 +276,7 @@ export default function YemenTaxConfigPage() {
     a.click();
     URL.revokeObjectURL(url);
 
-    toast({ title: 'تم التصدير', description: 'تم تصدير الإقرار الضريبي بنجاح' });
+    toast.success('تم التصدير', { description: 'تم تصدير الإقرار الضريبي بنجاح' });
   };
 
   return (
@@ -524,9 +520,9 @@ export default function YemenTaxConfigPage() {
                           <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={async () => {
                             try {
                               await deleteSalesTemplate.mutateAsync(t.name);
-                              toast({ title: 'تم الحذف' });
+                              toast.success('تم الحذف');
                             } catch (e) {
-                              toast({ title: 'فشل الحذف', description: e instanceof Error ? e.message : 'خطأ', variant: 'destructive' });
+                              toast.error('فشل الحذف', { description: e instanceof Error ? e.message : 'خطأ' });
                             }
                           }}>
                             <AlertTriangle className="h-3 w-3" />
@@ -572,9 +568,9 @@ export default function YemenTaxConfigPage() {
                           <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={async () => {
                             try {
                               await deletePurchaseTemplate.mutateAsync(t.name);
-                              toast({ title: 'تم الحذف' });
+                              toast.success('تم الحذف');
                             } catch (e) {
-                              toast({ title: 'فشل الحذف', description: e instanceof Error ? e.message : 'خطأ', variant: 'destructive' });
+                              toast.error('فشل الحذف', { description: e instanceof Error ? e.message : 'خطأ' });
                             }
                           }}>
                             <AlertTriangle className="h-3 w-3" />
@@ -870,11 +866,11 @@ export default function YemenTaxConfigPage() {
                     title: templateForm.title.trim(),
                     company: effectiveCompany,
                   } as Record<string, unknown>);
-                  toast({ title: 'تم بنجاح', description: 'تم إنشاء القالب' });
+                  toast.success('تم بنجاح', { description: 'تم إنشاء القالب' });
                   setTemplateDialogOpen(false);
                   setTemplateForm({ title: '', type: 'sales' });
                 } catch (e) {
-                  toast({ title: 'خطأ', description: e instanceof Error ? e.message : 'خطأ', variant: 'destructive' });
+                  toast.error('خطأ', { description: e instanceof Error ? e.message : 'خطأ' });
                 }
               }}
             >

@@ -512,3 +512,28 @@ export function formatDate(dateStr: string): string {
 export function formatNumber(num: number): string {
   return new Intl.NumberFormat('ar-YE').format(num);
 }
+
+/** Palette for Recharts — references theme --chart-1..5 tokens via HSL */
+export const CHART_PALETTE = {
+  primary: 'hsl(var(--chart-1))',
+  secondary: 'hsl(var(--chart-2))',
+  tertiary: 'hsl(var(--chart-3))',
+  quaternary: 'hsl(var(--chart-4))',
+  quinary: 'hsl(var(--chart-5))',
+  /** Array convenience for Recharts dataKey fills */
+  series: [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+  ],
+  /** Pie/donut palette */
+  pie: [
+    'hsl(var(--chart-1))',
+    'hsl(var(--chart-2))',
+    'hsl(var(--chart-3))',
+    'hsl(var(--chart-4))',
+    'hsl(var(--chart-5))',
+  ],
+}

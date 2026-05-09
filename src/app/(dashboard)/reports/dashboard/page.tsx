@@ -34,9 +34,9 @@ import { DataTable, type Column } from '@/components/erp/data-table';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { useDocList, useRunReport } from '@/lib/client/hooks';
-import { formatCurrency, formatDate } from '@/lib/core/helpers';
+import { formatCurrency, formatDate, CHART_PALETTE } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   TrendingUp,
@@ -63,20 +63,7 @@ import {
 } from 'lucide-react';
 
 // ── Chart colors ──
-const COLORS = [
-  '#3b82f6',
-  '#10b981',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#ec4899',
-  '#06b6d4',
-  '#84cc16',
-  '#f97316',
-  '#6366f1',
-  '#14b8a6',
-  '#e11d48',
-];
+// COLORS removed — using CHART_PALETTE.series from helpers
 
 // ── Arabic month names ──
 const AR_MONTHS: Record<string, string> = {
@@ -193,8 +180,6 @@ export default function ReportsDashboardPage() {
   const [dateFrom, setDateFrom] = useState(d0);
   const [dateTo, setDateTo] = useState(d1);
   const { company } = useDefaultCompanyName();
-  const { toast } = useToast();
-
   // ── Financial report selector ──
   const [selectedReportId, setSelectedReportId] = useState('general-ledger');
 
@@ -747,12 +732,12 @@ export default function ReportsDashboardPage() {
   }, []);
 
   const handleExportPDF = useCallback(() => {
-    toast({ title: 'جاري تجهيز PDF', description: 'سيتم تنزيل الملف قريباً' });
+    toast.success('جاري تجهيز PDF', { description: 'سيتم تنزيل الملف قريباً' });
     window.print();
   }, [toast]);
 
   const handleExportExcel = useCallback(() => {
-    toast({ title: 'جاري تجهيز Excel', description: 'سيتم تنزيل الملف قريباً' });
+    toast.success('جاري تجهيز Excel', { description: 'سيتم تنزيل الملف قريباً' });
   }, [toast]);
 
   // ════════════════════════════════════════════════════════════
@@ -922,8 +907,8 @@ export default function ReportsDashboardPage() {
                           value === 'sales' ? 'المبيعات' : 'المشتريات'
                         }
                       />
-                      <Bar dataKey="sales" fill="#3b82f6" radius={[4, 4, 0, 0]} name="sales" />
-                      <Bar dataKey="purchases" fill="#f59e0b" radius={[4, 4, 0, 0]} name="purchases" />
+                      <Bar dataKey="sales" fill={CHART_PALETTE.primary} radius={[4, 4, 0, 0]} name="sales" />
+                      <Bar dataKey="purchases" fill={CHART_PALETTE.secondary} radius={[4, 4, 0, 0]} name="purchases" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -953,7 +938,7 @@ export default function ReportsDashboardPage() {
                         }
                       >
                         {expenseBreakdown.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={CHART_PALETTE.series[index % CHART_PALETTE.series.length]} />
                         ))}
                       </Pie>
                       <Tooltip
@@ -1000,7 +985,7 @@ export default function ReportsDashboardPage() {
                       <Line
                         type="monotone"
                         dataKey="inflow"
-                        stroke="#10b981"
+                        stroke={CHART_PALETTE.primary}
                         strokeWidth={2}
                         dot={{ r: 3 }}
                         name="inflow"
@@ -1008,7 +993,7 @@ export default function ReportsDashboardPage() {
                       <Line
                         type="monotone"
                         dataKey="outflow"
-                        stroke="#ef4444"
+                        stroke={CHART_PALETTE.quaternary}
                         strokeWidth={2}
                         dot={{ r: 3 }}
                         name="outflow"
@@ -1016,7 +1001,7 @@ export default function ReportsDashboardPage() {
                       <Line
                         type="monotone"
                         dataKey="net"
-                        stroke="#3b82f6"
+                        stroke={CHART_PALETTE.secondary}
                         strokeWidth={2.5}
                         strokeDasharray="5 5"
                         dot={{ r: 3 }}
@@ -1238,9 +1223,9 @@ export default function ReportsDashboardPage() {
                         width={75}
                       />
                       <Tooltip content={<ChartTooltip />} />
-                      <Bar dataKey="total" fill="#3b82f6" radius={[0, 4, 4, 0]} name="المبيعات">
+                      <Bar dataKey="total" fill={CHART_PALETTE.primary} radius={[0, 4, 4, 0]} name="المبيعات">
                         {topCustomers.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={CHART_PALETTE.series[index % CHART_PALETTE.series.length]} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -1271,7 +1256,7 @@ export default function ReportsDashboardPage() {
                         }
                       >
                         {salesByItemGroup.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={CHART_PALETTE.series[index % CHART_PALETTE.series.length]} />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -1308,7 +1293,7 @@ export default function ReportsDashboardPage() {
                       <Line
                         type="monotone"
                         dataKey="total"
-                        stroke="#10b981"
+                        stroke={CHART_PALETTE.primary}
                         strokeWidth={2.5}
                         dot={{ r: 4 }}
                         activeDot={{ r: 6 }}
@@ -1345,8 +1330,8 @@ export default function ReportsDashboardPage() {
                           value === 'sales' ? 'المبيعات' : 'المرتجعات'
                         }
                       />
-                      <Bar dataKey="sales" fill="#3b82f6" radius={[4, 4, 0, 0]} name="sales" />
-                      <Bar dataKey="returns" fill="#ef4444" radius={[4, 4, 0, 0]} name="returns" />
+                      <Bar dataKey="sales" fill={CHART_PALETTE.primary} radius={[4, 4, 0, 0]} name="sales" />
+                      <Bar dataKey="returns" fill={CHART_PALETTE.quaternary} radius={[4, 4, 0, 0]} name="returns" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1413,9 +1398,9 @@ export default function ReportsDashboardPage() {
                       />
                       <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={75} />
                       <Tooltip content={<ChartTooltip />} />
-                      <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} name="قيمة المخزون">
+                      <Bar dataKey="value" fill={CHART_PALETTE.primary} radius={[0, 4, 4, 0]} name="قيمة المخزون">
                         {stockByWarehouse.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={CHART_PALETTE.series[index % CHART_PALETTE.series.length]} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -1440,9 +1425,9 @@ export default function ReportsDashboardPage() {
                       <XAxis type="number" tick={{ fontSize: 11 }} />
                       <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={75} />
                       <Tooltip content={<ChartTooltip isCurrency={false} />} />
-                      <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} name="الكمية">
+                      <Bar dataKey="value" fill={CHART_PALETTE.quinary} radius={[0, 4, 4, 0]} name="الكمية">
                         {topSellingItems.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={CHART_PALETTE.series[index % CHART_PALETTE.series.length]} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -1476,7 +1461,7 @@ export default function ReportsDashboardPage() {
                         }
                       >
                         {stockAging.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={CHART_PALETTE.series[index % CHART_PALETTE.series.length]} />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -1587,9 +1572,9 @@ export default function ReportsDashboardPage() {
                       <XAxis type="number" tick={{ fontSize: 11 }} />
                       <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={75} />
                       <Tooltip content={<ChartTooltip isCurrency={false} />} />
-                      <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} name="عدد الموظفين">
+                      <Bar dataKey="value" fill={CHART_PALETTE.quinary} radius={[0, 4, 4, 0]} name="عدد الموظفين">
                         {deptDistribution.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={CHART_PALETTE.series[index % CHART_PALETTE.series.length]} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -1642,7 +1627,7 @@ export default function ReportsDashboardPage() {
                       <Line
                         type="monotone"
                         dataKey="rate"
-                        stroke="#10b981"
+                        stroke={CHART_PALETTE.primary}
                         strokeWidth={2.5}
                         dot={{ r: 3 }}
                         activeDot={{ r: 5 }}
@@ -1679,7 +1664,7 @@ export default function ReportsDashboardPage() {
                         }
                       >
                         {salaryDistribution.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={CHART_PALETTE.series[index % CHART_PALETTE.series.length]} />
                         ))}
                       </Pie>
                       <Tooltip formatter={(value: number) => formatCurrency(value)} />

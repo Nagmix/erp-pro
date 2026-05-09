@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { formatNumber, formatDate } from '@/lib/core/helpers';
+import { formatNumber, formatDate, CHART_PALETTE } from '@/lib/core/helpers';
 import {
   BarChart,
   Bar,
@@ -61,12 +61,12 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  'Draft': '#94a3b8',
-  'Not Started': '#f59e0b',
-  'In Process': '#3b82f6',
-  'Completed': '#10b981',
-  'Stopped': '#ef4444',
-  'Cancelled': '#6b7280',
+  'Draft': CHART_PALETTE.quinary,
+  'Not Started': CHART_PALETTE.secondary,
+  'In Process': CHART_PALETTE.primary,
+  'Completed': CHART_PALETTE.tertiary,
+  'Stopped': CHART_PALETTE.quaternary,
+  'Cancelled': CHART_PALETTE.quinary,
 };
 
 const STATUS_BG: Record<string, string> = {
@@ -78,7 +78,7 @@ const STATUS_BG: Record<string, string> = {
   'Cancelled': 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400',
 };
 
-const PIE_COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#94a3b8', '#6b7280'];
+// PIE_COLORS removed — using CHART_PALETTE.pie from helpers
 
 /* ------------------------------------------------------------------ */
 /*  Quick Actions                                                      */
@@ -247,7 +247,7 @@ export default function ManufacturingDashboardPage() {
       .map((st) => ({
         status: STATUS_LABELS[st] || st,
         count: statusMap.get(st) || 0,
-        fill: STATUS_COLORS[st] || '#94a3b8',
+        fill: STATUS_COLORS[st] || CHART_PALETTE.quinary,
       }));
   }, [workOrders]);
 
@@ -282,7 +282,7 @@ export default function ManufacturingDashboardPage() {
       .map((st, i) => ({
         name: STATUS_LABELS[st] || st,
         value: statusMap.get(st) || 0,
-        color: PIE_COLORS[i % PIE_COLORS.length],
+        color: CHART_PALETTE.pie[i % CHART_PALETTE.pie.length],
       }));
   }, [workOrders]);
 
@@ -577,18 +577,18 @@ export default function ManufacturingDashboardPage() {
                       type="monotone"
                       dataKey="total"
                       name="إجمالي الأوامر"
-                      stroke="#f59e0b"
+                      stroke={CHART_PALETTE.secondary}
                       strokeWidth={2}
-                      dot={{ r: 4, fill: '#f59e0b' }}
+                      dot={{ r: 4, fill: CHART_PALETTE.secondary }}
                       activeDot={{ r: 6 }}
                     />
                     <Line
                       type="monotone"
                       dataKey="completed"
                       name="المكتملة"
-                      stroke="#10b981"
+                      stroke={CHART_PALETTE.primary}
                       strokeWidth={2}
-                      dot={{ r: 4, fill: '#10b981' }}
+                      dot={{ r: 4, fill: CHART_PALETTE.primary }}
                       activeDot={{ r: 6 }}
                     />
                   </LineChart>
@@ -766,14 +766,14 @@ export default function ManufacturingDashboardPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4 shrink-0">
-                      <div className="text-left min-w-[80px]">
+                      <div className="min-w-[80px]">
                         <div className="flex items-center justify-between mb-0.5">
                           <span className="text-[10px] text-muted-foreground">الإنجاز</span>
                           <span className="text-[10px] font-semibold tabular-nums">{wo.progress}%</span>
                         </div>
                         <Progress value={wo.progress} className="h-1.5" />
                       </div>
-                      <div className="text-left">
+                      <div>
                         <p className="text-[10px] text-muted-foreground">الكمية</p>
                         <p className="text-xs font-semibold tabular-nums">
                           {formatNumber(wo.producedQty)}/{formatNumber(wo.qty)}
@@ -903,13 +903,13 @@ export default function ManufacturingDashboardPage() {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-border/40">
-                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">رقم أمر العمل</th>
-                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">الصنف</th>
-                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">الحالة</th>
-                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">الكمية</th>
-                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">المنتج</th>
-                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">التقدم</th>
-                      <th className="text-right py-2.5 px-3 font-semibold text-muted-foreground">تاريخ البدء</th>
+                      <th className="py-2.5 px-3 font-semibold text-muted-foreground">رقم أمر العمل</th>
+                      <th className="py-2.5 px-3 font-semibold text-muted-foreground">الصنف</th>
+                      <th className="py-2.5 px-3 font-semibold text-muted-foreground">الحالة</th>
+                      <th className="py-2.5 px-3 font-semibold text-muted-foreground">الكمية</th>
+                      <th className="py-2.5 px-3 font-semibold text-muted-foreground">المنتج</th>
+                      <th className="py-2.5 px-3 font-semibold text-muted-foreground">التقدم</th>
+                      <th className="py-2.5 px-3 font-semibold text-muted-foreground">تاريخ البدء</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -934,7 +934,7 @@ export default function ManufacturingDashboardPage() {
                         <td className="py-2.5 px-3">
                           <div className="flex items-center gap-2 min-w-[100px]">
                             <Progress value={wo.progress} className="h-1.5 flex-1" />
-                            <span className="text-[10px] font-semibold tabular-nums w-8 text-left">{wo.progress}%</span>
+                            <span className="text-[10px] font-semibold tabular-nums w-8">{wo.progress}%</span>
                           </div>
                         </td>
                         <td className="py-2.5 px-3 text-muted-foreground">

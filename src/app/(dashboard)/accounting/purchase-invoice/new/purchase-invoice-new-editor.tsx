@@ -32,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency } from '@/lib/core/helpers';
 import { useCreateDoc } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildPurchaseInvoice } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { DEFAULT_PURCHASE_INVOICE_NAMING_SERIES } from '@/lib/erp/doc-defaults';
@@ -82,7 +82,6 @@ const FORM_ID = 'purchase-invoice-new-form';
 
 export function PurchaseInvoiceNewEditor() {
   const router = useRouter();
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
   const [namingSeries, setNamingSeries] = useState(DEFAULT_PURCHASE_INVOICE_NAMING_SERIES);
@@ -133,11 +132,11 @@ export function PurchaseInvoiceNewEditor() {
 
   const onSubmit = (fd: InvoiceFormData) => {
     if (items.every((i) => !i.item_code)) {
-      toast({ title: 'أضف بنداً واحداً على الأقل', variant: 'destructive' });
+      toast.error('أضف بنداً واحداً على الأقل');
       return;
     }
     if (!defaultCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     createMutation.mutate(
@@ -159,11 +158,11 @@ export function PurchaseInvoiceNewEditor() {
       }),
       {
         onSuccess: () => {
-          toast({ title: 'تم إنشاء فاتورة المشتريات' });
+          toast.success('تم إنشاء فاتورة المشتريات');
           router.push('/purchases/purchase-invoices');
           router.refresh();
         },
-        onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+        onError: () => toast.error('تعذر الحفظ'),
       }
     );
   };
@@ -479,8 +478,8 @@ export function PurchaseInvoiceNewEditor() {
       </div>
       <ScrollArea className={cn('min-h-0 flex-1', 'h-[min(52vh,520px)] xl:h-full')}>
         <div className="p-4 sm:p-5">
-          <div className="overflow-hidden rounded-xl border border-border/60 bg-card shadow-md">
-            <table className="w-full min-w-[900px] border-collapse text-sm" dir="rtl">
+          <div className="overflow-x-auto rounded-xl border border-border/60 bg-card shadow-md">
+            <table className="w-full border-collapse text-sm" dir="rtl">
               <thead>
                 <tr className="border-b border-border/60 bg-gradient-to-l from-muted/80 via-muted/90 to-muted text-xs font-bold uppercase tracking-wide text-muted-foreground [&>th]:px-4 [&>th]:py-3.5 [&>th]:text-start">
                   <th className="w-[28%]">الصنف</th>

@@ -70,6 +70,7 @@ import {
   Search,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { CHART_PALETTE } from '@/lib/core/helpers';
 
 /* ──────────────────── types ──────────────────── */
 interface ProductProfitRow {
@@ -105,19 +106,16 @@ function fmt(n: number): string {
   return n.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-const PIE_COLORS = [
-  '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4',
-  '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
-];
+// PIE_COLORS removed — using CHART_PALETTE.pie from helpers
 
 const categoryChartConfig: ChartConfig = {
-  profit: { label: 'الربح', color: '#10b981' },
-  revenue: { label: 'الإيرادات', color: '#06b6d4' },
-  cost: { label: 'التكلفة', color: '#ef4444' },
+  profit: { label: 'الربح', color: 'hsl(var(--chart-1))' },
+  revenue: { label: 'الإيرادات', color: 'hsl(var(--chart-3))' },
+  cost: { label: 'التكلفة', color: 'hsl(var(--chart-4))' },
 };
 
 const marginChartConfig: ChartConfig = {
-  count: { label: 'عدد المنتجات', color: '#8b5cf6' },
+  count: { label: 'عدد المنتجات', color: 'hsl(var(--chart-2))' },
 };
 
 /* ──────────────────── component ──────────────────── */
@@ -338,7 +336,7 @@ export default function ProductProfitsReportPage() {
               <Search className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="بحث بالاسم أو الكود..."
-                className="h-9 w-52 pr-9"
+                className="h-9 w-52 pe-9"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -448,9 +446,9 @@ export default function ProductProfitsReportPage() {
                         </div>
                       )}
                     />
-                    <Bar dataKey="revenue" fill="#06b6d4" opacity={0.6} maxBarSize={20} />
-                    <Bar dataKey="cost" fill="#ef4444" opacity={0.6} maxBarSize={20} />
-                    <Bar dataKey="profit" fill="#10b981" opacity={0.9} maxBarSize={20} radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="revenue" fill={CHART_PALETTE.tertiary} opacity={0.6} maxBarSize={20} />
+                    <Bar dataKey="cost" fill={CHART_PALETTE.quaternary} opacity={0.6} maxBarSize={20} />
+                    <Bar dataKey="profit" fill={CHART_PALETTE.primary} opacity={0.9} maxBarSize={20} radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ChartContainer>
               </CardContent>
@@ -475,13 +473,13 @@ export default function ProductProfitsReportPage() {
                     />
                     <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={50}>
                       {data.marginDistribution.map((entry, index) => {
-                        let color = '#10b981';
-                        if (entry.range.includes('أقل')) color = '#ef4444';
-                        else if (entry.range.includes('0% - 10%')) color = '#f59e0b';
-                        else if (entry.range.includes('10% - 20%')) color = '#06b6d4';
-                        else if (entry.range.includes('20% - 30%')) color = '#10b981';
-                        else if (entry.range.includes('30% - 50%')) color = '#8b5cf6';
-                        else color = '#6366f1';
+                        let color = CHART_PALETTE.primary;
+                        if (entry.range.includes('أقل')) color = CHART_PALETTE.quaternary;
+                        else if (entry.range.includes('0% - 10%')) color = CHART_PALETTE.secondary;
+                        else if (entry.range.includes('10% - 20%')) color = CHART_PALETTE.tertiary;
+                        else if (entry.range.includes('20% - 30%')) color = CHART_PALETTE.primary;
+                        else if (entry.range.includes('30% - 50%')) color = CHART_PALETTE.quinary;
+                        else color = CHART_PALETTE.series[index % CHART_PALETTE.series.length];
                         return <Cell key={`cell-${index}`} fill={color} opacity={0.85} />;
                       })}
                     </Bar>
@@ -489,13 +487,13 @@ export default function ProductProfitsReportPage() {
                 </ChartContainer>
                 <div className="mt-3 space-y-2">
                   {data.marginDistribution.map((bucket, idx) => {
-                    let color = '#10b981';
-                    if (bucket.range.includes('أقل')) color = '#ef4444';
-                    else if (bucket.range.includes('0% - 10%')) color = '#f59e0b';
-                    else if (bucket.range.includes('10% - 20%')) color = '#06b6d4';
-                    else if (bucket.range.includes('20% - 30%')) color = '#10b981';
-                    else if (bucket.range.includes('30% - 50%')) color = '#8b5cf6';
-                    else color = '#6366f1';
+                    let color = CHART_PALETTE.primary;
+                    if (bucket.range.includes('أقل')) color = CHART_PALETTE.quaternary;
+                    else if (bucket.range.includes('0% - 10%')) color = CHART_PALETTE.secondary;
+                    else if (bucket.range.includes('10% - 20%')) color = CHART_PALETTE.tertiary;
+                    else if (bucket.range.includes('20% - 30%')) color = CHART_PALETTE.primary;
+                    else if (bucket.range.includes('30% - 50%')) color = CHART_PALETTE.quinary;
+                    else color = CHART_PALETTE.series[idx % CHART_PALETTE.series.length];
                     return (
                       <div key={bucket.range} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
@@ -525,10 +523,10 @@ export default function ProductProfitsReportPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>الفئة</TableHead>
-                      <TableHead className="text-left">الإيرادات</TableHead>
-                      <TableHead className="text-left">التكلفة</TableHead>
-                      <TableHead className="text-left">الربح</TableHead>
-                      <TableHead className="text-left">هامش الربح</TableHead>
+                      <TableHead>الإيرادات</TableHead>
+                      <TableHead>التكلفة</TableHead>
+                      <TableHead>الربح</TableHead>
+                      <TableHead>هامش الربح</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiGetCalendarEvents, type CalendarEvent } from '@/lib/client/api';
 import { cn } from '@/lib/utils';
+import { CHART_PALETTE } from '@/lib/core/helpers';
 import { PageHeader } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -94,9 +95,9 @@ const TYPE_BADGE_VARIANTS: Record<CalendarEvent['type'], 'default' | 'secondary'
 };
 
 const DEFAULT_EVENT_COLORS: Record<CalendarEvent['type'], string> = {
-  event: '#3b82f6',
-  task: '#f59e0b',
-  holiday: '#10b981',
+  event: CHART_PALETTE.primary,
+  task: CHART_PALETTE.secondary,
+  holiday: CHART_PALETTE.tertiary,
 };
 
 // ─── Sub-components ──────────────────────────────────────────

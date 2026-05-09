@@ -20,7 +20,7 @@ import {
   Building2, Cpu, ShoppingCart, Truck, Package, Users, Printer, Shield, Save,
   Loader2, AlertTriangle, WifiOff, Cloud, CloudOff, Pencil, RefreshCw, Search,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { SettingsHubTiles } from '@/components/erp/settings-hub-tiles';
 import { PageHeader } from '@/components/erp/page-header';
 import {
@@ -66,19 +66,19 @@ type RoleData = {
 };
 
 const defaultSettings: AppSettings = {
-  companyName: 'شركة النور التجارية',
+  companyName: '',
   currency: 'YER',
   country: 'SA',
   timezone: 'Asia/Riyadh',
-  defaultCompany: 'شركة النور التجارية',
+  defaultCompany: '',
   fiscalYear: new Date().getFullYear().toString(),
   autoAccountRouting: true,
   invoiceTemplate: 'standard',
   posEnabled: true,
-  posWarehouse: 'المستودع الرئيسي',
+  posWarehouse: '',
   autoReceive: true,
   purchaseNumbering: 'auto',
-  defaultWarehouse: 'المستودع الرئيسي',
+  defaultWarehouse: '',
   valuationMethod: 'fifo',
   reorderLevel: '10',
   workingHours: '8',
@@ -88,11 +88,23 @@ const defaultSettings: AppSettings = {
   paperSize: 'A4',
 };
 
+// ─── ألوان أيقونات الإعدادات (دورانية حسب الفهرس) ──────────────────
+
+const SETTINGS_ACCENTS = [
+  { bg: 'bg-primary/10', text: 'text-primary' },
+  { bg: 'bg-secondary/10', text: 'text-secondary' },
+  { bg: 'bg-accent/10', text: 'text-accent' },
+  { bg: 'bg-muted-foreground/10', text: 'text-muted-foreground' },
+  { bg: 'bg-chart-1/10', text: 'text-chart-1' },
+  { bg: 'bg-chart-2/10', text: 'text-chart-2' },
+  { bg: 'bg-chart-3/10', text: 'text-chart-3' },
+  { bg: 'bg-chart-4/10', text: 'text-chart-4' },
+  { bg: 'bg-chart-5/10', text: 'text-chart-5' },
+];
+
 // ─── المكون الرئيسي ──────────────────────────────────────────────
 
 export default function SettingsPage() {
-  const { toast } = useToast();
-
   // حالة التحميل والخطأ
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -152,15 +164,15 @@ export default function SettingsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        toast({ title: 'تم الحفظ', description: `تم حفظ إعدادات الدور "${updated.name}" بنجاح` });
+        toast.success('تم الحفظ', { description: `تم حفظ إعدادات الدور "${updated.name}" بنجاح` });
         setRoleDialogOpen(false);
         setEditingRole(null);
         fetchRoles(); // إعادة تحميل القائمة
       } else {
-        toast({ title: 'فشل الحفظ', description: data.error || 'فشل حفظ إعدادات الدور', variant: 'destructive' });
+        toast.error('فشل الحفظ', { description: data.error || 'فشل حفظ إعدادات الدور' });
       }
     } catch {
-      toast({ title: 'فشل الحفظ', description: 'تعذر الاتصال بالخادم', variant: 'destructive' });
+      toast.error('فشل الحفظ', { description: 'تعذر الاتصال بالخادم' });
     } finally {
       setSavingRole(false);
     }
@@ -224,35 +236,23 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (data.success) {
-        toast({ title: 'تم الحفظ', description: `تم حفظ إعدادات ${sectionLabel} بنجاح` });
+        toast.success('تم الحفظ', { description: `تم حفظ إعدادات ${sectionLabel} بنجاح` });
         if (data.data) {
           setSettings((prev) => ({ ...prev, ...data.data }));
           setDataSource(data.source || 'erpnext');
         }
       } else if (data.savedLocally) {
         // حُفظ محلياً لكن ERPNext فشل
-        toast({
-          title: 'حُفظ محلياً',
-          description: `تم حفظ إعدادات ${sectionLabel} محلياً. ${data.error || 'لم يتم الاتصال بالنظام'}`,
-          variant: 'destructive',
-        });
+        toast.error('حُفظ محلياً', { description: `تم حفظ إعدادات ${sectionLabel} محلياً. ${data.error || 'لم يتم الاتصال بالنظام'}` });
         // حفظ في localStorage كاحتياطي
         localStorage.setItem('erp_app_settings', JSON.stringify({ ...settings, ...sectionSettings }));
       } else {
-        toast({
-          title: 'فشل الحفظ',
-          description: data.error || `فشل حفظ إعدادات ${sectionLabel}`,
-          variant: 'destructive',
-        });
+        toast.error('فشل الحفظ', { description: data.error || `فشل حفظ إعدادات ${sectionLabel}` });
       }
     } catch {
       // فشل الاتصال بالخادم — حفظ في localStorage
       localStorage.setItem('erp_app_settings', JSON.stringify({ ...settings, ...sectionSettings }));
-      toast({
-        title: 'حُفظ محلياً',
-        description: `تم حفظ إعدادات ${sectionLabel} محلياً (لا اتصال بالخادم)`,
-        variant: 'destructive',
-      });
+      toast.error('حُفظ محلياً', { description: `تم حفظ إعدادات ${sectionLabel} محلياً (لا اتصال بالخادم)` });
     } finally {
       setSavingSection(null);
     }
@@ -368,7 +368,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0"><Building2 className="h-5 w-5 text-blue-600" /></div>
+                <div className={`h-10 w-10 rounded-lg ${SETTINGS_ACCENTS[0].bg} flex items-center justify-center shrink-0`}><Building2 className={`h-5 w-5 ${SETTINGS_ACCENTS[0].text}`} /></div>
                 <div>
                   <CardTitle className="text-base">الإعدادات العامة</CardTitle>
                   <CardDescription className="text-xs">معلومات الشركة الأساسية والإعدادات الإقليمية</CardDescription>
@@ -437,7 +437,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0"><Cpu className="h-5 w-5 text-green-600" /></div>
+                <div className={`h-10 w-10 rounded-lg ${SETTINGS_ACCENTS[1].bg} flex items-center justify-center shrink-0`}><Cpu className={`h-5 w-5 ${SETTINGS_ACCENTS[1].text}`} /></div>
                 <div>
                   <CardTitle className="text-base">إعدادات المحاسبة</CardTitle>
                   <CardDescription className="text-xs">الشركة الافتراضية والسنة المالية والتوجيه التلقائي</CardDescription>
@@ -484,7 +484,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0"><ShoppingCart className="h-5 w-5 text-emerald-600" /></div>
+                <div className={`h-10 w-10 rounded-lg ${SETTINGS_ACCENTS[2].bg} flex items-center justify-center shrink-0`}><ShoppingCart className={`h-5 w-5 ${SETTINGS_ACCENTS[2].text}`} /></div>
                 <div>
                   <CardTitle className="text-base">إعدادات المبيعات</CardTitle>
                   <CardDescription className="text-xs">العميل الافتراضي وترقيم الفواتير ونقاط البيع</CardDescription>
@@ -507,12 +507,10 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">مستودع نقاط البيع</Label>
+                  {/* TODO: جلب المستودعات من ERPNext API ديناميكياً */}
                   <Select value={settings.posWarehouse} onValueChange={v => setSettings(s => ({ ...s, posWarehouse: v }))}>
-                    <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر المستودع" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="المستودع الرئيسي">المستودع الرئيسي</SelectItem>
-                      <SelectItem value="مستودع الإلكترونيات">مستودع الإلكترونيات</SelectItem>
-                      <SelectItem value="مستودع الأثاث">مستودع الأثاث</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -539,7 +537,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0"><Truck className="h-5 w-5 text-amber-600" /></div>
+                <div className={`h-10 w-10 rounded-lg ${SETTINGS_ACCENTS[3].bg} flex items-center justify-center shrink-0`}><Truck className={`h-5 w-5 ${SETTINGS_ACCENTS[3].text}`} /></div>
                 <div>
                   <CardTitle className="text-base">إعدادات المشتريات</CardTitle>
                   <CardDescription className="text-xs">المورد الافتراضي وترقيم أوامر الشراء</CardDescription>
@@ -582,7 +580,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0"><Package className="h-5 w-5 text-orange-600" /></div>
+                <div className={`h-10 w-10 rounded-lg ${SETTINGS_ACCENTS[4].bg} flex items-center justify-center shrink-0`}><Package className={`h-5 w-5 ${SETTINGS_ACCENTS[4].text}`} /></div>
                 <div>
                   <CardTitle className="text-base">إعدادات المخزون</CardTitle>
                   <CardDescription className="text-xs">المستودع الافتراضي وطريقة التقييم وحد إعادة الطلب</CardDescription>
@@ -593,12 +591,10 @@ export default function SettingsPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">المستودع الافتراضي</Label>
+                  {/* TODO: جلب المستودعات من ERPNext API ديناميكياً */}
                   <Select value={settings.defaultWarehouse} onValueChange={v => setSettings(s => ({ ...s, defaultWarehouse: v }))}>
-                    <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر المستودع" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="المستودع الرئيسي">المستودع الرئيسي</SelectItem>
-                      <SelectItem value="مستودع الإلكترونيات">مستودع الإلكترونيات</SelectItem>
-                      <SelectItem value="مستودع الأثاث">مستودع الأثاث</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -632,7 +628,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0"><Users className="h-5 w-5 text-purple-600" /></div>
+                <div className={`h-10 w-10 rounded-lg ${SETTINGS_ACCENTS[5].bg} flex items-center justify-center shrink-0`}><Users className={`h-5 w-5 ${SETTINGS_ACCENTS[5].text}`} /></div>
                 <div>
                   <CardTitle className="text-base">إعدادات الموارد البشرية</CardTitle>
                   <CardDescription className="text-xs">ساعات العمل ومعدل العمل الإضافي وقواعد الجزاءات</CardDescription>
@@ -672,7 +668,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-gray-500/10 flex items-center justify-center shrink-0"><Printer className="h-5 w-5 text-gray-600" /></div>
+                <div className={`h-10 w-10 rounded-lg ${SETTINGS_ACCENTS[6].bg} flex items-center justify-center shrink-0`}><Printer className={`h-5 w-5 ${SETTINGS_ACCENTS[6].text}`} /></div>
                 <div>
                   <CardTitle className="text-base">إعدادات الطباعة</CardTitle>
                   <CardDescription className="text-xs">قوالب الطباعة وإعدادات الطابعة</CardDescription>
@@ -720,7 +716,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0"><Shield className="h-5 w-5 text-red-600" /></div>
+                <div className={`h-10 w-10 rounded-lg ${SETTINGS_ACCENTS[7].bg} flex items-center justify-center shrink-0`}><Shield className={`h-5 w-5 ${SETTINGS_ACCENTS[7].text}`} /></div>
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-base">الصلاحيات والأدوار</CardTitle>
                   <CardDescription className="text-xs">إدارة الأدوار والصلاحيات</CardDescription>

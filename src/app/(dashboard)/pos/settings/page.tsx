@@ -22,11 +22,10 @@ import {
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { apiPosCheckReadiness, apiPosSetup } from '@/lib/client/api';
 import type { POSReadinessResponse } from '@/lib/core/types';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { PageHeader } from '@/components/erp/page-header';
 
 export default function PosSettingsPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [readiness, setReadiness] = useState<POSReadinessResponse | null>(null);
   const [setupActions, setSetupActions] = useState<string[]>([]);
@@ -41,11 +40,7 @@ export default function PosSettingsPage() {
       const r = await apiPosCheckReadiness(company);
       setReadiness(r);
     } catch (e) {
-      toast({
-        variant: 'destructive',
-        title: 'فشل الفحص',
-        description: e instanceof Error ? e.message : undefined,
-      });
+      toast.error('فشل الفحص', { description: e instanceof Error ? e.message : undefined });
     } finally {
       setChecking(false);
     }
@@ -63,17 +58,9 @@ export default function PosSettingsPage() {
       });
       setReadiness(data.readiness);
       setSetupActions(data.setup_actions);
-      toast({
-        title: 'تم تنفيذ التهيئة الآمنة',
-        description:
-          data.setup_actions.length > 0 ? data.setup_actions.join(' · ') : 'لم يُجرَ تغيير إضافي',
-      });
+      toast.success('تم تنفيذ التهيئة الآمنة');
     } catch (e) {
-      toast({
-        variant: 'destructive',
-        title: 'فشل التهيئة',
-        description: e instanceof Error ? e.message : undefined,
-      });
+      toast.error('فشل التهيئة', { description: e instanceof Error ? e.message : undefined });
     } finally {
       setSettingUp(false);
     }

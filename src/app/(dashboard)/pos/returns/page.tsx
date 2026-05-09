@@ -53,7 +53,7 @@ import { useDoc, useDocList } from '@/lib/client/hooks';
 import { useCreatePosInvoice } from '@/lib/client/pos-hooks';
 import { buildPosInvoiceReturn, type BuildPosInvoiceReturnOpts } from '@/lib/erp/erpnext-payloads';
 import { formatCurrency } from '@/lib/core/helpers';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { PosReturnDialog } from '@/components/pos/pos-return-dialog';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { cn } from '@/lib/utils';
@@ -95,8 +95,6 @@ export default function PosReturnsPage() {
   const [viewReturnOpen, setViewReturnOpen] = useState(false);
   const [viewReturnName, setViewReturnName] = useState<string | null>(null);
   const today = new Date().toISOString().split('T')[0]!;
-  const { toast } = useToast();
-
   // ── Fetch original invoices (is_return=0) ──
   const { data: origData = [], isLoading: origLoading, isError: origIsError, error: origError, refetch: origRefetch } = useDocList<InvRow>('POS Invoice', {
     fields: ['name', 'customer', 'customer_name', 'grand_total', 'posting_date', 'is_return'],
@@ -191,36 +189,32 @@ export default function PosReturnsPage() {
   const handleConfirmReturn = async (opts: BuildPosInvoiceReturnOpts) => {
     const src = returnSource.data;
     if (!confirmName || !src) {
-      toast({ title: 'اختر فاتورة', variant: 'destructive' });
+      toast.error('اختر فاتورة');
       return;
     }
     if (Number(src.is_return) === 1) {
-      toast({ title: 'هذه فاتورة مرتجع بالفعل', variant: 'destructive' });
+      toast.error('هذه فاتورة مرتجع بالفعل');
       return;
     }
     const payRows = (src.payments as Record<string, unknown>[]) || [];
     if (!payRows.some((p) => p?.mode_of_payment)) {
-      toast({ title: 'الفاتورة الأصلية بدون جدول مدفوعات', variant: 'destructive' });
+      toast.error('الفاتورة الأصلية بدون جدول مدفوعات');
       return;
     }
     const doc = buildPosInvoiceReturn(src, today, opts);
     const pr = doc.payments as { mode_of_payment?: string; amount: number }[];
     if (!pr?.length) {
-      toast({ title: 'تعذر بناء صفوف المرتجع المالي', variant: 'destructive' });
+      toast.error('تعذر بناء صفوف المرتجع المالي');
       return;
     }
     try {
       await createReturn.mutateAsync({ doc: doc as Record<string, unknown> });
-      toast({ title: 'تم إنشاء وترحيل فاتورة المرتجع' });
+      toast.success('تم إنشاء وترحيل فاتورة المرتجع');
       setConfirmName(null);
       void origRefetch();
       void retRefetch();
     } catch (e) {
-      toast({
-        title: 'تعذر المرتجع',
-        description: e instanceof Error ? e.message : undefined,
-        variant: 'destructive',
-      });
+      toast.error('تعذر المرتجع', { description: e instanceof Error ? e.message : undefined });
     }
   };
 
@@ -398,7 +392,7 @@ export default function PosReturnsPage() {
 
         {tab === 'original' ? (
           /* ── جدول الفواتير الأصلية مع زر مرتجع ── */
-          <div className="rounded-[var(--radius-md-ui)] border overflow-hidden mx-4 mb-4">
+          <div className="overflow-x-auto rounded-[var(--radius-md-ui)] border mx-4 mb-4">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">

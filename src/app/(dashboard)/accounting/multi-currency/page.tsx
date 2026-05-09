@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatCurrency, formatDate } from '@/lib/app-format';
 import {
   useDocList,
@@ -117,8 +117,6 @@ function getCurrencyDisplay(code: string) {
 /* ───────── Page Component ───────── */
 
 export default function MultiCurrencyPage() {
-  const { toast } = useToast();
-
   /* ─── Fetch Currencies via hooks ─── */
   const {
     data: currencyRows = [],
@@ -342,12 +340,9 @@ export default function MultiCurrencyPage() {
           name: code,
           doc: { enabled: newActive ? 1 : 0 },
         });
-        toast({
-          title: currency.active ? 'تم تعطيل العملة' : 'تم تفعيل العملة',
-          description: `${currency.nameAr} (${code})`,
-        });
+        toast.success(currency.active ? 'تم تعطيل العملة' : 'تم تفعيل العملة', { description: `${currency.nameAr} (${code})` });
       } catch (err) {
-        toast({ title: 'خطأ', description: String(err), variant: 'destructive' });
+        toast.error('خطأ', { description: String(err) });
       }
     },
     [currencies, updateCurrencyMutation, toast]
@@ -365,7 +360,7 @@ export default function MultiCurrencyPage() {
     const buy = parseFloat(editBuyRate);
     const sell = parseFloat(editSellRate);
     if (isNaN(buy) || isNaN(sell) || buy <= 0 || sell <= 0) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال أسعار صحيحة', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال أسعار صحيحة' });
       return;
     }
 
@@ -392,18 +387,18 @@ export default function MultiCurrencyPage() {
         });
       }
 
-      toast({ title: 'تم تحديث السعر', description: `${editingCurrency.nameAr} (${editingCurrency.code})` });
+      toast.success('تم تحديث السعر', { description: `${editingCurrency.nameAr} (${editingCurrency.code})` });
       setEditDialogOpen(false);
       setEditingCurrency(null);
     } catch (err) {
-      toast({ title: 'خطأ', description: String(err), variant: 'destructive' });
+      toast.error('خطأ', { description: String(err) });
     }
   }, [editingCurrency, editBuyRate, editSellRate, createExchangeMutation, toast]);
 
   const handleUpdateRates = useCallback(async () => {
     refetchCurrencies();
     refetchExchange();
-    toast({ title: 'تم تحديث الأسعار', description: 'تم جلب الأسعار من ERPNext بنجاح' });
+    toast.success('تم تحديث الأسعار', { description: 'تم جلب الأسعار من ERPNext بنجاح' });
   }, [refetchCurrencies, refetchExchange, toast]);
 
   /* ── Conversion Logic ── */
@@ -874,7 +869,7 @@ export default function MultiCurrencyPage() {
                           <p className="text-[10px] text-muted-foreground">{qc.symbol}</p>
                         </div>
                       </div>
-                      <div className="text-left">
+                      <div>
                         <p className="text-sm font-semibold tabular-nums">
                           {qc.rate.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
                         </p>

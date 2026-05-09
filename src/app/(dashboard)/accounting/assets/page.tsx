@@ -41,7 +41,7 @@ import { mergeCompanyAccountsIntoAssetCategory } from '@/lib/erp/asset-category-
 import { apiGetDoc, apiUpdateDoc } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -157,8 +157,6 @@ export default function AssetsPage() {
   const [dateTo, setDateTo] = useState('');
 
   const clearFilters = () => { setStatusFilter('all'); setSearch(''); setAssetStatusFilter('all'); setDateFrom(''); setDateTo(''); };
-
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
   const {
     data: depSched = [],
@@ -283,7 +281,7 @@ export default function AssetsPage() {
 
   const handleCreate = async (formData: AssetFormOutput) => {
     if (!defaultCo) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     const life = Number(formData.useful_life);
@@ -292,10 +290,7 @@ export default function AssetsPage() {
       if (life > 0) {
         const cat = await apiGetDoc<Record<string, unknown>>('Asset Category', formData.category);
         if (!cat) {
-          toast({
-            title: 'لم يُعثر على فئة الأصل',
-            description: formData.category,
-            variant: 'destructive'});
+          toast.error('لم يُعثر على فئة الأصل', { description: formData.category });
           return;
         }
         const merged = mergeCompanyAccountsIntoAssetCategory(
@@ -322,15 +317,12 @@ export default function AssetsPage() {
         depreciation_method: life > 0 ? formData.depreciation_method?.trim() : undefined,
         useful_life_years: life > 0 ? life : undefined});
       await createMutation.mutateAsync(doc);
-      toast({ title: 'تم إنشاء الأصل بنجاح' });
+      toast.success('تم إنشاء الأصل بنجاح');
       setCreateDialogOpen(false);
       createForm.reset();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({
-        title: 'حدث خطأ أثناء إنشاء الأصل',
-        description: msg,
-        variant: 'destructive'});
+      toast.error('حدث خطأ أثناء إنشاء الأصل', { description: msg });
     }
   };
 
@@ -342,7 +334,7 @@ export default function AssetsPage() {
       if (life > 0) {
         const cat = await apiGetDoc<Record<string, unknown>>('Asset Category', formData.category);
         if (!cat) {
-          toast({ title: 'لم يُعثر على فئة الأصل', variant: 'destructive' });
+          toast.error('لم يُعثر على فئة الأصل');
           return;
         }
         const merged = mergeCompanyAccountsIntoAssetCategory(
@@ -372,24 +364,21 @@ export default function AssetsPage() {
               frequency_of_depreciation: 12}
           : {})};
       await updateMutation.mutateAsync({ name: selected.name, doc });
-      toast({ title: 'تم تعديل الأصل بنجاح' });
+      toast.success('تم تعديل الأصل بنجاح');
       setEditDialogOpen(false);
       setSelected(null);
       editForm.reset();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({
-        title: 'حدث خطأ أثناء تعديل الأصل',
-        description: msg,
-        variant: 'destructive'});
+      toast.error('حدث خطأ أثناء تعديل الأصل', { description: msg });
     }
   };
 
   const handleDelete = () => {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
-      onSuccess: () => { toast({ title: 'تم حذف الأصل بنجاح' }); setDeleteDialogOpen(false); setSelected(null); },
-      onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+      onSuccess: () => { toast.success('تم حذف الأصل بنجاح'); setDeleteDialogOpen(false); setSelected(null); },
+      onError: () => toast.error('حدث خطأ أثناء الحذف')});
   };
 
   const openEdit = (row: AssetRow) => {

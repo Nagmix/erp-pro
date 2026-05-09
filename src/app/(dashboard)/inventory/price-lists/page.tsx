@@ -35,7 +35,7 @@ import {
   useDoc,
 } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildPriceList, buildItemPrice } from '@/lib/erp/erpnext-payloads';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -70,7 +70,6 @@ interface ItemPriceRow {
 }
 
 export default function PriceListsPage() {
-  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
   const [plName, setPlName] = useState('');
@@ -210,14 +209,11 @@ export default function PriceListsPage() {
 
   const handleCreate = () => {
     if (!plName.trim()) {
-      toast({ title: 'اسم القائمة مطلوب', variant: 'destructive' });
+      toast.error('اسم القائمة مطلوب');
       return;
     }
     if (!buying && !selling) {
-      toast({
-        title: 'اختر شراء أو بيع أو كلاهما',
-        variant: 'destructive',
-      });
+      toast.error('اختر شراء أو بيع أو كلاهما');
       return;
     }
     const doc = buildPriceList({
@@ -231,7 +227,7 @@ export default function PriceListsPage() {
     }
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء قائمة الأسعار' });
+        toast.success('تم إنشاء قائمة الأسعار');
         setDialogOpen(false);
         setPlName('');
         setCurrency('YER');
@@ -241,7 +237,7 @@ export default function PriceListsPage() {
         void refetch();
       },
       onError: () =>
-        toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+        toast.error('تعذر الحفظ'),
     });
   };
 
@@ -265,12 +261,12 @@ export default function PriceListsPage() {
       { name: editDialog.name, doc },
       {
         onSuccess: () => {
-          toast({ title: 'تم تحديث قائمة الأسعار' });
+          toast.success('تم تحديث قائمة الأسعار');
           setEditDialog(null);
           void refetch();
         },
         onError: () =>
-          toast({ title: 'تعذر التحديث', variant: 'destructive' }),
+          toast.error('تعذر التحديث'),
       }
     );
   };
@@ -286,10 +282,7 @@ export default function PriceListsPage() {
     if (!detailPl) return;
     const rate = Number(ipRate);
     if (!ipItem.trim() || !ipUom.trim() || !Number.isFinite(rate) || rate < 0) {
-      toast({
-        title: 'أكمل الصنف ووحدة القياس والسعر',
-        variant: 'destructive',
-      });
+      toast.error('أكمل الصنف ووحدة القياس والسعر');
       return;
     }
     const doc = buildItemPrice({
@@ -300,16 +293,12 @@ export default function PriceListsPage() {
     });
     createIpMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تمت إضافة سعر الصنف' });
+        toast.success('تمت إضافة سعر الصنف');
         setAddIpOpen(false);
         void refetchIp();
       },
       onError: (e) => {
-        toast({
-          title: 'تعذر الحفظ',
-          description: e instanceof Error ? e.message : undefined,
-          variant: 'destructive',
-        });
+        toast.error('تعذر الحفظ', { description: e instanceof Error ? e.message : undefined });
       },
     });
   };
@@ -323,19 +312,19 @@ export default function PriceListsPage() {
     if (!editRow) return;
     const rate = Number(editRate);
     if (!Number.isFinite(rate) || rate < 0) {
-      toast({ title: 'سعر غير صالح', variant: 'destructive' });
+      toast.error('سعر غير صالح');
       return;
     }
     updateIpMutation.mutate(
       { name: editRow.name, doc: { price_list_rate: rate } },
       {
         onSuccess: () => {
-          toast({ title: 'تم تحديث السعر' });
+          toast.success('تم تحديث السعر');
           setEditRow(null);
           void refetchIp();
         },
         onError: () =>
-          toast({ title: 'تعذر التحديث', variant: 'destructive' }),
+          toast.error('تعذر التحديث'),
       }
     );
   };
@@ -418,12 +407,12 @@ export default function PriceListsPage() {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
                   onSuccess: () => {
-                    toast({ title: 'تم الحذف' });
+                    toast.success('تم الحذف');
                     setDeleteName(null);
                     void refetch();
                   },
                   onError: () =>
-                    toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+                    toast.error('تعذر الحذف'),
                 });
               }}
             >
@@ -654,12 +643,12 @@ export default function PriceListsPage() {
                 if (!deleteIpName) return;
                 deleteIpMutation.mutate(deleteIpName, {
                   onSuccess: () => {
-                    toast({ title: 'تم الحذف' });
+                    toast.success('تم الحذف');
                     setDeleteIpName(null);
                     void refetchIp();
                   },
                   onError: () =>
-                    toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+                    toast.error('تعذر الحذف'),
                 });
               }}
             >

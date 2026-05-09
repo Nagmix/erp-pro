@@ -33,7 +33,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/core/helpers';
 import { useCreateDoc } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildJournalEntry, type JournalLineInput } from '@/lib/erp/erpnext-payloads';
 import { parseJournalImportXlsx } from '@/lib/erp/parse-journal-import-xlsx';
 
@@ -222,7 +222,6 @@ const emptyLine = (): JournalLineInput => ({
 
 export function JournalEntryNewEditor() {
   const router = useRouter();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const importFileRef = useRef<HTMLInputElement>(null);
   const [lines, setLines] = useState<JournalLineInput[]>([emptyLine(), emptyLine()]);
@@ -274,7 +273,7 @@ export function JournalEntryNewEditor() {
   const importLinesFromFile = (text: string) => {
     const rows = text.split(/\r?\n/).filter((l) => l.trim());
     if (rows.length < 1) {
-      toast({ title: 'لا بيانات في الملف', variant: 'destructive' });
+      toast.error('لا بيانات في الملف');
       return;
     }
     const out: JournalLineInput[] = [];
@@ -296,7 +295,7 @@ export function JournalEntryNewEditor() {
     }
     if (out.length) {
       setLines(out);
-      toast({ title: `تم استيراد ${out.length} بنداً` });
+      toast.success(`تم استيراد ${out.length} بنداً`);
     }
   };
 
@@ -304,27 +303,27 @@ export function JournalEntryNewEditor() {
     try {
       const out = await parseJournalImportXlsx(buffer);
       if (!out.length) {
-        toast({ title: 'لم يُستخرج أي بند من ملف Excel — تحقق من الصف الأول (عناوين أو أعمدة)', variant: 'destructive' });
+        toast.error('لم يُستخرج أي بند من ملف Excel — تحقق من الصف الأول (عناوين أو أعمدة)');
         return;
       }
       setLines(out);
-      toast({ title: `تم استيراد ${out.length} بنداً من Excel` });
+      toast.success(`تم استيراد ${out.length} بنداً من Excel`);
     } catch {
-      toast({ title: 'تعذّر قراءة ملف Excel', variant: 'destructive' });
+      toast.error('تعذّر قراءة ملف Excel');
     }
   };
 
   const handleCreate = (formData: JournalFormData) => {
     if (lines.every((l) => !l.account)) {
-      toast({ title: 'يرجى إدخال حساب واحد على الأقل', variant: 'destructive' });
+      toast.error('يرجى إدخال حساب واحد على الأقل');
       return;
     }
     if (difference !== 0) {
-      toast({ title: 'يجب أن يتساوى مجموع المدين مع مجموع الدائن', variant: 'destructive' });
+      toast.error('يجب أن يتساوى مجموع المدين مع مجموع الدائن');
       return;
     }
     if (!defaultCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     const payload = buildJournalEntry({
@@ -338,14 +337,14 @@ export function JournalEntryNewEditor() {
     });
     createMutation.mutate(payload, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء القيد بنجاح' });
+        toast.success('تم إنشاء القيد بنجاح');
         form.reset();
         setLines([emptyLine(), emptyLine()]);
         void queryClient.invalidateQueries({ queryKey: ['docList', 'Journal Entry'] });
         router.push('/accounting/journal-entry');
         router.refresh();
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء إنشاء القيد', variant: 'destructive' }),
+      onError: () => toast.error('حدث خطأ أثناء إنشاء القيد'),
     });
   };
 

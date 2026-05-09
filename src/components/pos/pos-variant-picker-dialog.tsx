@@ -19,7 +19,7 @@ import {
   type PosSellCatalogRow,
   type PosVariantListRow,
 } from '@/lib/client/pos-catalog';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -47,7 +47,6 @@ export function PosVariantPickerDialog({
   currency = 'YER',
   onPick,
 }: Props) {
-  const { toast } = useToast();
   const [resolving, setResolving] = useState<string | null>(null);
 
   const key = templateDocName.trim();
@@ -71,7 +70,7 @@ export function PosVariantPickerDialog({
     const code = itemCode.trim();
     if (!code) return;
     if (!posProfile.trim()) {
-      toast({ title: 'اختر ملف نقطة البيع', variant: 'destructive' });
+      toast.error('اختر ملف نقطة البيع');
       return;
     }
     setResolving(code);
@@ -107,19 +106,12 @@ export function PosVariantPickerDialog({
           price_list_rate: 0,
         });
         onOpenChange(false);
-        toast({
-          title: 'أُضيف بدون سعر من القائمة',
-          description: 'راجع قائمة الأسعار أو ملف نقطة البيع',
-        });
+        toast.success('أُضيف بدون سعر من القائمة', { description: 'راجع قائمة الأسعار أو ملف نقطة البيع' });
         return;
       }
-      toast({ title: 'تعذر جلب الصنف', variant: 'destructive' });
+      toast.error('تعذر جلب الصنف');
     } catch (e) {
-      toast({
-        title: 'فشل جلب السعر',
-        description: e instanceof Error ? e.message : undefined,
-        variant: 'destructive',
-      });
+      toast.error('فشل جلب السعر', { description: e instanceof Error ? e.message : undefined });
     } finally {
       setResolving(null);
     }

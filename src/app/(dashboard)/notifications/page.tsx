@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDocList, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
@@ -350,7 +350,6 @@ function LoadingSkeleton() {
    ────────────────────────────────────────────── */
 
 export default function NotificationsPage() {
-  const { toast } = useToast();
   const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'read'>('all');
   const [doctypeFilter, setDoctypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -386,10 +385,10 @@ export default function NotificationsPage() {
         { name, doc: { read: 1 } },
         {
           onSuccess: () => {
-            toast({ title: 'تم تحديد الإشعار كمقروء' });
+            toast.success('تم تحديد الإشعار كمقروء');
           },
           onError: () => {
-            toast({ title: 'فشل تحديث الإشعار', variant: 'destructive' });
+            toast.error('فشل تحديث الإشعار');
           },
         }
       );
@@ -403,7 +402,7 @@ export default function NotificationsPage() {
       updateMutation.mutate({ name: n.name, doc: { read: 1 } });
     }
     if (unread.length > 0) {
-      toast({ title: `تم تحديد ${unread.length} إشعار كمقروء` });
+      toast.success(`تم تحديد ${unread.length} إشعار كمقروء`);
     }
   }, [notifications, updateMutation, toast]);
 
@@ -411,10 +410,10 @@ export default function NotificationsPage() {
     (name: string) => {
       deleteMutation.mutate(name, {
         onSuccess: () => {
-          toast({ title: 'تم حذف الإشعار' });
+          toast.success('تم حذف الإشعار');
         },
         onError: () => {
-          toast({ title: 'فشل حذف الإشعار', variant: 'destructive' });
+          toast.error('فشل حذف الإشعار');
         },
       });
     },
@@ -427,7 +426,7 @@ export default function NotificationsPage() {
       deleteMutation.mutate(n.name);
     }
     if (readNotifs.length > 0) {
-      toast({ title: `تم حذف ${readNotifs.length} إشعار مقروء` });
+      toast.success(`تم حذف ${readNotifs.length} إشعار مقروء`);
     }
   }, [notifications, deleteMutation, toast]);
 
@@ -538,7 +537,7 @@ export default function NotificationsPage() {
   );
 
   const savePreferences = useCallback(() => {
-    toast({ title: 'تم حفظ تفضيلات الإشعارات' });
+    toast.success('تم حفظ تفضيلات الإشعارات');
     setPreferencesOpen(false);
   }, [toast]);
 

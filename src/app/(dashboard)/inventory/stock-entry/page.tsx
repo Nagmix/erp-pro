@@ -26,7 +26,7 @@ import { Plus, Trash2, Send, Undo2, Package, ArrowRightLeft, Box, Filter, Chevro
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildStockEntry } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -63,7 +63,6 @@ interface Line {
 const emptyLine = (): Line => ({ item_code: '', qty: 1, basic_rate: '', s_warehouse: '', t_warehouse: '' });
 
 export default function StockEntryPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [filter, setFilter] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -105,23 +104,23 @@ export default function StockEntryPage() {
 
   const handleCreate = () => {
     if (!company) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (entryType === 'Material Receipt' && !toWh) {
-      toast({ title: 'مستودع الاستلام مطلوب', variant: 'destructive' });
+      toast.error('مستودع الاستلام مطلوب');
       return;
     }
     if (entryType === 'Material Issue' && !fromWh) {
-      toast({ title: 'مستودع الصرف مطلوب', variant: 'destructive' });
+      toast.error('مستودع الصرف مطلوب');
       return;
     }
     if ((entryType === 'Material Transfer' || entryType === 'Manufacture') && (!fromWh || !toWh)) {
-      toast({ title: 'من وإلى مستودع مطلوبان', variant: 'destructive' });
+      toast.error('من وإلى مستودع مطلوبان');
       return;
     }
     if (lines.every((l) => !l.item_code)) {
-      toast({ title: 'أضف بنوداً', variant: 'destructive' });
+      toast.error('أضف بنوداً');
       return;
     }
     const doc = buildStockEntry({
@@ -140,12 +139,12 @@ export default function StockEntryPage() {
           basic_rate: l.basic_rate ? Number(l.basic_rate) : undefined}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء حركة المخزون' });
+        toast.success('تم إنشاء حركة المخزون');
         setDialogOpen(false);
         setLines([emptyLine()]);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' })});
+      onError: () => toast.error('تعذر الحفظ')});
   };
 
   const columns: Column<SERow>[] = useMemo(
@@ -176,8 +175,8 @@ export default function StockEntryPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                    onError: () => toast.error('تعذر الترحيل')})
                 }
               >
                 <Send className="h-3 w-3" />
@@ -194,8 +193,8 @@ export default function StockEntryPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'أُلغي' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('أُلغي'); void refetch(); },
+                    onError: () => toast.error('تعذر')})
                 }
               >
                 <Undo2 className="h-3 w-3" />
@@ -319,8 +318,8 @@ export default function StockEntryPage() {
               onClick={() => {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
-                  onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteName(null); void refetch(); },
-                  onError: () => toast({ title: 'تعذر الحذف', variant: 'destructive' })});
+                  onSuccess: () => { toast.success('تم الحذف'); setDeleteName(null); void refetch(); },
+                  onError: () => toast.error('تعذر الحذف')});
               }}
             >
               حذف

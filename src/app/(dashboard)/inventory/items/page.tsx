@@ -30,12 +30,13 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { formatCurrency } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildItemCreate } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   parseCsvRows,
@@ -62,10 +63,9 @@ interface ItemRow {
 }
 
 const ITEMS_CSV_TEMPLATE = `item_code,item_name,item_group,stock_uom,is_stock_item,standard_rate,has_batch_no,has_serial_no,brand,description
-SKU-001,مثال صنف,Products,Nos,1,10,0,0,`;
+SKU-001,منتج افتراضي,Products,Nos,1,10,0,0,`;
 
 export default function ItemsPage() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { company, isLoading: coLoading } = useDefaultCompanyName();
@@ -168,11 +168,11 @@ export default function ItemsPage() {
 
   const handleCreate = () => {
     if (!itemCode.trim() || !itemName.trim() || !itemGroup || !stockUom) {
-      toast({ title: 'أكمل الحقول المطلوبة', variant: 'destructive' });
+      toast.error('أكمل الحقول المطلوبة');
       return;
     }
     if (isStock && !company) {
-      toast({ title: 'تعذر تحديد الشركة لافتراضيات الصنف', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة لافتراضيات الصنف');
       return;
     }
     const doc = buildItemCreate({
@@ -191,7 +191,7 @@ export default function ItemsPage() {
       no_of_months: enableDeferredRev ? Math.max(1, Math.min(600, parseInt(deferredMonths, 10) || 12)) : undefined});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء الصنف' });
+        toast.success('تم إنشاء الصنف');
         setDialogOpen(false);
         setItemCode('');
         setItemName('');
@@ -207,7 +207,7 @@ export default function ItemsPage() {
         setDeferredMonths('12');
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' })});
+      onError: () => toast.error('تعذر الحفظ')});
   };
 
   const downloadCsvTemplate = useCallback(() => {
@@ -232,17 +232,17 @@ export default function ItemsPage() {
         grid = parseCsvRows(text);
       }
       if (grid.length < 2) {
-        toast({ title: 'الملف فارغ أو بلا صف بيانات', variant: 'destructive' });
+        toast.error('الملف فارغ أو بلا صف بيانات');
         return;
       }
       const headerCells = grid[0]!;
       const headers = validateItemImportHeaders(headerCells);
       if (!headers.ok) {
-        toast({ title: 'رؤوس الأعمدة ناقصة', description: headers.message, variant: 'destructive' });
+        toast.error('رؤوس الأعمدة ناقصة', { description: headers.message });
         return;
       }
       if (!company) {
-        toast({ title: 'تعذر تحديد الشركة لأصناف مخزنية', variant: 'destructive' });
+        toast.error('تعذر تحديد الشركة لأصناف مخزنية');
         return;
       }
       setFileImporting(true);
@@ -250,10 +250,7 @@ export default function ItemsPage() {
       setFileImporting(false);
       void queryClient.invalidateQueries({ queryKey: ['docList', 'Item'] });
       void refetch();
-      toast({
-        title: 'انتهى الاستيراد',
-        description: `نجح ${ok}، فشل ${fail}، تخطي ${skipped}`,
-        variant: fail ? 'destructive' : 'default'});
+      toast.error('انتهى الاستيراد', { description: `نجح ${ok}، فشل ${fail}، تخطي ${skipped}` });
     },
     [company, queryClient, refetch, toast]
   );
@@ -385,7 +382,7 @@ export default function ItemsPage() {
               onClick: (rows) => {
                 const text = rows.map((r) => r.item_code).join('\n');
                 void navigator.clipboard.writeText(text);
-                toast({ title: 'تم النسخ', description: `${rows.length} صنفاً` });
+                toast.success('تم النسخ', { description: `${rows.length} صنفاً` });
               }},
           ]}
         />
@@ -402,8 +399,8 @@ export default function ItemsPage() {
               onClick={() => {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
-                  onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteName(null); void refetch(); },
-                  onError: () => toast({ title: 'تعذر الحذف — قد يكون الصنف مرتبطاً', variant: 'destructive' })});
+                  onSuccess: () => { toast.success('تم الحذف'); setDeleteName(null); void refetch(); },
+                  onError: () => toast.error('تعذر الحذف — قد يكون الصنف مرتبطاً')});
               }}
             >
               حذف
@@ -470,16 +467,16 @@ export default function ItemsPage() {
             </TabsContent>
             <TabsContent value="stock" className="space-y-4 mt-4 outline-none">
             <div className="flex flex-wrap gap-4">
-              <label className="flex items-center gap-2 text-xs">
-                <input type="checkbox" checked={isStock} onChange={(e) => setIsStock(e.target.checked)} />
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <Checkbox checked={isStock} onCheckedChange={(v) => setIsStock(v === true)} />
                 صنف مخزني
               </label>
-              <label className="flex items-center gap-2 text-xs">
-                <input type="checkbox" checked={hasBatch} onChange={(e) => setHasBatch(e.target.checked)} disabled={!isStock} />
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <Checkbox checked={hasBatch} onCheckedChange={(v) => setHasBatch(v === true)} disabled={!isStock} />
                 تتبع دفعة
               </label>
-              <label className="flex items-center gap-2 text-xs">
-                <input type="checkbox" checked={hasSerial} onChange={(e) => setHasSerial(e.target.checked)} disabled={!isStock} />
+              <label className="flex items-center gap-2 text-xs cursor-pointer">
+                <Checkbox checked={hasSerial} onCheckedChange={(v) => setHasSerial(v === true)} disabled={!isStock} />
                 تتبع تسلسلي
               </label>
             </div>

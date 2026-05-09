@@ -10,7 +10,7 @@ import {
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -172,7 +172,6 @@ type AccountForm = {
 // Component
 // ────────────────────────────────────────────────────────────
 export default function OpeningBalancesPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoad } = useDefaultCompanyName();
   const [activeTab, setActiveTab] = useState<BalanceTab>('customers');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -342,7 +341,7 @@ export default function OpeningBalancesPage() {
   // ── Handlers ──
   const handleAddCustomerBalance = () => {
     if (!custForm.customer || !custForm.opening_balance) {
-      toast({ title: 'يرجى ملء جميع الحقول المطلوبة', variant: 'destructive' });
+      toast.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     updateCustomer.mutate(
@@ -354,13 +353,13 @@ export default function OpeningBalancesPage() {
       } as unknown as Record<string, unknown>,
       {
         onSuccess: () => {
-          toast({ title: 'تم حفظ الرصيد الافتتاحي للعميل' });
+          toast.success('تم حفظ الرصيد الافتتاحي للعميل');
           void refetchCustomers();
           setCustForm({ customer: '', opening_balance: '', currency: 'YER' });
           setAddDialogOpen(false);
         },
         onError: () => {
-          toast({ title: 'تعذر حفظ الرصيد الافتتاحي', variant: 'destructive' });
+          toast.error('تعذر حفظ الرصيد الافتتاحي');
         },
       }
     );
@@ -368,7 +367,7 @@ export default function OpeningBalancesPage() {
 
   const handleAddSupplierBalance = () => {
     if (!suppForm.supplier || !suppForm.opening_balance) {
-      toast({ title: 'يرجى ملء جميع الحقول المطلوبة', variant: 'destructive' });
+      toast.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     updateSupplier.mutate(
@@ -380,13 +379,13 @@ export default function OpeningBalancesPage() {
       } as unknown as Record<string, unknown>,
       {
         onSuccess: () => {
-          toast({ title: 'تم حفظ الرصيد الافتتاحي للمورد' });
+          toast.success('تم حفظ الرصيد الافتتاحي للمورد');
           void refetchSuppliers();
           setSuppForm({ supplier: '', opening_balance: '', currency: 'YER' });
           setAddDialogOpen(false);
         },
         onError: () => {
-          toast({ title: 'تعذر حفظ الرصيد الافتتاحي', variant: 'destructive' });
+          toast.error('تعذر حفظ الرصيد الافتتاحي');
         },
       }
     );
@@ -394,7 +393,7 @@ export default function OpeningBalancesPage() {
 
   const handleAddInventoryBalance = () => {
     if (!invForm.item_code || !invForm.warehouse || !invForm.qty || !invForm.unit_cost) {
-      toast({ title: 'يرجى ملء جميع الحقول المطلوبة', variant: 'destructive' });
+      toast.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     // Add to account balances as inventory asset
@@ -408,14 +407,14 @@ export default function OpeningBalancesPage() {
         cost_center: invForm.warehouse,
       },
     ]);
-    toast({ title: `تمت إضافة رصيد مخزون بقيمة ${formatNumber(totalValue)}` });
+    toast.success(`تمت إضافة رصيد مخزون بقيمة ${formatNumber(totalValue)}`);
     setInvForm({ item_code: '', warehouse: '', qty: '', unit_cost: '' });
     setAddDialogOpen(false);
   };
 
   const handleAddAccountBalance = () => {
     if (!accForm.account) {
-      toast({ title: 'يرجى اختيار الحساب', variant: 'destructive' });
+      toast.error('يرجى اختيار الحساب');
       return;
     }
     const existing = accountBalances.findIndex((a) => a.account === accForm.account);
@@ -439,7 +438,7 @@ export default function OpeningBalancesPage() {
         },
       ]);
     }
-    toast({ title: 'تمت إضافة الرصيد الافتتاحي للحساب' });
+    toast.success('تمت إضافة الرصيد الافتتاحي للحساب');
     setAccForm({ account: '', debit: '', credit: '', cost_center: '' });
     setAddDialogOpen(false);
   };
@@ -450,18 +449,15 @@ export default function OpeningBalancesPage() {
 
   const handlePostAllBalances = () => {
     if (!company) {
-      toast({ title: 'لم يتم تحديد الشركة الافتراضية', variant: 'destructive' });
+      toast.error('لم يتم تحديد الشركة الافتراضية');
       return;
     }
     if (!isBalanced) {
-      toast({
-        title: `الأرصدة غير متوازنة — الفرق: ${formatNumber(balanceDiff)}`,
-        variant: 'destructive',
-      });
+      toast.error(`الأرصدة غير متوازنة — الفرق: ${formatNumber(balanceDiff)}`);
       return;
     }
     if (accountBalances.length === 0) {
-      toast({ title: 'لا توجد أرصدة لترحيلها', variant: 'destructive' });
+      toast.error('لا توجد أرصدة لترحيلها');
       return;
     }
 
@@ -516,7 +512,7 @@ export default function OpeningBalancesPage() {
     });
 
     if (lines.length === 0) {
-      toast({ title: 'لا توجد أرصدة لترحيلها', variant: 'destructive' });
+      toast.error('لا توجد أرصدة لترحيلها');
       return;
     }
 
@@ -532,12 +528,12 @@ export default function OpeningBalancesPage() {
     createJournal.mutate(jeDoc, {
       onSuccess: (data) => {
         const jeName = (data as Record<string, unknown>)?.name as string;
-        toast({ title: `تم إنشاء قيد الأرصدة الافتتاحية: ${jeName}` });
+        toast.success(`تم إنشاء قيد الأرصدة الافتتاحية: ${jeName}`);
         void refetchJE();
         setPostConfirmOpen(false);
       },
       onError: () => {
-        toast({ title: 'تعذر إنشاء قيد الأرصدة الافتتاحية', variant: 'destructive' });
+        toast.error('تعذر إنشاء قيد الأرصدة الافتتاحية');
       },
     });
   };
@@ -545,11 +541,11 @@ export default function OpeningBalancesPage() {
   const handleSubmitJE = (name: string) => {
     submitJournal.mutate(name, {
       onSuccess: () => {
-        toast({ title: 'تم ترحيل القيد الافتتاحي' });
+        toast.success('تم ترحيل القيد الافتتاحي');
         void refetchJE();
       },
       onError: () => {
-        toast({ title: 'فشل ترحيل القيد', variant: 'destructive' });
+        toast.error('فشل ترحيل القيد');
       },
     });
   };
@@ -557,11 +553,11 @@ export default function OpeningBalancesPage() {
   const handleDeleteJE = (name: string) => {
     deleteJournal.mutate(name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف القيد الافتتاحي' });
+        toast.success('تم حذف القيد الافتتاحي');
         void refetchJE();
       },
       onError: () => {
-        toast({ title: 'تعذر حذف القيد', variant: 'destructive' });
+        toast.error('تعذر حذف القيد');
       },
     });
   };
@@ -847,7 +843,7 @@ export default function OpeningBalancesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">نوع الطرف</Label>
-                <Badge variant="outline" className="h-9 px-3 text-xs">Customer</Badge>
+                <Badge variant="outline" className="h-9 px-3 text-xs">عميل</Badge>
               </div>
             </div>
             <div className="rounded-lg border border-muted bg-muted/30 p-3 text-xs text-muted-foreground">
@@ -1148,7 +1144,7 @@ export default function OpeningBalancesPage() {
                       className="mt-3 max-w-xs mx-auto"
                       dir="ltr"
                       onChange={() => {
-                        toast({ title: 'سيتم معالجة الملف قريباً' });
+                        toast.success('سيتم معالجة الملف قريباً');
                       }}
                     />
                   </div>

@@ -48,7 +48,7 @@ import {
   useCancelDoc,
 } from '@/lib/client/hooks';
 import { formatDate } from '@/lib/core/helpers';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -113,7 +113,6 @@ const initialForm: ContractFormState = {
 };
 
 export default function ContractsPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
 
   const {
@@ -194,7 +193,7 @@ export default function ContractsPage() {
 
   const openEditDialog = (row: ContractRow) => {
     if (Number(row.docstatus) !== 0) {
-      toast({ title: 'لا يمكن تعديل عقد معتمد', variant: 'destructive' });
+      toast.error('لا يمكن تعديل عقد معتمد');
       return;
     }
     setEditingDoc(row);
@@ -217,15 +216,15 @@ export default function ContractsPage() {
 
   const handleCreate = () => {
     if (!company) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (!formData.party_name) {
-      toast({ title: 'الموظف مطلوب', variant: 'destructive' });
+      toast.error('الموظف مطلوب');
       return;
     }
     if (!formData.start_date) {
-      toast({ title: 'تاريخ البدء مطلوب', variant: 'destructive' });
+      toast.error('تاريخ البدء مطلوب');
       return;
     }
     const doc = prepareFrappeDocForCreate({
@@ -239,17 +238,13 @@ export default function ContractsPage() {
     });
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء العقد' });
+        toast.success('تم إنشاء العقد');
         setDialogOpen(false);
         setFormData({ ...initialForm });
         void refetch();
       },
       onError: (e: Error) => {
-        toast({
-          title: 'تعذر إنشاء العقد',
-          description: e.message,
-          variant: 'destructive',
-        });
+        toast.error('تعذر إنشاء العقد', { description: e.message });
       },
     });
   };
@@ -267,13 +262,13 @@ export default function ContractsPage() {
       },
       {
         onSuccess: () => {
-          toast({ title: 'تم تعديل العقد' });
+          toast.success('تم تعديل العقد');
           setDialogOpen(false);
           setEditingDoc(null);
           void refetch();
         },
         onError: () => {
-          toast({ title: 'تعذر تعديل العقد', variant: 'destructive' });
+          toast.error('تعذر تعديل العقد');
         },
       }
     );
@@ -282,11 +277,11 @@ export default function ContractsPage() {
   const handleSubmit = (row: ContractRow) => {
     submitMutation.mutate(row.name, {
       onSuccess: () => {
-        toast({ title: 'تم ترحيل العقد' });
+        toast.success('تم ترحيل العقد');
         void refetch();
       },
       onError: () => {
-        toast({ title: 'تعذر ترحيل العقد', variant: 'destructive' });
+        toast.error('تعذر ترحيل العقد');
       },
     });
   };
@@ -294,11 +289,11 @@ export default function ContractsPage() {
   const handleCancel = (row: ContractRow) => {
     cancelMutation.mutate(row.name, {
       onSuccess: () => {
-        toast({ title: 'تم إلغاء العقد' });
+        toast.success('تم إلغاء العقد');
         void refetch();
       },
       onError: () => {
-        toast({ title: 'تعذر إلغاء العقد', variant: 'destructive' });
+        toast.error('تعذر إلغاء العقد');
       },
     });
   };
@@ -306,15 +301,11 @@ export default function ContractsPage() {
   const handleDelete = async (row: ContractRow) => {
     try {
       await deleteMutation.mutateAsync(row.name);
-      toast({ title: 'تم حذف العقد' });
+      toast.success('تم حذف العقد');
       setDeleteDialog(null);
       void refetch();
     } catch (e: any) {
-      toast({
-        title: 'تعذر الحذف',
-        description: e.message,
-        variant: 'destructive',
-      });
+      toast.error('تعذر الحذف', { description: e.message });
     }
   };
 

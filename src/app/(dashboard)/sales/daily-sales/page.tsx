@@ -62,6 +62,7 @@ import {
   ArrowLeftRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { CHART_PALETTE } from '@/lib/core/helpers';
 
 /* ──────────────────── types ──────────────────── */
 interface DailySalesData {
@@ -100,22 +101,19 @@ function fmtHour(h: number): string {
   return `${String(h).padStart(2, '0')}:00`;
 }
 
-const PIE_COLORS = [
-  '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4',
-  '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
-];
+// PIE_COLORS removed — using CHART_PALETTE.pie from helpers
 
 const hourlyChartConfig: ChartConfig = {
-  amount: { label: 'المبيعات', color: '#10b981' },
+  amount: { label: 'المبيعات', color: 'hsl(var(--chart-1))' },
 };
 
 const paymentChartConfig: ChartConfig = {
-  amount: { label: 'المبلغ', color: '#10b981' },
-  نقدي: { label: 'نقدي', color: '#10b981' },
-  بطاقة: { label: 'بطاقة', color: '#8b5cf6' },
-  تحويل: { label: 'تحويل', color: '#06b6d4' },
-  شيك: { label: 'شيك', color: '#f59e0b' },
-  أخرى: { label: 'أخرى', color: '#ec4899' },
+  amount: { label: 'المبلغ', color: 'hsl(var(--chart-1))' },
+  نقدي: { label: 'نقدي', color: 'hsl(var(--chart-1))' },
+  بطاقة: { label: 'بطاقة', color: 'hsl(var(--chart-2))' },
+  تحويل: { label: 'تحويل', color: 'hsl(var(--chart-3))' },
+  شيك: { label: 'شيك', color: 'hsl(var(--chart-4))' },
+  أخرى: { label: 'أخرى', color: 'hsl(var(--chart-5))' },
 };
 
 /* ──────────────────── component ──────────────────── */
@@ -394,7 +392,7 @@ export default function DailySalesReportPage() {
                       {data.hourlyData.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={entry.amount > 0 ? '#10b981' : '#e5e7eb'}
+                          fill={entry.amount > 0 ? CHART_PALETTE.primary : 'hsl(var(--muted))'}
                           opacity={entry.amount > 0 ? 0.85 : 0.4}
                         />
                       ))}
@@ -426,7 +424,7 @@ export default function DailySalesReportPage() {
                       paddingAngle={3}
                     >
                       {data.paymentMethods.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={CHART_PALETTE.pie[index % CHART_PALETTE.pie.length]} />
                       ))}
                     </Pie>
                     <RechartsTooltip
@@ -440,7 +438,7 @@ export default function DailySalesReportPage() {
                       <div className="flex items-center gap-2">
                         <div
                           className="h-3 w-3 rounded-sm"
-                          style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
+                          style={{ backgroundColor: CHART_PALETTE.pie[idx % CHART_PALETTE.pie.length] }}
                         />
                         <span className="text-muted-foreground">{pm.method}</span>
                       </div>

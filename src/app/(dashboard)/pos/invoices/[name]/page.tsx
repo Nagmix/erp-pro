@@ -20,7 +20,7 @@ import { PageHeader } from '@/components/erp/page-header';
 import { useDoc } from '@/lib/client/hooks';
 import { useSubmitDraftPosInvoice } from '@/lib/client/pos-hooks';
 import { formatCurrency } from '@/lib/core/helpers';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { buildPosReceiptHtml, posInvoiceDocToReceiptSnapshot } from '@/lib/client/pos-receipt';
 import { ArrowRight, Eye, Loader2, Printer } from 'lucide-react';
@@ -28,7 +28,6 @@ import { ArrowRight, Eye, Loader2, Printer } from 'lucide-react';
 export default function PosInvoiceDetailPage() {
   const params = useParams();
   const name = typeof params?.name === 'string' ? decodeURIComponent(params.name) : '';
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
   const submitDraftMut = useSubmitDraftPosInvoice();
 
@@ -108,28 +107,20 @@ export default function PosInvoiceDetailPage() {
       const snap = posInvoiceDocToReceiptSnapshot(data, companyDisplay);
       const w = window.open('', '_blank', 'width=420,height=640');
       if (!w) {
-        toast({ title: 'السماح بالنوافذ المنبثقة للطباعة أو المعاينة', variant: 'destructive' });
+        toast.error('السماح بالنوافذ المنبثقة للطباعة أو المعاينة');
         return;
       }
       w.document.write(buildPosReceiptHtml(snap, { includePrintScript }));
       w.document.close();
     } catch (e) {
-      toast({
-        title: 'تعذر إعداد الإيصال',
-        description: e instanceof Error ? e.message : undefined,
-        variant: 'destructive',
-      });
+      toast.error('تعذر إعداد الإيصال', { description: e instanceof Error ? e.message : undefined });
     }
   };
 
   const handleFinalize = async () => {
     if (!name.trim()) return;
     if (!finalizeOk) {
-      toast({
-        title: 'مدفوعات غير كافية',
-        description: `يجب أن يغطي مجموع المدفوعات الإجمالي (${formatCurrency(grandTotal)}) قبل الترحيل`,
-        variant: 'destructive',
-      });
+      toast.error('مدفوعات غير كافية', { description: `يجب أن يغطي مجموع المدفوعات الإجمالي (${formatCurrency(grandTotal)}) قبل الترحيل` });
       return;
     }
     const paymentPayload = paymentModesForFinalize
@@ -139,7 +130,7 @@ export default function PosInvoiceDetailPage() {
       }))
       .filter((p) => p.amount > 0.005);
     if (paymentPayload.length === 0) {
-      toast({ title: 'أدخل مبالغ الدفع', variant: 'destructive' });
+      toast.error('أدخل مبالغ الدفع');
       return;
     }
     try {
@@ -147,17 +138,10 @@ export default function PosInvoiceDetailPage() {
         name: name.trim(),
         payments: paymentPayload,
       });
-      toast({
-        title: 'تم ترحيل الفاتورة',
-        description: `الإجمالي ${formatCurrency(res.rounded_total)}`,
-      });
+      toast.success('تم ترحيل الفاتورة', { description: `الإجمالي ${formatCurrency(res.rounded_total)}` });
       void refetch();
     } catch (e) {
-      toast({
-        title: 'تعذر الترحيل',
-        description: e instanceof Error ? e.message : undefined,
-        variant: 'destructive',
-      });
+      toast.error('تعذر الترحيل', { description: e instanceof Error ? e.message : undefined });
     }
   };
 

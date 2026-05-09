@@ -411,7 +411,7 @@ function PreviewPanel({ sections, formatName }: { sections: PrintFormatSection[]
                           : field.fieldtype === 'Int' || field.fieldtype === 'Float' ? '0'
                           : field.fieldtype === 'Check' ? '☐'
                           : field.fieldtype === 'Link' ? '—'
-                          : field.fieldtype === 'Small Text' || field.fieldtype === 'Text' ? 'نص تجريبي'
+                          : field.fieldtype === 'Small Text' || field.fieldtype === 'Text' ? 'نص'
                           : '—'}
                       </span>
                     </div>

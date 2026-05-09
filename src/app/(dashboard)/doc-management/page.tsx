@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDocList, useDeleteDoc } from '@/lib/client/hooks';
 import { formatDate, formatCurrency } from '@/lib/core/helpers';
 import {
@@ -83,8 +83,8 @@ function getFileTypeCategory(fileType: string): string {
   if (!fileType) return 'أخرى';
   const ext = fileType.toLowerCase();
   if (['pdf'].includes(ext)) return 'PDF';
-  if (['doc', 'docx', 'odt'].includes(ext)) return 'Word';
-  if (['xls', 'xlsx', 'ods', 'csv'].includes(ext)) return 'Excel';
+  if (['doc', 'docx', 'odt'].includes(ext)) return 'وورد';
+  if (['xls', 'xlsx', 'ods', 'csv'].includes(ext)) return 'إكسل';
   if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'].includes(ext)) return 'صورة';
   return 'أخرى';
 }
@@ -94,10 +94,10 @@ function getFileTypeInfo(fileType: string) {
   switch (category) {
     case 'PDF':
       return { icon: FileText, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-950/40', border: 'border-red-200 dark:border-red-900/50', label: 'PDF' };
-    case 'Word':
-      return { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/40', border: 'border-blue-200 dark:border-blue-900/50', label: 'Word' };
-    case 'Excel':
-      return { icon: FileSpreadsheet, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40', border: 'border-emerald-200 dark:border-emerald-900/50', label: 'Excel' };
+    case 'وورد':
+      return { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/40', border: 'border-blue-200 dark:border-blue-900/50', label: 'وورد' };
+    case 'إكسل':
+      return { icon: FileSpreadsheet, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40', border: 'border-emerald-200 dark:border-emerald-900/50', label: 'إكسل' };
     case 'صورة':
       return { icon: ImageIcon, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/40', border: 'border-purple-200 dark:border-purple-900/50', label: 'صورة' };
     default:
@@ -108,8 +108,6 @@ function getFileTypeInfo(fileType: string) {
 /* ───────────────────────── Component ───────────────────────── */
 
 export default function DocManagementPage() {
-  const { toast } = useToast();
-
   /* ── State ── */
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -221,14 +219,14 @@ export default function DocManagementPage() {
   const deleteFile = (file: ERPFile) => {
     deleteMutation.mutate(file.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف الملف', description: file.file_name });
+        toast.success('تم حذف الملف', { description: file.file_name });
         if (selectedFile?.name === file.name) {
           setDetailDialogOpen(false);
           setSelectedFile(null);
         }
       },
       onError: () => {
-        toast({ title: 'فشل حذف الملف', variant: 'destructive' });
+        toast.error('فشل حذف الملف');
       },
     });
   };
@@ -349,7 +347,7 @@ export default function DocManagementPage() {
               size="sm"
               className="gap-1.5 text-xs"
               onClick={() => {
-                toast({ title: 'رفع الملفات', description: 'يمكنك رفع الملفات من خلال واجهة ERPNext مباشرة' });
+                toast.success('رفع الملفات', { description: 'يمكنك رفع الملفات من خلال واجهة ERPNext مباشرة' });
               }}
             >
               <Upload className="h-3.5 w-3.5" />
@@ -473,7 +471,7 @@ export default function DocManagementPage() {
                 )}
                 <h3 className="text-sm font-semibold">
                   {selectedFolderName ?? 'جميع الملفات'}
-                  <span className="text-muted-foreground font-normal mr-1">
+                  <span className="text-muted-foreground font-normal me-1">
                     ({filteredFiles.length})
                   </span>
                 </h3>
@@ -499,8 +497,8 @@ export default function DocManagementPage() {
                   <SelectContent>
                     <SelectItem value="all">جميع الأنواع</SelectItem>
                     <SelectItem value="PDF">PDF</SelectItem>
-                    <SelectItem value="Word">Word</SelectItem>
-                    <SelectItem value="Excel">Excel</SelectItem>
+                    <SelectItem value="وورد">وورد</SelectItem>
+                    <SelectItem value="إكسل">إكسل</SelectItem>
                     <SelectItem value="صورة">صورة</SelectItem>
                     <SelectItem value="أخرى">أخرى</SelectItem>
                   </SelectContent>
@@ -616,7 +614,7 @@ export default function DocManagementPage() {
                 onDelete={(row) => deleteFile(row as ERPFile)}
                 addLabel="رفع مستند"
                 onAdd={() => {
-                  toast({ title: 'رفع الملفات', description: 'يمكنك رفع الملفات من خلال واجهة ERPNext مباشرة' });
+                  toast.success('رفع الملفات', { description: 'يمكنك رفع الملفات من خلال واجهة ERPNext مباشرة' });
                 }}
                 exportFileName="documents"
               />

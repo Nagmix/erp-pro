@@ -42,7 +42,7 @@ import { Plus, Users, Building2, User, Filter, ChevronDown, Upload, X, Eye, Penc
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc, useDoc } from '@/lib/client/hooks';
 import { buildCustomerCreate } from '@/lib/erp/erpnext-payloads';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
@@ -104,8 +104,6 @@ export default function CustomersPage() {
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [customerTypeFilter, setCustomerTypeFilter] = useState('all');
-  const { toast } = useToast();
-
   useEffect(() => {
     consumeCreateQueryParam(() => setDialogOpen(true));
   }, []);
@@ -163,11 +161,11 @@ export default function CustomersPage() {
 
   const handleCreate = () => {
     if (!formData.customer_name) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم العميل', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال اسم العميل' });
       return;
     }
     if (!formData.customer_group?.trim() || !formData.territory?.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى اختيار مجموعة العملاء والمنطقة من القوائم المرتبطة', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى اختيار مجموعة العملاء والمنطقة من القوائم المرتبطة' });
       return;
     }
     const doc = buildCustomerCreate({
@@ -180,11 +178,11 @@ export default function CustomersPage() {
       tax_id: formData.tax_id || undefined});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم بنجاح', description: 'تم إضافة العميل بنجاح' });
+        toast.success('تم بنجاح', { description: 'تم إضافة العميل بنجاح' });
         setDialogOpen(false);
         setFormData(emptyForm);
       },
-      onError: () => toast({ title: 'خطأ', description: 'حدث خطأ أثناء إضافة العميل', variant: 'destructive' })});
+      onError: () => toast.error('خطأ', { description: 'حدث خطأ أثناء إضافة العميل' })});
   };
 
   // ── Edit Handlers ──
@@ -205,11 +203,11 @@ export default function CustomersPage() {
   const handleUpdate = () => {
     if (!selected) return;
     if (!editFormData.customer_name?.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم العميل', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال اسم العميل' });
       return;
     }
     if (!editFormData.customer_group?.trim() || !editFormData.territory?.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى اختيار مجموعة العملاء والمنطقة', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى اختيار مجموعة العملاء والمنطقة' });
       return;
     }
     const doc: Record<string, unknown> = {
@@ -225,11 +223,11 @@ export default function CustomersPage() {
       { name: selected.name, doc },
       {
         onSuccess: () => {
-          toast({ title: 'تم بنجاح', description: 'تم تحديث بيانات العميل بنجاح' });
+          toast.success('تم بنجاح', { description: 'تم تحديث بيانات العميل بنجاح' });
           setEditDialogOpen(false);
           setSelected(null);
         },
-        onError: () => toast({ title: 'خطأ', description: 'حدث خطأ أثناء تحديث العميل', variant: 'destructive' }),
+        onError: () => toast.error('خطأ', { description: 'حدث خطأ أثناء تحديث العميل' }),
       }
     );
   };
@@ -244,11 +242,11 @@ export default function CustomersPage() {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم بنجاح', description: 'تم حذف العميل بنجاح' });
+        toast.success('تم بنجاح', { description: 'تم حذف العميل بنجاح' });
         setDeleteDialogOpen(false);
         setSelected(null);
       },
-      onError: () => toast({ title: 'خطأ', description: 'حدث خطأ أثناء حذف العميل', variant: 'destructive' })});
+      onError: () => toast.error('خطأ', { description: 'حدث خطأ أثناء حذف العميل' })});
   };
 
   const clearFilters = () => { setSearch(''); setCustomerTypeFilter('all'); };

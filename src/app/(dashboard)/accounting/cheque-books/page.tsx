@@ -38,7 +38,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 type ChequeBookRow = {
   name: string;
@@ -50,7 +50,6 @@ type ChequeBookRow = {
 
 /** دفاتر الشيكات — Cheque Book في ERPNext (M-30). */
 export default function ChequeBooksPage() {
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
   const [q, setQ] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -93,7 +92,7 @@ export default function ChequeBooksPage() {
   // ── Delete handler ──
   const handleDeleteClick = (row: ChequeBookRow) => {
     if (Number(row.docstatus) === 1) {
-      toast({ title: 'لا يمكن حذف دفتر مرحّل — ألغِ الترحيل أولاً', variant: 'destructive' });
+      toast.error('لا يمكن حذف دفتر مرحّل — ألغِ الترحيل أولاً');
       return;
     }
     setSelectedRow(row);
@@ -104,12 +103,12 @@ export default function ChequeBooksPage() {
     if (!selectedRow) return;
     deleteMutation.mutate(selectedRow.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف دفتر الشيكات' });
+        toast.success('تم حذف دفتر الشيكات');
         setDeleteConfirmOpen(false);
         setSelectedRow(null);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحذف — تحقق من الصلاحيات', variant: 'destructive' }),
+      onError: () => toast.error('تعذر الحذف — تحقق من الصلاحيات'),
     });
   };
 
@@ -154,17 +153,17 @@ export default function ChequeBooksPage() {
 
   const handleCreate = () => {
     if (!defaultCo) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (!bankAccount.trim()) {
-      toast({ title: 'اختر حساباً بنكياً', variant: 'destructive' });
+      toast.error('اختر حساباً بنكياً');
       return;
     }
     const f = Number(fromNo);
     const t = Number(toNo);
     if (!Number.isFinite(f) || !Number.isFinite(t) || t < f) {
-      toast({ title: 'أرقام غير صالحة', variant: 'destructive' });
+      toast.error('أرقام غير صالحة');
       return;
     }
     createMutation.mutate(
@@ -177,7 +176,7 @@ export default function ChequeBooksPage() {
       },
       {
         onSuccess: () => {
-          toast({ title: 'تم إنشاء دفتر الشيكات' });
+          toast.success('تم إنشاء دفتر الشيكات');
           setDialogOpen(false);
           setBankAccount('');
           setFromNo('1');
@@ -185,10 +184,7 @@ export default function ChequeBooksPage() {
           void refetch();
         },
         onError: () =>
-          toast({
-            title: 'فشل الإنشاء عبر الواجهة — تحقق من الصلاحيات وإعدادات الخادم',
-            variant: 'destructive',
-          }),
+          toast.error('فشل الإنشاء عبر الواجهة — تحقق من الصلاحيات وإعدادات الخادم'),
       }
     );
   };

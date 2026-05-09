@@ -47,7 +47,7 @@ import {
   useDeleteReportSchedule,
 } from '@/lib/client/hooks';
 import { REPORTS_CATALOG } from '@/lib/reports/catalog';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import type { ReportSchedule } from '@/lib/client/api';
 import { cn } from '@/lib/utils';
 
@@ -152,11 +152,11 @@ export default function ReportSchedulesPage() {
   // ── حفظ (إنشاء أو تعديل) ───────────────────────────────────
   const handleSave = async () => {
     if (!form.reportId) {
-      toast({ title: 'خطأ', description: 'يرجى اختيار التقرير', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى اختيار التقرير' });
       return;
     }
     if (!form.emailTo.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال البريد الإلكتروني', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال البريد الإلكتروني' });
       return;
     }
 
@@ -170,12 +170,12 @@ export default function ReportSchedulesPage() {
 
     try {
       await createMutation.mutateAsync(payload);
-      toast({ title: 'تم بنجاح', description: editingId ? 'تم تحديث الجدول' : 'تم إنشاء الجدول بنجاح' });
+      toast.success('تم بنجاح', { description: editingId ? 'تم تحديث الجدول' : 'تم إنشاء الجدول بنجاح' });
       setFormOpen(false);
       setForm(EMPTY_FORM);
       setEditingId(null);
     } catch (err) {
-      toast({ title: 'خطأ', description: (err as Error).message, variant: 'destructive' });
+      toast.error('خطأ', { description: (err as Error).message });
     }
   };
 
@@ -183,12 +183,9 @@ export default function ReportSchedulesPage() {
   const handleToggle = async (row: ReportSchedule) => {
     try {
       await toggleMutation.mutateAsync({ id: row.id, enabled: !row.enabled });
-      toast({
-        title: row.enabled ? 'تم التعطيل' : 'تم التفعيل',
-        description: row.enabled ? 'تم تعطيل الجدول' : 'تم تفعيل الجدول',
-      });
+      toast.success(row.enabled ? 'تم التعطيل' : 'تم التفعيل', { description: row.enabled ? 'تم تعطيل الجدول' : 'تم تفعيل الجدول' });
     } catch (err) {
-      toast({ title: 'خطأ', description: (err as Error).message, variant: 'destructive' });
+      toast.error('خطأ', { description: (err as Error).message });
     }
   };
 
@@ -197,10 +194,10 @@ export default function ReportSchedulesPage() {
     if (!deleteTarget) return;
     try {
       await deleteMutation.mutateAsync(deleteTarget.id);
-      toast({ title: 'تم الحذف', description: 'تم حذف الجدول بنجاح' });
+      toast.success('تم الحذف', { description: 'تم حذف الجدول بنجاح' });
       setDeleteTarget(null);
     } catch (err) {
-      toast({ title: 'خطأ', description: (err as Error).message, variant: 'destructive' });
+      toast.error('خطأ', { description: (err as Error).message });
     }
   };
 

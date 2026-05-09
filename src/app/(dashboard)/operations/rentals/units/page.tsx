@@ -41,7 +41,7 @@ import { Plus, Trash2, Filter, ChevronDown, X, Home } from 'lucide-react';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -102,8 +102,6 @@ export default function RentalUnitsPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<ItemRow | null>(null);
   const [itemGroupFilter, setItemGroupFilter] = useState('all');
-
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
 
   // Data
@@ -276,12 +274,12 @@ export default function RentalUnitsPage() {
         is_stock_item: 0,
         disabled: formData.unit_status === 'محجوز' ? 1 : 0,
       } as unknown as Record<string, unknown>);
-      toast({ title: 'تم إنشاء وحدة الإيجار بنجاح' });
+      toast.success('تم إنشاء وحدة الإيجار بنجاح');
       setCreateDialogOpen(false);
       createForm.reset();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء الإنشاء', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء الإنشاء', { description: msg });
     }
   };
 
@@ -299,13 +297,13 @@ export default function RentalUnitsPage() {
           disabled: formData.unit_status === 'محجوز' ? 1 : 0,
         },
       });
-      toast({ title: 'تم تعديل وحدة الإيجار بنجاح' });
+      toast.success('تم تعديل وحدة الإيجار بنجاح');
       setEditDialogOpen(false);
       setSelected(null);
       editForm.reset();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء التعديل', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء التعديل', { description: msg });
     }
   };
 
@@ -313,11 +311,11 @@ export default function RentalUnitsPage() {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف وحدة الإيجار بنجاح' });
+        toast.success('تم حذف وحدة الإيجار بنجاح');
         setDeleteDialogOpen(false);
         setSelected(null);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' }),
+      onError: () => toast.error('حدث خطأ أثناء الحذف'),
     });
   };
 

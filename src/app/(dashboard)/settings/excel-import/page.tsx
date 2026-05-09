@@ -37,7 +37,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { useCreateDoc } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatDate, formatNumber } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
 
@@ -183,7 +183,6 @@ function saveHistory(history: ImportHistory[]) {
 type Step = 1 | 2 | 3;
 
 export default function ExcelImportPage() {
-  const { toast } = useToast();
   const [step, setStep] = useState<Step>(1);
   const [selectedDoctype, setSelectedDoctype] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
@@ -239,7 +238,7 @@ export default function ExcelImportPage() {
         setColumnMapping(mapping);
       }
     } catch (e) {
-      toast({ title: 'خطأ في قراءة الملف', description: (e as Error).message, variant: 'destructive' });
+      toast.error('خطأ في قراءة الملف', { description: (e as Error).message });
     }
   }, [allFields, toast]);
 
@@ -407,7 +406,7 @@ export default function ExcelImportPage() {
     setHistory([]);
     saveHistory([]);
     setDeleteTarget(null);
-    toast({ title: 'تم مسح السجل' });
+    toast.success('تم مسح السجل');
   }, [toast]);
 
   return (

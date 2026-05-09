@@ -33,7 +33,7 @@ import { Plus, FolderTree, FileText, Trash2, Edit, ChevronDown, Search, X, Hash,
 import { PageHeader } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -174,8 +174,6 @@ export default function CostCentersPage() {
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const router = useRouter();
-
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
   const { data, isLoading, isError, error, refetch } = useDocList<CostCenterRow>('Cost Center', {
     fields: ['name', 'cost_center_name', 'parent_cost_center', 'is_group', 'company', 'cost_center_number'],
@@ -234,12 +232,12 @@ export default function CostCentersPage() {
     }
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء مركز التكلفة بنجاح' });
+        toast.success('تم إنشاء مركز التكلفة بنجاح');
         setCreateDialogOpen(false);
         createForm.reset();
         if (defaultCompany) createForm.setValue('company', defaultCompany);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء إنشاء مركز التكلفة', variant: 'destructive' })});
+      onError: () => toast.error('حدث خطأ أثناء إنشاء مركز التكلفة')});
   };
 
   const handleEdit = (formData: CostCenterFormData) => {
@@ -253,19 +251,19 @@ export default function CostCentersPage() {
 
     updateMutation.mutate({ name: selected.name, doc }, {
       onSuccess: () => {
-        toast({ title: 'تم تعديل مركز التكلفة بنجاح' });
+        toast.success('تم تعديل مركز التكلفة بنجاح');
         setEditDialogOpen(false);
         setSelected(null);
         editForm.reset();
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء تعديل مركز التكلفة', variant: 'destructive' })});
+      onError: () => toast.error('حدث خطأ أثناء تعديل مركز التكلفة')});
   };
 
   const handleDelete = () => {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
-      onSuccess: () => { toast({ title: 'تم حذف مركز التكلفة بنجاح' }); setDeleteDialogOpen(false); setSelected(null); },
-      onError: () => toast({ title: 'حدث خطأ أثناء حذف مركز التكلفة', variant: 'destructive' })});
+      onSuccess: () => { toast.success('تم حذف مركز التكلفة بنجاح'); setDeleteDialogOpen(false); setSelected(null); },
+      onError: () => toast.error('حدث خطأ أثناء حذف مركز التكلفة')});
   };
 
   const openEdit = (row: CostCenterRow) => {

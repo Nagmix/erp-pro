@@ -15,7 +15,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatDate } from '@/lib/app-format';
 import {
   CheckCircle2, XCircle, Clock, AlertCircle, User,
@@ -121,8 +121,6 @@ function hoursWaiting(requestedAt: string): string {
 /* ──────────────── Main Page Component ──────────────── */
 
 export default function ApprovalsPage() {
-  const { toast } = useToast();
-
   // ── Data State ──
   const [pendingTodos, setPendingTodos] = useState<ToDoItem[]>([]);
   const [closedTodos, setClosedTodos] = useState<ToDoItem[]>([]);
@@ -147,7 +145,7 @@ export default function ApprovalsPage() {
       const json = await res.json();
       if (json.success) setPendingTodos(json.data || []);
     } catch {
-      toast({ title: 'فشل تحميل الطلبات المعلقة', variant: 'destructive' });
+      toast.error('فشل تحميل الطلبات المعلقة');
     }
   }, [toast]);
 
@@ -158,7 +156,7 @@ export default function ApprovalsPage() {
       const json = await res.json();
       if (json.success) setClosedTodos(json.data || []);
     } catch {
-      toast({ title: 'فشل تحميل سجل الموافقات', variant: 'destructive' });
+      toast.error('فشل تحميل سجل الموافقات');
     }
   }, [toast]);
 
@@ -174,7 +172,7 @@ export default function ApprovalsPage() {
       if (wfJson.success) setWorkflows(wfJson.data || []);
       if (arJson.success) setAuthRules(arJson.data || []);
     } catch {
-      toast({ title: 'فشل تحميل قواعد الموافقة', variant: 'destructive' });
+      toast.error('فشل تحميل قواعد الموافقة');
     } finally {
       setRulesLoading(false);
     }
@@ -213,14 +211,14 @@ export default function ApprovalsPage() {
       });
       const json = await res.json();
       if (json.success) {
-        toast({ title: decision === 'موافق' ? 'تمت الموافقة' : decision === 'مرفوض' ? 'تم الرفض' : 'تم طلب معلومات إضافية' });
+        toast.success(decision === 'موافق' ? 'تمت الموافقة' : decision === 'مرفوض' ? 'تم الرفض' : 'تم طلب معلومات إضافية');
         setSelectedPending((prev) => { const n = new Set(prev); n.delete(id); return n; });
         await fetchAll();
       } else {
-        toast({ title: 'فشل تنفيذ القرار', variant: 'destructive' });
+        toast.error('فشل تنفيذ القرار');
       }
     } catch {
-      toast({ title: 'خطأ في الاتصال', variant: 'destructive' });
+      toast.error('خطأ في الاتصال');
     } finally {
       setActionLoading(null);
     }
@@ -235,7 +233,7 @@ export default function ApprovalsPage() {
         body: JSON.stringify({ status: 'Closed' }),
       });
     }
-    toast({ title: `تم تنفيذ القرار "${decision}" على ${ids.length} طلب` });
+    toast.success(`تم تنفيذ القرار "${decision}" على ${ids.length} طلب`);
     setSelectedPending(new Set());
     await fetchAll();
   }, [selectedPending, fetchAll, toast]);
@@ -296,7 +294,7 @@ export default function ApprovalsPage() {
       </KpiStrip>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex flex-wrap gap-1 w-full">
           <TabsTrigger value="pending" className="gap-1.5 text-xs">
             <Clock className="h-3.5 w-3.5" /> بانتظار الموافقة
             {kpiAwaiting > 0 && <Badge variant="secondary" className="h-5 min-w-5 px-1 text-[10px] tabular-nums">{kpiAwaiting}</Badge>}

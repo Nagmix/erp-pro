@@ -16,7 +16,7 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { useAccountBalances } from '@/lib/erp/use-account-balances';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Lock, Wallet, CheckCircle2, AlertTriangle, ArrowUpLeft, ArrowDownLeft, Scale, DoorOpen } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
@@ -40,7 +40,6 @@ type PaymentRow = {
 };
 
 export default function TreasuryClosingPage() {
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
   const createJournalEntry = useCreateDoc('Journal Entry');
 
@@ -116,7 +115,7 @@ export default function TreasuryClosingPage() {
   // Close treasury handler
   const handleCloseTreasury = useCallback(async () => {
     if (!defaultCompany) {
-      toast({ title: 'يجب ضبط الشركة الافتراضية أولاً', variant: 'destructive' });
+      toast.error('يجب ضبط الشركة الافتراضية أولاً');
       return;
     }
     if (!window.confirm(`هل أنت متأكد من إغلاق الخزينة ليوم ${formatDate(selectedDate)}؟`)) return;
@@ -134,11 +133,11 @@ export default function TreasuryClosingPage() {
           credit_in_account_currency: Math.max(0, balanceMap[name] || 0),
         })).filter((entry: { credit_in_account_currency: number }) => entry.credit_in_account_currency > 0),
       });
-      toast({ title: 'تم إغلاق الخزينة بنجاح' });
+      toast.success('تم إغلاق الخزينة بنجاح');
       void refetch();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل إغلاق الخزينة', description: msg, variant: 'destructive' });
+      toast.error('فشل إغلاق الخزينة', { description: msg });
     } finally {
       setClosingBusy(false);
     }

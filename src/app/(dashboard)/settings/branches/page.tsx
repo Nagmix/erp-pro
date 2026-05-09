@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plus, Building2, MapPin } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useCreateDoc, useDeleteDoc, useDocList } from '@/lib/client/hooks';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 
@@ -74,7 +74,6 @@ export default function BranchesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selected, setSelected] = useState<BranchRow | null>(null);
   const [formData, setFormData] = useState(emptyForm);
-  const { toast } = useToast();
   const branchesQuery = useDocList<Branch>('Branch', {
     fields: ['name', 'branch', 'company', 'address', 'phone', 'manager', 'status'],
     limit: 400,
@@ -86,7 +85,7 @@ export default function BranchesPage() {
 
   const handleCreate = () => {
     if (!formData.name) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم الفرع', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال اسم الفرع' });
       return;
     }
     createMutation.mutate(prepareFrappeDocForCreate({
@@ -99,11 +98,11 @@ export default function BranchesPage() {
       status: formData.status,
     }), {
       onSuccess: () => {
-        toast({ title: 'تم بنجاح', description: 'تم إضافة الفرع بنجاح' });
+        toast.success('تم بنجاح', { description: 'تم إضافة الفرع بنجاح' });
         setDialogOpen(false);
         setFormData(emptyForm);
       },
-      onError: () => toast({ title: 'فشل', description: 'تعذر إنشاء الفرع', variant: 'destructive' }),
+      onError: () => toast.error('فشل', { description: 'تعذر إنشاء الفرع' }),
     });
   };
 
@@ -111,11 +110,11 @@ export default function BranchesPage() {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم بنجاح', description: 'تم حذف الفرع بنجاح' });
+        toast.success('تم بنجاح', { description: 'تم حذف الفرع بنجاح' });
         setDeleteDialogOpen(false);
         setSelected(null);
       },
-      onError: () => toast({ title: 'فشل', description: 'تعذر حذف الفرع', variant: 'destructive' }),
+      onError: () => toast.error('فشل', { description: 'تعذر حذف الفرع' }),
     });
   };
 
@@ -146,8 +145,8 @@ export default function BranchesPage() {
         data={branches}
         columns={columns}
         searchable
-        onView={(row) => toast({ title: 'عرض الفرع', description: row.name })}
-        onEdit={(row) => toast({ title: 'تعديل الفرع', description: row.name })}
+        onView={(row) => toast.success('عرض الفرع', { description: row.name })}
+        onEdit={(row) => toast.success('تعديل الفرع', { description: row.name })}
         onDelete={(row) => { setSelected(row); setDeleteDialogOpen(true); }}
       />
 

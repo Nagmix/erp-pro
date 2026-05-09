@@ -56,7 +56,7 @@ import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { cn } from '@/lib/utils';
 
@@ -84,7 +84,6 @@ const chk = (v: unknown) => Number(v) === 1 || v === true;
 /* ───────────────────────────── Main Page ───────────────────────────── */
 
 export default function CustomerGroupsPage() {
-  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [groupName, setGroupName] = useState('');
@@ -252,7 +251,7 @@ export default function CustomerGroupsPage() {
   /* ── Create Handler ── */
   const handleCreate = async () => {
     if (!groupName.trim()) {
-      toast({ title: 'اسم المجموعة مطلوب', variant: 'destructive' });
+      toast.error('اسم المجموعة مطلوب');
       return;
     }
     setBusy(true);
@@ -268,10 +267,10 @@ export default function CustomerGroupsPage() {
       setParentGroup('');
       setIsGroup(false);
       setIsDisabled(false);
-      toast({ title: 'تم إنشاء مجموعة العملاء بنجاح' });
+      toast.success('تم إنشاء مجموعة العملاء بنجاح');
       void refetch();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء المجموعة', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء المجموعة', { description: String((e as Error).message || e) });
     } finally {
       setBusy(false);
     }
@@ -290,10 +289,10 @@ export default function CustomerGroupsPage() {
       });
       setEditDialogOpen(false);
       setEditGroup(null);
-      toast({ title: 'تم تحديث مجموعة العملاء بنجاح' });
+      toast.success('تم تحديث مجموعة العملاء بنجاح');
       void refetch();
     } catch (e) {
-      toast({ title: 'تعذر تحديث المجموعة', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر تحديث المجموعة', { description: String((e as Error).message || e) });
     } finally {
       setBusy(false);
     }
@@ -304,12 +303,12 @@ export default function CustomerGroupsPage() {
     if (!selectedGroup) return;
     try {
       await deleteMutation.mutateAsync(selectedGroup.name);
-      toast({ title: 'تم حذف المجموعة بنجاح' });
+      toast.success('تم حذف المجموعة بنجاح');
       setDeleteDialogOpen(false);
       setSelectedGroup(null);
       void refetch();
     } catch (e) {
-      toast({ title: 'تعذر حذف المجموعة', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر حذف المجموعة', { description: String((e as Error).message || e) });
     }
   };
 
@@ -617,7 +616,7 @@ export default function CustomerGroupsPage() {
                     doctype="Customer Group"
                     value={parentGroup}
                     onChange={setParentGroup}
-                    placeholder="All Customer Groups"
+                    placeholder="جميع مجموعات العملاء"
                     className="h-9 text-sm"
                   />
                 </div>
@@ -685,7 +684,7 @@ export default function CustomerGroupsPage() {
                     doctype="Customer Group"
                     value={editParentGroup}
                     onChange={setEditParentGroup}
-                    placeholder="All Customer Groups"
+                    placeholder="جميع مجموعات العملاء"
                     className="h-9 text-sm"
                   />
                 </div>

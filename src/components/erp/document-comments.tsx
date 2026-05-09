@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDocComments, useAddDocComment } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 type DocumentCommentsProps = {
@@ -163,7 +163,6 @@ function CommentsSkeleton() {
 // ============================================================
 
 export function DocumentComments({ doctype, docname, className }: DocumentCommentsProps) {
-  const { toast } = useToast();
   const [newComment, setNewComment] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -184,16 +183,12 @@ export function DocumentComments({ doctype, docname, className }: DocumentCommen
     addComment.mutate(text, {
       onSuccess: () => {
         setNewComment('');
-        toast({ title: 'تم إضافة التعليق' });
+        toast.success('تم إضافة التعليق');
         // Re-focus the input
         inputRef.current?.focus();
       },
       onError: (err) => {
-        toast({
-          title: 'فشل إضافة التعليق',
-          description: (err as Error).message,
-          variant: 'destructive',
-        });
+        toast.error('فشل إضافة التعليق', { description: (err as Error).message });
       },
     });
   }, [newComment, addComment, toast]);

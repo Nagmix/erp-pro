@@ -21,7 +21,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useDocList } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -64,7 +64,6 @@ async function deletePermissionAPI(employeeId: string, vaultId: string): Promise
 }
 
 export default function VaultPermissionsPage() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [viewMode, setViewMode] = useState<ViewMode>('employee');
 
@@ -243,9 +242,9 @@ export default function VaultPermissionsPage() {
         canView: p.canView,
       }));
       await saveAllMutation.mutateAsync(permsToSave);
-      toast({ title: 'تم الحفظ', description: 'تم حفظ صلاحيات الخزائن بنجاح' });
+      toast.success('تم الحفظ', { description: 'تم حفظ صلاحيات الخزائن بنجاح' });
     } catch (err) {
-      toast({ title: 'خطأ في الحفظ', description: String(err), variant: 'destructive' });
+      toast.error('خطأ في الحفظ', { description: String(err) });
     }
   }, [localPerms, saveAllMutation, toast]);
 
@@ -273,7 +272,7 @@ export default function VaultPermissionsPage() {
     setAddWithdraw(false);
     setAddView(true);
     setAddingEmployee(false);
-    toast({ title: 'تمت الإضافة', description: 'تم إضافة صلاحيات الموظف للخزينة (اضغط حفظ للتأكيد)' });
+    toast.success('تمت الإضافة', { description: 'تم إضافة صلاحيات الموظف للخزينة (اضغط حفظ للتأكيد)' });
   }, [addEmployeeId, selectedVault, addDeposit, addWithdraw, addView, toast]);
 
   const handleRemoveEmployeeFromVault = useCallback(
@@ -281,7 +280,7 @@ export default function VaultPermissionsPage() {
       setLocalPerms((prev) =>
         prev.filter((p) => !(p.vaultId === selectedVault && p.employeeId === empId))
       );
-      toast({ title: 'تم الحذف', description: 'تم إزالة صلاحيات الموظف من الخزينة (اضغط حفظ للتأكيد)' });
+      toast.success('تم الحذف', { description: 'تم إزالة صلاحيات الموظف من الخزينة (اضغط حفظ للتأكيد)' });
     },
     [selectedVault, toast]
   );

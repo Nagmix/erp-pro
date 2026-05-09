@@ -69,7 +69,7 @@ import { KpiCard } from '@/components/erp/kpi-card';
 import { useDocList, useDeleteDoc } from '@/lib/client/hooks';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { apiBulkCreate, apiCreateDoc, apiUpdateDoc, apiCallMethod } from '@/lib/client/api';
 import { formatCurrency, formatNumber } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
@@ -123,9 +123,9 @@ interface VariantGroupRow {
   serial_no?: string;
 }
 
-// ─── بيانات تجريبية ──────────────────────────────────────────
+// ─── سمات مقترحة ─────────────────────────────────────────────
 
-const DEMO_ATTRIBUTE_PRESETS: { label: string; name: string; values: string }[] = [
+const SUGGESTED_ATTRIBUTES: { label: string; name: string; values: string }[] = [
   { label: 'اللون', name: 'اللون', values: 'أحمر,أزرق,أسود,أبيض' },
   { label: 'المقاس', name: 'المقاس', values: 'S,M,L,XL' },
   { label: 'الحجم', name: 'الحجم', values: 'صغير,متوسط,كبير' },
@@ -211,7 +211,6 @@ function generateCombinations(attributes: AttributeValue[]): VariantCombination[
 // ─── المكون الرئيسي ───────────────────────────────────────────
 
 export default function ItemVariantsPage() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // ─── حالة الصفحة ────────────────────────────────────────────
@@ -299,7 +298,6 @@ export default function ItemVariantsPage() {
 
   // عدد التبديلات لكل مجموعة
   const variantCounts = useMemo(() => {
-    // سنحسب من البيانات المتاحة - مؤقتاً نعرض 0 حتى يتم التحميل
     return new Map<string, number>();
   }, []);
 
@@ -455,7 +453,7 @@ export default function ItemVariantsPage() {
   }, []);
 
   const applyPreset = useCallback((presetIndex: number) => {
-    const preset = DEMO_ATTRIBUTE_PRESETS[presetIndex];
+    const preset = SUGGESTED_ATTRIBUTES[presetIndex];
     if (!preset) return;
     setAttributes((prev) => {
       const exists = prev.some((a) => a.attribute === preset.name);
@@ -481,15 +479,15 @@ export default function ItemVariantsPage() {
   // ─── إنشاء مجموعة التبديلات ────────────────────────────────
   const handleCreateVariantGroup = useCallback(async () => {
     if (!templateItem) {
-      toast({ title: 'اختر صنف القالب أولاً', variant: 'destructive' });
+      toast.error('اختر صنف القالب أولاً');
       return;
     }
     if (attributes.filter((a) => a.attribute.trim() && a.values.trim()).length === 0) {
-      toast({ title: 'أضف سمة واحدة على الأقل مع قيمها', variant: 'destructive' });
+      toast.error('أضف سمة واحدة على الأقل مع قيمها');
       return;
     }
     if (combinations.length === 0) {
-      toast({ title: 'لا توجد توليفات لإنشائها', variant: 'destructive' });
+      toast.error('لا توجد توليفات لإنشائها');
       return;
     }
 
@@ -582,10 +580,7 @@ export default function ItemVariantsPage() {
 
       try {
         await apiBulkCreate('Item', variantDocs);
-        toast({
-          title: 'تم إنشاء مجموعة التبديلات',
-          description: `تم إنشاء ${variantDocs.length} تبديل بنجاح`,
-        });
+        toast.success('تم إنشاء مجموعة التبديلات', { description: `تم إنشاء ${variantDocs.length} تبديل بنجاح` });
       } catch (bulkErr) {
         // محاولة إنشاء فردي
         let ok = 0;
@@ -598,11 +593,7 @@ export default function ItemVariantsPage() {
             fail++;
           }
         }
-        toast({
-          title: 'تم إنشاء التبديلات',
-          description: `نجح ${ok}، فشل ${fail}`,
-          variant: fail > 0 ? 'destructive' : 'default',
-        });
+        toast.success('تم إنشاء التبديلات', { description: `نجح ${ok}، فشل ${fail}` });
       }
 
       setCreateDialogOpen(false);
@@ -610,11 +601,7 @@ export default function ItemVariantsPage() {
       void queryClient.invalidateQueries({ queryKey: ['docList', 'Item'] });
       void refetch();
     } catch (err) {
-      toast({
-        title: 'فشل إنشاء مجموعة التبديلات',
-        description: err instanceof Error ? err.message : 'خطأ غير معروف',
-        variant: 'destructive',
-      });
+      toast.error('فشل إنشاء مجموعة التبديلات', { description: err instanceof Error ? err.message : 'خطأ غير معروف' });
     } finally {
       setCreating(false);
     }
@@ -681,7 +668,7 @@ export default function ItemVariantsPage() {
         barcode: editVariantBarcode,
         disabled: editVariantEnabled ? 0 : 1,
       } as Record<string, unknown>);
-      toast({ title: 'تم تحديث التبديل' });
+      toast.success('تم تحديث التبديل');
       setEditVariantOpen(false);
       // إعادة تحميل التبديلات
       if (viewingGroup) {
@@ -690,11 +677,7 @@ export default function ItemVariantsPage() {
       void queryClient.invalidateQueries({ queryKey: ['docList', 'Item'] });
       void refetch();
     } catch (err) {
-      toast({
-        title: 'فشل تحديث التبديل',
-        description: err instanceof Error ? err.message : 'خطأ غير معروف',
-        variant: 'destructive',
-      });
+      toast.error('فشل تحديث التبديل', { description: err instanceof Error ? err.message : 'خطأ غير معروف' });
     }
   }, [editingVariant, editVariantSellPrice, editVariantBuyPrice, editVariantBarcode, editVariantEnabled, viewingGroup, handleViewVariants, queryClient, refetch, toast]);
 
@@ -722,17 +705,13 @@ export default function ItemVariantsPage() {
           fail++;
         }
       }
-      toast({
-        title: 'تم التحديث',
-        description: `نجح ${ok}، فشل ${fail}`,
-        variant: fail > 0 ? 'destructive' : 'default',
-      });
+      toast.success('تم التحديث', { description: `نجح ${ok}، فشل ${fail}` });
       setBulkPriceDialogOpen(false);
       setBulkPriceValue('');
       setSelectedVariantIds(new Set());
       if (viewingGroup) void handleViewVariants(viewingGroup);
     } catch (err) {
-      toast({ title: 'فشل التحديث الجماعي', variant: 'destructive' });
+      toast.error('فشل التحديث الجماعي');
     } finally {
       setBulkPriceUpdating(false);
     }
@@ -754,14 +733,10 @@ export default function ItemVariantsPage() {
           fail++;
         }
       }
-      toast({
-        title: enable ? 'تم التفعيل' : 'تم التعطيل',
-        description: `نجح ${ok}، فشل ${fail}`,
-        variant: fail > 0 ? 'destructive' : 'default',
-      });
+      toast.success(enable ? 'تم التفعيل' : 'تم التعطيل', { description: `نجح ${ok}، فشل ${fail}` });
       if (viewingGroup) void handleViewVariants(viewingGroup);
     } catch {
-      toast({ title: 'فشلت العملية', variant: 'destructive' });
+      toast.error('فشلت العملية');
     }
   }, [viewingGroup, viewVariants, selectedVariantIds, handleViewVariants, toast]);
 
@@ -911,7 +886,7 @@ export default function ItemVariantsPage() {
               onClick: (rows) => {
                 const text = rows.map((r) => r.item_code).join('\n');
                 void navigator.clipboard.writeText(text);
-                toast({ title: 'تم النسخ', description: `${rows.length} صنفاً` });
+                toast.success('تم النسخ', { description: `${rows.length} صنفاً` });
               },
             },
           ]}
@@ -986,7 +961,7 @@ export default function ItemVariantsPage() {
               <div className="space-y-2">
                 <Label className="text-xs font-semibold">اختيار سريع للسمات</Label>
                 <div className="flex flex-wrap gap-2">
-                  {DEMO_ATTRIBUTE_PRESETS.map((preset, i) => (
+                  {SUGGESTED_ATTRIBUTES.map((preset, i) => (
                     <Button
                       key={preset.name}
                       type="button"
@@ -1649,12 +1624,12 @@ export default function ItemVariantsPage() {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
                   onSuccess: () => {
-                    toast({ title: 'تم الحذف' });
+                    toast.success('تم الحذف');
                     setDeleteName(null);
                     void refetch();
                   },
                   onError: () =>
-                    toast({ title: 'تعذر الحذف — قد يكون الصنف مرتبطاً', variant: 'destructive' }),
+                    toast.error('تعذر الحذف — قد يكون الصنف مرتبطاً'),
                 });
               }}
             >

@@ -53,7 +53,7 @@ import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { apiGetDoc } from '@/lib/client/api';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { pdf } from '@react-pdf/renderer';
 import { PayslipPDFDocument, type PayslipData } from '@/components/erp/payslip-pdf';
@@ -88,9 +88,6 @@ export default function SalarySlipsPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-
-  const { toast } = useToast();
-
   const clearFilters = () => {
     setStatusFilter('all');
     setSearch('');
@@ -205,12 +202,9 @@ export default function SalarySlipsPage() {
         a.click();
         URL.revokeObjectURL(url);
 
-        toast({ title: 'تم تحميل قسيمة الراتب' });
+        toast.success('تم تحميل قسيمة الراتب');
       } catch {
-        toast({
-          title: 'حدث خطأ أثناء إنشاء PDF',
-          variant: 'destructive',
-        });
+        toast.error('حدث خطأ أثناء إنشاء PDF');
       } finally {
         setPrintingSlip(null);
       }
@@ -231,7 +225,7 @@ export default function SalarySlipsPage() {
       }
 
       if (toPrint.length === 0) {
-        toast({ title: 'لا توجد قسائم مرّحلة للطباعة', variant: 'destructive' });
+        toast.error('لا توجد قسائم مرّحلة للطباعة');
         setBulkPrinting(false);
         return;
       }
@@ -284,17 +278,12 @@ export default function SalarySlipsPage() {
         }
       }
 
-      toast({
-        title: `تم تحميل ${successCount} من ${toPrint.length} قسيمة`,
-      });
+      toast.success(`تم تحميل ${successCount} من ${toPrint.length} قسيمة`);
       setBulkPrintDialog(false);
       setBulkDateFrom('');
       setBulkDateTo('');
     } catch {
-      toast({
-        title: 'حدث خطأ أثناء الطباعة المجمعة',
-        variant: 'destructive',
-      });
+      toast.error('حدث خطأ أثناء الطباعة المجمعة');
     } finally {
       setBulkPrinting(false);
     }
@@ -642,11 +631,11 @@ export default function SalarySlipsPage() {
                 submitDialog &&
                 submitMut.mutate(submitDialog.name, {
                   onSuccess: () => {
-                    toast({ title: 'تم الترحيل بنجاح' });
+                    toast.success('تم الترحيل بنجاح');
                     setSubmitDialog(null);
                   },
                   onError: () =>
-                    toast({ title: 'فشل الترحيل', variant: 'destructive' }),
+                    toast.error('فشل الترحيل'),
                 })
               }
               className="gap-1.5"
@@ -681,11 +670,11 @@ export default function SalarySlipsPage() {
                 cancelDialog &&
                 cancelMut.mutate(cancelDialog.name, {
                   onSuccess: () => {
-                    toast({ title: 'تم إلغاء القسيمة' });
+                    toast.success('تم إلغاء القسيمة');
                     setCancelDialog(null);
                   },
                   onError: () =>
-                    toast({ title: 'فشل الإلغاء', variant: 'destructive' }),
+                    toast.error('فشل الإلغاء'),
                 })
               }
               className="gap-1.5"
@@ -720,11 +709,11 @@ export default function SalarySlipsPage() {
                 deleteDialog &&
                 deleteMutation.mutate(deleteDialog.name, {
                   onSuccess: () => {
-                    toast({ title: 'تم حذف القسيمة' });
+                    toast.success('تم حذف القسيمة');
                     setDeleteDialog(null);
                   },
                   onError: () =>
-                    toast({ title: 'فشل الحذف', variant: 'destructive' }),
+                    toast.error('فشل الحذف'),
                 })
               }
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"

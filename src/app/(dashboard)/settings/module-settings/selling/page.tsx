@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDoc, useUpdateDoc } from '@/lib/client/hooks';
 
 const SINGLETON = 'Selling Settings';
@@ -32,7 +32,6 @@ function docFlag(v: unknown): boolean {
 }
 
 export default function SellingSettingsPage() {
-  const { toast } = useToast();
   const doc = useDoc<Record<string, unknown>>('Selling Settings', SINGLETON);
   const updateMut = useUpdateDoc('Selling Settings');
   const d = doc.data;
@@ -48,11 +47,11 @@ export default function SellingSettingsPage() {
       { name: SINGLETON, doc: patch },
       {
         onSuccess: () => {
-          toast({ title: 'تم الحفظ' });
+          toast.success('تم الحفظ');
           void doc.refetch();
         },
         onError: (e) =>
-          toast({ title: 'تعذر الحفظ', description: (e as Error).message, variant: 'destructive' }),
+          toast.error('تعذر الحفظ', { description: (e as Error).message }),
       }
     );
   };

@@ -16,7 +16,7 @@ import { Plus, Send, Undo2, Cog, PackageCheck } from 'lucide-react';
 import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildWorkOrder } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -41,7 +41,6 @@ interface WORow {
 }
 
 export default function WorkOrdersPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
@@ -86,8 +85,8 @@ export default function WorkOrdersPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                    onError: () => toast.error('تعذر الترحيل'),
                   })
                 }
               >
@@ -105,8 +104,8 @@ export default function WorkOrdersPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'أُلغي' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('أُلغي'); void refetch(); },
+                    onError: () => toast.error('تعذر'),
                   })
                 }
               >
@@ -124,7 +123,7 @@ export default function WorkOrdersPage() {
 
   const handleCreate = () => {
     if (!company || !productionItem || !bomNo || !fgWh) {
-      toast({ title: 'أكمل: شركة، صنف، قائمة مواد، مستودع تام', variant: 'destructive' });
+      toast.error('أكمل: شركة، صنف، قائمة مواد، مستودع تام');
       return;
     }
     const doc = buildWorkOrder({
@@ -137,7 +136,7 @@ export default function WorkOrdersPage() {
     });
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء أمر العمل' });
+        toast.success('تم إنشاء أمر العمل');
         setDialogOpen(false);
         setProductionItem('');
         setBomNo('');
@@ -146,7 +145,7 @@ export default function WorkOrdersPage() {
         setWipWh('');
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+      onError: () => toast.error('تعذر الحفظ'),
     });
   };
 
@@ -185,8 +184,8 @@ export default function WorkOrdersPage() {
               onClick={() => {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
-                  onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteName(null); void refetch(); },
-                  onError: () => toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+                  onSuccess: () => { toast.success('تم الحذف'); setDeleteName(null); void refetch(); },
+                  onError: () => toast.error('تعذر الحذف'),
                 });
               }}
             >

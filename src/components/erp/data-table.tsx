@@ -344,7 +344,7 @@ export function DataTable<T = unknown>({
                   setSearch(e.target.value);
                   setCurrentPage(1);
                 }}
-              className="h-9 w-56 rounded-[var(--radius-md-ui)] pe-8 text-xs"
+              className="h-9 w-full sm:w-56 rounded-[var(--radius-md-ui)] pe-8 text-xs"
               />
             </div>
           )}

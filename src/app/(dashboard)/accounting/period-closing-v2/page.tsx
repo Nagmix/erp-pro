@@ -11,7 +11,7 @@ import {
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -169,7 +169,6 @@ const ARABIC_DAYS = ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خ
 // Component
 // ────────────────────────────────────────────────────────────
 export default function PeriodClosingV2Page() {
-  const { toast } = useToast();
   const { company, isLoading: coLoad } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitConfirmOpen, setSubmitConfirmOpen] = useState(false);
@@ -332,11 +331,11 @@ export default function PeriodClosingV2Page() {
   // ── Handlers ──
   const handleCreatePcv = () => {
     if (!company) {
-      toast({ title: 'لم يتم تحديد الشركة الافتراضية', variant: 'destructive' });
+      toast.error('لم يتم تحديد الشركة الافتراضية');
       return;
     }
     if (!form.fiscal_year || !form.closing_account_head) {
-      toast({ title: 'يرجى ملء جميع الحقول المطلوبة', variant: 'destructive' });
+      toast.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
 
@@ -352,7 +351,7 @@ export default function PeriodClosingV2Page() {
       }),
       {
         onSuccess: () => {
-          toast({ title: 'أُنشئت قسيمة إقفال (مسودة) — راجعها ثم رحّل' });
+          toast.success('أُنشئت قسيمة إقفال (مسودة) — راجعها ثم رحّل');
           void refetchPcv();
           setDialogOpen(false);
           setForm((p) => ({
@@ -363,7 +362,7 @@ export default function PeriodClosingV2Page() {
           }));
         },
         onError: () => {
-          toast({ title: 'تعذر إنشاء قسيمة الإقفال', variant: 'destructive' });
+          toast.error('تعذر إنشاء قسيمة الإقفال');
         },
       }
     );
@@ -378,13 +377,13 @@ export default function PeriodClosingV2Page() {
     if (!selectedRow) return;
     submitPcv.mutate(selectedRow.name, {
       onSuccess: () => {
-        toast({ title: 'تم ترحيل قسيمة الإقفال' });
+        toast.success('تم ترحيل قسيمة الإقفال');
         void refetchPcv();
         setSubmitConfirmOpen(false);
         setSelectedRow(null);
       },
       onError: () => {
-        toast({ title: 'فشل ترحيل قسيمة الإقفال', variant: 'destructive' });
+        toast.error('فشل ترحيل قسيمة الإقفال');
         setSubmitConfirmOpen(false);
       },
     });
@@ -399,13 +398,13 @@ export default function PeriodClosingV2Page() {
     if (!selectedRow) return;
     cancelPcv.mutate(selectedRow.name, {
       onSuccess: () => {
-        toast({ title: 'أُلغي ترحيل قسيمة الإقفال — أُعيدت الفترة مفتوحة' });
+        toast.success('أُلغي ترحيل قسيمة الإقفال — أُعيدت الفترة مفتوحة');
         void refetchPcv();
         setCancelConfirmOpen(false);
         setSelectedRow(null);
       },
       onError: () => {
-        toast({ title: 'تعذر إلغاء ترحيل قسيمة الإقفال', variant: 'destructive' });
+        toast.error('تعذر إلغاء ترحيل قسيمة الإقفال');
         setCancelConfirmOpen(false);
       },
     });
@@ -413,7 +412,7 @@ export default function PeriodClosingV2Page() {
 
   const handleCreateFiscalYear = () => {
     if (!fyForm.year || !fyForm.year_start_date || !fyForm.year_end_date) {
-      toast({ title: 'يرجى ملء جميع حقول السنة المالية', variant: 'destructive' });
+      toast.error('يرجى ملء جميع حقول السنة المالية');
       return;
     }
 
@@ -427,7 +426,7 @@ export default function PeriodClosingV2Page() {
       } as unknown as Record<string, unknown>,
       {
         onSuccess: () => {
-          toast({ title: 'تم إنشاء السنة المالية بنجاح' });
+          toast.success('تم إنشاء السنة المالية بنجاح');
           void refetchFy();
           setFyForm({
             year: '',
@@ -436,7 +435,7 @@ export default function PeriodClosingV2Page() {
           });
         },
         onError: () => {
-          toast({ title: 'تعذر إنشاء السنة المالية', variant: 'destructive' });
+          toast.error('تعذر إنشاء السنة المالية');
         },
       }
     );
@@ -697,7 +696,7 @@ export default function PeriodClosingV2Page() {
                         <span className="font-medium">
                           سيتم إقفال الفترة من {formatDate(form.period_start_date)} إلى {formatDate(form.period_end_date)}
                         </span>
-                        <Badge variant="outline" className="text-[9px] h-5 mr-2">
+                        <Badge variant="outline" className="text-[9px] h-5 me-2">
                           {form.closing_type === 'monthly' ? 'شهري' : form.closing_type === 'quarterly' ? 'ربعي' : 'سنوي'}
                         </Badge>
                       </div>
@@ -1111,7 +1110,7 @@ export default function PeriodClosingV2Page() {
                       year_start_date: `${year}-01-01`,
                       year_end_date: `${year}-12-31`,
                     });
-                    toast({ title: 'تم ملء بيانات السنة المالية الحالية' });
+                    toast.success('تم ملء بيانات السنة المالية الحالية');
                   }}
                 >
                   <Calendar className="h-5 w-5 text-primary" />
@@ -1124,7 +1123,7 @@ export default function PeriodClosingV2Page() {
                   className="h-auto py-4 flex flex-col items-center gap-2"
                   onClick={() => {
                     if (fyRows.length === 0) {
-                      toast({ title: 'لا توجد سنوات مالية', variant: 'destructive' });
+                      toast.error('لا توجد سنوات مالية');
                       return;
                     }
                     setActiveTab('closing');
@@ -1140,7 +1139,7 @@ export default function PeriodClosingV2Page() {
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2"
                   onClick={() => {
-                    toast({ title: 'استخدم زر إعادة فتح في قسيمة الإقفال المعنية' });
+                    toast.success('استخدم زر إعادة فتح في قسيمة الإقفال المعنية');
                     setActiveTab('closing');
                   }}
                 >

@@ -99,7 +99,7 @@ const QUICK_SETUP_TEMPLATES: Omit<RoutingRule, 'id' | 'createdAt' | 'updatedAt'>
   { document_type: 'Sales Invoice', default_account: 'إيراد المبيعات', company: '' },
   { document_type: 'Purchase Invoice', default_account: 'مصروف المشتريات', company: '' },
   { document_type: 'Payment Entry', default_account: 'النقدية أو البنك', company: '' },
-  { document_type: 'Journal Entry', default_account: 'حساب ترحيل مؤقت', company: '' },
+  { document_type: 'Journal Entry', default_account: '', company: '' },
 ];
 
 const DOC_TYPE_LABELS: Record<string, string> = Object.fromEntries(
@@ -475,9 +475,9 @@ export default function AccountRoutingPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
-                <TableHead className="text-right text-xs font-semibold ps-4">نوع المستند</TableHead>
-                <TableHead className="text-right text-xs font-semibold">الحساب الافتراضي</TableHead>
-                <TableHead className="text-right text-xs font-semibold">الشركة</TableHead>
+                <TableHead className="text-xs font-semibold ps-4">نوع المستند</TableHead>
+                <TableHead className="text-xs font-semibold">الحساب الافتراضي</TableHead>
+                <TableHead className="text-xs font-semibold">الشركة</TableHead>
                 <TableHead className="text-center text-xs font-semibold pe-4">إجراءات</TableHead>
               </TableRow>
             </TableHeader>

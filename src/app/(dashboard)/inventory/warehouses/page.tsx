@@ -53,7 +53,7 @@ import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildWarehouseCreate } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -154,7 +154,6 @@ function WarehouseTreeItem({
 /* ───────────────────────────── Main Page ───────────────────────────── */
 
 export default function WarehousesPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
 
   /* ── State ── */
@@ -290,7 +289,7 @@ export default function WarehousesPage() {
   const handleCreate = () => {
     const effectiveCompany = whCompany || company;
     if (!effectiveCompany || !whName.trim()) {
-      toast({ title: 'الشركة واسم المستودع مطلوبان', variant: 'destructive' });
+      toast.error('الشركة واسم المستودع مطلوبان');
       return;
     }
     const doc = buildWarehouseCreate({
@@ -306,12 +305,12 @@ export default function WarehousesPage() {
 
     createMutation.mutate(finalDoc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء المستودع' });
+        toast.success('تم إنشاء المستودع');
         setDialogOpen(false);
         resetForm();
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+      onError: () => toast.error('تعذر الحفظ'),
     });
   };
 
@@ -319,12 +318,12 @@ export default function WarehousesPage() {
     if (!deleteName) return;
     deleteMutation.mutate(deleteName, {
       onSuccess: () => {
-        toast({ title: 'تم الحذف' });
+        toast.success('تم الحذف');
         setDeleteName(null);
         setDeleteRow(null);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+      onError: () => toast.error('تعذر الحذف'),
     });
   };
 

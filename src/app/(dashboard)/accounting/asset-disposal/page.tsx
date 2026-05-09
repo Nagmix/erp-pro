@@ -24,7 +24,7 @@ import { useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { apiUpdateDoc, apiCreateDoc, apiCallMethod } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -77,8 +77,6 @@ export default function AssetDisposalPage() {
   const [saleDialogOpen, setSaleDialogOpen] = useState(false);
   const [scrapDialogOpen, setScrapDialogOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
-
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
 
   // ── Data fetching ──
@@ -131,7 +129,7 @@ export default function AssetDisposalPage() {
           company: defaultCo,
           posting_date: formData.sale_date,
         });
-        toast({ title: 'تم بيع الأصل بنجاح عبر ERPNext' });
+        toast.success('تم بيع الأصل بنجاح عبر ERPNext');
       } catch {
         // Fallback: update status + create journal entry for the sale
         await apiUpdateDoc('Asset', formData.asset, {
@@ -150,14 +148,14 @@ export default function AssetDisposalPage() {
             ],
           });
         }
-        toast({ title: 'تم بيع الأصل وإنشاء قيد يومية', description: `تم تحديث حالة الأصل مع قيد بيع بمبلغ ${formatCurrency(Number(formData.sale_amount) || 0)}` });
+        toast.success('تم بيع الأصل وإنشاء قيد يومية', { description: `تم تحديث حالة الأصل مع قيد بيع بمبلغ ${formatCurrency(Number(formData.sale_amount) || 0)}` });
       }
       setSaleDialogOpen(false);
       saleForm.reset();
       void refetch();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء بيع الأصل', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء بيع الأصل', { description: msg });
     } finally {
       setProcessing(false);
     }
@@ -173,21 +171,21 @@ export default function AssetDisposalPage() {
           company: defaultCo,
           posting_date: formData.scrap_date,
         });
-        toast({ title: 'تم استهلاك الأصل بنجاح عبر ERPNext' });
+        toast.success('تم استهلاك الأصل بنجاح عبر ERPNext');
       } catch {
         // Fallback: update status
         await apiUpdateDoc('Asset', formData.asset, {
           status: 'Scrapped',
           disposal_date: formData.scrap_date,
         });
-        toast({ title: 'تم استهلاك الأصل بنجاح', description: `تم تحديث حالة الأصل إلى «مستهلك» بتاريخ ${formatDate(formData.scrap_date)}` });
+        toast.success('تم استهلاك الأصل بنجاح', { description: `تم تحديث حالة الأصل إلى «مستهلك» بتاريخ ${formatDate(formData.scrap_date)}` });
       }
       setScrapDialogOpen(false);
       scrapForm.reset();
       void refetch();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء استهلاك الأصل', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء استهلاك الأصل', { description: msg });
     } finally {
       setProcessing(false);
     }

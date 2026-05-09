@@ -49,7 +49,7 @@ import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc, useDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildWorkstation } from '@/lib/erp/erpnext-payloads';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency } from '@/lib/core/helpers';
@@ -101,7 +101,6 @@ const emptyForm = {
 };
 
 export default function WorkstationsPage() {
-  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
@@ -148,7 +147,7 @@ export default function WorkstationsPage() {
   // ── Create Handler ──
   const handleCreate = () => {
     if (!formData.workstation_name.trim()) {
-      toast({ title: 'اسم المحطة مطلوب', variant: 'destructive' });
+      toast.error('اسم المحطة مطلوب');
       return;
     }
     const doc = buildWorkstation({
@@ -163,12 +162,12 @@ export default function WorkstationsPage() {
     (doc as Record<string, unknown>).holiday_list = formData.holiday_list?.trim() || undefined;
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء محطة العمل' });
+        toast.success('تم إنشاء محطة العمل');
         setDialogOpen(false);
         setFormData(emptyForm);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+      onError: () => toast.error('تعذر الحفظ'),
     });
   };
 
@@ -190,7 +189,7 @@ export default function WorkstationsPage() {
   const handleUpdate = () => {
     if (!selected) return;
     if (!editFormData.workstation_name?.trim()) {
-      toast({ title: 'اسم المحطة مطلوب', variant: 'destructive' });
+      toast.error('اسم المحطة مطلوب');
       return;
     }
     const doc: Record<string, unknown> = {
@@ -206,12 +205,12 @@ export default function WorkstationsPage() {
       { name: selected.name, doc },
       {
         onSuccess: () => {
-          toast({ title: 'تم تحديث محطة العمل' });
+          toast.success('تم تحديث محطة العمل');
           setEditDialogOpen(false);
           setSelected(null);
           void refetch();
         },
-        onError: () => toast({ title: 'تعذر التحديث', variant: 'destructive' }),
+        onError: () => toast.error('تعذر التحديث'),
       }
     );
   };
@@ -226,8 +225,8 @@ export default function WorkstationsPage() {
   const handleDelete = () => {
     if (!deleteName) return;
     deleteMutation.mutate(deleteName, {
-      onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteName(null); void refetch(); },
-      onError: () => toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+      onSuccess: () => { toast.success('تم الحذف'); setDeleteName(null); void refetch(); },
+      onError: () => toast.error('تعذر الحذف'),
     });
   };
 

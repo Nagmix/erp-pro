@@ -33,7 +33,7 @@ import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
 import { formatDate, formatNumber } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildProductionPlan } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -97,7 +97,6 @@ const DOC_STATUS_OPTIONS = [
 /* ──────────────── Component ──────────────── */
 
 export default function ProductionPlansPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
 
   /* Dialog state */
@@ -238,11 +237,11 @@ export default function ProductionPlansPage() {
                   onClick={() =>
                     submitMutation.mutate(row.name, {
                       onSuccess: () => {
-                        toast({ title: 'تم الترحيل بنجاح' });
+                        toast.success('تم الترحيل بنجاح');
                         void refetch();
                       },
                       onError: () =>
-                        toast({ title: 'تعذر الترحيل', variant: 'destructive' }),
+                        toast.error('تعذر الترحيل'),
                     })
                   }
                 >
@@ -271,11 +270,11 @@ export default function ProductionPlansPage() {
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => {
-                      toast({ title: 'تم إلغاء الخطة' });
+                      toast.success('تم إلغاء الخطة');
                       void refetch();
                     },
                     onError: () =>
-                      toast({ title: 'تعذر الإلغاء', variant: 'destructive' }),
+                      toast.error('تعذر الإلغاء'),
                   })
                 }
               >
@@ -295,17 +294,14 @@ export default function ProductionPlansPage() {
   const handleCreate = () => {
     const useCompany = selectedCompany || company;
     if (!useCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     const validItems = poItems.filter(
       (p) => p.item_code && p.bom_no && p.warehouse && p.stock_uom
     );
     if (validItems.length === 0) {
-      toast({
-        title: 'أكمل كل بند: صنف، قائمة مواد، مستودع، وحدة قياس',
-        variant: 'destructive',
-      });
+      toast.error('أكمل كل بند: صنف، قائمة مواد، مستودع، وحدة قياس');
       return;
     }
     const doc = buildProductionPlan({
@@ -323,7 +319,7 @@ export default function ProductionPlansPage() {
     });
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء خطة الإنتاج' });
+        toast.success('تم إنشاء خطة الإنتاج');
         setDialogOpen(false);
         setPoItems([emptyPo()]);
         setForWarehouse('');
@@ -331,7 +327,7 @@ export default function ProductionPlansPage() {
         void refetch();
       },
       onError: () =>
-        toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+        toast.error('تعذر الحفظ'),
     });
   };
 
@@ -494,12 +490,12 @@ export default function ProductionPlansPage() {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
                   onSuccess: () => {
-                    toast({ title: 'تم حذف الخطة' });
+                    toast.success('تم حذف الخطة');
                     setDeleteName(null);
                     void refetch();
                   },
                   onError: () =>
-                    toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+                    toast.error('تعذر الحذف'),
                 });
               }}
             >

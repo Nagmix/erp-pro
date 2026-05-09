@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plus, Trash2, Layers } from 'lucide-react';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -72,9 +72,6 @@ export default function UnitTypesPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selected, setSelected] = useState<ItemGroupRow | null>(null);
-
-  const { toast } = useToast();
-
   // Data
   const list = useDocList<ItemGroupRow>('Item Group', {
     fields: ['name', 'parent_item_group', 'is_group', 'modified'],
@@ -174,12 +171,12 @@ export default function UnitTypesPage() {
         parent_item_group: formData.parent_item_group,
         is_group: formData.is_group ? 1 : 0,
       } as unknown as Record<string, unknown>);
-      toast({ title: 'تم إنشاء نوع الوحدة بنجاح' });
+      toast.success('تم إنشاء نوع الوحدة بنجاح');
       setCreateDialogOpen(false);
       createForm.reset();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء الإنشاء', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء الإنشاء', { description: msg });
     }
   };
 
@@ -194,13 +191,13 @@ export default function UnitTypesPage() {
           is_group: formData.is_group ? 1 : 0,
         },
       });
-      toast({ title: 'تم تعديل نوع الوحدة بنجاح' });
+      toast.success('تم تعديل نوع الوحدة بنجاح');
       setEditDialogOpen(false);
       setSelected(null);
       editForm.reset();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء التعديل', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء التعديل', { description: msg });
     }
   };
 
@@ -208,11 +205,11 @@ export default function UnitTypesPage() {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف نوع الوحدة بنجاح' });
+        toast.success('تم حذف نوع الوحدة بنجاح');
         setDeleteDialogOpen(false);
         setSelected(null);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' }),
+      onError: () => toast.error('حدث خطأ أثناء الحذف'),
     });
   };
 

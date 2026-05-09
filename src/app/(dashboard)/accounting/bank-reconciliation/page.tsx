@@ -24,7 +24,7 @@ import { EmptyState } from '@/components/erp/empty-state';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { apiCreateDoc, apiUpdateDoc } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -108,8 +108,6 @@ export default function BankReconciliationPage() {
   const [selectedPayment, setSelectedPayment] = useState<PaymentEntryRow | null>(null);
   const [matchedKeys, setMatchedKeys] = useState<Set<string>>(new Set());
   const [reconciling, setReconciling] = useState(false);
-
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
 
   // ── Data fetching ──
@@ -217,13 +215,13 @@ export default function BankReconciliationPage() {
         deposit: formData.deposit || 0,
         withdrawal: formData.withdrawal || 0,
       });
-      toast({ title: 'تم إنشاء الحركة البنكية بنجاح' });
+      toast.success('تم إنشاء الحركة البنكية بنجاح');
       setCreateDialogOpen(false);
       form.reset();
       void refetchBt();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء إنشاء الحركة البنكية', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء إنشاء الحركة البنكية', { description: msg });
     }
   };
 
@@ -238,12 +236,12 @@ export default function BankReconciliationPage() {
     }
     setMatchedKeys(newMatchedKeys);
     setAutoMatching(false);
-    toast({ title: `تم مطابقة ${count} حركة تلقائياً`, description: `${matches.length} مقترح مطابقة` });
+    toast.success(`تم مطابقة ${count} حركة تلقائياً`, { description: `${matches.length} مقترح مطابقة` });
   }, [matches, matchedKeys, toast]);
 
   const handleManualReconcile = useCallback(async () => {
     if (!selectedBankTx || !selectedPayment) {
-      toast({ title: 'اختر حركة بنكية وقيود النظام أولاً', variant: 'destructive' });
+      toast.error('اختر حركة بنكية وقيود النظام أولاً');
       return;
     }
     setReconciling(true);
@@ -259,11 +257,11 @@ export default function BankReconciliationPage() {
       setSelectedBankTx(null);
       setSelectedPayment(null);
       setManualMatchMode(false);
-      toast({ title: 'تمت التسوية البنكية بنجاح' });
+      toast.success('تمت التسوية البنكية بنجاح');
       void refetchBt();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء التسوية', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء التسوية', { description: msg });
     } finally {
       setReconciling(false);
     }

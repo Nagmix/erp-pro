@@ -20,7 +20,7 @@ import { Plus, Trash2, ArrowRightLeft } from 'lucide-react';
 import { useCreateDoc, useDocList } from '@/lib/client/hooks';
 import { buildStockEntry } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 type Line = { item_code: string; qty: number; s_warehouse: string; t_warehouse: string };
 
@@ -32,7 +32,6 @@ const emptyLine = (): Line => ({
 });
 
 export default function InterBranchTransferPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [postingDate, setPostingDate] = useState(() => new Date().toISOString().split('T')[0]!);
   const [fromWh, setFromWh] = useState('');
@@ -61,20 +60,20 @@ export default function InterBranchTransferPage() {
 
   const submit = () => {
     if (!company) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (!fromWh || !toWh) {
-      toast({ title: 'اختر مستودع المصدر والوجهة', variant: 'destructive' });
+      toast.error('اختر مستودع المصدر والوجهة');
       return;
     }
     if (fromWh === toWh) {
-      toast({ title: 'المستودع المصدر يجب أن يختلف عن الوجهة', variant: 'destructive' });
+      toast.error('المستودع المصدر يجب أن يختلف عن الوجهة');
       return;
     }
     const filled = lines.filter((l) => l.item_code);
     if (!filled.length) {
-      toast({ title: 'أضف صفاً واحداً على الأقل', variant: 'destructive' });
+      toast.error('أضف صفاً واحداً على الأقل');
       return;
     }
     const doc = buildStockEntry({
@@ -92,10 +91,10 @@ export default function InterBranchTransferPage() {
     });
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء تحويل المخزون' });
+        toast.success('تم إنشاء تحويل المخزون');
         setLines([emptyLine()]);
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+      onError: () => toast.error('تعذر الحفظ'),
     });
   };
 

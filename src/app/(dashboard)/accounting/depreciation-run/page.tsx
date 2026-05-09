@@ -16,7 +16,7 @@ import { useDocList, useCreateDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { apiCreateDoc, apiGetDoc, apiUpdateDoc } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import {
   Calculator,
@@ -64,8 +64,6 @@ export default function DepreciationRunPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
-
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
 
   // ── Data fetching ──
@@ -126,11 +124,11 @@ export default function DepreciationRunPage() {
   // ── Run Depreciation ──
   const handleRunDepreciation = useCallback(async () => {
     if (!defaultCo) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (pendingSchedules.length === 0) {
-      toast({ title: 'لا توجد إهلاكات مستحقة', description: 'جميع جداول الإهلاك مُرحّلة بالفعل' });
+      toast.success('لا توجد إهلاكات مستحقة', { description: 'جميع جداول الإهلاك مُرحّلة بالفعل' });
       return;
     }
 
@@ -209,16 +207,9 @@ export default function DepreciationRunPage() {
     void refetchAssets();
 
     if (successCount > 0) {
-      toast({
-        title: 'تم تشغيل الإهلاك بنجاح',
-        description: `تم ترحيل ${successCount} قيد إهلاك${failCount > 0 ? ` وفشل ${failCount}` : ''}`,
-      });
+      toast.success('تم تشغيل الإهلاك بنجاح', { description: `تم ترحيل ${successCount} قيد إهلاك${failCount > 0 ? ` وفشل ${failCount}` : ''}` });
     } else {
-      toast({
-        title: 'لم يتم ترحيل أي قيود',
-        description: 'تأكد من إعداد حسابات الإهلاك في فئات الأصول',
-        variant: 'destructive',
-      });
+      toast.error('لم يتم ترحيل أي قيود', { description: 'تأكد من إعداد حسابات الإهلاك في فئات الأصول' });
     }
   }, [defaultCo, pendingSchedules, refetchDep, refetchAssets, toast]);
 

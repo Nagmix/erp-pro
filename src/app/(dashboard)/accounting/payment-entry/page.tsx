@@ -43,7 +43,7 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { translateAccountName } from '@/lib/core/arabic-labels';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -113,8 +113,6 @@ export default function PaymentEntryPage() {
   const chequeFlowHandled = useRef(false);
   const interBranchFundsHandled = useRef(false);
   const paymentVoucherHandled = useRef(false);
-
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
   const { data, isLoading, isError, error, refetch } = useDocList<PaymentRow>('Payment Entry', {
     fields: [
@@ -217,7 +215,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
     window.history.replaceState({}, '', window.location.pathname);
     setPeFxUnified(true);
     setDialogOpen(true);
-    toast({ title: 'تسجيل شيك', description: 'اختر طريقة دفع من نوع شيك، وأدخل رقم الشيك في المرجع.' });
+    toast.success('تسجيل شيك', { description: 'اختر طريقة دفع من نوع شيك، وأدخل رقم الشيك في المرجع.' });
   }, [toast]);
 
   useEffect(() => {
@@ -231,7 +229,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
     form.setValue('party', '');
     setPeFxUnified(true);
     setDialogOpen(true);
-    toast({ title: 'تحويل أموال بين الفروع', description: 'حدد حساباً بنكياً أو صندوقاً في «من» و«إلى» ضمن نفس الشركة أو الفروع المرتبطة.' });
+    toast.success('تحويل أموال بين الفروع', { description: 'حدد حساباً بنكياً أو صندوقاً في «من» و«إلى» ضمن نفس الشركة أو الفروع المرتبطة.' });
   }, [toast, form]);
 
   useEffect(() => {
@@ -244,16 +242,16 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
     form.setValue('party_type', 'Supplier');
     setPeFxUnified(true);
     setDialogOpen(true);
-    toast({ title: 'سند صرف', description: 'اختر المورد أو نوع الطرف والحساب المدفوع منه.' });
+    toast.success('سند صرف', { description: 'اختر المورد أو نوع الطرف والحساب المدفوع منه.' });
   }, [toast, form]);
 
   const handleCreate = (formData: PaymentFormOutput) => {
     if (formData.payment_type !== 'Internal Transfer' && !formData.party) {
-      toast({ title: 'يرجى اختيار الطرف', variant: 'destructive' });
+      toast.error('يرجى اختيار الطرف');
       return;
     }
     if (!defaultCo) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     const refs: PaymentReferenceInput[] =
@@ -268,7 +266,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
     if (refs.length) {
       const s = refs.reduce((a, b) => a + b.allocated_amount, 0);
       if (s > formData.paid_amount + 0.01) {
-        toast({ title: 'مجموع المبالغ المخصصة يتجاوز المدفوع', variant: 'destructive' });
+        toast.error('مجموع المبالغ المخصصة يتجاوز المدفوع');
         return;
       }
     }
@@ -295,12 +293,12 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
 
     createMutation.mutate(d, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء عملية الدفع بنجاح' });
+        toast.success('تم إنشاء عملية الدفع بنجاح');
         setDialogOpen(false);
         form.reset();
         setPeRefs([]);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء إنشاء عملية الدفع', variant: 'destructive' })});
+      onError: () => toast.error('حدث خطأ أثناء إنشاء عملية الدفع')});
   };
 
   // Columns with actions
@@ -373,8 +371,8 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
               size="sm"
               className="h-7 text-[10px] px-2"
               onClick={() => submitMutation.mutate(row.name, {
-                onSuccess: () => { toast({ title: 'تم ترحيل السند' }); void refetch(); },
-                onError: () => toast({ title: 'فشل الترحيل — تحقق من البيانات', variant: 'destructive' })})}
+                onSuccess: () => { toast.success('تم ترحيل السند'); void refetch(); },
+                onError: () => toast.error('فشل الترحيل — تحقق من البيانات')})}
             >
               <Send className="h-3 w-3 ms-1" />ترحيل
             </Button>
@@ -386,8 +384,8 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
               variant="outline"
               className="h-7 text-[10px] px-2"
               onClick={() => cancelMutation.mutate(row.name, {
-                onSuccess: () => { toast({ title: 'تم إلغاء السند' }); void refetch(); },
-                onError: () => toast({ title: 'فشل الإلغاء', variant: 'destructive' })})}
+                onSuccess: () => { toast.success('تم إلغاء السند'); void refetch(); },
+                onError: () => toast.error('فشل الإلغاء')})}
             >
               <Undo2 className="h-3 w-3 ms-1" />إلغاء
             </Button>
@@ -776,8 +774,8 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
             <AlertDialogAction onClick={() => {
               if (selectedEntry) {
                 deleteMutation.mutate(selectedEntry.name, {
-                  onSuccess: () => toast({ title: 'تم حذف السند' }),
-                  onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+                  onSuccess: () => toast.success('تم حذف السند'),
+                  onError: () => toast.error('حدث خطأ أثناء الحذف')});
                 setDeleteDialogOpen(false);
               }
             }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5">

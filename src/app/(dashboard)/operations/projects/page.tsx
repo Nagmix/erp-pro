@@ -16,7 +16,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatCurrency, formatDate } from '@/lib/app-format';
 import {
   useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc,
@@ -159,7 +159,6 @@ function Spinner() {
 // ─── Main Page ───────────────────────────────────────────────────────────
 
 export default function ProjectsManagementPage() {
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProjectId, setSelectedProjectId] = useState('');
 
@@ -234,7 +233,7 @@ export default function ProjectsManagementPage() {
 
   const handleSaveProject = useCallback(async () => {
     if (!projectForm.name) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم المشروع', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال اسم المشروع' });
       return;
     }
     try {
@@ -255,10 +254,10 @@ export default function ProjectsManagementPage() {
       } else {
         await createProject.mutateAsync(body);
       }
-      toast({ title: 'تم الحفظ', description: editingProject ? 'تم تحديث المشروع بنجاح' : 'تم إنشاء المشروع بنجاح' });
+      toast.success('تم الحفظ', { description: editingProject ? 'تم تحديث المشروع بنجاح' : 'تم إنشاء المشروع بنجاح' });
       setProjectDialogOpen(false);
     } catch (err) {
-      toast({ title: 'خطأ', description: err instanceof Error ? err.message : 'فشل الحفظ', variant: 'destructive' });
+      toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل الحفظ' });
     }
   }, [projectForm, editingProject, toast, createProject, updateProject]);
 
@@ -266,16 +265,16 @@ export default function ProjectsManagementPage() {
     try {
       await deleteProject.mutateAsync(project.id);
       if (selectedProjectId === project.id) setSelectedProjectId('');
-      toast({ title: 'تم الحذف', description: `تم حذف المشروع "${project.name}"` });
+      toast.success('تم الحذف', { description: `تم حذف المشروع "${project.name}"` });
     } catch (err) {
-      toast({ title: 'خطأ', description: err instanceof Error ? err.message : 'فشل الحذف', variant: 'destructive' });
+      toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل الحذف' });
     }
   }, [selectedProjectId, toast, deleteProject]);
 
   // ── Phase (Task) CRUD
   const openPhaseDialog = useCallback((phase?: ProjectPhase) => {
     if (!selectedProjectId) {
-      toast({ title: 'تنبيه', description: 'يرجى اختيار مشروع أولاً', variant: 'destructive' });
+      toast.error('تنبيه', { description: 'يرجى اختيار مشروع أولاً' });
       return;
     }
     if (phase) {
@@ -309,19 +308,19 @@ export default function ProjectsManagementPage() {
       } else {
         await createTask.mutateAsync(body);
       }
-      toast({ title: 'تم الحفظ', description: editingPhase ? 'تم تحديث المرحلة' : 'تم إضافة المرحلة' });
+      toast.success('تم الحفظ', { description: editingPhase ? 'تم تحديث المرحلة' : 'تم إضافة المرحلة' });
       setPhaseDialogOpen(false);
     } catch (err) {
-      toast({ title: 'خطأ', description: err instanceof Error ? err.message : 'فشل الحفظ', variant: 'destructive' });
+      toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل الحفظ' });
     }
   }, [phaseForm, editingPhase, selectedProjectId, toast, createTask, updateTask]);
 
   const handleDeletePhase = useCallback(async (phaseId: string) => {
     try {
       await deleteTask.mutateAsync(phaseId);
-      toast({ title: 'تم الحذف', description: 'تم حذف المرحلة' });
+      toast.success('تم الحذف', { description: 'تم حذف المرحلة' });
     } catch (err) {
-      toast({ title: 'خطأ', description: err instanceof Error ? err.message : 'فشل الحذف', variant: 'destructive' });
+      toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل الحذف' });
     }
   }, [toast, deleteTask]);
 
@@ -533,7 +532,7 @@ export default function ProjectsManagementPage() {
                           while (current <= ganttMaxDate) {
                             const offset = ganttOffset(current.toISOString());
                             markers.push(
-                              <span key={current.toISOString()} className="absolute text-[10px] text-muted-foreground top-1" style={{ right: `${offset}%` }}>
+                              <span key={current.toISOString()} className="absolute text-[10px] text-muted-foreground top-1" style={{ insetInlineEnd: `${offset}%` }}>
                                 {current.toLocaleDateString('ar-YE', { month: 'short' })}
                               </span>
                             );
@@ -556,7 +555,7 @@ export default function ProjectsManagementPage() {
                               <p className="text-[10px] text-muted-foreground">{phase.assignedTo || '—'}</p>
                             </div>
                             <div className="flex-1 relative h-7 bg-muted/20 rounded">
-                              <div className={`absolute top-0 h-full rounded ${statusColor[phase.status]}`} style={{ right: `${barOffset}%`, width: `${barWidth}%` }}>
+                              <div className={`absolute top-0 h-full rounded ${statusColor[phase.status]}`} style={{ insetInlineEnd: `${barOffset}%`, width: `${barWidth}%` }}>
                                 <div className={`h-full rounded ${progressColor[phase.status]} opacity-60`} style={{ width: `${phase.progress}%` }} />
                               </div>
                               <span className="absolute inset-0 flex items-center justify-center text-[10px] font-semibold">{phase.progress}%</span>

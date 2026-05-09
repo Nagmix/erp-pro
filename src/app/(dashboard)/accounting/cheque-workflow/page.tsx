@@ -55,10 +55,9 @@ import { apiUpdateDoc, apiCreateDoc } from '@/lib/client/api';
 import { CHEQUE_LIFECYCLE_FIELD, CHEQUE_LIFECYCLE_OPTIONS, chequeLifecycleLabel } from '@/lib/erp/cheque-lifecycle';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
 // ── Types ──
 type ChequeRow = {
@@ -109,7 +108,6 @@ const BASE_FIELDS: string[] = [
 ];
 
 export default function ChequeWorkflowPage() {
-  const { toast } = useToast();
   const qc = useQueryClient();
   const { company: defaultCompany } = useDefaultCompanyName();
 
@@ -227,13 +225,13 @@ export default function ChequeWorkflowPage() {
         updateData.bank_account = depositBankAccount;
       }
       await apiUpdateDoc('Payment Entry', depositTarget.name, updateData);
-      toast({ title: 'تم تحديث حالة الشيك إلى إيداع' });
+      toast.success('تم تحديث حالة الشيك إلى إيداع');
       setDepositTarget(null);
       setDepositBankAccount('');
       setDepositDate('');
       void refetch();
     } catch (e) {
-      toast({ title: (e as Error).message || 'فشل تحديث حالة الشيك' });
+      toast.success((e as Error).message || 'فشل تحديث حالة الشيك');
     } finally {
       setDepositing(false);
     }
@@ -245,10 +243,10 @@ export default function ChequeWorkflowPage() {
     setProcessing(true);
     try {
       await updateStage(clearBounceTarget.row.name, clearBounceTarget.action);
-      toast({ title: clearBounceTarget.action === 'Cleared' ? 'تم تأكيد مقاصة الشيك' : 'تم تسجيل ارتداد الشيك' });
+      toast.success(clearBounceTarget.action === 'Cleared' ? 'تم تأكيد مقاصة الشيك' : 'تم تسجيل ارتداد الشيك');
       setClearBounceTarget(null);
     } catch (e) {
-      toast({ title: (e as Error).message || 'فشل التحديث' });
+      toast.success((e as Error).message || 'فشل التحديث');
     } finally {
       setProcessing(false);
     }
@@ -276,11 +274,11 @@ export default function ChequeWorkflowPage() {
         ],
       };
       await apiCreateDoc('Journal Entry', reversalEntry);
-      toast({ title: 'تم إنشاء قيد عكس الشيك المرتد' });
+      toast.success('تم إنشاء قيد عكس الشيك المرتد');
       setReverseTarget(null);
       void refetch();
     } catch (e) {
-      toast({ title: (e as Error).message || 'فشل إنشاء قيد العكس' });
+      toast.success((e as Error).message || 'فشل إنشاء قيد العكس');
     } finally {
       setReversing(false);
     }
@@ -289,16 +287,16 @@ export default function ChequeWorkflowPage() {
   // ── Create Cheque handler ──
   const handleCreate = useCallback(async () => {
     if (!formParty || !formRefNo || !formRefDate || !formAmount || !formBank) {
-      toast({ title: 'يرجى ملء جميع الحقول المطلوبة' });
+      toast.success('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     const amount = Number(formAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
-      toast({ title: 'يرجى إدخال مبلغ صحيح' });
+      toast.success('يرجى إدخال مبلغ صحيح');
       return;
     }
     if (!defaultCompany) {
-      toast({ title: 'يرجى تحديد الشركة' });
+      toast.success('يرجى تحديد الشركة');
       return;
     }
 
@@ -324,12 +322,12 @@ export default function ChequeWorkflowPage() {
         payload.due_date = formDueDate;
       }
       await apiCreateDoc('Payment Entry', payload);
-      toast({ title: 'تم تسجيل الشيك بنجاح' });
+      toast.success('تم تسجيل الشيك بنجاح');
       setCreateOpen(false);
       resetCreateForm();
       void refetch();
     } catch (e) {
-      toast({ title: (e as Error).message || 'فشل تسجيل الشيك' });
+      toast.success((e as Error).message || 'فشل تسجيل الشيك');
     } finally {
       setCreating(false);
     }

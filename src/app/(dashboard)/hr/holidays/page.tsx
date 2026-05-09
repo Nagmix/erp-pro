@@ -35,7 +35,7 @@ import { formatDate, formatNumber } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc, useDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { buildHolidayListCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
 
 /* ──────────────── Types ──────────────── */
@@ -80,8 +80,6 @@ const YEAR_OPTIONS = (() => {
 /* ──────────────── Component ──────────────── */
 
 export default function HolidaysPage() {
-  const { toast } = useToast();
-
   /* ── Dialog state ── */
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<HolidayListRow | null>(null);
@@ -199,10 +197,10 @@ export default function HolidaysPage() {
   };
 
   const handleSave = () => {
-    if (!holidayListName.trim()) { toast({ title: 'اسم قائمة العطلات مطلوب', variant: 'destructive' }); return; }
-    if (!fromDate || !toDate) { toast({ title: 'من تاريخ وإلى تاريخ مطلوبان', variant: 'destructive' }); return; }
+    if (!holidayListName.trim()) { toast.error('اسم قائمة العطلات مطلوب'); return; }
+    if (!fromDate || !toDate) { toast.error('من تاريخ وإلى تاريخ مطلوبان'); return; }
     const rows = entries.filter((e) => e.holiday_date && e.description.trim());
-    if (rows.length === 0) { toast({ title: 'أضف صفاً واحداً على الأقل (تاريخ + وصف)', variant: 'destructive' }); return; }
+    if (rows.length === 0) { toast.error('أضف صفاً واحداً على الأقل (تاريخ + وصف)'); return; }
 
     if (editingDoc) {
       const holidayRows = rows.map((r) => ({
@@ -220,8 +218,8 @@ export default function HolidaysPage() {
           holidays: holidayRows,
         },
       }, {
-        onSuccess: () => { toast({ title: 'تم تعديل قائمة العطلات' }); setDialogOpen(false); setEditingDoc(null); },
-        onError: () => toast({ title: 'تعذر التعديل', variant: 'destructive' }),
+        onSuccess: () => { toast.success('تم تعديل قائمة العطلات'); setDialogOpen(false); setEditingDoc(null); },
+        onError: () => toast.error('تعذر التعديل'),
       });
     } else {
       const mapped = buildHolidayListCreate({
@@ -232,7 +230,7 @@ export default function HolidaysPage() {
       });
       createMutation.mutate(prepareFrappeDocForCreate(mapped), {
         onSuccess: () => {
-          toast({ title: 'تم إنشاء قائمة العطلات' });
+          toast.success('تم إنشاء قائمة العطلات');
           setDialogOpen(false);
           setHolidayListName('');
           setFromDate('');
@@ -240,7 +238,7 @@ export default function HolidaysPage() {
           setWeeklyOff('');
           setEntries([emptyEntry()]);
         },
-        onError: () => toast({ title: 'تعذر الحفظ — تحقق من عدم تكرار الاسم والتواريخ', variant: 'destructive' }),
+        onError: () => toast.error('تعذر الحفظ — تحقق من عدم تكرار الاسم والتواريخ'),
       });
     }
   };
@@ -252,8 +250,8 @@ export default function HolidaysPage() {
 
   const handleDelete = (row: HolidayListRow) => {
     deleteMutation.mutate(row.name, {
-      onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteDialog(null); if (expandedName === row.name) setExpandedName(null); },
-      onError: () => toast({ title: 'فشل الحذف', variant: 'destructive' }),
+      onSuccess: () => { toast.success('تم الحذف'); setDeleteDialog(null); if (expandedName === row.name) setExpandedName(null); },
+      onError: () => toast.error('فشل الحذف'),
     });
   };
 

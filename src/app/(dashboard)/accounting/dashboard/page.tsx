@@ -489,7 +489,7 @@ export default function AccountingDashboardPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="text-left">
+                      <div>
                         <p className="text-xs font-semibold tabular-nums">{formatCurrency(tx.amount)}</p>
                         <p className="text-[10px] text-muted-foreground">{tx.date}</p>
                       </div>

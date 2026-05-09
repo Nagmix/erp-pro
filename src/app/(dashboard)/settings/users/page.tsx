@@ -60,7 +60,7 @@ import {
   Key,
   X,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -243,8 +243,6 @@ const emptyForm: UserFormData = {
 /* ------------------------------------------------------------------ */
 
 export default function UsersManagementPage() {
-  const { toast } = useToast();
-
   /* ---- State ---- */
   const [users, setUsers] = useState<ERPUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -291,7 +289,7 @@ export default function UsersManagementPage() {
       const data = await fetchUsers();
       setUsers(data);
     } catch {
-      toast({ title: 'خطأ', description: 'فشل تحميل بيانات المستخدمين', variant: 'destructive' });
+      toast.error('خطأ', { description: 'فشل تحميل بيانات المستخدمين' });
     } finally {
       setLoading(false);
     }
@@ -305,7 +303,7 @@ export default function UsersManagementPage() {
         if (!cancelled) setUsers(data);
       })
       .catch(() => {
-        if (!cancelled) toast({ title: 'خطأ', description: 'فشل تحميل بيانات المستخدمين', variant: 'destructive' });
+        if (!cancelled) toast.error('خطأ', { description: 'فشل تحميل بيانات المستخدمين' });
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -410,11 +408,11 @@ export default function UsersManagementPage() {
 
   const handleSaveUser = useCallback(async () => {
     if (!formData.email.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال البريد الإلكتروني', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال البريد الإلكتروني' });
       return;
     }
     if (!formData.first_name.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال الاسم الأول', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال الاسم الأول' });
       return;
     }
 
@@ -431,13 +429,13 @@ export default function UsersManagementPage() {
         };
         const result = await updateUser(editingUser.name, updateData);
         if (result.success) {
-          toast({ title: 'تم التحديث', description: `تم تحديث بيانات المستخدم "${formData.first_name}" بنجاح` });
+          toast.success('تم التحديث', { description: `تم تحديث بيانات المستخدم "${formData.first_name}" بنجاح` });
           setDialogOpen(false);
           // Refresh roles cache
           setUserRolesMap((prev) => ({ ...prev, [editingUser.name]: formData.roles }));
           loadUsers();
         } else {
-          toast({ title: 'فشل التحديث', description: result.error || 'حدث خطأ أثناء التحديث', variant: 'destructive' });
+          toast.error('فشل التحديث', { description: result.error || 'حدث خطأ أثناء التحديث' });
         }
       } else {
         // Create new user
@@ -451,15 +449,15 @@ export default function UsersManagementPage() {
         };
         const result = await createUser(createData);
         if (result.success) {
-          toast({ title: 'تم الإنشاء', description: `تم إنشاء المستخدم "${formData.first_name}" بنجاح` });
+          toast.success('تم الإنشاء', { description: `تم إنشاء المستخدم "${formData.first_name}" بنجاح` });
           setDialogOpen(false);
           loadUsers();
         } else {
-          toast({ title: 'فشل الإنشاء', description: result.error || 'حدث خطأ أثناء الإنشاء', variant: 'destructive' });
+          toast.error('فشل الإنشاء', { description: result.error || 'حدث خطأ أثناء الإنشاء' });
         }
       }
     } catch {
-      toast({ title: 'خطأ', description: 'تعذر الاتصال بالخادم', variant: 'destructive' });
+      toast.error('خطأ', { description: 'تعذر الاتصال بالخادم' });
     } finally {
       setSaving(false);
     }
@@ -474,13 +472,13 @@ export default function UsersManagementPage() {
       });
       const result = await res.json();
       if (result.success) {
-        toast({ title: 'تم الحذف', description: `تم حذف المستخدم "${userToDelete.full_name || userToDelete.name}"` });
+        toast.success('تم الحذف', { description: `تم حذف المستخدم "${userToDelete.full_name || userToDelete.name}"` });
         loadUsers();
       } else {
-        toast({ title: 'فشل الحذف', description: result.error || 'حدث خطأ', variant: 'destructive' });
+        toast.error('فشل الحذف', { description: result.error || 'حدث خطأ' });
       }
     } catch {
-      toast({ title: 'خطأ', description: 'تعذر الاتصال بالخادم', variant: 'destructive' });
+      toast.error('خطأ', { description: 'تعذر الاتصال بالخادم' });
     }
     setDeleteDialogOpen(false);
     setUserToDelete(null);
@@ -492,12 +490,12 @@ export default function UsersManagementPage() {
     try {
       const result = await resetUserPassword(userToReset.name);
       if (result.success) {
-        toast({ title: 'تم الإرسال', description: `تم إرسال رابط إعادة تعيين كلمة المرور إلى "${userToReset.email}"` });
+        toast.success('تم الإرسال', { description: `تم إرسال رابط إعادة تعيين كلمة المرور إلى "${userToReset.email}"` });
       } else {
-        toast({ title: 'فشل الإرسال', description: result.error || 'حدث خطأ أثناء إرسال رابط إعادة التعيين', variant: 'destructive' });
+        toast.error('فشل الإرسال', { description: result.error || 'حدث خطأ أثناء إرسال رابط إعادة التعيين' });
       }
     } catch {
-      toast({ title: 'خطأ', description: 'تعذر الاتصال بالخادم', variant: 'destructive' });
+      toast.error('خطأ', { description: 'تعذر الاتصال بالخادم' });
     }
     setResetDialogOpen(false);
     setUserToReset(null);
@@ -518,14 +516,14 @@ export default function UsersManagementPage() {
         roles: roleDialogRoles.map((r) => ({ role: r, doctype: 'Has Role' })),
       });
       if (result.success) {
-        toast({ title: 'تم الحفظ', description: `تم تحديث أدوار المستخدم "${roleDialogUser.full_name || roleDialogUser.name}"` });
+        toast.success('تم الحفظ', { description: `تم تحديث أدوار المستخدم "${roleDialogUser.full_name || roleDialogUser.name}"` });
         setUserRolesMap((prev) => ({ ...prev, [roleDialogUser.name]: roleDialogRoles }));
         setRoleDialogOpen(false);
       } else {
-        toast({ title: 'فشل الحفظ', description: result.error || 'حدث خطأ', variant: 'destructive' });
+        toast.error('فشل الحفظ', { description: result.error || 'حدث خطأ' });
       }
     } catch {
-      toast({ title: 'خطأ', description: 'تعذر الاتصال بالخادم', variant: 'destructive' });
+      toast.error('خطأ', { description: 'تعذر الاتصال بالخادم' });
     } finally {
       setRoleDialogSaving(false);
     }
@@ -537,20 +535,17 @@ export default function UsersManagementPage() {
     try {
       const result = await updateUser(user.name, { enabled: newEnabled ? 1 : 0 });
       if (result.success) {
-        toast({
-          title: newEnabled ? 'تم التفعيل' : 'تم التعطيل',
-          description: newEnabled
+        toast.success(newEnabled ? 'تم التفعيل' : 'تم التعطيل', { description: newEnabled
             ? `تم تفعيل المستخدم "${user.full_name || user.name}"`
-            : `تم تعطيل المستخدم "${user.full_name || user.name}"`,
-        });
+            : `تم تعطيل المستخدم "${user.full_name || user.name}"` });
         setUsers((prev) =>
           prev.map((u) => (u.name === user.name ? { ...u, enabled: newEnabled } : u))
         );
       } else {
-        toast({ title: 'فشل التحديث', description: result.error || 'حدث خطأ', variant: 'destructive' });
+        toast.error('فشل التحديث', { description: result.error || 'حدث خطأ' });
       }
     } catch {
-      toast({ title: 'خطأ', description: 'تعذر الاتصال بالخادم', variant: 'destructive' });
+      toast.error('خطأ', { description: 'تعذر الاتصال بالخادم' });
     }
   }, [toast]);
 
@@ -744,11 +739,11 @@ export default function UsersManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40 hover:bg-muted/40">
-                  <TableHead className="text-right text-xs font-semibold ps-4">المستخدم</TableHead>
-                  <TableHead className="text-right text-xs font-semibold">البريد الإلكتروني</TableHead>
-                  <TableHead className="text-right text-xs font-semibold">الأدوار</TableHead>
+                  <TableHead className="text-xs font-semibold ps-4">المستخدم</TableHead>
+                  <TableHead className="text-xs font-semibold">البريد الإلكتروني</TableHead>
+                  <TableHead className="text-xs font-semibold">الأدوار</TableHead>
                   <TableHead className="text-center text-xs font-semibold">الحالة</TableHead>
-                  <TableHead className="text-right text-xs font-semibold">آخر نشاط</TableHead>
+                  <TableHead className="text-xs font-semibold">آخر نشاط</TableHead>
                   <TableHead className="text-center text-xs font-semibold">مفعّل</TableHead>
                   <TableHead className="text-center text-xs font-semibold pe-4">إجراءات</TableHead>
                 </TableRow>
@@ -987,7 +982,7 @@ export default function UsersManagementPage() {
                   value={formData.email}
                   onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   dir="ltr"
-                  className="ps-9 text-left"
+                  className="ps-9"
                   disabled={!!editingUser}
                 />
               </div>

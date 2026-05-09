@@ -24,7 +24,7 @@ import { Plus, Trash2, Send, Undo2 } from 'lucide-react';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildStockReconciliation } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -56,7 +56,6 @@ interface Line {
 const emptyLine = (): Line => ({ item_code: '', warehouse: '', qty: '' });
 
 export default function StockCountPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
@@ -99,8 +98,8 @@ export default function StockCountPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم الترحيل — تعديل المخزون' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('تم الترحيل — تعديل المخزون'); void refetch(); },
+                    onError: () => toast.error('تعذر الترحيل'),
                   })
                 }
               >
@@ -118,8 +117,8 @@ export default function StockCountPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'أُلغي' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('أُلغي'); void refetch(); },
+                    onError: () => toast.error('تعذر'),
                   })
                 }
               >
@@ -137,11 +136,11 @@ export default function StockCountPage() {
 
   const handleCreate = () => {
     if (!company) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (lines.every((l) => !l.item_code || !l.warehouse || !l.qty)) {
-      toast({ title: 'أكمل الصنف والمستودع والكمية الفعلية', variant: 'destructive' });
+      toast.error('أكمل الصنف والمستودع والكمية الفعلية');
       return;
     }
     const doc = buildStockReconciliation({
@@ -160,12 +159,12 @@ export default function StockCountPage() {
     });
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء جرد المخزون' });
+        toast.success('تم إنشاء جرد المخزون');
         setDialogOpen(false);
         setLines([emptyLine()]);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+      onError: () => toast.error('تعذر الحفظ'),
     });
   };
 
@@ -204,8 +203,8 @@ export default function StockCountPage() {
               onClick={() => {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
-                  onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteName(null); void refetch(); },
-                  onError: () => toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+                  onSuccess: () => { toast.success('تم الحذف'); setDeleteName(null); void refetch(); },
+                  onError: () => toast.error('تعذر الحذف'),
                 });
               }}
             >

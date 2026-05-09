@@ -45,7 +45,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency } from '@/lib/core/helpers';
 import { useCreateDoc } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildSalesInvoice } from '@/lib/erp/erpnext-payloads';
 import { syncItemDeferredRevenueFromInvoiceLine } from '@/lib/erp/deferred-revenue-sync';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -119,7 +119,6 @@ const FORM_ID = 'sales-invoice-new-form';
 
 export function SalesInvoiceNewEditor() {
   const router = useRouter();
-  const { toast } = useToast();
   const importLinesRef = useRef<HTMLInputElement>(null);
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
@@ -148,10 +147,7 @@ export function SalesInvoiceNewEditor() {
     try {
       const rows = await parseSalesInvoiceImportXlsx(buffer);
       if (!rows.length) {
-        toast({
-          title: 'لم يُستخرج أي بند من Excel — الصف الأول عناوين: صنف، وصف، كمية، سعر، مستودع',
-          variant: 'destructive',
-        });
+        toast.error('لم يُستخرج أي بند من Excel — الصف الأول عناوين: صنف، وصف، كمية، سعر، مستودع');
         return;
       }
       setItems(
@@ -168,9 +164,9 @@ export function SalesInvoiceNewEditor() {
           };
         })
       );
-      toast({ title: `تم استيراد ${rows.length} بنداً من Excel` });
+      toast.success(`تم استيراد ${rows.length} بنداً من Excel`);
     } catch {
-      toast({ title: 'تعذّر قراءة ملف Excel', variant: 'destructive' });
+      toast.error('تعذّر قراءة ملف Excel');
     }
   };
 
@@ -218,26 +214,22 @@ export function SalesInvoiceNewEditor() {
 
   const onSubmit = async (fd: InvoiceFormData) => {
     if (items.every((i) => !i.item_code)) {
-      toast({ title: 'أضف بنداً واحداً على الأقل', variant: 'destructive' });
+      toast.error('أضف بنداً واحداً على الأقل');
       return;
     }
     for (const i of items) {
       if (!i.item_code || !i.enable_deferred_revenue) continue;
       if (!i.service_start_date?.trim() || !i.service_end_date?.trim() || !i.deferred_revenue_account?.trim()) {
-        toast({
-          title: 'بند إيراد مؤجل ناقص',
-          description: 'أكمل تاريخي بداية ونهاية الخدمة وحساب الإيراد المؤجل لكل بند مفعّل.',
-          variant: 'destructive',
-        });
+        toast.error('بند إيراد مؤجل ناقص', { description: 'أكمل تاريخي بداية ونهاية الخدمة وحساب الإيراد المؤجل لكل بند مفعّل.' });
         return;
       }
       if (i.service_end_date < i.service_start_date) {
-        toast({ title: 'تاريخ نهاية الخدمة لا يسبق البداية', variant: 'destructive' });
+        toast.error('تاريخ نهاية الخدمة لا يسبق البداية');
         return;
       }
     }
     if (!defaultCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     for (const i of items) {
@@ -249,11 +241,7 @@ export function SalesInvoiceNewEditor() {
           serviceEnd: i.service_end_date,
         });
       } catch (e) {
-        toast({
-          title: 'تعذر تهيئة الصنف للإيراد المؤجل على الخادم',
-          description: e instanceof Error ? e.message : String(e),
-          variant: 'destructive',
-        });
+        toast.error('تعذر تهيئة الصنف للإيراد المؤجل على الخادم', { description: e instanceof Error ? e.message : String(e) });
         return;
       }
     }
@@ -290,11 +278,11 @@ export function SalesInvoiceNewEditor() {
       }),
       {
         onSuccess: () => {
-          toast({ title: 'تم إنشاء الفاتورة' });
+          toast.success('تم إنشاء الفاتورة');
           router.push('/sales/sales-invoices');
           router.refresh();
         },
-        onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+        onError: () => toast.error('تعذر الحفظ'),
       }
     );
   };

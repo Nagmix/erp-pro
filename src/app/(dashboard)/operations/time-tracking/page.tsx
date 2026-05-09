@@ -25,7 +25,7 @@ import {
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Plus, Clock, Timer, Play, Square, TimerReset, CalendarClock, BarChart3, Loader2, Filter } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDocList, useCreateDoc, useUpdateDoc, useSubmitDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { buildTimesheetCreate, buildTimesheetUpdate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -125,7 +125,6 @@ const columns: Column<TimesheetRow>[] = [
 // ============================================
 
 export default function TimeTrackingPage() {
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -200,7 +199,7 @@ export default function TimeTrackingPage() {
   // Start Tracking: Create a Draft Timesheet in ERPNext with from_time set
   const handleStartTimer = async () => {
     if (!timerEmployee) {
-      toast({ title: 'خطأ', description: 'يرجى اختيار الموظف أولاً', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى اختيار الموظف أولاً' });
       return;
     }
     const now = new Date();
@@ -224,10 +223,10 @@ export default function TimeTrackingPage() {
       setActiveTimesheetName(tsName);
       setTimerStartTime(now);
       setTimerRunning(true);
-      toast({ title: 'بدأ التتبع', description: `تم بدء تتبع الوقت للموظف ${empName} وإنشاء سجل وقت في النظام` });
+      toast.success('بدأ التتبع', { description: `تم بدء تتبع الوقت للموظف ${empName} وإنشاء سجل وقت في النظام` });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ في بدء التتبع', description: msg, variant: 'destructive' });
+      toast.error('خطأ في بدء التتبع', { description: msg });
     }
   };
 
@@ -252,7 +251,7 @@ export default function TimeTrackingPage() {
           }],
         });
         await updateMutation.mutateAsync({ name: activeTimesheetName, doc: updatePayload });
-        toast({ title: 'تم إيقاف التتبع', description: `تم تسجيل ${hours.toFixed(1)} ساعة بنجاح في سجل الوقت ${activeTimesheetName}` });
+        toast.success('تم إيقاف التتبع', { description: `تم تسجيل ${hours.toFixed(1)} ساعة بنجاح في سجل الوقت ${activeTimesheetName}` });
       } else {
         // Fallback: create a new Timesheet with full time log
         const payload = buildTimesheetCreate({
@@ -269,11 +268,11 @@ export default function TimeTrackingPage() {
         });
         const body = prepareFrappeDocForCreate(payload);
         await createMutation.mutateAsync(body);
-        toast({ title: 'تم إيقاف التتبع', description: `تم تسجيل ${hours.toFixed(1)} ساعة بنجاح في سجل الوقت` });
+        toast.success('تم إيقاف التتبع', { description: `تم تسجيل ${hours.toFixed(1)} ساعة بنجاح في سجل الوقت` });
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ في حفظ سجل الوقت', description: msg, variant: 'destructive' });
+      toast.error('خطأ في حفظ سجل الوقت', { description: msg });
     }
 
     // Reset timer state
@@ -296,13 +295,13 @@ export default function TimeTrackingPage() {
     setTimerActivity('');
     setTimerStartTime(null);
     setActiveTimesheetName(null);
-    toast({ title: 'تم إلغاء التتبع' });
+    toast.success('تم إلغاء التتبع');
   };
 
   // Manual entry: Create a full Timesheet
   const handleCreate = async () => {
     if (!formData.employee || !formData.date || !formData.from_time || !formData.to_time) {
-      toast({ title: 'خطأ', description: 'يرجى ملء جميع الحقول المطلوبة', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى ملء جميع الحقول المطلوبة' });
       return;
     }
     const [fromH, fromM] = formData.from_time.split(':').map(Number);
@@ -310,7 +309,7 @@ export default function TimeTrackingPage() {
     const hours = Math.round(((toH + toM / 60) - (fromH + fromM / 60)) * 100) / 100;
 
     if (hours <= 0) {
-      toast({ title: 'خطأ', description: 'وقت النهاية يجب أن يكون بعد وقت البداية', variant: 'destructive' });
+      toast.error('خطأ', { description: 'وقت النهاية يجب أن يكون بعد وقت البداية' });
       return;
     }
 
@@ -333,22 +332,22 @@ export default function TimeTrackingPage() {
       });
       const body = prepareFrappeDocForCreate(payload);
       await createMutation.mutateAsync(body);
-      toast({ title: 'تم الحفظ', description: 'تم تسجيل سجل الوقت بنجاح في النظام' });
+      toast.success('تم الحفظ', { description: 'تم تسجيل سجل الوقت بنجاح في النظام' });
       setDialogOpen(false);
       setFormData({ employee: '', project: '', activity: '', date: '', from_time: '', to_time: '' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ', description: msg, variant: 'destructive' });
+      toast.error('خطأ', { description: msg });
     }
   };
 
   const handleSubmitTimesheet = async (name: string) => {
     try {
       await submitMutation.mutateAsync(name);
-      toast({ title: 'تم الترحيل', description: 'تم ترحيل سجل الوقت بنجاح' });
+      toast.success('تم الترحيل', { description: 'تم ترحيل سجل الوقت بنجاح' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ في الترحيل', description: msg, variant: 'destructive' });
+      toast.error('خطأ في الترحيل', { description: msg });
     }
   };
 
@@ -684,7 +683,7 @@ export default function TimeTrackingPage() {
           if (row.docstatus === 0) {
             handleSubmitTimesheet(row.name);
           } else {
-            toast({ title: 'لا يمكن التعديل', description: 'هذا السجل مرحّل بالفعل', variant: 'destructive' });
+            toast.error('لا يمكن التعديل', { description: 'هذا السجل مرحّل بالفعل' });
           }
         }}
       />

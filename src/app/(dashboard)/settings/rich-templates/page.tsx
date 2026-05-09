@@ -447,12 +447,12 @@ export default function RichTemplatesPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
-                <TableHead className="text-right text-xs font-semibold ps-4">اسم القالب</TableHead>
-                <TableHead className="text-right text-xs font-semibold">الوحدة</TableHead>
-                <TableHead className="text-right text-xs font-semibold">الموضوع</TableHead>
+                <TableHead className="text-xs font-semibold ps-4">اسم القالب</TableHead>
+                <TableHead className="text-xs font-semibold">الوحدة</TableHead>
+                <TableHead className="text-xs font-semibold">الموضوع</TableHead>
                 <TableHead className="text-center text-xs font-semibold">HTML</TableHead>
-                <TableHead className="text-right text-xs font-semibold">المالك</TableHead>
-                <TableHead className="text-right text-xs font-semibold">آخر تعديل</TableHead>
+                <TableHead className="text-xs font-semibold">المالك</TableHead>
+                <TableHead className="text-xs font-semibold">آخر تعديل</TableHead>
                 <TableHead className="text-center text-xs font-semibold pe-4">إجراءات</TableHead>
               </TableRow>
             </TableHeader>

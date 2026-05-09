@@ -391,7 +391,7 @@ export default function DeveloperApiPage() {
       </KpiStrip>
 
       <Tabs defaultValue="keys" dir="rtl" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="flex flex-wrap gap-1 w-full">
           <TabsTrigger value="keys" className="gap-1.5 text-xs">
             <Key className="h-3.5 w-3.5" /> المفاتيح
           </TabsTrigger>
@@ -675,7 +675,7 @@ export default function DeveloperApiPage() {
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold">cURL</Label>
+                  <Label className="text-xs font-semibold">cURL (سطر الأوامر)</Label>
                   <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(`curl -X GET "https://your-erp.com/api/resource/Company" \\
   -H "Authorization: token YOUR_API_KEY:YOUR_API_SECRET"`)}>
                     <Copy className="h-3 w-3" />
@@ -689,7 +689,7 @@ export default function DeveloperApiPage() {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold">Python</Label>
+                  <Label className="text-xs font-semibold">بايثون (Python)</Label>
                   <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(`import requests
 
 url = "https://your-erp.com/api/resource/Company"
@@ -711,7 +711,7 @@ print(response.json())`}
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold">JavaScript</Label>
+                  <Label className="text-xs font-semibold">جافاسكريبت (JavaScript)</Label>
                   <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(`const response = await fetch("https://your-erp.com/api/resource/Company", {
   headers: { "Authorization": "token YOUR_API_KEY:YOUR_API_SECRET" }
 });

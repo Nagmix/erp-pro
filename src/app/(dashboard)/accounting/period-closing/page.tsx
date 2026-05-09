@@ -13,7 +13,7 @@ import {
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -71,7 +71,6 @@ type PcvRow = {
 };
 
 export default function PeriodClosingPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoad } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitConfirmOpen, setSubmitConfirmOpen] = useState(false);
@@ -133,11 +132,11 @@ export default function PeriodClosingPage() {
       }),
       {
         onSuccess: () => {
-          toast({ title: 'أُنشئت قسيمة إقفال (مسودة) — راجعها ثم رحّل' });
+          toast.success('أُنشئت قسيمة إقفال (مسودة) — راجعها ثم رحّل');
           void refetch();
           setDialogOpen(false);
         },
-        onError: () => toast({ title: 'تعذر الحفظ — راجع الحقول', variant: 'destructive' }),
+        onError: () => toast.error('تعذر الحفظ — راجع الحقول'),
       }
     );
   };
@@ -152,13 +151,13 @@ export default function PeriodClosingPage() {
     if (!selectedRow) return;
     submitMutation.mutate(selectedRow.name, {
       onSuccess: () => {
-        toast({ title: 'تم ترحيل قسيمة الإقفال' });
+        toast.success('تم ترحيل قسيمة الإقفال');
         void refetch();
         setSubmitConfirmOpen(false);
         setSelectedRow(null);
       },
       onError: () => {
-        toast({ title: 'فشل الترحيل', variant: 'destructive' });
+        toast.error('فشل الترحيل');
         setSubmitConfirmOpen(false);
       },
     });
@@ -174,13 +173,13 @@ export default function PeriodClosingPage() {
     if (!selectedRow) return;
     cancelMutation.mutate(selectedRow.name, {
       onSuccess: () => {
-        toast({ title: 'أُلغي ترحيل قسيمة الإقفال' });
+        toast.success('أُلغي ترحيل قسيمة الإقفال');
         void refetch();
         setCancelConfirmOpen(false);
         setSelectedRow(null);
       },
       onError: () => {
-        toast({ title: 'تعذر إلغاء الترحيل', variant: 'destructive' });
+        toast.error('تعذر إلغاء الترحيل');
         setCancelConfirmOpen(false);
       },
     });

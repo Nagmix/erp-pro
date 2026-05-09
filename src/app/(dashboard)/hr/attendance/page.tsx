@@ -276,7 +276,7 @@ export default function AttendancePage() {
               <div><Label className="text-xs">رمز الدخول</Label><Input value={token} onChange={(e) => setToken(e.target.value)} dir="ltr" /></div>
             </div>
             <div><Label className="text-xs">عنوان الخدمة</Label><Input value={endpoint} onChange={(e) => setEndpoint(e.target.value)} dir="ltr" placeholder="https://attendance-gateway/api/punches" /></div>
-            <div className="border rounded-md p-2 text-[11px] text-muted-foreground">هذا إعداد جاهز فقط، سيتم ربطه تلقائيا من إعدادات النظام لاحقاً.</div>
+            <div className="border rounded-md p-2 text-[11px] text-muted-foreground">قم بإعداد بيانات الاتصال لجهاز الحضور. سيتم تفعيل الربط تلقائياً عند توفر الاتصال.</div>
             <div className="border-t pt-3 space-y-2">
               <p className="text-xs font-semibold">تسجيل حضور يدوي سريع</p>
               <ErpLinkCombobox doctype="Employee" value={checkinEmployee} onChange={setCheckinEmployee} displayKey="employee_name" />

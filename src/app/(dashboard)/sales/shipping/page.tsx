@@ -72,7 +72,7 @@ import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/clie
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 
@@ -149,7 +149,6 @@ const initialForm: ShippingCompanyForm = {
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function ShippingCompaniesPage() {
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
 
   // ── State ──
@@ -277,19 +276,19 @@ export default function ShippingCompaniesPage() {
   // ── Save Handler ──
   const handleSave = useCallback(async () => {
     if (!form.company_name.trim()) {
-      toast({ title: 'يرجى إدخال اسم شركة الشحن', variant: 'destructive' });
+      toast.error('يرجى إدخال اسم شركة الشحن');
       return;
     }
 
     const feesVal = Number(form.fees_value);
     if (form.fees_value && !Number.isFinite(feesVal)) {
-      toast({ title: 'يرجى إدخال قيمة رسوم صحيحة', variant: 'destructive' });
+      toast.error('يرجى إدخال قيمة رسوم صحيحة');
       return;
     }
 
     const codFeesVal = Number(form.cod_fees_value);
     if (form.cod_enabled && form.cod_fees_value && !Number.isFinite(codFeesVal)) {
-      toast({ title: 'يرجى إدخال قيمة رسوم الدفع عند الاستلام صحيحة', variant: 'destructive' });
+      toast.error('يرجى إدخال قيمة رسوم الدفع عند الاستلام صحيحة');
       return;
     }
 
@@ -315,10 +314,10 @@ export default function ShippingCompaniesPage() {
 
       if (editMode && editDocName) {
         await updateMutation.mutateAsync({ name: editDocName, doc: payload });
-        toast({ title: 'تم تحديث شركة الشحن بنجاح' });
+        toast.success('تم تحديث شركة الشحن بنجاح');
       } else {
         await createMutation.mutateAsync(payload);
-        toast({ title: 'تم إنشاء شركة الشحن بنجاح' });
+        toast.success('تم إنشاء شركة الشحن بنجاح');
       }
 
       setDialogOpen(false);
@@ -326,11 +325,7 @@ export default function ShippingCompaniesPage() {
       void refetch();
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'حدث خطأ غير متوقع';
-      toast({
-        title: editMode ? 'تعذر تحديث شركة الشحن' : 'تعذر إنشاء شركة الشحن',
-        description: msg,
-        variant: 'destructive',
-      });
+      toast.error(editMode ? 'تعذر تحديث شركة الشحن' : 'تعذر إنشاء شركة الشحن', { description: msg });
     } finally {
       setSaving(false);
     }
@@ -345,12 +340,10 @@ export default function ShippingCompaniesPage() {
           name: row.name,
           doc: { status: newStatus },
         });
-        toast({
-          title: newStatus === 'Active' ? 'تم تفعيل شركة الشحن' : 'تم تعطيل شركة الشحن',
-        });
+        toast.success(newStatus === 'Active' ? 'تم تفعيل شركة الشحن' : 'تم تعطيل شركة الشحن');
         void refetch();
       } catch {
-        toast({ title: 'تعذر تغيير حالة شركة الشحن', variant: 'destructive' });
+        toast.error('تعذر تغيير حالة شركة الشحن');
       }
     },
     [updateMutation, refetch, toast]
@@ -361,11 +354,11 @@ export default function ShippingCompaniesPage() {
     if (!deleteTarget) return;
     deleteMutation.mutate(deleteTarget.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف شركة الشحن بنجاح' });
+        toast.success('تم حذف شركة الشحن بنجاح');
         setDeleteTarget(null);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر حذف شركة الشحن', variant: 'destructive' }),
+      onError: () => toast.error('تعذر حذف شركة الشحن'),
     });
   }, [deleteTarget, deleteMutation, refetch, toast]);
 
@@ -837,7 +830,6 @@ export default function ShippingCompaniesPage() {
                       onChange={(e) => updateField('phone', e.target.value)}
                       placeholder="+966 5x xxx xxxx"
                       dir="ltr"
-                      className="text-right"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -848,7 +840,6 @@ export default function ShippingCompaniesPage() {
                       onChange={(e) => updateField('email', e.target.value)}
                       placeholder="info@shipping.com"
                       dir="ltr"
-                      className="text-right"
                     />
                   </div>
                 </div>
@@ -862,7 +853,6 @@ export default function ShippingCompaniesPage() {
                     onChange={(e) => updateField('tracking_url', e.target.value)}
                     placeholder="https://track.example.com/{tracking_number}"
                     dir="ltr"
-                    className="text-right"
                   />
                   <p className="text-[10px] text-muted-foreground">
                     استخدم {'{tracking_number}'} كعنصر نائب لرقم التتبع
@@ -920,7 +910,6 @@ export default function ShippingCompaniesPage() {
                       value={form.fees_value}
                       onChange={(e) => updateField('fees_value', e.target.value)}
                       placeholder={form.fees_type === 'Percentage' ? 'مثال: 5' : 'مثال: 25'}
-                      className="text-right"
                     />
                   </div>
                 </div>
@@ -974,7 +963,6 @@ export default function ShippingCompaniesPage() {
                         value={form.cod_fees_value}
                         onChange={(e) => updateField('cod_fees_value', e.target.value)}
                         placeholder={form.cod_fees_type === 'Percentage' ? 'مثال: 2' : 'مثال: 10'}
-                        className="text-right"
                       />
                     </div>
                   </div>

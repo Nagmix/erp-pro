@@ -18,7 +18,7 @@ import { useDocList } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { BookOpen, ArrowUpLeft, ArrowDownLeft, FileText, Landmark, Receipt, Scale } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
@@ -57,7 +57,6 @@ type PaymentRow = {
 };
 
 export default function FinancialRegisterPage() {
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
 
   const [dateFrom, setDateFrom] = useState('');

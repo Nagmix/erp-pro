@@ -505,8 +505,8 @@ export default function NamingSeriesPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
-                <TableHead className="text-right text-xs font-semibold ps-4 w-[220px]">نوع المستند</TableHead>
-                <TableHead className="text-right text-xs font-semibold">التسلسلات المتاحة</TableHead>
+                <TableHead className="text-xs font-semibold ps-4 w-[220px]">نوع المستند</TableHead>
+                <TableHead className="text-xs font-semibold">التسلسلات المتاحة</TableHead>
                 <TableHead className="text-center text-xs font-semibold w-[100px]">العداد الحالي</TableHead>
                 <TableHead className="text-center text-xs font-semibold pe-4 w-[80px]">إجراءات</TableHead>
               </TableRow>

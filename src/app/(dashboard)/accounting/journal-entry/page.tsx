@@ -34,7 +34,7 @@ import { apiCreateDoc } from '@/lib/client/api';
 import { buildJournalEntry } from '@/lib/erp/erpnext-payloads';
 import { parseJournalImportXlsx } from '@/lib/erp/parse-journal-import-xlsx';
 import type { JournalLineInput } from '@/lib/erp/erpnext-payloads';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Select,
   SelectContent,
@@ -92,8 +92,6 @@ export default function JournalEntryPage() {
   const [selectedEntry, setSelectedEntry] = useState<JournalRow | null>(null);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
   const { data, isLoading, isError, error, refetch } = useDocList<JournalRow>('Journal Entry', {
     fields: [
@@ -157,7 +155,7 @@ export default function JournalEntryPage() {
     if (!file) return;
 
     if (!defaultCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
 
@@ -167,7 +165,7 @@ export default function JournalEntryPage() {
       const lines: JournalLineInput[] = await parseJournalImportXlsx(buffer);
 
       if (!lines.length) {
-        toast({ title: 'لم يتم العثور على بنود صالحة في الملف', variant: 'destructive' });
+        toast.error('لم يتم العثور على بنود صالحة في الملف');
         return;
       }
 
@@ -182,14 +180,10 @@ export default function JournalEntryPage() {
       });
 
       await apiCreateDoc('Journal Entry', doc);
-      toast({ title: `تم استيراد القيد بنجاح (${lines.length} بند)` });
+      toast.success(`تم استيراد القيد بنجاح (${lines.length} بند)`);
       void refetch();
     } catch (err: any) {
-      toast({
-        title: 'فشل الاستيراد',
-        description: err?.message || 'تحقق من تنسيق الملف',
-        variant: 'destructive',
-      });
+      toast.error('فشل الاستيراد', { description: err?.message || 'تحقق من تنسيق الملف' });
     } finally {
       setImporting(false);
       // Reset file input so same file can be re-selected
@@ -279,8 +273,8 @@ export default function JournalEntryPage() {
                 className="h-7 text-[10px] px-2"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم ترحيل القيد' }); void refetch(); },
-                    onError: () => toast({ title: 'فشل الترحيل — تحقق من البيانات', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('تم ترحيل القيد'); void refetch(); },
+                    onError: () => toast.error('فشل الترحيل — تحقق من البيانات'),
                   })
                 }
               >
@@ -295,8 +289,8 @@ export default function JournalEntryPage() {
                 className="h-7 text-[10px] px-2"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم إلغاء القيد' }); void refetch(); },
-                    onError: () => toast({ title: 'فشل الإلغاء', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('تم إلغاء القيد'); void refetch(); },
+                    onError: () => toast.error('فشل الإلغاء'),
                   })
                 }
               >
@@ -513,8 +507,8 @@ export default function JournalEntryPage() {
               onClick={() => {
                 if (selectedEntry) {
                   deleteMutation.mutate(selectedEntry.name, {
-                    onSuccess: () => { toast({ title: 'تم حذف القيد' }); void refetch(); },
-                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('تم حذف القيد'); void refetch(); },
+                    onError: () => toast.error('حدث خطأ أثناء الحذف'),
                   });
                   setDeleteDialogOpen(false);
                 }

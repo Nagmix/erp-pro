@@ -365,10 +365,10 @@ export default function BankDisbursementPage() {
                   <table className="w-full text-xs">
                     <thead className="sticky top-0 bg-muted/60 backdrop-blur">
                       <tr className="border-b border-border/30">
-                        <th className="text-right px-4 py-2 font-semibold">الموظف</th>
-                        <th className="text-right px-4 py-2 font-semibold">رقم الحساب</th>
-                        <th className="text-right px-4 py-2 font-semibold">صافي الراتب</th>
-                        <th className="text-right px-4 py-2 font-semibold w-24">إجراء</th>
+                        <th className="px-4 py-2 font-semibold">الموظف</th>
+                        <th className="px-4 py-2 font-semibold">رقم الحساب</th>
+                        <th className="px-4 py-2 font-semibold">صافي الراتب</th>
+                        <th className="px-4 py-2 font-semibold w-24">إجراء</th>
                       </tr>
                     </thead>
                     <tbody>

@@ -76,7 +76,7 @@ import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } fr
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -153,7 +153,6 @@ const emptyLine = (): LineItem => ({
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export default function InventoryPermitsPage() {
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
 
   // ── State ──
@@ -292,21 +291,21 @@ export default function InventoryPermitsPage() {
   // ── Create Handler ──
   const handleCreate = useCallback(async () => {
     if (!defaultCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (!warehouse) {
-      toast({ title: 'يرجى اختيار المستودع', variant: 'destructive' });
+      toast.error('يرجى اختيار المستودع');
       return;
     }
     if (lines.every((l) => !l.item_code)) {
-      toast({ title: 'يرجى إضافة بنود للإذن', variant: 'destructive' });
+      toast.error('يرجى إضافة بنود للإذن');
       return;
     }
 
     const stockEntryType = STOCK_ENTRY_TYPE_MAP[permitType];
     if (!stockEntryType) {
-      toast({ title: 'نوع الإذن غير صالح', variant: 'destructive' });
+      toast.error('نوع الإذن غير صالح');
       return;
     }
 
@@ -329,17 +328,13 @@ export default function InventoryPermitsPage() {
 
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء الإذن المخزني بنجاح' });
+        toast.success('تم إنشاء الإذن المخزني بنجاح');
         setDialogOpen(false);
         resetForm();
         void refetch();
       },
       onError: (e) => {
-        toast({
-          title: 'تعذر إنشاء الإذن المخزني',
-          description: e instanceof Error ? e.message : 'حدث خطأ غير متوقع',
-          variant: 'destructive',
-        });
+        toast.error('تعذر إنشاء الإذن المخزني', { description: e instanceof Error ? e.message : 'حدث خطأ غير متوقع' });
       },
     });
   }, [defaultCompany, warehouse, lines, permitType, postingDate, notes, createMutation, refetch, resetForm, toast]);
@@ -349,10 +344,10 @@ export default function InventoryPermitsPage() {
     (row: PermitRow) => {
       submitMutation.mutate(row.name, {
         onSuccess: () => {
-          toast({ title: 'تم تأكيد الإذن المخزني وترحيله بنجاح' });
+          toast.success('تم تأكيد الإذن المخزني وترحيله بنجاح');
           void refetch();
         },
-        onError: () => toast({ title: 'تعذر تأكيد الإذن المخزني', variant: 'destructive' }),
+        onError: () => toast.error('تعذر تأكيد الإذن المخزني'),
       });
     },
     [submitMutation, refetch, toast]
@@ -363,10 +358,10 @@ export default function InventoryPermitsPage() {
     (row: PermitRow) => {
       cancelMutation.mutate(row.name, {
         onSuccess: () => {
-          toast({ title: 'تم إلغاء الإذن المخزني' });
+          toast.success('تم إلغاء الإذن المخزني');
           void refetch();
         },
-        onError: () => toast({ title: 'تعذر إلغاء الإذن المخزني', variant: 'destructive' }),
+        onError: () => toast.error('تعذر إلغاء الإذن المخزني'),
       });
     },
     [cancelMutation, refetch, toast]
@@ -430,11 +425,11 @@ export default function InventoryPermitsPage() {
     if (!deleteTarget) return;
     deleteMutation.mutate(deleteTarget.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف الإذن المخزني بنجاح' });
+        toast.success('تم حذف الإذن المخزني بنجاح');
         setDeleteTarget(null);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر حذف الإذن المخزني', variant: 'destructive' }),
+      onError: () => toast.error('تعذر حذف الإذن المخزني'),
     });
   }, [deleteTarget, deleteMutation, refetch, toast]);
 

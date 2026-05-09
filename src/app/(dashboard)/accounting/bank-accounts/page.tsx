@@ -28,7 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { buildBankTransaction } from '@/lib/erp/erpnext-payloads';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -132,7 +132,6 @@ function parseBankCsv(text: string): ParsedBankRow[] {
 /* ───────────── Page Component ───────────── */
 
 export default function BankAccountsPage() {
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
   const queryClient = useQueryClient();
 
@@ -280,7 +279,7 @@ export default function BankAccountsPage() {
   /* ── Create handlers ── */
   const createBank = useCallback(async () => {
     if (!bankName.trim()) {
-      toast({ title: 'اسم البنك مطلوب', variant: 'destructive' });
+      toast.error('اسم البنك مطلوب');
       return;
     }
     setCreateBusy('bank');
@@ -288,17 +287,17 @@ export default function BankAccountsPage() {
       await apiCreateDoc('Bank', { bank_name: bankName.trim(), swift_number: bankSwift.trim() || undefined });
       setOpenBankDialog(false);
       setBankName(''); setBankSwift('');
-      toast({ title: 'تم إنشاء البنك' });
+      toast.success('تم إنشاء البنك');
       void r1();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء البنك', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء البنك', { description: String((e as Error).message || e) });
     } finally { setCreateBusy(null); }
   }, [bankName, bankSwift, r1, toast]);
 
   const createBankAccount = useCallback(async () => {
     const company = accCompany || defaultCompany;
     if (!accBank || !company || !accGlAccount || !accNumber.trim()) {
-      toast({ title: 'يرجى تعبئة الحقول المطلوبة', variant: 'destructive' });
+      toast.error('يرجى تعبئة الحقول المطلوبة');
       return;
     }
     setCreateBusy('account');
@@ -310,16 +309,16 @@ export default function BankAccountsPage() {
       });
       setOpenBankAccDialog(false);
       setAccBank(''); setAccGlAccount(''); setAccNumber(''); setAccLabel('');
-      toast({ title: 'تم إنشاء الحساب البنكي' });
+      toast.success('تم إنشاء الحساب البنكي');
       void r2();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء الحساب البنكي', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء الحساب البنكي', { description: String((e as Error).message || e) });
     } finally { setCreateBusy(null); }
   }, [accBank, accCompany, accGlAccount, accLabel, accNumber, defaultCompany, r2, toast]);
 
   const createMode = useCallback(async () => {
     if (!modeName.trim()) {
-      toast({ title: 'اسم طريقة الدفع مطلوب', variant: 'destructive' });
+      toast.error('اسم طريقة الدفع مطلوب');
       return;
     }
     setCreateBusy('mode');
@@ -327,10 +326,10 @@ export default function BankAccountsPage() {
       await apiCreateDoc('Mode of Payment', { mode_of_payment: modeName.trim(), type: modeType });
       setOpenModeDialog(false);
       setModeName(''); setModeType('Bank');
-      toast({ title: 'تم إنشاء طريقة الدفع' });
+      toast.success('تم إنشاء طريقة الدفع');
       void r3();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء طريقة الدفع', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء طريقة الدفع', { description: String((e as Error).message || e) });
     } finally { setCreateBusy(null); }
   }, [modeName, modeType, r3, toast]);
 
@@ -338,7 +337,7 @@ export default function BankAccountsPage() {
   const onCsvFiles = useCallback(
     async (files: FileList | null) => {
       if (!files?.length || !bankAccForImport) {
-        toast({ title: 'اختر حساباً بنكياً أولاً', variant: 'destructive' });
+        toast.error('اختر حساباً بنكياً أولاً');
         return;
       }
       setImportBusy(true);
@@ -355,7 +354,7 @@ export default function BankAccountsPage() {
       const rows = [...uniqMap.values()];
       if (!rows.length) {
         setImportBusy(false);
-        toast({ title: 'لم يُعثر على صفوف صالحة', variant: 'destructive' });
+        toast.error('لم يُعثر على صفوف صالحة');
         return;
       }
       let ok = 0;
@@ -369,7 +368,7 @@ export default function BankAccountsPage() {
         });
         try { await apiCreateDoc('Bank Transaction', doc); ok++; }
         catch (e) {
-          toast({ title: 'توقف الاستيراد عند حركة فاشلة', description: ok > 0 ? `أُنشئ ${ok} سجلات ثم فشل التالي.` : String((e as Error).message || e), variant: 'destructive' });
+          toast.success('توقف الاستيراد عند حركة فاشلة');
           break;
         }
       }
@@ -377,7 +376,7 @@ export default function BankAccountsPage() {
       setImportStats({ files: files.length, rows: rows.length, ok, skipped });
       void queryClient.invalidateQueries({ queryKey: ['docList', 'Bank Transaction'] });
       void rBt();
-      if (ok > 0) toast({ title: `تم إنشاء ${ok} حركة كشف` });
+      if (ok > 0) toast.success(`تم إنشاء ${ok} حركة كشف`);
     },
     [bankAccForImport, queryClient, rBt, toast]
   );
@@ -441,9 +440,9 @@ export default function BankAccountsPage() {
         setReconDecisions((prev) => ({ ...prev, [row.matchKey]: 'confirmed' }));
         void queryClient.invalidateQueries({ queryKey: ['docList', 'Bank Transaction'] });
         void rBt();
-        toast({ title: 'تم تأكيد المطابقة' });
+        toast.success('تم تأكيد المطابقة');
       } catch (e) {
-        toast({ title: 'تعذر تأكيد المطابقة', description: e instanceof Error ? e.message : String(e), variant: 'destructive' });
+        toast.error('تعذر تأكيد المطابقة', { description: e instanceof Error ? e.message : String(e) });
       } finally { setReconBusyKey(null); }
     },
     [queryClient, rBt, toast]
@@ -457,9 +456,9 @@ export default function BankAccountsPage() {
         setReconDecisions((prev) => ({ ...prev, [row.matchKey]: 'rejected' }));
         void queryClient.invalidateQueries({ queryKey: ['docList', 'Bank Transaction'] });
         void rBt();
-        toast({ title: 'تم رفض المقترح' });
+        toast.success('تم رفض المقترح');
       } catch (e) {
-        toast({ title: 'تعذر رفض المطابقة', description: e instanceof Error ? e.message : String(e), variant: 'destructive' });
+        toast.error('تعذر رفض المطابقة', { description: e instanceof Error ? e.message : String(e) });
       } finally { setReconBusyKey(null); }
     },
     [queryClient, rBt, toast]
@@ -476,10 +475,10 @@ export default function BankAccountsPage() {
           void rBt();
         }
         setReconDecisions((prevD) => { const next = { ...prevD }; delete next[row.matchKey]; return next; });
-        toast({ title: 'أُلغي القرار' });
+        toast.success('أُلغي القرار');
       } catch (e) {
         setReconDecisions((prevD) => { const next = { ...prevD }; delete next[row.matchKey]; return next; });
-        toast({ title: 'أُلغي القرار محلياً', description: e instanceof Error ? e.message : String(e), variant: 'destructive' });
+        toast.error('أُلغي القرار محلياً', { description: e instanceof Error ? e.message : String(e) });
       } finally { setReconBusyKey(null); }
     },
     [queryClient, rBt, reconDecisions, toast]
@@ -854,8 +853,8 @@ export default function BankAccountsPage() {
               onClick={() => {
                 if (selectedBankAcc) {
                   deleteBankAccMutation.mutate(selectedBankAcc.name, {
-                    onSuccess: () => { toast({ title: 'تم حذف الحساب البنكي' }); setDeleteDialogOpen(false); },
-                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('تم حذف الحساب البنكي'); setDeleteDialogOpen(false); },
+                    onError: () => toast.error('حدث خطأ أثناء الحذف'),
                   });
                 }
               }}

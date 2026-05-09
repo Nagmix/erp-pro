@@ -27,7 +27,7 @@ import { formatDate } from '@/lib/core/helpers';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildRequestForQuotation } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -65,7 +65,6 @@ const emptySup = (): SupLine => ({ supplier: '' });
 const emptyItem = (): ItemLine => ({ item_code: '', qty: 1, uom: 'Nos', warehouse: '' });
 
 export default function RequestForQuotationPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
@@ -96,16 +95,16 @@ export default function RequestForQuotationPage() {
 
   const handleCreate = () => {
     if (!company) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     const supList = suppliers.map((s) => s.supplier).filter(Boolean);
     if (!supList.length) {
-      toast({ title: 'أضف مورداً واحداً على الأقل', variant: 'destructive' });
+      toast.error('أضف مورداً واحداً على الأقل');
       return;
     }
     if (items.every((i) => !i.item_code)) {
-      toast({ title: 'أضف بنوداً', variant: 'destructive' });
+      toast.error('أضف بنوداً');
       return;
     }
     const doc = buildRequestForQuotation({
@@ -125,13 +124,13 @@ export default function RequestForQuotationPage() {
           warehouse: i.warehouse || undefined}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء RFQ' });
+        toast.success('تم إنشاء RFQ');
         setDialogOpen(false);
         setSuppliers([emptySup()]);
         setItems([emptyItem()]);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' })});
+      onError: () => toast.error('تعذر الحفظ')});
   };
 
   const columns: Column<RFQRow>[] = useMemo(
@@ -155,8 +154,8 @@ export default function RequestForQuotationPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                    onError: () => toast.error('تعذر الترحيل')})
                 }
               >
                 <Send className="h-3 w-3" />
@@ -173,8 +172,8 @@ export default function RequestForQuotationPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'أُلغي' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('أُلغي'); void refetch(); },
+                    onError: () => toast.error('تعذر')})
                 }
               >
                 <Undo2 className="h-3 w-3" />
@@ -270,8 +269,8 @@ export default function RequestForQuotationPage() {
               onClick={() => {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
-                  onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteName(null); void refetch(); },
-                  onError: () => toast({ title: 'تعذر الحذف', variant: 'destructive' })});
+                  onSuccess: () => { toast.success('تم الحذف'); setDeleteName(null); void refetch(); },
+                  onError: () => toast.error('تعذر الحذف')});
               }}
             >
               حذف

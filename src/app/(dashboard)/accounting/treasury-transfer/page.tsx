@@ -18,7 +18,7 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ArrowLeftRight, ArrowRightLeft, Send, Wallet, Banknote, DollarSign, Clock, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
@@ -37,7 +37,6 @@ type TransferRow = {
 const CASH_FILTER = [['account_type', '=', 'Cash'], ['is_group', '=', '0']] as string[][];
 
 export default function TreasuryTransferPage() {
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
   const createJournalEntry = useCreateDoc('Journal Entry');
 
@@ -94,20 +93,20 @@ export default function TreasuryTransferPage() {
   // Handle transfer creation
   const handleTransfer = useCallback(async () => {
     if (!fromAccount || !toAccount || !amount) {
-      toast({ title: 'يرجى تعبئة جميع الحقول المطلوبة', variant: 'destructive' });
+      toast.error('يرجى تعبئة جميع الحقول المطلوبة');
       return;
     }
     if (fromAccount === toAccount) {
-      toast({ title: 'لا يمكن التحويل من وإلى نفس الخزينة', variant: 'destructive' });
+      toast.error('لا يمكن التحويل من وإلى نفس الخزينة');
       return;
     }
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0) {
-      toast({ title: 'المبلغ غير صالح', variant: 'destructive' });
+      toast.error('المبلغ غير صالح');
       return;
     }
     if (!defaultCompany) {
-      toast({ title: 'يجب ضبط الشركة الافتراضية أولاً', variant: 'destructive' });
+      toast.error('يجب ضبط الشركة الافتراضية أولاً');
       return;
     }
     setBusy(true);
@@ -124,7 +123,7 @@ export default function TreasuryTransferPage() {
           { account: toAccount, debit_in_account_currency: amt, credit_in_account_currency: 0 },
         ],
       });
-      toast({ title: 'تم إنشاء تحويل الخزينة بنجاح' });
+      toast.success('تم إنشاء تحويل الخزينة بنجاح');
       setFromAccount('');
       setToAccount('');
       setAmount('');
@@ -134,7 +133,7 @@ export default function TreasuryTransferPage() {
       void refetch();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل إنشاء التحويل', description: msg, variant: 'destructive' });
+      toast.error('فشل إنشاء التحويل', { description: msg });
     } finally {
       setBusy(false);
     }

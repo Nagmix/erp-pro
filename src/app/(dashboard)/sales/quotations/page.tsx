@@ -29,7 +29,7 @@ import { PageHeader } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildQuotation, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -93,7 +93,6 @@ export default function QuotationsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); };
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
 
@@ -144,15 +143,15 @@ export default function QuotationsPage() {
 
   const handleCreate = () => {
     if (!customer) {
-      toast({ title: 'اختر العميل', variant: 'destructive' });
+      toast.error('اختر العميل');
       return;
     }
     if (!defaultCompany) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (lines.every((l) => !l.item_code)) {
-      toast({ title: 'أضف صنفاً واحداً على الأقل', variant: 'destructive' });
+      toast.error('أضف صنفاً واحداً على الأقل');
       return;
     }
     const doc = buildQuotation({
@@ -171,7 +170,7 @@ export default function QuotationsPage() {
         amount: l.qty * l.rate}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء عرض السعر' });
+        toast.success('تم إنشاء عرض السعر');
         setDialogOpen(false);
         setCustomer('');
         setLines([emptyLine()]);
@@ -180,7 +179,7 @@ export default function QuotationsPage() {
         setConversionRate(1);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' })});
+      onError: () => toast.error('تعذر الحفظ')});
   };
 
   const handleMakeSalesOrder = async (qName: string) => {
@@ -195,10 +194,10 @@ export default function QuotationsPage() {
       }
       const body = prepareFrappeDocForCreate(mapped);
       await apiCreateDoc('Sales Order', body);
-      toast({ title: 'تم إنشاء أمر البيع من عرض السعر' });
+      toast.success('تم إنشاء أمر البيع من عرض السعر');
       void queryClient.invalidateQueries({ queryKey: ['docList', 'Sales Order'] });
     } catch (e) {
-      toast({ title: (e as Error).message || 'تعذر التحويل', variant: 'destructive' });
+      toast.error((e as Error).message || 'تعذر التحويل');
     } finally {
       setConverting(null);
     }
@@ -229,8 +228,8 @@ export default function QuotationsPage() {
                   disabled={submitMutation.isPending}
                   onClick={() =>
                     submitMutation.mutate(row.name, {
-                      onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                      onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                      onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                      onError: () => toast.error('تعذر الترحيل')})
                   }
                 >
                   <Send className="h-3 w-3" />
@@ -258,8 +257,8 @@ export default function QuotationsPage() {
                   disabled={cancelMutation.isPending}
                   onClick={() =>
                     cancelMutation.mutate(row.name, {
-                      onSuccess: () => { toast({ title: 'أُلغي الترحيل' }); void refetch(); },
-                      onError: () => toast({ title: 'تعذر الإلغاء', variant: 'destructive' })})
+                      onSuccess: () => { toast.success('أُلغي الترحيل'); void refetch(); },
+                      onError: () => toast.error('تعذر الإلغاء')})
                   }
                 >
                   <Undo2 className="h-3 w-3" />
@@ -522,8 +521,8 @@ export default function QuotationsPage() {
               onClick={() => {
                 if (selectedQuotation) {
                   deleteMutation.mutate(selectedQuotation.name, {
-                    onSuccess: () => { toast({ title: 'تم حذف عرض السعر' }); void refetch(); },
-                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+                    onSuccess: () => { toast.success('تم حذف عرض السعر'); void refetch(); },
+                    onError: () => toast.error('حدث خطأ أثناء الحذف')});
                   setDeleteDialogOpen(false);
                 }
               }}

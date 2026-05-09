@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Percent, Plus } from 'lucide-react';
 import type { SetupTaxPackageData } from '@/lib/client/api';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 type TemplateKind = 'مبيعات' | 'مشتريات';
 
@@ -43,7 +43,6 @@ type TemplateRow = {
 
 export default function TaxRatesPage() {
   const qc = useQueryClient();
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
   const [company, setCompany] = useState('');
   const [title, setTitle] = useState('');
@@ -121,13 +120,7 @@ export default function TaxRatesPage() {
       if (data.reused?.salesTemplate) reusedBits.push('قالب مبيعات موجود');
       if (data.reused?.purchaseTemplate) reusedBits.push('قالب مشتريات موجود');
       if (data.reused?.accounts?.some(Boolean)) reusedBits.push('حسابات موجودة مسبقاً');
-      toast({
-        title: 'تم إعداد الضريبة بالكامل',
-        description:
-          reusedBits.length > 0
-            ? `${reusedBits.join(' · ')}. راجع الملخص أدناه والنسب إن لزم.`
-            : `قوالب: ${data.salesTaxTemplateTitle}، ${data.purchaseTaxTemplateTitle}. تم ضبط مجموعات الحساب تلقائياً.`,
-      });
+      toast.success('تم إعداد الضريبة بالكامل');
       qc.invalidateQueries({ queryKey: ['docList', 'Sales Taxes and Charges Template'] });
       qc.invalidateQueries({ queryKey: ['docList', 'Purchase Taxes and Charges Template'] });
       qc.invalidateQueries({ queryKey: ['docList', 'Account'] });
@@ -135,7 +128,7 @@ export default function TaxRatesPage() {
       setRate('15');
     },
     onError: (e: Error) => {
-      toast({ title: 'فشل الإعداد', description: e.message, variant: 'destructive' });
+      toast.error('فشل الإعداد', { description: e.message });
     },
   });
 
@@ -147,13 +140,9 @@ export default function TaxRatesPage() {
     try {
       if (toDelete.kind === 'مبيعات') await deleteSales.mutateAsync(toDelete.name);
       else await deletePurchase.mutateAsync(toDelete.name);
-      toast({ title: 'تم الحذف', description: toDelete.title || toDelete.name });
+      toast.success('تم الحذف', { description: toDelete.title || toDelete.name });
     } catch (e) {
-      toast({
-        title: 'تعذر الحذف',
-        description: e instanceof Error ? e.message : 'خطأ',
-        variant: 'destructive',
-      });
+      toast.error('تعذر الحذف', { description: e instanceof Error ? e.message : 'خطأ' });
     }
     setDeleteOpen(false);
     setToDelete(null);

@@ -823,7 +823,7 @@ export default function TaxRulesPage() {
                         min={0}
                         step="0.01"
                         dir="ltr"
-                        className="h-10 pe-12 text-left font-mono"
+                        className="h-10 pe-12 font-mono"
                         placeholder="1000.00"
                         value={calcAmount}
                         onChange={(e) => setCalcAmount(e.target.value)}
@@ -989,7 +989,7 @@ export default function TaxRulesPage() {
                     min={0}
                     max={100}
                     dir="ltr"
-                    className="h-9 pe-8 text-left font-mono"
+                    className="h-9 pe-8 font-mono"
                     value={formRate}
                     onChange={(e) => setFormRate(e.target.value)}
                   />

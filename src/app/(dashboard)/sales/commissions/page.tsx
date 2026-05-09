@@ -1177,7 +1177,7 @@ export default function SalesCommissionsPage() {
                   {formEmployees.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {formEmployees.map((empId) => (
-                        <Badge key={empId} variant="secondary" className="gap-1 pr-1.5 text-xs">
+                        <Badge key={empId} variant="secondary" className="gap-1 pe-1.5 text-xs">
                           {empId}
                           <button
                             type="button"

@@ -37,7 +37,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   useDocList,
   useCreateDoc,
@@ -98,8 +98,6 @@ const CURRENCY_OPTIONS = [
 ];
 
 export default function PaymentGatewaysPage() {
-  const { toast } = useToast();
-
   /* ─── ERPNext Data Hooks ─── */
   const {
     data: gatewaysData,
@@ -151,7 +149,7 @@ export default function PaymentGatewaysPage() {
 
   const saveGateway = async () => {
     if (!form.name?.trim()) {
-      toast({ title: 'أدخل اسم البوابة', variant: 'destructive' });
+      toast.error('أدخل اسم البوابة');
       return;
     }
     try {
@@ -164,7 +162,7 @@ export default function PaymentGatewaysPage() {
             is_default: form.is_default ? 1 : 0,
           },
         });
-        toast({ title: `تم حفظ إعدادات ${editing.name}` });
+        toast.success(`تم حفظ إعدادات ${editing.name}`);
       } else {
         await createGateway.mutateAsync({
           doctype: 'Payment Gateway',
@@ -173,12 +171,12 @@ export default function PaymentGatewaysPage() {
           gateway_settings: form.gateway_settings || '',
           is_default: form.is_default ? 1 : 0,
         });
-        toast({ title: 'تم إنشاء البوابة' });
+        toast.success('تم إنشاء البوابة');
       }
       setDialogOpen(false);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل حفظ البوابة', description: msg, variant: 'destructive' });
+      toast.error('فشل حفظ البوابة', { description: msg });
     }
   };
 
@@ -196,10 +194,10 @@ export default function PaymentGatewaysPage() {
         name: gw.name,
         doc: { is_default: 1 },
       });
-      toast({ title: `تم تعيين ${gw.name} كبوابة افتراضية` });
+      toast.success(`تم تعيين ${gw.name} كبوابة افتراضية`);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل تعيين البوابة الافتراضية', description: msg, variant: 'destructive' });
+      toast.error('فشل تعيين البوابة الافتراضية', { description: msg });
     }
   };
 
@@ -213,12 +211,12 @@ export default function PaymentGatewaysPage() {
       });
       const result = await res.json();
       if (result.success) {
-        toast({ title: `تم اختبار اتصال ${gwName} بنجاح` });
+        toast.success(`تم اختبار اتصال ${gwName} بنجاح`);
       } else {
-        toast({ title: `فشل اختبار اتصال ${gwName}`, description: result.error || '', variant: 'destructive' });
+        toast.error(`فشل اختبار اتصال ${gwName}`, { description: result.error || '' });
       }
     } catch {
-      toast({ title: 'فشل الاتصال بالخادم', variant: 'destructive' });
+      toast.error('فشل الاتصال بالخادم');
     } finally {
       setTesting(null);
     }
@@ -228,10 +226,10 @@ export default function PaymentGatewaysPage() {
     if (!toDelete) return;
     try {
       await deleteGateway.mutateAsync(toDelete.name);
-      toast({ title: 'تم حذف البوابة' });
+      toast.success('تم حذف البوابة');
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل حذف البوابة', description: msg, variant: 'destructive' });
+      toast.error('فشل حذف البوابة', { description: msg });
     }
     setDeleteDialogOpen(false);
     setToDelete(null);

@@ -43,7 +43,7 @@ import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { apiCreateDoc } from '@/lib/client/api';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface CouponCodeRow {
@@ -77,8 +77,6 @@ function generateCouponCode(): string {
 }
 
 export default function CouponCodesPage() {
-  const { toast } = useToast();
-
   // ── Filters ──
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'disabled'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'Percentage' | 'Item Price'>('all');
@@ -142,11 +140,11 @@ export default function CouponCodesPage() {
   // ── Create Handler ──
   const handleCreate = async () => {
     if (!formCouponName.trim()) {
-      toast({ title: 'يرجى إدخال اسم الكوبون', variant: 'destructive' });
+      toast.error('يرجى إدخال اسم الكوبون');
       return;
     }
     if (!formPricingRule) {
-      toast({ title: 'يرجى اختيار قاعدة التسعير المرتبطة', variant: 'destructive' });
+      toast.error('يرجى اختيار قاعدة التسعير المرتبطة');
       return;
     }
 
@@ -169,12 +167,12 @@ export default function CouponCodesPage() {
       const body = prepareFrappeDocForCreate(payload);
       await apiCreateDoc('Coupon Code', body);
 
-      toast({ title: 'تم إنشاء كوبون الخصم بنجاح' });
+      toast.success('تم إنشاء كوبون الخصم بنجاح');
       setDialogOpen(false);
       resetForm();
       void refetch();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء كوبون الخصم', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء كوبون الخصم', { description: String((e as Error).message || e) });
     } finally {
       setCreating(false);
     }
@@ -200,11 +198,11 @@ export default function CouponCodesPage() {
     if (!deleteTarget) return;
     deleteMutation.mutate(deleteTarget.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف الكوبون بنجاح' });
+        toast.success('تم حذف الكوبون بنجاح');
         setDeleteTarget(null);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر حذف الكوبون', variant: 'destructive' }),
+      onError: () => toast.error('تعذر حذف الكوبون'),
     });
   };
 
@@ -307,10 +305,10 @@ export default function CouponCodesPage() {
                   onClick={() =>
                     submitMutation.mutate(row.name, {
                       onSuccess: () => {
-                        toast({ title: 'تم ترحيل الكوبون بنجاح' });
+                        toast.success('تم ترحيل الكوبون بنجاح');
                         void refetch();
                       },
-                      onError: () => toast({ title: 'تعذر ترحيل الكوبون', variant: 'destructive' }),
+                      onError: () => toast.error('تعذر ترحيل الكوبون'),
                     })
                   }
                 >
@@ -328,10 +326,10 @@ export default function CouponCodesPage() {
                   onClick={() =>
                     cancelMutation.mutate(row.name, {
                       onSuccess: () => {
-                        toast({ title: 'تم إلغاء ترحيل الكوبون' });
+                        toast.success('تم إلغاء ترحيل الكوبون');
                         void refetch();
                       },
-                      onError: () => toast({ title: 'تعذر إلغاء ترحيل الكوبون', variant: 'destructive' }),
+                      onError: () => toast.error('تعذر إلغاء ترحيل الكوبون'),
                     })
                   }
                 >

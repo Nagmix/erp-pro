@@ -24,7 +24,7 @@ import { Plus, Trash2, Send, Undo2, PackageCheck } from 'lucide-react';
 import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildBom } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -63,7 +63,6 @@ const emptyMat = (): MatLine => ({ item_code: '', qty: '1', uom: 'Nos' });
 const emptyOp = (): OpLine => ({ operation: '', workstation: '', time_in_mins: '0', hourly_rate: '0' });
 
 export default function BOMPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
@@ -106,8 +105,8 @@ export default function BOMPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                    onError: () => toast.error('تعذر الترحيل'),
                   })
                 }
               >
@@ -125,8 +124,8 @@ export default function BOMPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'أُلغي' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('أُلغي'); void refetch(); },
+                    onError: () => toast.error('تعذر'),
                   })
                 }
               >
@@ -144,11 +143,11 @@ export default function BOMPage() {
 
   const handleCreate = () => {
     if (!company || !finishedItem) {
-      toast({ title: 'الشركة والمنتج النهائي مطلوبان', variant: 'destructive' });
+      toast.error('الشركة والمنتج النهائي مطلوبان');
       return;
     }
     if (materials.every((m) => !m.item_code)) {
-      toast({ title: 'أضف مادة خام واحدة على الأقل', variant: 'destructive' });
+      toast.error('أضف مادة خام واحدة على الأقل');
       return;
     }
     const doc = buildBom({
@@ -174,14 +173,14 @@ export default function BOMPage() {
     });
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء قائمة المواد' });
+        toast.success('تم إنشاء قائمة المواد');
         setDialogOpen(false);
         setFinishedItem('');
         setMaterials([emptyMat()]);
         setOperations([]);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ — تحقق من صلاحية العمليات إن أضفتها', variant: 'destructive' }),
+      onError: () => toast.error('تعذر الحفظ — تحقق من صلاحية العمليات إن أضفتها'),
     });
   };
 
@@ -219,8 +218,8 @@ export default function BOMPage() {
               onClick={() => {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
-                  onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteName(null); void refetch(); },
-                  onError: () => toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+                  onSuccess: () => { toast.success('تم الحذف'); setDeleteName(null); void refetch(); },
+                  onError: () => toast.error('تعذر الحذف'),
                 });
               }}
             >

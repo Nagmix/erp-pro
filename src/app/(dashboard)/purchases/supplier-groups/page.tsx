@@ -27,7 +27,7 @@ import { Plus, Trash2, Truck, RefreshCw } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface SupplierGroupRow {
   name: string;
@@ -36,7 +36,6 @@ interface SupplierGroupRow {
 }
 
 export default function SupplierGroupsPage() {
-  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [parentGroup, setParentGroup] = useState('');
@@ -56,7 +55,7 @@ export default function SupplierGroupsPage() {
 
   const handleCreate = async () => {
     if (!groupName.trim()) {
-      toast({ title: 'اسم المجموعة مطلوب', variant: 'destructive' });
+      toast.error('اسم المجموعة مطلوب');
       return;
     }
     setBusy(true);
@@ -70,10 +69,10 @@ export default function SupplierGroupsPage() {
       setGroupName('');
       setParentGroup('');
       setIsGroup(false);
-      toast({ title: 'تم إنشاء مجموعة الموردين' });
+      toast.success('تم إنشاء مجموعة الموردين');
       void refetch();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء المجموعة', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء المجموعة', { description: String((e as Error).message || e) });
     } finally {
       setBusy(false);
     }
@@ -83,12 +82,12 @@ export default function SupplierGroupsPage() {
     if (!selectedGroup) return;
     try {
       await deleteMutation.mutateAsync(selectedGroup.name);
-      toast({ title: 'تم حذف المجموعة' });
+      toast.success('تم حذف المجموعة');
       setDeleteDialogOpen(false);
       setSelectedGroup(null);
       void refetch();
     } catch (e) {
-      toast({ title: 'تعذر حذف المجموعة', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر حذف المجموعة', { description: String((e as Error).message || e) });
     }
   };
 
@@ -144,7 +143,7 @@ export default function SupplierGroupsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">المجموعة الأب</Label>
-                    <Input value={parentGroup} onChange={(e) => setParentGroup(e.target.value)} placeholder="All Supplier Groups" />
+                    <Input value={parentGroup} onChange={(e) => setParentGroup(e.target.value)} placeholder="جميع مجموعات الموردين" />
                   </div>
                   <div className="flex items-center gap-2">
                     <input type="checkbox" checked={isGroup} onChange={(e) => setIsGroup(e.target.checked)} className="rounded" />

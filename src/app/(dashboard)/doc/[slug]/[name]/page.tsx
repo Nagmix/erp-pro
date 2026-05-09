@@ -17,7 +17,7 @@ import { useDoc, useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { docTypeFromSlug } from '@/lib/erp/doc-detail-routes';
 import { StatusBadge, DocStatusBadge } from '@/components/erp/status-badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { printDocument, printWithERPFormat } from '@/lib/ui/print-document';
 import { VersionHistory } from '@/components/erp/version-history';
 import { DocumentComments } from '@/components/erp/document-comments';
@@ -65,7 +65,6 @@ function DraftEditCard({
   doc: Record<string, unknown>;
   onSaved: () => void;
 }) {
-  const { toast } = useToast();
   const updateMut = useUpdateDoc(doctype);
   const [title, setTitle] = useState('');
   const [userRemark, setUserRemark] = useState('');
@@ -107,18 +106,18 @@ function DraftEditCard({
   const save = () => {
     const patch = buildPatch();
     if (!Object.keys(patch).length) {
-      toast({ title: 'لا تغييرات' });
+      toast.success('لا تغييرات');
       return;
     }
     updateMut.mutate(
       { name, doc: patch },
       {
         onSuccess: () => {
-          toast({ title: 'تم تحديث المسودة' });
+          toast.success('تم تحديث المسودة');
           onSaved();
         },
         onError: (e) =>
-          toast({ title: 'تعذر الحفظ', description: (e as Error).message, variant: 'destructive' }),
+          toast.error('تعذر الحفظ', { description: (e as Error).message }),
       }
     );
   };

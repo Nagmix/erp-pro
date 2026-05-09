@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateDoc, useDocList, useSubmitDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader } from '@/components/erp/page-header';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,7 +58,6 @@ type PdaRow = {
 };
 
 export default function DeferredRevenuePage() {
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
   const today = useMemo(() => new Date().toISOString().split('T')[0]!, []);
   const firstOfMonth = useMemo(() => {
@@ -139,7 +138,7 @@ export default function DeferredRevenuePage() {
 
   const onSubmit = async (d: FormValues) => {
     if (!defaultCompany && !d.company.trim()) {
-      toast({ title: 'حدّد الشركة من الإعدادات أو النموذج', variant: 'destructive' });
+      toast.error('حدّد الشركة من الإعدادات أو النموذج');
       return;
     }
     setSubmitting(true);
@@ -165,13 +164,9 @@ export default function DeferredRevenuePage() {
         throw new Error('لم يُعد اسم المستند من الخادم');
       }
       await submitMutation.mutateAsync(name);
-      toast({
-        title: 'تمت معالجة الإقران',
-        description:
-          d.type === 'Income'
+      toast.success('تمت معالجة الإقران', { description: d.type === 'Income'
             ? 'المستند مُقدَّم — تُحدَّث الدفاتر عبر المحرك المحاسبي (قيود يومية لإقران الفترة).'
-            : 'المستند مُقدَّم — تُحدَّث قيود المصروف المؤجل تلقائياً.',
-      });
+            : 'المستند مُقدَّم — تُحدَّث قيود المصروف المؤجل تلقائياً.' });
       void refetch();
       form.reset({
         company: d.company,
@@ -182,11 +177,7 @@ export default function DeferredRevenuePage() {
         account: '',
       });
     } catch (e) {
-      toast({
-        title: 'فشل الإنشاء أو التقديم',
-        description: e instanceof Error ? e.message : String(e),
-        variant: 'destructive',
-      });
+      toast.error('فشل الإنشاء أو التقديم', { description: e instanceof Error ? e.message : String(e) });
     } finally {
       setSubmitting(false);
     }
@@ -196,17 +187,9 @@ export default function DeferredRevenuePage() {
     setSettingsApplying(true);
     try {
       await applyRecommendedDeferredAccountsSettings();
-      toast({
-        title: 'تمت تهيئة المحاسبة المؤجلة',
-        description:
-          'تفعيل القيود للإدخالات المؤجلة، والمعالجة التلقائية للفترات، وحساب الإقران شهرياً — من واجهة التطبيق مباشرة.',
-      });
+      toast.success('تمت تهيئة المحاسبة المؤجلة', { description: 'تفعيل القيود للإدخالات المؤجلة، والمعالجة التلقائية للفترات، وحساب الإقران شهرياً — من واجهة التطبيق مباشرة.' });
     } catch (e) {
-      toast({
-        title: 'تعذر حفظ الإعدادات',
-        description: e instanceof Error ? e.message : String(e),
-        variant: 'destructive',
-      });
+      toast.error('تعذر حفظ الإعدادات', { description: e instanceof Error ? e.message : String(e) });
     } finally {
       setSettingsApplying(false);
     }

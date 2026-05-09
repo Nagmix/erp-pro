@@ -42,7 +42,7 @@ import { useDefaultCompanyName } from "@/lib/erp/default-company";
 import { useAccountBalances } from "@/lib/erp/use-account-balances";
 import { formatCurrency } from "@/lib/core/helpers";
 import { translateAccountName } from "@/lib/core/arabic-labels";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 
 /* ───────────── Types ───────────── */
 
@@ -58,7 +58,6 @@ type VaultRow = {
 /* ───────────── Page Component ───────────── */
 
 export default function TreasuriesPage() {
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
 
   /* ── State ── */
@@ -121,27 +120,23 @@ export default function TreasuriesPage() {
     if (!selectedVault) return;
     try {
       await deleteMutation.mutateAsync(selectedVault.name);
-      toast({ title: "تم حذف الخزينة" });
+      toast.success("تم حذف الخزينة");
       setSelectedVault(null);
       setDeleteDialogOpen(false);
       void refetch();
     } catch (e) {
-      toast({
-        title: "تعذر حذف الخزينة",
-        description: String((e as Error).message || e),
-        variant: "destructive",
-      });
+      toast.error("تعذر حذف الخزينة", { description: String((e as Error).message || e) });
     }
   }, [selectedVault, deleteMutation, refetch, toast]);
 
   /* ── Create handler ── */
   const createVault = useCallback(async () => {
     if (!vaultName.trim()) {
-      toast({ title: "اسم الخزينة مطلوب", variant: "destructive" });
+      toast.error("اسم الخزينة مطلوب");
       return;
     }
     if (!defaultCompany) {
-      toast({ title: "يجب ضبط الشركة الافتراضية أولاً", variant: "destructive" });
+      toast.error("يجب ضبط الشركة الافتراضية أولاً");
       return;
     }
     setVaultBusy(true);
@@ -160,14 +155,10 @@ export default function TreasuriesPage() {
       setVaultName("");
       setVaultAccountNumber("");
       setVaultParentAccount("");
-      toast({ title: "تم إنشاء الخزينة بنجاح" });
+      toast.success("تم إنشاء الخزينة بنجاح");
       void refetch();
     } catch (e) {
-      toast({
-        title: "تعذر إنشاء الخزينة",
-        description: String((e as Error).message || e),
-        variant: "destructive",
-      });
+      toast.error("تعذر إنشاء الخزينة", { description: String((e as Error).message || e) });
     } finally {
       setVaultBusy(false);
     }

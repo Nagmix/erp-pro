@@ -222,7 +222,7 @@ export default function ReportsPage() {
     <div className="erp-page-enter space-y-5" dir="rtl">
       <PageHeader
         title="التقارير"
-        description="مركز التقارير: كل تقرير يُستخرج من النظام مع فلاتر مطابقة للكتالوج — دون بيانات تجريبية."
+        description="مركز التقارير: كل تقرير يُستخرج من النظام مع فلاتر مطابقة للكتالوج"
         iconify="solar:chart-2-bold-duotone"
         accent="info"
         actions={

@@ -58,7 +58,7 @@ import { formatCurrency } from '@/lib/core/helpers';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -567,8 +567,6 @@ export default function ChartOfAccountsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountData | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: companyLoading } = useDefaultCompanyName();
   const asOfDate = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -665,12 +663,12 @@ export default function ChartOfAccountsPage() {
     });
     createMutation.mutate(payload, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء الحساب بنجاح' });
+        toast.success('تم إنشاء الحساب بنجاح');
         setCreateDialogOpen(false);
         createForm.reset();
         if (defaultCompany) createForm.setValue('company', defaultCompany);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء إنشاء الحساب', variant: 'destructive' }),
+      onError: () => toast.error('حدث خطأ أثناء إنشاء الحساب'),
     });
   };
 
@@ -686,12 +684,12 @@ export default function ChartOfAccountsPage() {
       { name: selectedAccount.name, doc },
       {
         onSuccess: () => {
-          toast({ title: 'تم تعديل الحساب بنجاح' });
+          toast.success('تم تعديل الحساب بنجاح');
           setEditDialogOpen(false);
           setSelectedAccount(null);
           editForm.reset();
         },
-        onError: () => toast({ title: 'حدث خطأ أثناء تعديل الحساب', variant: 'destructive' }),
+        onError: () => toast.error('حدث خطأ أثناء تعديل الحساب'),
       }
     );
   };
@@ -699,12 +697,12 @@ export default function ChartOfAccountsPage() {
   const runCsvImport = async (text: string) => {
     const lines = text.split(/\r?\n/).filter(l => l.trim());
     if (lines.length < 2) {
-      toast({ title: 'الملف فارغ أو بلا بيانات', variant: 'destructive' });
+      toast.error('الملف فارغ أو بلا بيانات');
       return;
     }
     const comp = defaultCompany || createForm.getValues('company');
     if (!comp) {
-      toast({ title: 'تعذر تحديد الشركة، يرجى إضافة شركة أولاً', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة، يرجى إضافة شركة أولاً');
       return;
     }
     let ok = 0;
@@ -727,7 +725,7 @@ export default function ChartOfAccountsPage() {
         ok += 1;
       } catch { /* skip row */ }
     }
-    toast({ title: `تم استيراد ${ok} من ${lines.length - 1} حساب` });
+    toast.success(`تم استيراد ${ok} من ${lines.length - 1} حساب`);
     void refetch();
   };
 
@@ -735,11 +733,11 @@ export default function ChartOfAccountsPage() {
     if (!selectedAccount) return;
     deleteMutation.mutate(selectedAccount.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف الحساب بنجاح' });
+        toast.success('تم حذف الحساب بنجاح');
         setDeleteDialogOpen(false);
         setSelectedAccount(null);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء حذف الحساب', variant: 'destructive' }),
+      onError: () => toast.error('حدث خطأ أثناء حذف الحساب'),
     });
   };
 

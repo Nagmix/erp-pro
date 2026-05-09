@@ -55,7 +55,7 @@ import {
   prepareFrappeDocForCreate,
 } from '@/lib/erp/erpnext-payloads';
 import { apiSubmitDoc } from '@/lib/client/api';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 type StructureRow = {
   name: string;
@@ -164,8 +164,6 @@ export default function SalaryStructuresPage() {
   });
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const qc = useQueryClient();
-  const { toast } = useToast();
-
   // Edit state
   const [editingDoc, setEditingDoc] = useState<StructureRow | null>(null);
   const { data: editFullDoc } = useDoc<
@@ -243,7 +241,7 @@ export default function SalaryStructuresPage() {
       return created;
     },
     onSuccess: () => {
-      toast({ title: 'تم إنشاء الهيكل وترحيله' });
+      toast.success('تم إنشاء الهيكل وترحيله');
       qc.invalidateQueries({ queryKey: ['docList', 'Salary Structure'] });
       setDialogOpen(false);
       setFormData({
@@ -253,13 +251,9 @@ export default function SalaryStructuresPage() {
       });
     },
     onError: (e: Error) => {
-      toast({
-        title:
-          e.message === 'earnings'
+      toast.error(e.message === 'earnings'
             ? 'أضف بند استحقاق واحداً على الأقل'
-            : 'تعذر الحفظ أو الترحيل',
-        variant: 'destructive',
-      });
+            : 'تعذر الحفظ أو الترحيل');
     },
   });
 
@@ -302,11 +296,7 @@ export default function SalaryStructuresPage() {
 
   const openEditDialog = (row: StructureRow) => {
     if (Number(row.docstatus) !== 0) {
-      toast({
-        title:
-          'لا يمكن تعديل مستند معتمد — الهياكل المرحّلة غير قابلة للتعديل',
-        variant: 'destructive',
-      });
+      toast.error('لا يمكن تعديل مستند معتمد — الهياكل المرحّلة غير قابلة للتعديل');
       return;
     }
     setEditingDoc(row);
@@ -370,11 +360,11 @@ export default function SalaryStructuresPage() {
       },
       {
         onSuccess: () => {
-          toast({ title: 'تم تعديل الهيكل' });
+          toast.success('تم تعديل الهيكل');
           setDialogOpen(false);
           setEditingDoc(null);
         },
-        onError: () => toast({ title: 'تعذر تعديل الهيكل', variant: 'destructive' }),
+        onError: () => toast.error('تعذر تعديل الهيكل'),
       }
     );
   };
@@ -398,7 +388,7 @@ export default function SalaryStructuresPage() {
       !assignForm.from_date ||
       !company
     ) {
-      toast({ title: 'أكمل الحقول', variant: 'destructive' });
+      toast.error('أكمل الحقول');
       return;
     }
     const mapped = buildSalaryStructureAssignmentCreate({
@@ -409,24 +399,24 @@ export default function SalaryStructuresPage() {
     });
     createAssign.mutate(prepareFrappeDocForCreate(mapped), {
       onSuccess: () => {
-        toast({ title: 'تم الربط' });
+        toast.success('تم الربط');
         setAssignOpen(false);
         setAssignForm({ employee: '', salary_structure: '', from_date: '' });
         ar();
       },
       onError: () =>
-        toast({ title: 'فشل تعيين الهيكل', variant: 'destructive' }),
+        toast.error('فشل تعيين الهيكل'),
     });
   };
 
   const handleSubmit = (row: StructureRow) => {
     submitMutation.mutate(row.name, {
       onSuccess: () => {
-        toast({ title: 'تم ترحيل الهيكل' });
+        toast.success('تم ترحيل الهيكل');
         void refetch();
       },
       onError: () => {
-        toast({ title: 'تعذر ترحيل الهيكل', variant: 'destructive' });
+        toast.error('تعذر ترحيل الهيكل');
       },
     });
   };
@@ -434,11 +424,11 @@ export default function SalaryStructuresPage() {
   const handleCancel = (row: StructureRow) => {
     cancelMutation.mutate(row.name, {
       onSuccess: () => {
-        toast({ title: 'تم إلغاء الهيكل' });
+        toast.success('تم إلغاء الهيكل');
         void refetch();
       },
       onError: () => {
-        toast({ title: 'تعذر إلغاء الهيكل', variant: 'destructive' });
+        toast.error('تعذر إلغاء الهيكل');
       },
     });
   };
@@ -756,7 +746,7 @@ export default function SalaryStructuresPage() {
                 deleteDialog &&
                 deleteMutation.mutate(deleteDialog.name, {
                   onSuccess: () => {
-                    toast({ title: 'تم' });
+                    toast.success('تم');
                     setDeleteDialog(null);
                   },
                 })

@@ -26,7 +26,7 @@ import { formatDate } from '@/lib/core/helpers';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildPurchaseReceipt } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -60,7 +60,6 @@ interface Line {
 const emptyLine = (): Line => ({ item_code: '', qty: 1, warehouse: '', purchase_order: '' });
 
 export default function PurchaseReceiptsPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
@@ -96,15 +95,15 @@ export default function PurchaseReceiptsPage() {
 
   const handleCreate = () => {
     if (!company || !supplier) {
-      toast({ title: 'الشركة والمورد مطلوبان', variant: 'destructive' });
+      toast.error('الشركة والمورد مطلوبان');
       return;
     }
     if (lines.every((l) => !l.item_code)) {
-      toast({ title: 'أضف بنوداً', variant: 'destructive' });
+      toast.error('أضف بنوداً');
       return;
     }
     if (lines.some((l) => l.item_code && !l.warehouse)) {
-      toast({ title: 'مستودع لكل بند', variant: 'destructive' });
+      toast.error('مستودع لكل بند');
       return;
     }
     const doc = buildPurchaseReceipt({
@@ -120,13 +119,13 @@ export default function PurchaseReceiptsPage() {
           purchase_order: l.purchase_order || undefined}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء إيصال الاستلام' });
+        toast.success('تم إنشاء إيصال الاستلام');
         setDialogOpen(false);
         setSupplier('');
         setLines([emptyLine()]);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' })});
+      onError: () => toast.error('تعذر الحفظ')});
   };
 
   const columns: Column<PRRow>[] = useMemo(
@@ -150,8 +149,8 @@ export default function PurchaseReceiptsPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                    onError: () => toast.error('تعذر الترحيل')})
                 }
               >
                 <Send className="h-3 w-3" />
@@ -168,8 +167,8 @@ export default function PurchaseReceiptsPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'أُلغي' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('أُلغي'); void refetch(); },
+                    onError: () => toast.error('تعذر')})
                 }
               >
                 <Undo2 className="h-3 w-3" />
@@ -265,8 +264,8 @@ export default function PurchaseReceiptsPage() {
               onClick={() => {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
-                  onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteName(null); void refetch(); },
-                  onError: () => toast({ title: 'تعذر الحذف', variant: 'destructive' })});
+                  onSuccess: () => { toast.success('تم الحذف'); setDeleteName(null); void refetch(); },
+                  onError: () => toast.error('تعذر الحذف')});
               }}
             >
               حذف

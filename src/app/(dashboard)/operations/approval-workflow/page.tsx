@@ -26,7 +26,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useUpdateDoc } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   CheckCircle2, XCircle, Clock, Shield, AlertCircle, User,
   Loader2, RefreshCw, ExternalLink, Plus, Workflow, FileText,
@@ -130,8 +130,6 @@ function hoursWaiting(requestedAt: string): string {
 /* ──────────────── Main Component ──────────────── */
 
 export default function ApprovalWorkflowPage() {
-  const { toast } = useToast();
-
   // ── UI State ──
   const [activeTab, setActiveTab] = useState('my-approvals');
   const [notesDialog, setNotesDialog] = useState<{ id: string; decision: ApprovalDecision } | null>(null);
@@ -251,14 +249,12 @@ export default function ApprovalWorkflowPage() {
         );
       });
 
-      toast({
-        title: decision === 'موافق' ? 'تمت الموافقة' : decision === 'مرفوض' ? 'تم الرفض' : 'تم طلب معلومات إضافية',
-      });
+      toast.success(decision === 'موافق' ? 'تمت الموافقة' : decision === 'مرفوض' ? 'تم الرفض' : 'تم طلب معلومات إضافية');
       void refetchPending();
       void refetchClosed();
       void refetchComments();
     } catch {
-      toast({ title: 'فشل تنفيذ القرار', variant: 'destructive' });
+      toast.error('فشل تنفيذ القرار');
     } finally {
       setActionLoading(null);
     }
@@ -275,7 +271,7 @@ export default function ApprovalWorkflowPage() {
   // ── Create Workflow Rule ──
   const handleCreateRule = useCallback(() => {
     if (!ruleForm.doctype || !ruleForm.currentState || !ruleForm.nextState) {
-      toast({ title: 'يرجى ملء جميع الحقول المطلوبة', variant: 'destructive' });
+      toast.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     const doc: Record<string, unknown> = {
@@ -290,13 +286,13 @@ export default function ApprovalWorkflowPage() {
     };
     createWorkflowMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء قاعدة الموافقة بنجاح' });
+        toast.success('تم إنشاء قاعدة الموافقة بنجاح');
         setRuleDialogOpen(false);
         setRuleForm({ doctype: '', currentState: '', nextState: '', approverRole: '', approverUser: '' });
         void refetchRules();
       },
       onError: () => {
-        toast({ title: 'فشل إنشاء قاعدة الموافقة', variant: 'destructive' });
+        toast.error('فشل إنشاء قاعدة الموافقة');
       },
     });
   }, [ruleForm, createWorkflowMutation, toast, refetchRules]);
@@ -482,7 +478,7 @@ export default function ApprovalWorkflowPage() {
       </KpiStrip>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex flex-wrap gap-1 w-full">
           <TabsTrigger value="my-approvals" className="gap-1.5 text-xs">
             <Clock className="h-3.5 w-3.5" /> موافقاتي
             {pendingItems.length > 0 && (

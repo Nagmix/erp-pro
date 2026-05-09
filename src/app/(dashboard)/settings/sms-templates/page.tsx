@@ -103,20 +103,20 @@ const TEMPLATE_VARIABLES = [
   { key: '{appointment_time}', label: 'وقت الموعد', description: 'وقت الموعد المجدول' },
 ] as const;
 
-const SAMPLE_DATA: Record<string, string> = {
-  '{customer_name}': 'شركة النور التجارية',
-  '{invoice_number}': 'SINV-2025-0042',
-  '{amount}': '15,750',
-  '{due_date}': '2025-02-28',
-  '{company_name}': 'مؤسسة الأمل للتجارة',
-  '{outstanding_amount}': '7,500',
-  '{posting_date}': '2025-01-15',
-  '{currency}': 'ر.ي',
-  '{reference_no}': 'REF-78901',
-  '{supplier_name}': 'مؤسسة الفجر للمقاولات',
-  '{employee_name}': 'أحمد محمد العلي',
-  '{appointment_date}': '2025-02-10',
-  '{appointment_time}': '10:30 صباحاً',
+const PREVIEW_FALLBACK_DATA: Record<string, string> = {
+  '{customer_name}': '{{customer_name}}',
+  '{invoice_number}': '{{invoice_number}}',
+  '{amount}': '{{amount}}',
+  '{due_date}': '{{due_date}}',
+  '{company_name}': '{{company_name}}',
+  '{outstanding_amount}': '{{outstanding_amount}}',
+  '{posting_date}': '{{posting_date}}',
+  '{currency}': '{{currency}}',
+  '{reference_no}': '{{reference_no}}',
+  '{supplier_name}': '{{supplier_name}}',
+  '{employee_name}': '{{employee_name}}',
+  '{appointment_date}': '{{appointment_date}}',
+  '{appointment_time}': '{{appointment_time}}',
 };
 
 /* ─── Default template suggestions ─── */
@@ -161,7 +161,7 @@ function countSmsParts(text: string): { chars: number; parts: number; isUnicode:
 
 function renderPreview(body: string): string {
   let rendered = body;
-  for (const [key, value] of Object.entries(SAMPLE_DATA)) {
+  for (const [key, value] of Object.entries(PREVIEW_FALLBACK_DATA)) {
     rendered = rendered.replaceAll(key, value);
   }
   return rendered;
@@ -728,7 +728,7 @@ export default function SmsTemplatesPage() {
                   </div>
                   <div className="flex items-center gap-2 text-[9px] text-emerald-600">
                     <CheckCircle2 className="h-3 w-3" />
-                    المعاينة تستخدم بيانات تجريبية — سيتم استبدالها بالبيانات الفعلية عند الإرسال
+                    المعاينة تعرض المتغيرات كما هي — سيتم استبدالها بالبيانات الفعلية عند الإرسال
                   </div>
                 </div>
               )}
@@ -797,13 +797,13 @@ export default function SmsTemplatesPage() {
 
             {/* Sample Data Used */}
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-semibold text-muted-foreground">البيانات التجريبية المستخدمة</Label>
+              <Label className="text-[10px] font-semibold text-muted-foreground">المتغيرات المستخدمة في المعاينة</Label>
               <div className="grid grid-cols-2 gap-1.5">
-                {Object.entries(SAMPLE_DATA).slice(0, 6).map(([key, value]) => (
+                {Object.entries(PREVIEW_FALLBACK_DATA).slice(0, 6).map(([key, value]) => (
                   <div key={key} className="flex items-center gap-1 text-[9px]">
                     <code className="rounded bg-sky-50 px-1 font-mono text-sky-700">{key}</code>
                     <span className="text-muted-foreground">←</span>
-                    <span className="truncate">{value}</span>
+                    <span className="truncate font-mono text-muted-foreground">{value}</span>
                   </div>
                 ))}
               </div>

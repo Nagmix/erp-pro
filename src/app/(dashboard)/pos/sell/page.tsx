@@ -33,7 +33,7 @@ import {
 import Link from 'next/link';
 import { ShoppingCart, CreditCard, Receipt } from 'lucide-react';
 import { formatCurrency } from '@/lib/core/helpers';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDocList, useDoc } from '@/lib/client/hooks';
 import {
   buildPosInvoice,
@@ -132,7 +132,6 @@ export default function POSSellPage() {
   const [holds, setHolds] = useState<{ id: string; label: string; cart: CartLine[]; at: string }[]>([]);
 
   /* ── خطافات مشتركة ── */
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const sessionUser = useAuthStore((s) => s.user);
   const today = new Date().toISOString().split('T')[0]!;
@@ -499,17 +498,13 @@ export default function POSSellPage() {
         setBarcodeScan('');
         if (isPosTemplateItem(hitRow)) {
           setVariantPickerTemplate(hitRow);
-          toast({ title: 'صنف له متغيرات', description: 'اختر المتغير من النافذة' });
+          toast.success('صنف له متغيرات', { description: 'اختر المتغير من النافذة' });
         } else {
           addToCart(hitRow);
-          toast({ title: 'أُضيف للسلة', description: hitRow.item_name || hitRow.name });
+          toast.success('أُضيف للسلة', { description: hitRow.item_name || hitRow.name });
         }
       } else {
-        toast({
-          title: 'صنف غير معروف',
-          description: `لا يوجد تطابق للرمز: ${raw}`,
-          variant: 'destructive',
-        });
+        toast.error('صنف غير معروف', { description: `لا يوجد تطابق للرمز: ${raw}` });
       }
     } finally {
       setBarcodeBusy(false);
@@ -649,7 +644,7 @@ export default function POSSellPage() {
     const label = `${cart.length} صنف — ${new Date().toLocaleTimeString('ar-SA')}`;
     persistHolds([...holds, { id, label, cart: [...cart], at: new Date().toISOString() }]);
     clearCart();
-    toast({ title: 'تعليق الطلب', description: 'يُحفظ محلياً في هذا المتصفح' });
+    toast.success('تعليق الطلب', { description: 'يُحفظ محلياً في هذا المتصفح' });
   };
 
   const restoreHold = (id: string) => {
@@ -657,7 +652,7 @@ export default function POSSellPage() {
     if (!h) return;
     setCart(h.cart);
     persistHolds(holds.filter((x) => x.id !== id));
-    toast({ title: 'استُعيد الطلب المعلق' });
+    toast.success('استُعيد الطلب المعلق');
   };
 
   const deleteHold = (id: string) => {
@@ -668,7 +663,7 @@ export default function POSSellPage() {
   const printBrowserReceipt = (r: PosReceiptSnapshot) => {
     const w = window.open('', '_blank', 'width=400,height=600');
     if (!w) {
-      toast({ title: 'السماح بالنوافذ المنبثقة للطباعة', variant: 'destructive' });
+      toast.error('السماح بالنوافذ المنبثقة للطباعة');
       return;
     }
     w.document.write(buildPosReceiptHtml(r, { includePrintScript: true }));
@@ -678,7 +673,7 @@ export default function POSSellPage() {
   const previewBrowserReceipt = (r: PosReceiptSnapshot) => {
     const w = window.open('', '_blank', 'width=400,height=600');
     if (!w) {
-      toast({ title: 'السماح بالنوافذ المنبثقة للمعاينة', variant: 'destructive' });
+      toast.error('السماح بالنوافذ المنبثقة للمعاينة');
       return;
     }
     w.document.write(buildPosReceiptHtml(r, { includePrintScript: false }));
@@ -689,50 +684,46 @@ export default function POSSellPage() {
     const lines = buildPosEscPosReceiptLines(r);
     try {
       await printEscPosSerial(lines);
-      toast({ title: 'أُرسل للطابعة' });
+      toast.success('أُرسل للطابعة');
     } catch (e) {
-      toast({ title: (e as Error).message || 'فشل الطباعة', variant: 'destructive' });
+      toast.error((e as Error).message || 'فشل الطباعة');
     }
   };
 
   /* ── تأكيد الطلب ── */
   const handleConfirmOrder = async () => {
     if (!customer) {
-      toast({ title: 'اختر العميل', variant: 'destructive' });
+      toast.error('اختر العميل');
       return;
     }
     if (!company) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (cart.some((c) => c.item_code && !c.warehouse)) {
-      toast({ title: 'مستودع لكل بند أو مستودع افتراضي', variant: 'destructive' });
+      toast.error('مستودع لكل بند أو مستودع افتراضي');
       return;
     }
     if (cart.length === 0) {
-      toast({ title: 'السلة فارغة', variant: 'destructive' });
+      toast.error('السلة فارغة');
       return;
     }
     if (!posProfile) {
-      toast({ title: 'اختر ملف نقطة البيع', variant: 'destructive' });
+      toast.error('اختر ملف نقطة البيع');
       return;
     }
     if (!checkoutReady) {
-      toast({
-        title: 'وزّع الدفع',
-        description: allowPartialPayment
+      toast.error('وزّع الدفع', { description: allowPartialPayment
           ? `للترحيل: مجموع المدفوعات ≥ صافي البنود (${formatCurrency(lineNet)}). للمسودة بمدفوعات جزئية: مجموع أقل من ذلك مع تفعيل الدفع الجزئي في الملف.`
-          : `مجموع المبالغ يجب أن لا يقل عن صافي البنود (${formatCurrency(lineNet)})`,
-        variant: 'destructive',
-      });
+          : `مجموع المبالغ يجب أن لا يقل عن صافي البنود (${formatCurrency(lineNet)})` });
       return;
     }
     if (!profileDoc || typeof profileDoc.currency !== 'string' || !profileDoc.selling_price_list) {
-      toast({ title: 'تعذر تحميل بيانات الملف — انتظر التحميل أو راجع ملف نقطة البيع', variant: 'destructive' });
+      toast.error('تعذر تحميل بيانات الملف — انتظر التحميل أو راجع ملف نقطة البيع');
       return;
     }
     if (!costCenter) {
-      toast({ title: 'مركز تكلفة مطلوب (من الملف أو يدوياً)', variant: 'destructive' });
+      toast.error('مركز تكلفة مطلوب (من الملف أو يدوياً)');
       return;
     }
 
@@ -757,7 +748,7 @@ export default function POSSellPage() {
       }))
       .filter((p) => p.amount > 0);
     if (payments.length === 0) {
-      toast({ title: 'أدخل مبالغ الدفع', variant: 'destructive' });
+      toast.error('أدخل مبالغ الدفع');
       return;
     }
 
@@ -812,9 +803,7 @@ export default function POSSellPage() {
       if (draft) {
         setOrderSuccess(true);
         setTimeout(() => setOrderSuccess(false), 2000);
-        toast({
-          title: 'حُفظت مسودة فاتورة',
-          description: (
+        toast.success('حُفظت مسودة فاتورة', { description: (
             <span className="inline-flex flex-wrap items-center gap-x-1 gap-y-1">
               <span className="font-mono tabular-nums">{invName}</span>
               <span>— أكمل الدفع ثم رحّل من تفاصيل الفاتورة أو القائمة.</span>
@@ -825,8 +814,7 @@ export default function POSSellPage() {
                 فتح الفاتورة
               </Link>
             </span>
-          ),
-        });
+          ) });
         clearCart();
         void catalogQuery.refetch();
         void refetchLegacyItems();
@@ -848,36 +836,28 @@ export default function POSSellPage() {
       });
       setOrderSuccess(true);
       setTimeout(() => setOrderSuccess(false), 2000);
-      toast({ title: 'تم تسجيل الفاتورة', description: `الإجمالي ${formatCurrency(finalGt)} — تم الترحيل` });
+      toast.success('تم تسجيل الفاتورة', { description: `الإجمالي ${formatCurrency(finalGt)} — تم الترحيل` });
       clearCart();
       void catalogQuery.refetch();
       void refetchLegacyItems();
       void refetchPoe();
     } catch (e) {
-      toast({
-        title: 'تعذر إنشاء الفاتورة أو ترحيلها',
-        description: (e as Error).message || undefined,
-        variant: 'destructive',
-      });
+      toast.error('تعذر إنشاء الفاتورة أو ترحيلها', { description: (e as Error).message || undefined });
     }
   };
 
   /* ── فتح/إغلاق وردية ── */
   const handleOpenShift = async () => {
     if (!company || !posProfile) {
-      toast({
-        title: 'اختر الشركة وملف نقطة البيع',
-        description: 'من العمود الأيمن (ملف نقطة البيع)، أو من تبويب «الإعدادات» على الجوال.',
-        variant: 'destructive',
-      });
+      toast.error('اختر الشركة وملف نقطة البيع', { description: 'من العمود الأيمن (ملف نقطة البيع)، أو من تبويب «الإعدادات» على الجوال.' });
       return;
     }
     if (!cashierUser) {
-      toast({ title: 'حدد الكاشير', variant: 'destructive' });
+      toast.error('حدد الكاشير');
       return;
     }
     if (profilePaymentModes.length === 0) {
-      toast({ title: 'لا وسائل دفع في ملف نقطة البيع', variant: 'destructive' });
+      toast.error('لا وسائل دفع في ملف نقطة البيع');
       return;
     }
     const balance_details = profilePaymentModes.map((m) => ({
@@ -893,18 +873,18 @@ export default function POSSellPage() {
         posting_date: today,
         period_start_date: nowDatetimeLocal(),
       });
-      toast({ title: 'تم فتح الوردية' });
+      toast.success('تم فتح الوردية');
       setShiftOpenDialog(false);
       void refetchPoe();
       void shiftQuery.refetch();
     } catch (e) {
-      toast({ title: (e as Error).message || 'تعذر فتح الوردية', variant: 'destructive' });
+      toast.error((e as Error).message || 'تعذر فتح الوردية');
     }
   };
 
   const handleCloseShift = async () => {
     if (!selectedClosingPoe) {
-      toast({ title: 'اختر فتحة وردية مفتوحة', variant: 'destructive' });
+      toast.error('اختر فتحة وردية مفتوحة');
       return;
     }
     try {
@@ -922,14 +902,14 @@ export default function POSSellPage() {
         pos_opening_entry: selectedClosingPoe,
         ...(payment_reconciliation?.length ? { payment_reconciliation } : {}),
       });
-      toast({ title: 'تم إغلاق الوردية' });
+      toast.success('تم إغلاق الوردية');
       setShiftCloseDialog(false);
       setSelectedClosingPoe('');
       setClosingByMode({});
       void refetchPoe();
       void shiftQuery.refetch();
     } catch (e) {
-      toast({ title: (e as Error).message || 'تعذر الإغلاق', variant: 'destructive' });
+      toast.error((e as Error).message || 'تعذر الإغلاق');
     }
   };
 
@@ -937,37 +917,33 @@ export default function POSSellPage() {
   const handleReturnConfirm = async (opts: BuildPosInvoiceReturnOpts) => {
     const src = returnSource.data;
     if (!returnInvName || !src) {
-      toast({ title: 'اختر فاتورة', variant: 'destructive' });
+      toast.error('اختر فاتورة');
       return;
     }
     if (Number(src.is_return) === 1) {
-      toast({ title: 'اختر فاتورة أصلية', variant: 'destructive' });
+      toast.error('اختر فاتورة أصلية');
       return;
     }
     const payRows = (src.payments as Record<string, unknown>[]) || [];
     if (!payRows.some((p) => p?.mode_of_payment)) {
-      toast({ title: 'الفاتورة الأصلية بدون جدول مدفوعات', variant: 'destructive' });
+      toast.error('الفاتورة الأصلية بدون جدول مدفوعات');
       return;
     }
     const doc = buildPosInvoiceReturn(src, today, opts);
     const pr = doc.payments as { mode_of_payment?: string; amount?: number }[];
     if (!pr?.length) {
-      toast({ title: 'تعذر بناء صفوف المرتجع المالية', variant: 'destructive' });
+      toast.error('تعذر بناء صفوف المرتجع المالية');
       return;
     }
     try {
       await createInvoiceMut.mutateAsync({ doc: doc as Record<string, unknown> });
-      toast({ title: 'تم إنشاء وترحيل فاتورة المرتجع' });
+      toast.success('تم إنشاء وترحيل فاتورة المرتجع');
       setReturnDialog(false);
       setReturnInvName('');
       void refetchLegacyItems();
       void catalogQuery.refetch();
     } catch (e) {
-      toast({
-        title: 'تعذر المرتجع',
-        description: (e as Error).message || undefined,
-        variant: 'destructive',
-      });
+      toast.error('تعذر المرتجع', { description: (e as Error).message || undefined });
     }
   };
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
+import { CHART_PALETTE } from '@/lib/core/helpers';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import {
   Shield,
   Users,
@@ -131,10 +132,7 @@ const PERM_LABELS: Record<PermKey, string> = {
   set_user_permissions: 'أذونات',
 };
 
-const ROLE_COLORS = [
-  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4',
-  '#3b82f6', '#8b5cf6', '#ec4899', '#64748b',
-];
+// ROLE_COLORS removed — using CHART_PALETTE.series from helpers
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -146,7 +144,7 @@ function toBool(v: number | boolean | undefined): boolean {
 }
 
 function roleColor(index: number): string {
-  return ROLE_COLORS[index % ROLE_COLORS.length];
+  return CHART_PALETTE.series[index % CHART_PALETTE.series.length];
 }
 
 function extractData<T>(json: unknown): T[] {
@@ -257,8 +255,6 @@ function buildWorkingPerms(
 /* ------------------------------------------------------------------ */
 
 export default function RolePermissionsPage() {
-  const { toast } = useToast();
-
   /* ---- Data state ---- */
   const [roles, setRoles] = useState<ERPRole[]>([]);
   const [doctypes, setDoctypes] = useState<ERPDocType[]>([]);
@@ -481,7 +477,7 @@ export default function RolePermissionsPage() {
 
     if (errorCount === 0) {
       setHasUnsaved(false);
-      toast({ title: 'تم الحفظ', description: `تم حفظ الصلاحيات بنجاح (${successCount} سجل)` });
+      toast.success('تم الحفظ', { description: `تم حفظ الصلاحيات بنجاح (${successCount} سجل)` });
       // Refresh perms from server
       try {
         const dp = await fetchDocPerms();
@@ -491,11 +487,7 @@ export default function RolePermissionsPage() {
         // keep current state
       }
     } else {
-      toast({
-        title: 'تحذير',
-        description: `تم حفظ ${successCount} سجل، فشل ${errorCount} سجل`,
-        variant: 'destructive',
-      });
+      toast.error('تحذير', { description: `تم حفظ ${successCount} سجل، فشل ${errorCount} سجل` });
     }
   }, [selectedRole, workingPerms, doctypes, toast]);
 
@@ -507,7 +499,7 @@ export default function RolePermissionsPage() {
 
   const handleCreateRole = useCallback(async () => {
     if (!formRoleName.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم الدور', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال اسم الدور' });
       return;
     }
     setCreatingRole(true);
@@ -526,15 +518,11 @@ export default function RolePermissionsPage() {
       if (data?.success === false) {
         throw new Error(data?.message || 'فشل الإنشاء');
       }
-      toast({ title: 'تم الإنشاء', description: `تم إنشاء دور "${formRoleName}"` });
+      toast.success('تم الإنشاء', { description: `تم إنشاء دور "${formRoleName}"` });
       setDialogOpen(false);
       await loadData();
     } catch (err) {
-      toast({
-        title: 'خطأ',
-        description: err instanceof Error ? err.message : 'فشل إنشاء الدور',
-        variant: 'destructive',
-      });
+      toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل إنشاء الدور' });
     } finally {
       setCreatingRole(false);
     }
@@ -553,7 +541,7 @@ export default function RolePermissionsPage() {
       await fetch(`/api/data/Role/${encodeURIComponent(roleToDelete)}`, {
         method: 'DELETE',
       });
-      toast({ title: 'تم الحذف', description: `تم حذف دور "${roleToDelete}"` });
+      toast.success('تم الحذف', { description: `تم حذف دور "${roleToDelete}"` });
       if (selectedRole === roleToDelete) {
         setSelectedRole(null);
         setWorkingPerms({});
@@ -563,11 +551,7 @@ export default function RolePermissionsPage() {
       setRoleToDelete(null);
       await loadData();
     } catch (err) {
-      toast({
-        title: 'خطأ',
-        description: err instanceof Error ? err.message : 'فشل حذف الدور',
-        variant: 'destructive',
-      });
+      toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل حذف الدور' });
     } finally {
       setDeletingRole(false);
     }
@@ -588,16 +572,9 @@ export default function RolePermissionsPage() {
             r.name === roleName ? { ...r, disabled: newDisabled } : r
           )
         );
-        toast({
-          title: newDisabled === 0 ? 'تم التفعيل' : 'تم التعطيل',
-          description: newDisabled === 0 ? `تم تفعيل دور "${roleName}"` : `تم تعطيل دور "${roleName}"`,
-        });
+        toast.success(newDisabled === 0 ? 'تم التفعيل' : 'تم التعطيل', { description: newDisabled === 0 ? `تم تفعيل دور "${roleName}"` : `تم تعطيل دور "${roleName}"` });
       } catch (err) {
-        toast({
-          title: 'خطأ',
-          description: err instanceof Error ? err.message : 'فشل تحديث حالة الدور',
-          variant: 'destructive',
-        });
+        toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل تحديث حالة الدور' });
       }
     },
     [toast]
@@ -1167,7 +1144,6 @@ export default function RolePermissionsPage() {
                 value={formRoleName}
                 onChange={(e) => setFormRoleName(e.target.value)}
                 dir="ltr"
-                className="text-left"
               />
               <p className="text-[11px] text-muted-foreground">
                 الاسم بالإنجليزية كما سيظهر في النظام

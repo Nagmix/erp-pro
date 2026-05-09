@@ -39,7 +39,7 @@ import { buildLeaveAllocationCreate, buildLeavePolicyCreate, prepareFrappeDocFor
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 /* ──────────────── Types ──────────────── */
 
@@ -77,7 +77,6 @@ const DOC_STATUS_OPTIONS = [
 /* ──────────────── Component ──────────────── */
 
 export default function LeavePoliciesPage() {
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
 
   /* ── Tab state ── */
@@ -219,8 +218,8 @@ export default function LeavePoliciesPage() {
                   className="h-7 text-[10px] gap-1"
                   onClick={() =>
                     submitPolicy.mutate(row.name, {
-                      onSuccess: () => { toast({ title: 'تم ترحيل السياسة' }); void policies.refetch(); },
-                      onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' }),
+                      onSuccess: () => { toast.success('تم ترحيل السياسة'); void policies.refetch(); },
+                      onError: () => toast.error('تعذر الترحيل'),
                     })
                   }
                 >
@@ -248,8 +247,8 @@ export default function LeavePoliciesPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelPolicy.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم إلغاء السياسة' }); void policies.refetch(); },
-                    onError: () => toast({ title: 'تعذر الإلغاء', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('تم إلغاء السياسة'); void policies.refetch(); },
+                    onError: () => toast.error('تعذر الإلغاء'),
                   })
                 }
               >
@@ -322,8 +321,8 @@ export default function LeavePoliciesPage() {
                   className="h-7 text-[10px] gap-1"
                   onClick={() =>
                     submitAlloc.mutate(row.name, {
-                      onSuccess: () => { toast({ title: 'تم ترحيل التخصيص' }); void allocations.refetch(); },
-                      onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' }),
+                      onSuccess: () => { toast.success('تم ترحيل التخصيص'); void allocations.refetch(); },
+                      onError: () => toast.error('تعذر الترحيل'),
                     })
                   }
                 >
@@ -351,8 +350,8 @@ export default function LeavePoliciesPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelAlloc.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم إلغاء التخصيص' }); void allocations.refetch(); },
-                    onError: () => toast({ title: 'تعذر الإلغاء', variant: 'destructive' }),
+                    onSuccess: () => { toast.success('تم إلغاء التخصيص'); void allocations.refetch(); },
+                    onError: () => toast.error('تعذر الإلغاء'),
                   })
                 }
               >
@@ -407,21 +406,21 @@ export default function LeavePoliciesPage() {
 
   const savePolicy = () => {
     const useCompany = policyCompany || defaultCompany;
-    if (!useCompany || !policyTitle) return toast({ title: 'الشركة والعنوان مطلوبان', variant: 'destructive' });
+    if (!useCompany || !policyTitle) return toast.error('الشركة والعنوان مطلوبان');
     if (editingPolicy) {
       updatePolicy.mutate(
         { name: editingPolicy.name, doc: { title: policyTitle, annual_allocation: policyAnnual, leave_type: policyLeaveType, company: useCompany } },
         {
-          onSuccess: () => { toast({ title: 'تم تعديل السياسة' }); setOpenPolicy(false); setEditingPolicy(null); },
-          onError: () => toast({ title: 'فشل التعديل', variant: 'destructive' }),
+          onSuccess: () => { toast.success('تم تعديل السياسة'); setOpenPolicy(false); setEditingPolicy(null); },
+          onError: () => toast.error('فشل التعديل'),
         },
       );
     } else {
       createPolicy.mutate(
         prepareFrappeDocForCreate(buildLeavePolicyCreate({ title: policyTitle, company: useCompany, annual_allocation: policyAnnual })),
         {
-          onSuccess: () => { toast({ title: 'تم إنشاء السياسة' }); setOpenPolicy(false); setPolicyTitle(''); setPolicyAnnual(0); },
-          onError: () => toast({ title: 'فشل الإنشاء', variant: 'destructive' }),
+          onSuccess: () => { toast.success('تم إنشاء السياسة'); setOpenPolicy(false); setPolicyTitle(''); setPolicyAnnual(0); },
+          onError: () => toast.error('فشل الإنشاء'),
         },
       );
     }
@@ -430,13 +429,13 @@ export default function LeavePoliciesPage() {
   const saveAlloc = () => {
     const useCompany = defaultCompany;
     if (!useCompany || !allocEmployee || !allocLeaveType || !allocFromDate || !allocToDate || allocAmount <= 0)
-      return toast({ title: 'أكمل بيانات التخصيص', variant: 'destructive' });
+      return toast.error('أكمل بيانات التخصيص');
     if (editingAlloc) {
       updateAlloc.mutate(
         { name: editingAlloc.name, doc: { employee: allocEmployee, leave_type: allocLeaveType, from_date: allocFromDate, to_date: allocToDate, new_leaves_allocated: allocAmount } },
         {
-          onSuccess: () => { toast({ title: 'تم تعديل التخصيص' }); setOpenAlloc(false); setEditingAlloc(null); },
-          onError: () => toast({ title: 'فشل التعديل', variant: 'destructive' }),
+          onSuccess: () => { toast.success('تم تعديل التخصيص'); setOpenAlloc(false); setEditingAlloc(null); },
+          onError: () => toast.error('فشل التعديل'),
         },
       );
     } else {
@@ -445,8 +444,8 @@ export default function LeavePoliciesPage() {
           company: useCompany, employee: allocEmployee, leave_type: allocLeaveType, from_date: allocFromDate, to_date: allocToDate, new_leaves_allocated: allocAmount,
         })),
         {
-          onSuccess: () => { toast({ title: 'تم التخصيص' }); setOpenAlloc(false); },
-          onError: () => toast({ title: 'فشل التخصيص', variant: 'destructive' }),
+          onSuccess: () => { toast.success('تم التخصيص'); setOpenAlloc(false); },
+          onError: () => toast.error('فشل التخصيص'),
         },
       );
     }
@@ -467,8 +466,8 @@ export default function LeavePoliciesPage() {
     const mutation = deleteTarget.type === 'policy' ? deletePolicy : deleteAlloc;
     const refetch = deleteTarget.type === 'policy' ? policies : allocations;
     mutation.mutate(deleteTarget.name, {
-      onSuccess: () => { toast({ title: 'تم الحذف' }); setDeleteTarget(null); void refetch.refetch(); },
-      onError: () => toast({ title: 'فشل الحذف', variant: 'destructive' }),
+      onSuccess: () => { toast.success('تم الحذف'); setDeleteTarget(null); void refetch.refetch(); },
+      onError: () => toast.error('فشل الحذف'),
     });
   };
 
@@ -705,7 +704,7 @@ export default function LeavePoliciesPage() {
           tableId="leave-policies"
           exportFileName="leave-policies"
           onEdit={(row) => {
-            if (Number(row.docstatus) !== 0) { toast({ title: 'لا يمكن تعديل مستند معتمد', variant: 'destructive' }); return; }
+            if (Number(row.docstatus) !== 0) { toast.error('لا يمكن تعديل مستند معتمد'); return; }
             openPolicyDialog(row);
           }}
           onDelete={(row) => { if (Number(row.docstatus) === 0) setDeleteTarget({ type: 'policy', name: row.name }); }}
@@ -720,7 +719,7 @@ export default function LeavePoliciesPage() {
           tableId="leave-allocations"
           exportFileName="leave-allocations"
           onEdit={(row) => {
-            if (Number(row.docstatus) !== 0) { toast({ title: 'لا يمكن تعديل مستند معتمد', variant: 'destructive' }); return; }
+            if (Number(row.docstatus) !== 0) { toast.error('لا يمكن تعديل مستند معتمد'); return; }
             openAllocDialog(row);
           }}
           onDelete={(row) => { if (Number(row.docstatus) === 0) setDeleteTarget({ type: 'allocation', name: row.name }); }}

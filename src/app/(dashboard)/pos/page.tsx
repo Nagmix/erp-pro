@@ -1,10 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BarChart3, History, ShoppingCart, CalendarClock, Receipt, Settings2, Undo2, Info } from 'lucide-react';
+import { BarChart3, History, ShoppingCart, CalendarClock, Receipt, Settings2, Undo2, Info, ChevronDown } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
+import { cn } from '@/lib/utils';
 
 const tiles = [
   {
@@ -52,6 +53,8 @@ const tiles = [
 ] as const;
 
 export default function PosHubPage() {
+  const [infoOpen, setInfoOpen] = useState(false);
+
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
       <PageHeader
@@ -62,15 +65,22 @@ export default function PosHubPage() {
         breadcrumbs={[{ label: 'نقاط البيع' }]}
       />
 
-      <Alert className="border-border/60 bg-muted/20 max-w-3xl">
-        <Info className="h-4 w-4" />
-        <AlertTitle>مبدأ العمل</AlertTitle>
-        <AlertDescription className="text-sm leading-relaxed">
+      <button
+        type="button"
+        onClick={() => setInfoOpen((v) => !v)}
+        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors max-w-3xl"
+      >
+        <Info className="h-3.5 w-3.5" />
+        <span className="font-medium">مبدأ العمل</span>
+        <ChevronDown className={cn('h-3 w-3 transition-transform', infoOpen && 'rotate-180')} />
+      </button>
+      {infoOpen && (
+        <div className="rounded-lg border border-border/60 bg-muted/20 p-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
           البيع يتم عبر فاتورة نقطة البيع ضمن وردية مفتوحة؛ تُجمّع القيود المحاسبية الرئيسية عند{' '}
-          <strong>إغلاق الوردية</strong> (إدخال إغلاق نقطة البيع) بحسب إعدادات النظام، وليس مع كل فاتورة
+          <strong className="text-foreground">إغلاق الوردية</strong> (إدخال إغلاق نقطة البيع) بحسب إعدادات النظام، وليس مع كل فاتورة
           على حدة.
-        </AlertDescription>
-      </Alert>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         {tiles.map(({ href, title, description, icon: Icon }) => (

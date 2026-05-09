@@ -41,7 +41,7 @@ import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/clie
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { apiUpdateDoc } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -114,8 +114,6 @@ export default function RecurringEntriesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selected, setSelected] = useState<AutoRepeatRow | null>(null);
   const [togglingKey, setTogglingKey] = useState<string | null>(null);
-
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
 
   // ── Data fetching ──
@@ -163,13 +161,13 @@ export default function RecurringEntriesPage() {
         repeat_count: formData.repeat_count && formData.repeat_count > 0 ? formData.repeat_count : undefined,
       };
       await createMutation.mutateAsync(doc);
-      toast({ title: 'تم إنشاء القيد المتكرر بنجاح' });
+      toast.success('تم إنشاء القيد المتكرر بنجاح');
       setCreateDialogOpen(false);
       form.reset();
       void refetch();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء إنشاء القيد المتكرر', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء إنشاء القيد المتكرر', { description: msg });
     }
   };
 
@@ -177,11 +175,11 @@ export default function RecurringEntriesPage() {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف القيد المتكرر بنجاح' });
+        toast.success('تم حذف القيد المتكرر بنجاح');
         setDeleteDialogOpen(false);
         setSelected(null);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' }),
+      onError: () => toast.error('حدث خطأ أثناء الحذف'),
     });
   };
 
@@ -190,13 +188,11 @@ export default function RecurringEntriesPage() {
     try {
       const newStatus = row.status === 'Active' ? 'Disabled' : 'Active';
       await apiUpdateDoc('Auto Repeat', row.name, { status: newStatus });
-      toast({
-        title: newStatus === 'Active' ? 'تم تفعيل القيد المتكرر' : 'تم تعطيل القيد المتكرر',
-      });
+      toast.success(newStatus === 'Active' ? 'تم تفعيل القيد المتكرر' : 'تم تعطيل القيد المتكرر');
       void refetch();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء تبديل الحالة', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء تبديل الحالة', { description: msg });
     } finally {
       setTogglingKey(null);
     }

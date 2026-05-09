@@ -479,7 +479,7 @@ export default function PosSetupWizardPage() {
         actions={
           <Button variant="outline" size="sm" asChild>
             <Link href="/pos/settings">
-              <Settings2 className="h-4 w-4 ml-1.5" />
+              <Settings2 className="h-4 w-4 ms-1.5" />
               الإعدادات المتقدمة
             </Link>
           </Button>
@@ -623,7 +623,7 @@ export default function PosSetupWizardPage() {
           <div className="flex items-center justify-between">
             <Button variant="outline" asChild>
               <Link href="/pos">
-                <ArrowRight className="h-4 w-4 ml-1.5" />
+                <ArrowRight className="h-4 w-4 ms-1.5" />
                 رجوع لنقاط البيع
               </Link>
             </Button>

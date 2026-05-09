@@ -27,7 +27,7 @@ import {
   Repeat,
   Filter,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 type AutoRepeatRow = {
   name: string;
@@ -75,7 +75,6 @@ const STATUS_AR: Record<string, string> = {
 
 /** جدولة التكرار التلقائي — Auto Repeat في ERPNext (M-24). */
 export default function AutoRepeatPage() {
-  const { toast } = useToast();
   const [q, setQ] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [refDoctype, setRefDoctype] = useState<string>('Sales Invoice');
@@ -168,10 +167,10 @@ export default function AutoRepeatPage() {
       { name: row.name, doc: { disabled: newDisabled } },
       {
         onSuccess: () => {
-          toast({ title: newDisabled ? 'تم تعطيل الجدول' : 'تم تفعيل الجدول' });
+          toast.success(newDisabled ? 'تم تعطيل الجدول' : 'تم تفعيل الجدول');
           void refetch();
         },
-        onError: () => toast({ title: 'فشل تحديث الحالة', variant: 'destructive' }),
+        onError: () => toast.error('فشل تحديث الحالة'),
       }
     );
   };
@@ -272,7 +271,7 @@ export default function AutoRepeatPage() {
 
   const handleCreate = () => {
     if (!referenceName.trim()) {
-      toast({ title: 'يرجى إدخال اسم المستند المرجعي', variant: 'destructive' });
+      toast.error('يرجى إدخال اسم المستند المرجعي');
       return;
     }
     const doc: Record<string, unknown> = {
@@ -287,7 +286,7 @@ export default function AutoRepeatPage() {
     if (notifyByEmail) doc.notify_by_email = 1;
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء جدول تكرار' });
+        toast.success('تم إنشاء جدول تكرار');
         setDialogOpen(false);
         setReferenceName('');
         setEndDate('');
@@ -295,10 +294,7 @@ export default function AutoRepeatPage() {
         void refetch();
       },
       onError: () =>
-        toast({
-          title: 'فشل الإنشاء — قد يتطلب النظام حقولاً إضافية أو مرجع مستند',
-          variant: 'destructive',
-        }),
+        toast.error('فشل الإنشاء — قد يتطلب النظام حقولاً إضافية أو مرجع مستند'),
     });
   };
 

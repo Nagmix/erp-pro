@@ -27,7 +27,7 @@ import type { POSCustomerInfoResponse } from '@/lib/core/types';
 import { buildCustomerCreate } from '@/lib/erp/erpnext-payloads';
 import { useCreateDoc } from '@/lib/client/hooks';
 import { usePosSetCustomerInfo, type PosSetCustomerInfoField } from '@/lib/client/pos-hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 type Props = {
   customer: string;
@@ -47,7 +47,6 @@ export function PosCustomerSelector({
   customerInfoError,
   profileDefaultCustomer,
 }: Props) {
-  const { toast } = useToast();
   const createMut = useCreateDoc<{ name?: string }>('Customer');
   const setCustomerMut = usePosSetCustomerInfo();
   const [quickOpen, setQuickOpen] = useState(false);
@@ -101,28 +100,20 @@ export function PosCustomerSelector({
     }
     try {
       await setCustomerMut.mutateAsync(updates);
-      toast({ title: 'تم تحديث بيانات العميل' });
+      toast.success('تم تحديث بيانات العميل');
       setEditOpen(false);
     } catch (e) {
-      toast({
-        title: 'فشل التحديث',
-        description: e instanceof Error ? e.message : undefined,
-        variant: 'destructive',
-      });
+      toast.error('فشل التحديث', { description: e instanceof Error ? e.message : undefined });
     }
   };
 
   const handleQuickCreate = async () => {
     if (!form.customer_name.trim()) {
-      toast({ title: 'أدخل اسم العميل', variant: 'destructive' });
+      toast.error('أدخل اسم العميل');
       return;
     }
     if (!form.customer_group.trim() || !form.territory.trim()) {
-      toast({
-        title: 'بيانات ناقصة',
-        description: 'اختر مجموعة العملاء والمنطقة',
-        variant: 'destructive',
-      });
+      toast.error('بيانات ناقصة', { description: 'اختر مجموعة العملاء والمنطقة' });
       return;
     }
     try {
@@ -140,7 +131,7 @@ export function PosCustomerSelector({
           : '';
       if (name) {
         onCustomerChange(name);
-        toast({ title: 'تم إنشاء العميل', description: name });
+        toast.success('تم إنشاء العميل', { description: name });
         setQuickOpen(false);
         setForm({
           customer_name: '',
@@ -150,14 +141,10 @@ export function PosCustomerSelector({
           mobile_no: '',
         });
       } else {
-        toast({ title: 'أُنشئ العميل لكن لم يُرجع الاسم', variant: 'destructive' });
+        toast.error('أُنشئ العميل لكن لم يُرجع الاسم');
       }
     } catch (e) {
-      toast({
-        title: 'فشل الإنشاء',
-        description: e instanceof Error ? e.message : undefined,
-        variant: 'destructive',
-      });
+      toast.error('فشل الإنشاء', { description: e instanceof Error ? e.message : undefined });
     }
   };
 

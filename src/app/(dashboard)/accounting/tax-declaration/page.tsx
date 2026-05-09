@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { useDocList } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatCurrency, formatDate } from '@/lib/app-format';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -155,7 +155,6 @@ async function deleteWithholdingAPI(id: string): Promise<void> {
 }
 
 export default function TaxDeclarationPage() {
-  const { toast } = useToast();
   const { company } = useDefaultCompanyName();
   const queryClient = useQueryClient();
 
@@ -354,10 +353,10 @@ export default function TaxDeclarationPage() {
     }, {
       onSuccess: () => {
         setDeclDialog(false);
-        toast({ title: 'تم إنشاء الإقرار الضريبي' });
+        toast.success('تم إنشاء الإقرار الضريبي');
       },
       onError: (err) => {
-        toast({ title: 'خطأ', description: err.message, variant: 'destructive' });
+        toast.error('خطأ', { description: err.message });
       },
     });
   };
@@ -368,10 +367,10 @@ export default function TaxDeclarationPage() {
       status: 'مقدّم',
     }, {
       onSuccess: () => {
-        toast({ title: `تم تقديم الإقرار ${decl.quarter}-${decl.year}` });
+        toast.success(`تم تقديم الإقرار ${decl.quarter}-${decl.year}`);
       },
       onError: (err) => {
-        toast({ title: 'خطأ', description: err.message, variant: 'destructive' });
+        toast.error('خطأ', { description: err.message });
       },
     });
   };
@@ -413,7 +412,7 @@ export default function TaxDeclarationPage() {
 
   const saveWithholding = () => {
     if (!whForm.supplier?.trim() || !whForm.amount) {
-      toast({ title: 'أدخل اسم المورد والمبلغ', variant: 'destructive' });
+      toast.error('أدخل اسم المورد والمبلغ');
       return;
     }
     const amt = Number(whForm.amount) || 0;
@@ -428,10 +427,10 @@ export default function TaxDeclarationPage() {
     }, {
       onSuccess: () => {
         setWhDialog(false);
-        toast({ title: 'تم إنشاء سجل ضريبة الاستقطاع' });
+        toast.success('تم إنشاء سجل ضريبة الاستقطاع');
       },
       onError: (err) => {
-        toast({ title: 'خطأ', description: err.message, variant: 'destructive' });
+        toast.error('خطأ', { description: err.message });
       },
     });
   };
@@ -442,10 +441,10 @@ export default function TaxDeclarationPage() {
       onSuccess: () => {
         setWhDeleteOpen(false);
         setWhToDelete(null);
-        toast({ title: 'تم حذف سجل ضريبة الاستقطاع' });
+        toast.success('تم حذف سجل ضريبة الاستقطاع');
       },
       onError: (err) => {
-        toast({ title: 'خطأ', description: err.message, variant: 'destructive' });
+        toast.error('خطأ', { description: err.message });
       },
     });
   };

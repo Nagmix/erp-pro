@@ -30,7 +30,7 @@ import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildPurchaseInvoice } from '@/lib/erp/erpnext-payloads';
 import { parseSalesInvoiceImportXlsx } from '@/lib/erp/parse-sales-invoice-import-xlsx';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -98,7 +98,6 @@ function resetCreateForm(
 }
 
 export default function PurchasesPurchaseInvoicesPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
@@ -192,7 +191,7 @@ export default function PurchasesPurchaseInvoicesPage() {
     try {
       const rows = await parseSalesInvoiceImportXlsx(buffer);
       if (!rows.length) {
-        toast({ title: 'لم يُستخرج أي بند من Excel — عناوين: صنف، وصف، كمية، سعر، مستودع', variant: 'destructive' });
+        toast.error('لم يُستخرج أي بند من Excel — عناوين: صنف، وصف، كمية، سعر، مستودع');
         return;
       }
       setLines(
@@ -203,31 +202,31 @@ export default function PurchasesPurchaseInvoicesPage() {
           rate: r.rate,
           warehouse: r.warehouse || ''}))
       );
-      toast({ title: `تم استيراد ${rows.length} بنداً من Excel` });
+      toast.success(`تم استيراد ${rows.length} بنداً من Excel`);
     } catch {
-      toast({ title: 'تعذّر قراءة ملف Excel', variant: 'destructive' });
+      toast.error('تعذّر قراءة ملف Excel');
     }
   };
 
   const handleCreate = () => {
     if (!company || !supplier) {
-      toast({ title: 'الشركة والمورد مطلوبان', variant: 'destructive' });
+      toast.error('الشركة والمورد مطلوبان');
       return;
     }
     if (!costCenter) {
-      toast({ title: 'مركز التكلفة مطلوب', variant: 'destructive' });
+      toast.error('مركز التكلفة مطلوب');
       return;
     }
     if (dueDate < postingDate) {
-      toast({ title: 'الاستحقاق لا يسبق تاريخ الفاتورة', variant: 'destructive' });
+      toast.error('الاستحقاق لا يسبق تاريخ الفاتورة');
       return;
     }
     if (lines.every((l) => !l.item_code)) {
-      toast({ title: 'أضف بنوداً', variant: 'destructive' });
+      toast.error('أضف بنوداً');
       return;
     }
     if (lines.some((l) => l.item_code && !l.warehouse)) {
-      toast({ title: 'مستودع لكل بند', variant: 'destructive' });
+      toast.error('مستودع لكل بند');
       return;
     }
     const doc = buildPurchaseInvoice({
@@ -253,7 +252,7 @@ export default function PurchasesPurchaseInvoicesPage() {
           warehouse: l.warehouse}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء فاتورة الشراء' });
+        toast.success('تم إنشاء فاتورة الشراء');
         setDialogOpen(false);
         resetCreateForm(
           setSupplier,
@@ -270,7 +269,7 @@ export default function PurchasesPurchaseInvoicesPage() {
         );
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' })});
+      onError: () => toast.error('تعذر الحفظ')});
   };
 
   const columns: Column<InvRow>[] = useMemo(
@@ -302,10 +301,10 @@ export default function PurchasesPurchaseInvoicesPage() {
                 onClick={() =>
                   submitMutation.mutate(row.name, {
                     onSuccess: () => {
-                      toast({ title: 'تم الترحيل' });
+                      toast.success('تم الترحيل');
                       void refetch();
                     },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                    onError: () => toast.error('تعذر الترحيل')})
                 }
               >
                 <Send className="h-3 w-3" />
@@ -323,10 +322,10 @@ export default function PurchasesPurchaseInvoicesPage() {
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => {
-                      toast({ title: 'أُلغي' });
+                      toast.success('أُلغي');
                       void refetch();
                     },
-                    onError: () => toast({ title: 'تعذر', variant: 'destructive' })})
+                    onError: () => toast.error('تعذر')})
                 }
               >
                 <Undo2 className="h-3 w-3" />
@@ -492,11 +491,11 @@ export default function PurchasesPurchaseInvoicesPage() {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
                   onSuccess: () => {
-                    toast({ title: 'تم الحذف' });
+                    toast.success('تم الحذف');
                     setDeleteName(null);
                     void refetch();
                   },
-                  onError: () => toast({ title: 'تعذر الحذف', variant: 'destructive' })});
+                  onError: () => toast.error('تعذر الحذف')});
               }}
             >
               حذف

@@ -78,6 +78,7 @@ import {
   Award,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { CHART_PALETTE } from '@/lib/core/helpers';
 
 /* ──────────────────── types ──────────────────── */
 interface MonthlySalesData {
@@ -122,22 +123,19 @@ const ARABIC_MONTHS = [
   'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
 ];
 
-const PIE_COLORS = [
-  '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4',
-  '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16',
-];
+// PIE_COLORS removed — using CHART_PALETTE.pie from helpers
 
 const dailyChartConfig: ChartConfig = {
-  amount: { label: 'مبيعات الشهر الحالي', color: '#10b981' },
-  prevAmount: { label: 'مبيعات الشهر السابق', color: '#94a3b8' },
+  amount: { label: 'مبيعات الشهر الحالي', color: 'hsl(var(--chart-1))' },
+  prevAmount: { label: 'مبيعات الشهر السابق', color: 'hsl(var(--chart-5))' },
 };
 
 const weeklyChartConfig: ChartConfig = {
-  total: { label: 'إجمالي الأسبوع', color: '#8b5cf6' },
+  total: { label: 'إجمالي الأسبوع', color: 'hsl(var(--chart-2))' },
 };
 
 const categoryChartConfig: ChartConfig = {
-  amount: { label: 'المبيعات', color: '#10b981' },
+  amount: { label: 'المبيعات', color: 'hsl(var(--chart-1))' },
 };
 
 /* ─── Year options ─── */
@@ -455,7 +453,7 @@ export default function MonthlySalesReportPage() {
                   <Line
                     type="monotone"
                     dataKey="amount"
-                    stroke="#10b981"
+                    stroke={CHART_PALETTE.primary}
                     strokeWidth={2}
                     dot={false}
                     activeDot={{ r: 4 }}
@@ -463,7 +461,7 @@ export default function MonthlySalesReportPage() {
                   <Line
                     type="monotone"
                     dataKey="prevAmount"
-                    stroke="#94a3b8"
+                    stroke={CHART_PALETTE.quinary}
                     strokeWidth={1.5}
                     strokeDasharray="5 5"
                     dot={false}
@@ -503,7 +501,7 @@ export default function MonthlySalesReportPage() {
                     />
                     <Bar dataKey="total" radius={[6, 6, 0, 0]} maxBarSize={50}>
                       {data.weeklyComparison.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} opacity={0.85} />
+                        <Cell key={`cell-${index}`} fill={CHART_PALETTE.pie[index % CHART_PALETTE.pie.length]} opacity={0.85} />
                       ))}
                     </Bar>
                   </BarChart>
@@ -533,7 +531,7 @@ export default function MonthlySalesReportPage() {
                       paddingAngle={3}
                     >
                       {data.categorySales.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        <Cell key={`cell-${index}`} fill={CHART_PALETTE.pie[index % CHART_PALETTE.pie.length]} />
                       ))}
                     </Pie>
                     <RechartsTooltip
@@ -550,7 +548,7 @@ export default function MonthlySalesReportPage() {
                         <div className="flex items-center gap-2">
                           <div
                             className="h-3 w-3 rounded-sm"
-                            style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
+                            style={{ backgroundColor: CHART_PALETTE.pie[idx % CHART_PALETTE.pie.length] }}
                           />
                           <span className="text-muted-foreground">{cat.category}</span>
                         </div>
@@ -582,8 +580,8 @@ export default function MonthlySalesReportPage() {
                       <TableHead className="w-12 text-center">#</TableHead>
                       <TableHead>العميل</TableHead>
                       <TableHead>الكود</TableHead>
-                      <TableHead className="text-left">إجمالي المبيعات</TableHead>
-                      <TableHead className="text-left">النسبة</TableHead>
+                      <TableHead>إجمالي المبيعات</TableHead>
+                      <TableHead>النسبة</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

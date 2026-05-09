@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatDate } from '@/lib/app-format';
 import { useDocList, useDoc, useUpdateDoc } from '@/lib/client/hooks';
 import {
@@ -70,8 +70,6 @@ function asBool(v: number | boolean | undefined): boolean {
 }
 
 export default function EcommerceIntegrationPage() {
-  const { toast } = useToast();
-
   /* ─── State ─── */
   const [testing, setTesting] = useState(false);
   const [activeTab, setActiveTab] = useState('settings');
@@ -140,9 +138,9 @@ export default function EcommerceIntegrationPage() {
       {
         onSuccess: () => {
           setOverrides({});
-          toast({ title: 'تم حفظ إعدادات التجارة الإلكترونية' });
+          toast.success('تم حفظ إعدادات التجارة الإلكترونية');
         },
-        onError: () => toast({ title: 'فشل حفظ الإعدادات', variant: 'destructive' }),
+        onError: () => toast.error('فشل حفظ الإعدادات'),
       }
     );
   };
@@ -153,9 +151,9 @@ export default function EcommerceIntegrationPage() {
     await new Promise((r) => setTimeout(r, 1500));
     try {
       await settingsQuery.refetch();
-      toast({ title: 'تم الاتصال بنجاح بخدمة التجارة الإلكترونية' });
+      toast.success('تم الاتصال بنجاح بخدمة التجارة الإلكترونية');
     } catch {
-      toast({ title: 'فشل الاتصال', variant: 'destructive' });
+      toast.error('فشل الاتصال');
     }
     setTesting(false);
   };

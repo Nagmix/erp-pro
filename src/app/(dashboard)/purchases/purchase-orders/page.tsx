@@ -30,7 +30,7 @@ import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildPurchaseOrder, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -79,7 +79,6 @@ export default function PurchasesPurchaseOrdersPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); };
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const { branch, setBranch, branchFilters, branchesEnabled } = useBranchScope();
 
@@ -121,19 +120,19 @@ export default function PurchasesPurchaseOrdersPage() {
 
   const handleCreate = () => {
     if (!supplier) {
-      toast({ title: 'اختر المورد', variant: 'destructive' });
+      toast.error('اختر المورد');
       return;
     }
     if (!company) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (lines.some((l) => l.item_code && !l.warehouse)) {
-      toast({ title: 'مستودع لكل بند', variant: 'destructive' });
+      toast.error('مستودع لكل بند');
       return;
     }
     if (lines.every((l) => !l.item_code)) {
-      toast({ title: 'أضف صنفاً', variant: 'destructive' });
+      toast.error('أضف صنفاً');
       return;
     }
     const doc = buildPurchaseOrder({
@@ -154,7 +153,7 @@ export default function PurchasesPurchaseOrdersPage() {
           warehouse: l.warehouse}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء أمر الشراء' });
+        toast.success('تم إنشاء أمر الشراء');
         setDialogOpen(false);
         setLines([emptyLine()]);
         setSupplier('');
@@ -163,7 +162,7 @@ export default function PurchasesPurchaseOrdersPage() {
         setConversionRate(1);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' })});
+      onError: () => toast.error('تعذر الحفظ')});
   };
 
   const mapFromPo = async (
@@ -177,11 +176,11 @@ export default function PurchasesPurchaseOrdersPage() {
       if (!mapped) throw new Error('لا استجابة من التحويل');
       const body = prepareFrappeDocForCreate(mapped);
       await apiCreateDoc(targetDoctype, body);
-      toast({ title: targetDoctype === 'Purchase Receipt' ? 'تم إنشاء إيصال استلام' : 'تم إنشاء فاتورة شراء' });
+      toast.success(targetDoctype === 'Purchase Receipt' ? 'تم إنشاء إيصال استلام' : 'تم إنشاء فاتورة شراء');
       void queryClient.invalidateQueries({ queryKey: ['docList', targetDoctype] });
       void refetch();
     } catch (e) {
-      toast({ title: (e as Error).message || 'تعذر التحويل', variant: 'destructive' });
+      toast.error((e as Error).message || 'تعذر التحويل');
     } finally {
       setMapping(null);
     }
@@ -231,8 +230,8 @@ export default function PurchasesPurchaseOrdersPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                    onError: () => toast.error('تعذر الترحيل')})
                 }
               >
                 <Send className="h-3 w-3" />
@@ -249,8 +248,8 @@ export default function PurchasesPurchaseOrdersPage() {
                 className="h-7 text-[10px] gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'أُلغي' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('أُلغي'); void refetch(); },
+                    onError: () => toast.error('تعذر')})
                 }
               >
                 <Undo2 className="h-3 w-3" />

@@ -43,7 +43,7 @@ import {
   Receipt,
   ExternalLink,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDocList, useCreateDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { formatCurrency } from '@/lib/app-format';
 import { buildModeOfPaymentCreate } from '@/lib/erp/erpnext-payloads';
@@ -96,7 +96,6 @@ const typeColorsAr: Record<string, string> = {
 const emptyForm = { name: '', type: 'Cash' as string, enabled: true };
 
 export default function PaymentIntegrationPage() {
-  const { toast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [gatewayDialogOpen, setGatewayDialogOpen] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
@@ -143,7 +142,7 @@ export default function PaymentIntegrationPage() {
   /* ──── Handlers ──── */
   const handleCreateMethod = async () => {
     if (!formData.name.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم طريقة الدفع', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال اسم طريقة الدفع' });
       return;
     }
     try {
@@ -153,12 +152,12 @@ export default function PaymentIntegrationPage() {
         enabled: formData.enabled,
       });
       await createMethodMutation.mutateAsync(doc);
-      toast({ title: 'تم بنجاح', description: 'تم إضافة طريقة الدفع بنجاح' });
+      toast.success('تم بنجاح', { description: 'تم إضافة طريقة الدفع بنجاح' });
       setDialogOpen(false);
       setFormData(emptyForm);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ', description: msg, variant: 'destructive' });
+      toast.error('خطأ', { description: msg });
     }
   };
 
@@ -166,28 +165,28 @@ export default function PaymentIntegrationPage() {
     try {
       const newVal = Boolean(row.enabled) ? 0 : 1;
       await updateMethodMutation.mutateAsync({ name: row.name, doc: { enabled: newVal } });
-      toast({ title: 'تم بنجاح', description: Boolean(row.enabled) ? 'تم تعطيل طريقة الدفع' : 'تم تفعيل طريقة الدفع' });
+      toast.success('تم بنجاح', { description: Boolean(row.enabled) ? 'تم تعطيل طريقة الدفع' : 'تم تفعيل طريقة الدفع' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ', description: msg, variant: 'destructive' });
+      toast.error('خطأ', { description: msg });
     }
   };
 
   const handleCreateGateway = async () => {
     if (!gatewayForm.name.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم البوابة', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال اسم البوابة' });
       return;
     }
     try {
       await createGatewayMutation.mutateAsync({
         gateway: gatewayForm.name.trim(),
       });
-      toast({ title: 'تم بنجاح', description: 'تم إضافة بوابة الدفع' });
+      toast.success('تم بنجاح', { description: 'تم إضافة بوابة الدفع' });
       setGatewayDialogOpen(false);
       setGatewayForm({ name: '', url: '', apiKey: '', merchantId: '' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ', description: msg, variant: 'destructive' });
+      toast.error('خطأ', { description: msg });
     }
   };
 
@@ -197,7 +196,7 @@ export default function PaymentIntegrationPage() {
     setTimeout(() => {
       setGatewayStatuses(prev => ({ ...prev, [gwName]: 'connected' }));
       setTestLoading(null);
-      toast({ title: 'نجح الاتصال', description: `تم الاتصال ببوابة ${gwName} بنجاح` });
+      toast.success('نجح الاتصال', { description: `تم الاتصال ببوابة ${gwName} بنجاح` });
     }, 1500);
   };
 
@@ -441,8 +440,8 @@ export default function PaymentIntegrationPage() {
               لا توجد معاملات مالية هذا الشهر
             </div>
           ) : (
-            <div className="border rounded-lg overflow-hidden">
-              <div className="bg-muted/50 px-4 py-2.5 grid grid-cols-5 gap-2 text-xs font-semibold">
+            <div className="border rounded-lg overflow-x-auto">
+              <div className="bg-muted/50 px-4 py-2.5 grid grid-cols-5 gap-2 text-xs font-semibold min-w-[500px]">
                 <div>المعرف</div>
                 <div>النوع</div>
                 <div>التاريخ</div>
@@ -454,7 +453,7 @@ export default function PaymentIntegrationPage() {
                   const statusLabel = e.docstatus === 0 ? 'مسودة' : e.docstatus === 1 ? 'مُقدّم' : 'ملغي';
                   const statusColor = e.docstatus === 0 ? 'bg-secondary text-secondary-foreground' : e.docstatus === 1 ? 'bg-emerald-500/10 text-emerald-600' : 'bg-rose-500/10 text-rose-600';
                   return (
-                    <div key={e.name} className="px-4 py-3 grid grid-cols-5 gap-2 items-center border-b last:border-b-0 hover:bg-muted/20 transition-colors">
+                    <div key={e.name} className="px-4 py-3 grid grid-cols-5 gap-2 items-center border-b last:border-b-0 hover:bg-muted/20 transition-colors min-w-[500px]">
                       <span className="font-mono text-[10px] text-muted-foreground truncate">{e.name}</span>
                       <span className="text-xs">{e.payment_type === 'Receive' ? 'قبض' : e.payment_type === 'Pay' ? 'صرف' : 'تحويل داخلي'}</span>
                       <span className="text-xs text-muted-foreground">{e.posting_date}</span>
@@ -513,7 +512,7 @@ export default function PaymentIntegrationPage() {
                   {
                     step: 4,
                     title: 'اختبار المعاملات',
-                    desc: 'قم بإنشاء مدفوعات تجريبية للتأكد من عمل النظام بشكل صحيح',
+                    desc: 'قم بإنشاء مدفوعات اختبارية للتأكد من عمل النظام بشكل صحيح',
                     link: '/accounting/payment-entry',
                     linkLabel: 'سندات القبض والصرف',
                     icon: CheckCircle2,
@@ -601,11 +600,11 @@ export default function PaymentIntegrationPage() {
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium">مفتاح API</Label>
-              <Input dir="ltr" type="password" placeholder="API Key" value={gatewayForm.apiKey} onChange={e => setGatewayForm(prev => ({ ...prev, apiKey: e.target.value }))} />
+              <Input dir="ltr" type="password" placeholder="مفتاح الواجهة البرمجية" value={gatewayForm.apiKey} onChange={e => setGatewayForm(prev => ({ ...prev, apiKey: e.target.value }))} />
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium">معرّف التاجر</Label>
-              <Input dir="ltr" placeholder="Merchant ID" value={gatewayForm.merchantId} onChange={e => setGatewayForm(prev => ({ ...prev, merchantId: e.target.value }))} />
+              <Input dir="ltr" placeholder="معرف التاجر" value={gatewayForm.merchantId} onChange={e => setGatewayForm(prev => ({ ...prev, merchantId: e.target.value }))} />
             </div>
             <Button className="w-full" onClick={handleCreateGateway} disabled={createGatewayMutation.isPending}>
               {createGatewayMutation.isPending ? <><Loader2 className="h-4 w-4 animate-spin ms-2" /> جاري الحفظ...</> : 'حفظ البوابة'}

@@ -45,7 +45,7 @@ import {
   useDeleteDoc,
 } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildSupplierQuotation } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -94,7 +94,6 @@ const emptyLine = (): Line => ({
 });
 
 export default function SupplierQuotationsPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
@@ -154,11 +153,11 @@ export default function SupplierQuotationsPage() {
 
   const handleCreate = () => {
     if (!company || !supplier) {
-      toast({ title: 'الشركة والمورد مطلوبان', variant: 'destructive' });
+      toast.error('الشركة والمورد مطلوبان');
       return;
     }
     if (lines.every((l) => !l.item_code)) {
-      toast({ title: 'أضف بنوداً', variant: 'destructive' });
+      toast.error('أضف بنوداً');
       return;
     }
     const doc = buildSupplierQuotation({
@@ -177,14 +176,14 @@ export default function SupplierQuotationsPage() {
     });
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء عرض السعر' });
+        toast.success('تم إنشاء عرض السعر');
         setDialogOpen(false);
         setSupplier('');
         setLines([emptyLine()]);
         void refetch();
       },
       onError: () =>
-        toast({ title: 'تعذر الحفظ', variant: 'destructive' }),
+        toast.error('تعذر الحفظ'),
     });
   };
 
@@ -254,14 +253,11 @@ export default function SupplierQuotationsPage() {
                 onClick={() =>
                   submitMutation.mutate(row.name, {
                     onSuccess: () => {
-                      toast({ title: 'تم الترحيل' });
+                      toast.success('تم الترحيل');
                       void refetch();
                     },
                     onError: () =>
-                      toast({
-                        title: 'تعذر الترحيل',
-                        variant: 'destructive',
-                      }),
+                      toast.error('تعذر الترحيل'),
                   })
                 }
               >
@@ -280,11 +276,11 @@ export default function SupplierQuotationsPage() {
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => {
-                      toast({ title: 'أُلغي' });
+                      toast.success('أُلغي');
                       void refetch();
                     },
                     onError: () =>
-                      toast({ title: 'تعذر', variant: 'destructive' }),
+                      toast.error('تعذر'),
                   })
                 }
               >
@@ -458,12 +454,12 @@ export default function SupplierQuotationsPage() {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {
                   onSuccess: () => {
-                    toast({ title: 'تم الحذف' });
+                    toast.success('تم الحذف');
                     setDeleteName(null);
                     void refetch();
                   },
                   onError: () =>
-                    toast({ title: 'تعذر الحذف', variant: 'destructive' }),
+                    toast.error('تعذر الحذف'),
                 });
               }}
             >

@@ -25,7 +25,7 @@ import { useDocList, useCreateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatDate, formatCurrency } from '@/lib/core/helpers';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Truck, Percent, Gift, CalendarClock, Sparkles, Users, RefreshCw, Plus, CreditCard, Package, Tag } from 'lucide-react';
 import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
@@ -96,8 +96,6 @@ const loyaltyCols: Column<GenericRow>[] = [
 ];
 
 export default function SalesIntegrationsPage() {
-  const { toast } = useToast();
-
   // ── Create Dialog States ──
   const [createDialogType, setCreateDialogType] = useState<'terms' | 'shipping' | null>(null);
   const [creating, setCreating] = useState(false);
@@ -163,7 +161,7 @@ export default function SalesIntegrationsPage() {
   // ── Create Handlers ──
   const handleCreatePT = async () => {
     if (!ptName.trim()) {
-      toast({ title: 'يرجى إدخال اسم القالب', variant: 'destructive' });
+      toast.error('يرجى إدخال اسم القالب');
       return;
     }
     setCreating(true);
@@ -172,13 +170,13 @@ export default function SalesIntegrationsPage() {
         template_name: ptName.trim(),
         terms: ptDueDate ? [{ payment_type: 'Basic', due_date_based_on: 'Day(s) after invoice date', credit_days: Number(ptDueDate) || 0 }] : [],
       });
-      toast({ title: 'تم إنشاء قالب شروط الدفع بنجاح' });
+      toast.success('تم إنشاء قالب شروط الدفع بنجاح');
       setCreateDialogType(null);
       setPtName('');
       setPtDueDate('');
       void pTerms.refetch();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء قالب شروط الدفع', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء قالب شروط الدفع', { description: String((e as Error).message || e) });
     } finally {
       setCreating(false);
     }
@@ -186,7 +184,7 @@ export default function SalesIntegrationsPage() {
 
   const handleCreateSR = async () => {
     if (!srName.trim()) {
-      toast({ title: 'يرجى إدخال اسم قاعدة الشحن', variant: 'destructive' });
+      toast.error('يرجى إدخال اسم قاعدة الشحن');
       return;
     }
     setCreating(true);
@@ -195,13 +193,13 @@ export default function SalesIntegrationsPage() {
         shipping_rule_name: srName.trim(),
         shipping_rule_type: srType,
       });
-      toast({ title: 'تم إنشاء قاعدة الشحن بنجاح' });
+      toast.success('تم إنشاء قاعدة الشحن بنجاح');
       setCreateDialogType(null);
       setSrName('');
       setSrType('Selling');
       void ship.refetch();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء قاعدة الشحن', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء قاعدة الشحن', { description: String((e as Error).message || e) });
     } finally {
       setCreating(false);
     }

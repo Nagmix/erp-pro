@@ -145,7 +145,7 @@ export default function ProductExtensionsSettingsPage() {
           <PageShell className="space-y-6">
             <div className="space-y-3 rounded-lg border border-border/40 p-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Salla</span>
+                <span className="text-sm font-semibold">سلة (Salla)</span>
                 <Switch
                   checked={data.ecommerce.salla.enabled}
                   onCheckedChange={(v) =>
@@ -154,7 +154,7 @@ export default function ProductExtensionsSettingsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">سر الـ Webhook</Label>
+                <Label className="text-xs">سر خطاف الويب</Label>
                 <Input
                   dir="ltr"
                   type="password"
@@ -168,7 +168,7 @@ export default function ProductExtensionsSettingsPage() {
             </div>
             <div className="space-y-3 rounded-lg border border-border/40 p-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Zid</span>
+                <span className="text-sm font-semibold">زيد (Zid)</span>
                 <Switch
                   checked={data.ecommerce.zid.enabled}
                   onCheckedChange={(v) =>
@@ -191,7 +191,7 @@ export default function ProductExtensionsSettingsPage() {
             </div>
             <div className="space-y-3 rounded-lg border border-border/40 p-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Shopify</span>
+                <span className="text-sm font-semibold">شوبفاي (Shopify)</span>
                 <Switch
                   checked={data.ecommerce.shopify.enabled}
                   onCheckedChange={(v) =>

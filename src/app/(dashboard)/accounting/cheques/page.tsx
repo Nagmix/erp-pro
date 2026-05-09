@@ -23,7 +23,7 @@ import { useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { CHEQUE_LIFECYCLE_FIELD, CHEQUE_LIFECYCLE_OPTIONS, chequeLifecycleLabel } from '@/lib/erp/cheque-lifecycle';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { translateAccountName } from '@/lib/core/arabic-labels';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -54,7 +54,6 @@ const BASE_FIELDS: string[] = [
 ];
 
 export default function ChequesPage() {
-  const { toast } = useToast();
   const qc = useQueryClient();
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [includeLifecycle, setIncludeLifecycle] = useState(false);
@@ -85,13 +84,11 @@ export default function ChequesPage() {
     onSuccess: (res) => {
       setIncludeLifecycle(true);
       void qc.invalidateQueries({ queryKey: ['docList', 'Payment Entry'] });
-      toast({
-        title: res.created ? 'تم إنشاء حقل دورة الشيك' : 'الحقل موجود مسبقاً',
-        description: res.insertAfter
+      toast.success(res.created ? 'تم إنشاء حقل دورة الشيك' : 'الحقل موجود مسبقاً', { description: res.insertAfter
           ? `يُدرج بعد "${res.insertAfter}"`
-          : undefined});
+          : undefined });
     },
-    onError: (e: Error) => toast({ title: 'تعذر إنشاء الحقل', description: e.message, variant: 'destructive' })});
+    onError: (e: Error) => toast.error('تعذر إنشاء الحقل', { description: e.message })});
 
   useEffect(() => {
     let cancelled = false;
@@ -158,10 +155,10 @@ export default function ChequesPage() {
         { name, doc: { [CHEQUE_LIFECYCLE_FIELD]: stage || null } },
         {
           onSuccess: () => {
-            toast({ title: 'تم تحديث مرحلة الشيك' });
+            toast.success('تم تحديث مرحلة الشيك');
             void qc.invalidateQueries({ queryKey: ['docList', 'Payment Entry'] });
           },
-          onError: () => toast({ title: 'فشل الحفظ', variant: 'destructive' })}
+          onError: () => toast.error('فشل الحفظ')}
       );
     },
     [qc, toast, updatePe]

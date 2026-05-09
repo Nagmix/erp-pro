@@ -21,7 +21,7 @@ import { ArrowRight, Info, Loader2, Plus, Store, Sun } from 'lucide-react';
 import { useCreateDoc, useDocList } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { buildShiftTypeCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 type ShiftTypeRow = { name: string; start_time?: string; end_time?: string };
 
@@ -83,7 +83,6 @@ const deviceColumns: Column<DeviceRow>[] = [
 ];
 
 export default function PosShiftsDevicesSettingsPage() {
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
   const [shiftDialog, setShiftDialog] = useState(false);
   const [form, setForm] = useState({ name: '', start_time: '08:00', end_time: '16:00' });
@@ -118,7 +117,7 @@ export default function PosShiftsDevicesSettingsPage() {
 
   const handleCreateShift = () => {
     if (!form.name.trim()) {
-      toast({ title: 'أدخل اسماً للوردية', variant: 'destructive' });
+      toast.error('أدخل اسماً للوردية');
       return;
     }
     const mapped = buildShiftTypeCreate({
@@ -128,17 +127,13 @@ export default function PosShiftsDevicesSettingsPage() {
     });
     createShift.mutate(prepareFrappeDocForCreate(mapped), {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء نوع الوردية' });
+        toast.success('تم إنشاء نوع الوردية');
         setShiftDialog(false);
         setForm({ name: '', start_time: '08:00', end_time: '16:00' });
         void refetchShifts();
       },
       onError: (e) => {
-        toast({
-          title: 'تعذر الإنشاء',
-          description: e instanceof Error ? e.message : undefined,
-          variant: 'destructive',
-        });
+        toast.error('تعذر الإنشاء', { description: e instanceof Error ? e.message : undefined });
       },
     });
   };

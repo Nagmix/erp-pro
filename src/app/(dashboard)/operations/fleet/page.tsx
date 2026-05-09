@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatCurrency, formatDate } from '@/lib/app-format';
 import {
   useDocList,
@@ -287,8 +287,6 @@ function Spinner() {
    Page Component
 ──────────────────────────────────────────── */
 export default function FleetManagementPage() {
-  const { toast } = useToast();
-
   /* ── React Query: Fetch vehicles ── */
   const vehiclesQuery = useDocList<Record<string, unknown>>(VEHICLE_DOCTYPE, {
     fields: VEHICLE_FIELDS,
@@ -528,7 +526,7 @@ export default function FleetManagementPage() {
   /* ── Save handlers (async with ERPNext mutations) ── */
   const handleSaveVehicle = useCallback(async () => {
     if (!vPlate.trim() || !vModel.trim()) {
-      toast({ title: 'خطأ', description: 'رقم اللوحة والموديل مطلوبان', variant: 'destructive' });
+      toast.error('خطأ', { description: 'رقم اللوحة والموديل مطلوبان' });
       return;
     }
     try {
@@ -552,18 +550,11 @@ export default function FleetManagementPage() {
       } else {
         await createVehicle.mutateAsync(body);
       }
-      toast({
-        title: 'تم الحفظ',
-        description: editingVehicle ? 'تم تحديث بيانات المركبة' : 'تمت إضافة المركبة بنجاح',
-      });
+      toast.success('تم الحفظ', { description: editingVehicle ? 'تم تحديث بيانات المركبة' : 'تمت إضافة المركبة بنجاح' });
       setVehicleDialogOpen(false);
       resetVehicleForm();
     } catch (err) {
-      toast({
-        title: 'خطأ',
-        description: err instanceof Error ? err.message : 'فشل حفظ بيانات المركبة',
-        variant: 'destructive',
-      });
+      toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل حفظ بيانات المركبة' });
     }
   }, [
     vPlate, vType, vModel, vYear, vColor, vDriver, vStatus, vMileage,
@@ -575,13 +566,9 @@ export default function FleetManagementPage() {
     async (vehicle: Vehicle) => {
       try {
         await deleteVehicle.mutateAsync(vehicle.id);
-        toast({ title: 'تم الحذف', description: `تم حذف المركبة ${vehicle.plateNumber}` });
+        toast.success('تم الحذف', { description: `تم حذف المركبة ${vehicle.plateNumber}` });
       } catch (err) {
-        toast({
-          title: 'خطأ',
-          description: err instanceof Error ? err.message : 'فشل حذف المركبة',
-          variant: 'destructive',
-        });
+        toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل حذف المركبة' });
       }
     },
     [toast, deleteVehicle],
@@ -589,7 +576,7 @@ export default function FleetManagementPage() {
 
   const handleSaveMaintenance = useCallback(async () => {
     if (!mVehicleId || !mDate) {
-      toast({ title: 'خطأ', description: 'المركبة والتاريخ مطلوبان', variant: 'destructive' });
+      toast.error('خطأ', { description: 'المركبة والتاريخ مطلوبان' });
       return;
     }
     try {
@@ -610,18 +597,11 @@ export default function FleetManagementPage() {
       } else {
         await createMaintenance.mutateAsync(body);
       }
-      toast({
-        title: 'تم الحفظ',
-        description: editingMaintenance ? 'تم تحديث سجل الصيانة' : 'تمت إضافة سجل الصيانة بنجاح',
-      });
+      toast.success('تم الحفظ', { description: editingMaintenance ? 'تم تحديث سجل الصيانة' : 'تمت إضافة سجل الصيانة بنجاح' });
       setMaintenanceDialogOpen(false);
       resetMaintenanceForm();
     } catch (err) {
-      toast({
-        title: 'خطأ',
-        description: err instanceof Error ? err.message : 'فشل حفظ سجل الصيانة',
-        variant: 'destructive',
-      });
+      toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل حفظ سجل الصيانة' });
     }
   }, [
     mVehicleId, mType, mDate, mCost, mWorkshop, mMileage, mStatus, mNotes,
@@ -632,13 +612,9 @@ export default function FleetManagementPage() {
     async (record: MaintenanceRecord) => {
       try {
         await deleteMaintenance.mutateAsync(record.id);
-        toast({ title: 'تم الحذف', description: 'تم حذف سجل الصيانة' });
+        toast.success('تم الحذف', { description: 'تم حذف سجل الصيانة' });
       } catch (err) {
-        toast({
-          title: 'خطأ',
-          description: err instanceof Error ? err.message : 'فشل حذف سجل الصيانة',
-          variant: 'destructive',
-        });
+        toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل حذف سجل الصيانة' });
       }
     },
     [toast, deleteMaintenance],
@@ -646,7 +622,7 @@ export default function FleetManagementPage() {
 
   const handleSaveFuel = useCallback(async () => {
     if (!fuVehicleId || !fuDate) {
-      toast({ title: 'خطأ', description: 'المركبة والتاريخ مطلوبان', variant: 'destructive' });
+      toast.error('خطأ', { description: 'المركبة والتاريخ مطلوبان' });
       return;
     }
     try {
@@ -666,18 +642,11 @@ export default function FleetManagementPage() {
       } else {
         await createFuel.mutateAsync(body);
       }
-      toast({
-        title: 'تم الحفظ',
-        description: editingFuel ? 'تم تحديث سجل الوقود' : 'تمت إضافة سجل الوقود بنجاح',
-      });
+      toast.success('تم الحفظ', { description: editingFuel ? 'تم تحديث سجل الوقود' : 'تمت إضافة سجل الوقود بنجاح' });
       setFuelDialogOpen(false);
       resetFuelForm();
     } catch (err) {
-      toast({
-        title: 'خطأ',
-        description: err instanceof Error ? err.message : 'فشل حفظ سجل الوقود',
-        variant: 'destructive',
-      });
+      toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل حفظ سجل الوقود' });
     }
   }, [
     fuVehicleId, fuDate, fuType, fuQuantity, fuCost, fuStation, fuMileage,
@@ -688,13 +657,9 @@ export default function FleetManagementPage() {
     async (record: FuelRecord) => {
       try {
         await deleteFuel.mutateAsync(record.id);
-        toast({ title: 'تم الحذف', description: 'تم حذف سجل الوقود' });
+        toast.success('تم الحذف', { description: 'تم حذف سجل الوقود' });
       } catch (err) {
-        toast({
-          title: 'خطأ',
-          description: err instanceof Error ? err.message : 'فشل حذف سجل الوقود',
-          variant: 'destructive',
-        });
+        toast.error('خطأ', { description: err instanceof Error ? err.message : 'فشل حذف سجل الوقود' });
       }
     },
     [toast, deleteFuel],
@@ -1006,7 +971,7 @@ export default function FleetManagementPage() {
 
       {/* ── Tabs ── */}
       <Tabs defaultValue="vehicles" dir="rtl" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="flex flex-wrap gap-1 w-full">
           <TabsTrigger value="vehicles" className="gap-1.5 text-xs">
             <Car className="h-3.5 w-3.5" />
             المركبات

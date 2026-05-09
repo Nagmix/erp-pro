@@ -42,7 +42,7 @@ import { Plus, Trash2, Filter, ChevronDown, X, FileText, Send, Ban } from 'lucid
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -109,8 +109,6 @@ export default function RentalContractsPage() {
   const [selected, setSelected] = useState<ContractRow | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
 
   // Data
@@ -294,12 +292,12 @@ export default function RentalContractsPage() {
         terms: formData.terms || undefined,
         company: defaultCo || undefined,
       } as unknown as Record<string, unknown>);
-      toast({ title: 'تم إنشاء عقد الإيجار بنجاح' });
+      toast.success('تم إنشاء عقد الإيجار بنجاح');
       setCreateDialogOpen(false);
       createForm.reset();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء الإنشاء', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء الإنشاء', { description: msg });
     }
   };
 
@@ -317,13 +315,13 @@ export default function RentalContractsPage() {
           terms: formData.terms || undefined,
         },
       });
-      toast({ title: 'تم تعديل عقد الإيجار بنجاح' });
+      toast.success('تم تعديل عقد الإيجار بنجاح');
       setEditDialogOpen(false);
       setSelected(null);
       editForm.reset();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء التعديل', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء التعديل', { description: msg });
     }
   };
 
@@ -331,11 +329,11 @@ export default function RentalContractsPage() {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف عقد الإيجار بنجاح' });
+        toast.success('تم حذف عقد الإيجار بنجاح');
         setDeleteDialogOpen(false);
         setSelected(null);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' }),
+      onError: () => toast.error('حدث خطأ أثناء الحذف'),
     });
   };
 
@@ -343,13 +341,13 @@ export default function RentalContractsPage() {
     if (!selected) return;
     submitMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم تأكيد العقد بنجاح' });
+        toast.success('تم تأكيد العقد بنجاح');
         setSubmitDialogOpen(false);
         setSelected(null);
       },
       onError: (e) => {
         const msg = e instanceof Error ? e.message : String(e);
-        toast({ title: 'حدث خطأ أثناء التأكيد', description: msg, variant: 'destructive' });
+        toast.error('حدث خطأ أثناء التأكيد', { description: msg });
         setSubmitDialogOpen(false);
       },
     });
@@ -359,13 +357,13 @@ export default function RentalContractsPage() {
     if (!selected) return;
     cancelMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم إلغاء العقد بنجاح' });
+        toast.success('تم إلغاء العقد بنجاح');
         setCancelDialogOpen(false);
         setSelected(null);
       },
       onError: (e) => {
         const msg = e instanceof Error ? e.message : String(e);
-        toast({ title: 'حدث خطأ أثناء الإلغاء', description: msg, variant: 'destructive' });
+        toast.error('حدث خطأ أثناء الإلغاء', { description: msg });
         setCancelDialogOpen(false);
       },
     });

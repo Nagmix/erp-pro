@@ -10,7 +10,7 @@ import { KpiCard } from '@/components/erp/kpi-card';
 import { KpiStrip } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ExportButton } from '@/components/erp/export-button';
-import { formatCurrency } from '@/lib/core/helpers';
+import { formatCurrency, CHART_PALETTE } from '@/lib/core/helpers';
 import { useDocList, useErpMethodCall } from '@/lib/client/hooks';
 import {
   ArrowUpLeft,
@@ -527,9 +527,9 @@ export default function CashFlowPage() {
                   formatter={(value: number) => formatCurrency(value)}
                 />
                 <Legend />
-                <Bar dataKey="operating" fill="#10b981" radius={[4, 4, 0, 0]} name="تشغيلية" />
-                <Bar dataKey="investing" fill="#3b82f6" radius={[4, 4, 0, 0]} name="استثمارية" />
-                <Bar dataKey="financing" fill="#8b5cf6" radius={[4, 4, 0, 0]} name="تمويلية" />
+                <Bar dataKey="operating" fill={CHART_PALETTE.primary} radius={[4, 4, 0, 0]} name="تشغيلية" />
+                <Bar dataKey="investing" fill={CHART_PALETTE.secondary} radius={[4, 4, 0, 0]} name="استثمارية" />
+                <Bar dataKey="financing" fill={CHART_PALETTE.quinary} radius={[4, 4, 0, 0]} name="تمويلية" />
               </BarChart>
             </ResponsiveContainer>
           )}

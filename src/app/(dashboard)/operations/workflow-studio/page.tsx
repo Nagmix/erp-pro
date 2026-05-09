@@ -51,7 +51,7 @@ import {
   Layers,
   ToggleLeft,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { apiGetDoc } from '@/lib/client/api';
 import { cn } from '@/lib/utils';
@@ -267,8 +267,6 @@ function WorkflowDiagram({
 // ─── Main Page ────────────────────────────────────────────────────
 
 export default function WorkflowStudioPage() {
-  const { toast } = useToast();
-
   // ── State for the create/edit form ──
   const [workflowName, setWorkflowName] = useState('');
   const [documentType, setDocumentType] = useState('');
@@ -373,7 +371,7 @@ export default function WorkflowStudioPage() {
       try {
         const doc = await apiGetDoc<Record<string, unknown>>('Workflow', row.name);
         if (!doc) {
-          toast({ title: 'لم يُعثر على سير العمل', variant: 'destructive' });
+          toast.error('لم يُعثر على سير العمل');
           return;
         }
 
@@ -406,7 +404,7 @@ export default function WorkflowStudioPage() {
 
         setEditDialogOpen(true);
       } catch {
-        toast({ title: 'فشل تحميل سير العمل', variant: 'destructive' });
+        toast.error('فشل تحميل سير العمل');
       }
     },
     [toast]
@@ -415,26 +413,26 @@ export default function WorkflowStudioPage() {
   // ── Save (create or update) ──
   const handleSave = useCallback(async () => {
     if (!workflowName.trim()) {
-      toast({ title: 'اسم سير العمل مطلوب', variant: 'destructive' });
+      toast.error('اسم سير العمل مطلوب');
       return;
     }
     if (!documentType.trim()) {
-      toast({ title: 'نوع المستند مطلوب', variant: 'destructive' });
+      toast.error('نوع المستند مطلوب');
       return;
     }
     if (formStates.length < 2) {
-      toast({ title: 'أدخل حالتين على الأقل', variant: 'destructive' });
+      toast.error('أدخل حالتين على الأقل');
       return;
     }
     for (const s of formStates) {
       if (!s.state.trim()) {
-        toast({ title: 'اسم الحالة مطلوب لكل صف', variant: 'destructive' });
+        toast.error('اسم الحالة مطلوب لكل صف');
         return;
       }
     }
     for (const t of formTransitions) {
       if (!t.state || !t.next_state || !t.action) {
-        toast({ title: 'أكمل كل تحول: الحالة المصدر، الحالة الهدف، الإجراء', variant: 'destructive' });
+        toast.error('أكمل كل تحول: الحالة المصدر، الحالة الهدف، الإجراء');
         return;
       }
     }
@@ -442,7 +440,7 @@ export default function WorkflowStudioPage() {
     // Check for duplicate state names
     const stateNameSet = new Set(formStates.map((s) => s.state.trim()));
     if (stateNameSet.size !== formStates.length) {
-      toast({ title: 'أسماء الحالات يجب أن تكون فريدة', variant: 'destructive' });
+      toast.error('أسماء الحالات يجب أن تكون فريدة');
       return;
     }
 
@@ -478,22 +476,18 @@ export default function WorkflowStudioPage() {
           name: editingName,
           doc: payload,
         });
-        toast({ title: 'تم تحديث سير العمل بنجاح' });
+        toast.success('تم تحديث سير العمل بنجاح');
         setEditDialogOpen(false);
       } else {
         await createMutation.mutateAsync(payload);
-        toast({ title: 'تم إنشاء سير العمل بنجاح' });
+        toast.success('تم إنشاء سير العمل بنجاح');
         setCreateDialogOpen(false);
       }
       resetForm();
       void refetch();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({
-        title: editingName ? 'فشل تحديث سير العمل' : 'فشل إنشاء سير العمل',
-        description: msg,
-        variant: 'destructive',
-      });
+      toast.error(editingName ? 'فشل تحديث سير العمل' : 'فشل إنشاء سير العمل', { description: msg });
     }
   }, [
     workflowName,
@@ -516,10 +510,10 @@ export default function WorkflowStudioPage() {
         { name: row.name, doc: { is_active: checked ? 1 : 0 } },
         {
           onSuccess: () => {
-            toast({ title: checked ? 'تم تفعيل سير العمل' : 'تم تعطيل سير العمل' });
+            toast.success(checked ? 'تم تفعيل سير العمل' : 'تم تعطيل سير العمل');
           },
           onError: () => {
-            toast({ title: 'تعذر تحديث حالة سير العمل', variant: 'destructive' });
+            toast.error('تعذر تحديث حالة سير العمل');
           },
         }
       );
@@ -537,12 +531,12 @@ export default function WorkflowStudioPage() {
     if (!selectedForDelete) return;
     deleteMutation.mutate(selectedForDelete, {
       onSuccess: () => {
-        toast({ title: 'تم حذف سير العمل بنجاح' });
+        toast.success('تم حذف سير العمل بنجاح');
         setDeleteDialogOpen(false);
         setSelectedForDelete(null);
       },
       onError: () => {
-        toast({ title: 'فشل حذف سير العمل', variant: 'destructive' });
+        toast.error('فشل حذف سير العمل');
       },
     });
   }, [selectedForDelete, deleteMutation, toast]);

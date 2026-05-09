@@ -35,7 +35,7 @@ import { Plus, Trash2, Filter, ChevronDown, X, Calendar, Send, Ban, CheckCircle2
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -101,8 +101,6 @@ export default function BookingsPage() {
   const [selected, setSelected] = useState<QuotationRow | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-
-  const { toast } = useToast();
   const { company: defaultCo } = useDefaultCompanyName();
 
   // Data
@@ -263,12 +261,12 @@ export default function BookingsPage() {
           : [],
       };
       await createMutation.mutateAsync(doc);
-      toast({ title: 'تم إنشاء أمر الحجز بنجاح' });
+      toast.success('تم إنشاء أمر الحجز بنجاح');
       setCreateDialogOpen(false);
       createForm.reset();
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'حدث خطأ أثناء الإنشاء', description: msg, variant: 'destructive' });
+      toast.error('حدث خطأ أثناء الإنشاء', { description: msg });
     }
   };
 
@@ -276,11 +274,11 @@ export default function BookingsPage() {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف أمر الحجز بنجاح' });
+        toast.success('تم حذف أمر الحجز بنجاح');
         setDeleteDialogOpen(false);
         setSelected(null);
       },
-      onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' }),
+      onError: () => toast.error('حدث خطأ أثناء الحذف'),
     });
   };
 
@@ -288,13 +286,13 @@ export default function BookingsPage() {
     if (!selected) return;
     submitMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم تأكيد أمر الحجز بنجاح' });
+        toast.success('تم تأكيد أمر الحجز بنجاح');
         setSubmitDialogOpen(false);
         setSelected(null);
       },
       onError: (e) => {
         const msg = e instanceof Error ? e.message : String(e);
-        toast({ title: 'حدث خطأ أثناء التأكيد', description: msg, variant: 'destructive' });
+        toast.error('حدث خطأ أثناء التأكيد', { description: msg });
         setSubmitDialogOpen(false);
       },
     });
@@ -304,13 +302,13 @@ export default function BookingsPage() {
     if (!selected) return;
     cancelMutation.mutate(selected.name, {
       onSuccess: () => {
-        toast({ title: 'تم إلغاء أمر الحجز بنجاح' });
+        toast.success('تم إلغاء أمر الحجز بنجاح');
         setCancelDialogOpen(false);
         setSelected(null);
       },
       onError: (e) => {
         const msg = e instanceof Error ? e.message : String(e);
-        toast({ title: 'حدث خطأ أثناء الإلغاء', description: msg, variant: 'destructive' });
+        toast.error('حدث خطأ أثناء الإلغاء', { description: msg });
         setCancelDialogOpen(false);
       },
     });

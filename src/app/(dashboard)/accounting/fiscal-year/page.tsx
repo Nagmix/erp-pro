@@ -8,7 +8,7 @@ import { useCreateDoc, useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,6 @@ type Row = {
 };
 
 export default function FiscalYearPage() {
-  const { toast } = useToast();
   const { company, isLoading: coLoad } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
@@ -95,12 +94,12 @@ export default function FiscalYearPage() {
       { name: selectedRow.name, doc: { disabled: 1 } },
       {
         onSuccess: () => {
-          toast({ title: 'تم إقفال السنة المالية بنجاح' });
+          toast.success('تم إقفال السنة المالية بنجاح');
           void refetch();
           setCloseConfirmOpen(false);
           setSelectedRow(null);
         },
-        onError: () => toast({ title: 'تعذر الإقفال — راجع الصلاحيات', variant: 'destructive' }),
+        onError: () => toast.error('تعذر الإقفال — راجع الصلاحيات'),
       }
     );
   };
@@ -116,12 +115,12 @@ export default function FiscalYearPage() {
       { name: selectedRow.name, doc: { disabled: 0 } },
       {
         onSuccess: () => {
-          toast({ title: 'أُعيد فتح السنة المالية' });
+          toast.success('أُعيد فتح السنة المالية');
           void refetch();
           setReopenConfirmOpen(false);
           setSelectedRow(null);
         },
-        onError: () => toast({ title: 'تعذر إعادة الفتح', variant: 'destructive' }),
+        onError: () => toast.error('تعذر إعادة الفتح'),
       }
     );
   };
@@ -198,12 +197,12 @@ export default function FiscalYearPage() {
   const onSubmit = (d: Form) => {
     createMutation.mutate(buildFiscalYear(d), {
       onSuccess: () => {
-        toast({ title: 'تم حفظ السنة المالية' });
+        toast.success('تم حفظ السنة المالية');
         void refetch();
         form.reset({ year: '', company: company || '', year_start_date: d.year_start_date, year_end_date: d.year_end_date });
         setDialogOpen(false);
       },
-      onError: () => toast({ title: 'تعذر حفظ السنة المالية، يرجى المحاولة مرة أخرى', variant: 'destructive' }),
+      onError: () => toast.error('تعذر حفظ السنة المالية، يرجى المحاولة مرة أخرى'),
     });
   };
 

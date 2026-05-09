@@ -28,7 +28,7 @@ import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { buildDeliveryNote } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -80,7 +80,6 @@ export default function DeliveryNotesPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); };
-  const { toast } = useToast();
   const { company, isLoading: coLoading } = useDefaultCompanyName();
 
   const { data, isLoading, isError, error, refetch } = useDocList<DNRow>('Delivery Note', {
@@ -120,19 +119,19 @@ export default function DeliveryNotesPage() {
 
   const handleCreate = () => {
     if (!customer) {
-      toast({ title: 'اختر العميل', variant: 'destructive' });
+      toast.error('اختر العميل');
       return;
     }
     if (!company) {
-      toast({ title: 'تعذر تحديد الشركة', variant: 'destructive' });
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     if (lines.some((l) => l.item_code && !l.warehouse)) {
-      toast({ title: 'مستودع لكل بند', variant: 'destructive' });
+      toast.error('مستودع لكل بند');
       return;
     }
     if (lines.every((l) => !l.item_code)) {
-      toast({ title: 'أضف صنفاً', variant: 'destructive' });
+      toast.error('أضف صنفاً');
       return;
     }
     const doc = buildDeliveryNote({
@@ -151,14 +150,14 @@ export default function DeliveryNotesPage() {
           warehouse: l.warehouse}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast({ title: 'تم إنشاء إشعار التسليم' });
+        toast.success('تم إنشاء إشعار التسليم');
         setDialogOpen(false);
         setLines([emptyLine()]);
         setCustomer('');
         setTerms('');
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر الحفظ', variant: 'destructive' })});
+      onError: () => toast.error('تعذر الحفظ')});
   };
 
   const columns: Column<DNRow>[] = useMemo(
@@ -186,8 +185,8 @@ export default function DeliveryNotesPage() {
                   disabled={submitMutation.isPending}
                   onClick={() =>
                     submitMutation.mutate(row.name, {
-                      onSuccess: () => { toast({ title: 'تم الترحيل' }); void refetch(); },
-                      onError: () => toast({ title: 'تعذر الترحيل', variant: 'destructive' })})
+                      onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                      onError: () => toast.error('تعذر الترحيل')})
                   }
                 >
                   <Send className="h-3 w-3" />
@@ -214,8 +213,8 @@ export default function DeliveryNotesPage() {
                 className="h-7 text-[10px]"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'أُلغي' }); void refetch(); },
-                    onError: () => toast({ title: 'تعذر', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('أُلغي'); void refetch(); },
+                    onError: () => toast.error('تعذر')})
                 }
               >
                 <Undo2 className="h-3 w-3" />
@@ -415,8 +414,8 @@ export default function DeliveryNotesPage() {
               onClick={() => {
                 if (selectedNote) {
                   deleteMutation.mutate(selectedNote.name, {
-                    onSuccess: () => { toast({ title: 'تم حذف إشعار التسليم' }); void refetch(); },
-                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+                    onSuccess: () => { toast.success('تم حذف إشعار التسليم'); void refetch(); },
+                    onError: () => toast.error('حدث خطأ أثناء الحذف')});
                   setDeleteDialogOpen(false);
                 }
               }}

@@ -34,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { apiGetList } from '@/lib/client/api';
 import {
@@ -118,8 +118,6 @@ async function fetchLatestDocForDoctype(doctype: string): Promise<Record<string,
 }
 
 export default function EmailTemplatesPage() {
-  const { toast } = useToast();
-
   /* ─── State ─── */
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<EmailTemplate | null>(null);
@@ -179,7 +177,7 @@ export default function EmailTemplatesPage() {
 
   const saveTemplate = () => {
     if (!formName.trim() || !formSubject.trim() || !formResponse.trim()) {
-      toast({ title: 'أدخل اسم القالب والموضوع والمحتوى', variant: 'destructive' });
+      toast.error('أدخل اسم القالب والموضوع والمحتوى');
       return;
     }
 
@@ -206,20 +204,20 @@ export default function EmailTemplatesPage() {
         { name: editingDoc.name, doc: updateDoc },
         {
           onSuccess: () => {
-            toast({ title: 'تم تحديث القالب' });
+            toast.success('تم تحديث القالب');
             setDialogOpen(false);
             setEditingDoc(null);
           },
-          onError: () => toast({ title: 'فشل التحديث — تحقق من الصلاحيات', variant: 'destructive' }),
+          onError: () => toast.error('فشل التحديث — تحقق من الصلاحيات'),
         }
       );
     } else {
       createMut.mutate(doc, {
         onSuccess: () => {
-          toast({ title: 'تم إنشاء القالب' });
+          toast.success('تم إنشاء القالب');
           setDialogOpen(false);
         },
-        onError: () => toast({ title: 'فشل الإنشاء — قد يكون الاسم مكرراً', variant: 'destructive' }),
+        onError: () => toast.error('فشل الإنشاء — قد يكون الاسم مكرراً'),
       });
     }
   };
@@ -228,11 +226,11 @@ export default function EmailTemplatesPage() {
     if (!toDelete) return;
     deleteMut.mutate(toDelete.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف القالب' });
+        toast.success('تم حذف القالب');
         setDeleteOpen(false);
         setToDelete(null);
       },
-      onError: () => toast({ title: 'تعذر الحذف — تحقق من الصلاحيات', variant: 'destructive' }),
+      onError: () => toast.error('تعذر الحذف — تحقق من الصلاحيات'),
     });
   };
 
@@ -561,7 +559,7 @@ export default function EmailTemplatesPage() {
             <div className="rounded-lg border border-amber-200/40 bg-amber-50/50 dark:bg-amber-950/20 p-2.5 flex items-center gap-2">
               <Info className="h-4 w-4 text-amber-600 shrink-0" />
               <span className="text-[11px] text-amber-700 dark:text-amber-400">
-                لا توجد مستندات — سيتم عرض بيانات نموذجية
+                لا توجد مستندات
               </span>
             </div>
           )}

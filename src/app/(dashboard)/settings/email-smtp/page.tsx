@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -21,7 +21,6 @@ type SmtpForm = {
 };
 
 export default function EmailSmtpSettingsPage() {
-  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -67,7 +66,7 @@ export default function EmailSmtpSettingsPage() {
         }
         setHasPass(Boolean(j.hasPass));
       } catch {
-        toast({ title: 'تعذر تحميل الإعدادات', variant: 'destructive' });
+        toast.error('تعذر تحميل الإعدادات');
       } finally {
         setLoading(false);
       }
@@ -92,14 +91,14 @@ export default function EmailSmtpSettingsPage() {
       });
       const j = await res.json();
       if (!res.ok || !j.success) {
-        toast({ title: j.error || 'فشل الحفظ', variant: 'destructive' });
+        toast.error(j.error || 'فشل الحفظ');
         return;
       }
       setHasPass(Boolean(j.hasPass));
       setForm((f) => ({ ...f, pass: '' }));
-      toast({ title: 'تم حفظ إعدادات SMTP' });
+      toast.success('تم حفظ إعدادات SMTP');
     } catch {
-      toast({ title: 'فشل الحفظ', variant: 'destructive' });
+      toast.error('فشل الحفظ');
     } finally {
       setSaving(false);
     }
@@ -107,7 +106,7 @@ export default function EmailSmtpSettingsPage() {
 
   const sendTest = async () => {
     if (!testTo.trim()) {
-      toast({ title: 'أدخل بريداً للاختبار', variant: 'destructive' });
+      toast.error('أدخل بريداً للاختبار');
       return;
     }
     setTesting(true);
@@ -119,12 +118,12 @@ export default function EmailSmtpSettingsPage() {
       });
       const j = await res.json();
       if (!res.ok || !j.success) {
-        toast({ title: j.error || 'فشل الإرسال', variant: 'destructive' });
+        toast.error(j.error || 'فشل الإرسال');
         return;
       }
-      toast({ title: j.message || 'تم إرسال رسالة الاختبار' });
+      toast.success(j.message || 'تم إرسال رسالة الاختبار');
     } catch {
-      toast({ title: 'فشل الاختبار', variant: 'destructive' });
+      toast.error('فشل الاختبار');
     } finally {
       setTesting(false);
     }

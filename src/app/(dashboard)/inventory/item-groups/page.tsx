@@ -55,7 +55,7 @@ import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 
@@ -151,8 +151,6 @@ function ItemGroupTreeItem({
 /* ───────────────────────────── Main Page ───────────────────────────── */
 
 export default function ItemGroupsPage() {
-  const { toast } = useToast();
-
   /* ── State ── */
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -282,7 +280,7 @@ export default function ItemGroupsPage() {
 
   const handleCreate = async () => {
     if (!groupName.trim()) {
-      toast({ title: 'اسم المجموعة مطلوب', variant: 'destructive' });
+      toast.error('اسم المجموعة مطلوب');
       return;
     }
     setBusy(true);
@@ -296,10 +294,10 @@ export default function ItemGroupsPage() {
       await createMutation.mutateAsync(doc);
       setDialogOpen(false);
       resetForm();
-      toast({ title: 'تم إنشاء مجموعة الأصناف' });
+      toast.success('تم إنشاء مجموعة الأصناف');
       void refetch();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء المجموعة', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء المجموعة', { description: String((e as Error).message || e) });
     } finally {
       setBusy(false);
     }
@@ -309,12 +307,12 @@ export default function ItemGroupsPage() {
     if (!selectedGroup) return;
     try {
       await deleteMutation.mutateAsync(selectedGroup.name);
-      toast({ title: 'تم حذف المجموعة' });
+      toast.success('تم حذف المجموعة');
       setDeleteDialogOpen(false);
       setSelectedGroup(null);
       void refetch();
     } catch (e) {
-      toast({ title: 'تعذر حذف المجموعة', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر حذف المجموعة', { description: String((e as Error).message || e) });
     }
   };
 

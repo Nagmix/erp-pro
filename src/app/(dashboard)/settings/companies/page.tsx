@@ -40,7 +40,7 @@ import {
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { useDocList, useCreateDoc, useUpdateDoc } from '@/lib/client/hooks';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 // ============================================================
 // Types
@@ -149,7 +149,6 @@ type CompanyForm = typeof emptyForm;
 // Page Component
 // ============================================================
 export default function CompaniesPage() {
-  const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -194,7 +193,7 @@ export default function CompaniesPage() {
   const handleSetDefault = useCallback((name: string) => {
     setDefaultCompany(name);
     setDefaultCompanyToStorage(name);
-    toast({ title: 'تم التحديث', description: `تم تعيين "${name}" كشركة افتراضية` });
+    toast.success('تم التحديث', { description: `تم تعيين "${name}" كشركة افتراضية` });
   }, [toast]);
 
   const handleOpenCreate = useCallback(() => {
@@ -204,7 +203,7 @@ export default function CompaniesPage() {
 
   const handleCreate = useCallback(async () => {
     if (!formData.company_name.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم الشركة', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال اسم الشركة' });
       return;
     }
     setSaving(true);
@@ -223,12 +222,12 @@ export default function CompaniesPage() {
         ...(formData.fax ? { fax: formData.fax } : {}),
         ...(formData.website ? { website: formData.website } : {}),
       });
-      toast({ title: 'تم بنجاح', description: 'تم إنشاء الشركة بنجاح' });
+      toast.success('تم بنجاح', { description: 'تم إنشاء الشركة بنجاح' });
       setCreateDialogOpen(false);
       setFormData({ ...emptyForm });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'فشل إنشاء الشركة';
-      toast({ title: 'فشل', description: msg, variant: 'destructive' });
+      toast.error('فشل', { description: msg });
     } finally {
       setSaving(false);
     }
@@ -272,12 +271,12 @@ export default function CompaniesPage() {
           ...(formData.terms_and_conditions ? { terms_and_conditions: formData.terms_and_conditions } : {}),
         },
       });
-      toast({ title: 'تم بنجاح', description: 'تم تحديث بيانات الشركة' });
+      toast.success('تم بنجاح', { description: 'تم تحديث بيانات الشركة' });
       setEditDialogOpen(false);
       setSelectedCompany(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'فشل تحديث الشركة';
-      toast({ title: 'فشل', description: msg, variant: 'destructive' });
+      toast.error('فشل', { description: msg });
     } finally {
       setSaving(false);
     }

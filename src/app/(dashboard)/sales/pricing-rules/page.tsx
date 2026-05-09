@@ -44,7 +44,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { apiCreateDoc, apiSubmitDoc } from '@/lib/client/api';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface PricingRuleRow {
@@ -74,7 +74,6 @@ const PRICE_DISCOUNT_MAP: Record<string, string> = {
 };
 
 export default function PricingRulesPage() {
-  const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
 
   // ── Filters ──
@@ -145,17 +144,17 @@ export default function PricingRulesPage() {
   // ── Create Handler ──
   const handleCreate = async () => {
     if (!formTitle.trim()) {
-      toast({ title: 'يرجى إدخال اسم القاعدة', variant: 'destructive' });
+      toast.error('يرجى إدخال اسم القاعدة');
       return;
     }
     const company = formCompany || defaultCompany;
     if (!company) {
-      toast({ title: 'يرجى اختيار الشركة', variant: 'destructive' });
+      toast.error('يرجى اختيار الشركة');
       return;
     }
     const discPct = Number(formDiscountPercentage);
     if (formPriceOrDiscount === 'Discount' && (!Number.isFinite(discPct) || discPct <= 0)) {
-      toast({ title: 'يرجى إدخال نسبة خصم صحيحة', variant: 'destructive' });
+      toast.error('يرجى إدخال نسبة خصم صحيحة');
       return;
     }
 
@@ -180,19 +179,19 @@ export default function PricingRulesPage() {
       if (created && typeof created === 'object' && 'name' in created) {
         try {
           await apiSubmitDoc('Pricing Rule', (created as { name: string }).name);
-          toast({ title: 'تم إنشاء قاعدة التسعير وترحيلها بنجاح' });
+          toast.success('تم إنشاء قاعدة التسعير وترحيلها بنجاح');
         } catch {
-          toast({ title: 'تم إنشاء قاعدة التسعير (مسودة)', description: 'يمكنك ترحيلها لاحقاً من جدول البيانات' });
+          toast.success('تم إنشاء قاعدة التسعير (مسودة)', { description: 'يمكنك ترحيلها لاحقاً من جدول البيانات' });
         }
       } else {
-        toast({ title: 'تم إنشاء قاعدة التسعير بنجاح' });
+        toast.success('تم إنشاء قاعدة التسعير بنجاح');
       }
 
       setDialogOpen(false);
       resetForm();
       void refetch();
     } catch (e) {
-      toast({ title: 'تعذر إنشاء قاعدة التسعير', description: String((e as Error).message || e), variant: 'destructive' });
+      toast.error('تعذر إنشاء قاعدة التسعير', { description: String((e as Error).message || e) });
     } finally {
       setCreating(false);
     }
@@ -216,11 +215,11 @@ export default function PricingRulesPage() {
     if (!deleteTarget) return;
     deleteMutation.mutate(deleteTarget.name, {
       onSuccess: () => {
-        toast({ title: 'تم حذف قاعدة التسعير بنجاح' });
+        toast.success('تم حذف قاعدة التسعير بنجاح');
         setDeleteTarget(null);
         void refetch();
       },
-      onError: () => toast({ title: 'تعذر حذف قاعدة التسعير', variant: 'destructive' }),
+      onError: () => toast.error('تعذر حذف قاعدة التسعير'),
     });
   };
 
@@ -311,10 +310,10 @@ export default function PricingRulesPage() {
                   onClick={() =>
                     submitMutation.mutate(row.name, {
                       onSuccess: () => {
-                        toast({ title: 'تم ترحيل قاعدة التسعير بنجاح' });
+                        toast.success('تم ترحيل قاعدة التسعير بنجاح');
                         void refetch();
                       },
-                      onError: () => toast({ title: 'تعذر ترحيل قاعدة التسعير', variant: 'destructive' }),
+                      onError: () => toast.error('تعذر ترحيل قاعدة التسعير'),
                     })
                   }
                 >
@@ -332,10 +331,10 @@ export default function PricingRulesPage() {
                   onClick={() =>
                     cancelMutation.mutate(row.name, {
                       onSuccess: () => {
-                        toast({ title: 'تم إلغاء ترحيل قاعدة التسعير' });
+                        toast.success('تم إلغاء ترحيل قاعدة التسعير');
                         void refetch();
                       },
-                      onError: () => toast({ title: 'تعذر إلغاء ترحيل قاعدة التسعير', variant: 'destructive' }),
+                      onError: () => toast.error('تعذر إلغاء ترحيل قاعدة التسعير'),
                     })
                   }
                 >

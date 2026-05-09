@@ -371,7 +371,7 @@ export default function InventoryDashboardPage() {
                           <p className="text-[10px] text-muted-foreground truncate">{alert.warehouse}</p>
                         </div>
                       </div>
-                      <div className="text-left shrink-0">
+                      <div className="shrink-0">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] text-muted-foreground">الكمية:</span>
                           <span className="text-xs font-semibold">{alert.actualQty}</span>

@@ -46,7 +46,7 @@ import {
   Cell,
   Legend,
 } from 'recharts';
-import { formatCurrency } from '@/lib/core/helpers';
+import { formatCurrency, CHART_PALETTE } from '@/lib/core/helpers';
 import { useDashboardKPIs, useDocList } from '@/lib/client/hooks';
 import { DEFAULT_DASHBOARD_KPIS } from '@/lib/client/dashboard-kpis.shared';
 
@@ -313,8 +313,8 @@ export default function DashboardPage() {
                         formatter={(value: number) => formatCurrency(value)}
                       />
                       <Legend />
-                      <Bar dataKey="revenue" fill="#2563eb" radius={[4, 4, 0, 0]} name="الإيرادات" />
-                      <Bar dataKey="expenses" fill="#f59e0b" radius={[4, 4, 0, 0]} name="المصروفات" />
+                      <Bar dataKey="revenue" fill={CHART_PALETTE.primary} radius={[4, 4, 0, 0]} name="الإيرادات" />
+                      <Bar dataKey="expenses" fill={CHART_PALETTE.secondary} radius={[4, 4, 0, 0]} name="المصروفات" />
                     </BarChart>
                   </ResponsiveContainer>
                 )}
@@ -545,8 +545,8 @@ export default function DashboardPage() {
                     <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                     <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid hsl(220, 10%, 90%)' }} />
-                    <Bar dataKey="sales" fill="hsl(220, 70%, 50%)" radius={[4, 4, 0, 0]} name="أوامر البيع" />
-                    <Bar dataKey="purchases" fill="hsl(160, 60%, 45%)" radius={[4, 4, 0, 0]} name="أوامر الشراء" />
+                    <Bar dataKey="sales" fill={CHART_PALETTE.primary} radius={[4, 4, 0, 0]} name="أوامر البيع" />
+                    <Bar dataKey="purchases" fill={CHART_PALETTE.tertiary} radius={[4, 4, 0, 0]} name="أوامر الشراء" />
                   </BarChart>
                 </ResponsiveContainer>
               )}

@@ -34,7 +34,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Plus, CreditCard, Banknote, Smartphone, Building2, Loader2, Link2, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc, useDoc } from '@/lib/client/hooks';
 import { buildModeOfPaymentCreate } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -97,7 +97,6 @@ export default function PaymentMethodsPage() {
   const [accountsDialogOpen, setAccountsDialogOpen] = useState(false);
   const [selected, setSelected] = useState<ModeOfPaymentRow | null>(null);
   const [formData, setFormData] = useState(emptyForm);
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
 
   /* ──── ERPNext data hooks ──── */
@@ -137,7 +136,7 @@ export default function PaymentMethodsPage() {
   /* ──── Create handler ──── */
   const handleCreate = async () => {
     if (!formData.name.trim()) {
-      toast({ title: 'خطأ', description: 'يرجى إدخال اسم طريقة الدفع', variant: 'destructive' });
+      toast.error('خطأ', { description: 'يرجى إدخال اسم طريقة الدفع' });
       return;
     }
     try {
@@ -147,12 +146,12 @@ export default function PaymentMethodsPage() {
         enabled: formData.enabled,
       });
       await createMutation.mutateAsync(doc);
-      toast({ title: 'تم بنجاح', description: 'تم إضافة طريقة الدفع بنجاح' });
+      toast.success('تم بنجاح', { description: 'تم إضافة طريقة الدفع بنجاح' });
       setDialogOpen(false);
       setFormData(emptyForm);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ', description: msg, variant: 'destructive' });
+      toast.error('خطأ', { description: msg });
     }
   };
 
@@ -161,10 +160,10 @@ export default function PaymentMethodsPage() {
     try {
       const newVal = Boolean(row.enabled) ? 0 : 1;
       await updateMutation.mutateAsync({ name: row.name, doc: { enabled: newVal } });
-      toast({ title: 'تم بنجاح', description: Boolean(row.enabled) ? 'تم تعطيل طريقة الدفع' : 'تم تفعيل طريقة الدفع' });
+      toast.success('تم بنجاح', { description: Boolean(row.enabled) ? 'تم تعطيل طريقة الدفع' : 'تم تفعيل طريقة الدفع' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ', description: msg, variant: 'destructive' });
+      toast.error('خطأ', { description: msg });
     }
   };
 
@@ -173,12 +172,12 @@ export default function PaymentMethodsPage() {
     if (!selected) return;
     try {
       await deleteMutation.mutateAsync(selected.name);
-      toast({ title: 'تم بنجاح', description: 'تم حذف طريقة الدفع بنجاح' });
+      toast.success('تم بنجاح', { description: 'تم حذف طريقة الدفع بنجاح' });
       setDeleteDialogOpen(false);
       setSelected(null);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ', description: msg, variant: 'destructive' });
+      toast.error('خطأ', { description: msg });
     }
   };
 
@@ -219,13 +218,13 @@ export default function PaymentMethodsPage() {
           })),
         },
       });
-      toast({ title: 'تم بنجاح', description: 'تم حفظ حسابات طريقة الدفع' });
+      toast.success('تم بنجاح', { description: 'تم حفظ حسابات طريقة الدفع' });
       setAccountsDialogOpen(false);
       setSelected(null);
       setEditedAccounts(null);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'خطأ', description: msg, variant: 'destructive' });
+      toast.error('خطأ', { description: msg });
     }
   };
 

@@ -129,8 +129,8 @@ const INTEGRATION_DEFS = [
   {
     id: 'webhooks',
     key: 'webhooks',
-    title: 'ويب هوكس',
-    description: 'إرسال أحداث النظام تلقائياً إلى أنظمة خارجية عبر HTTP Webhooks',
+    title: 'خطافات الويب',
+    description: 'إرسال أحداث النظام تلقائياً إلى أنظمة خارجية عبر HTTP خطافات الويب',
     icon: Webhook,
     accent: 'primary' as const,
     settingsPath: '/operations/developer-api',
@@ -593,8 +593,8 @@ export default function SettingsIntegrationsPage() {
                       {def.category}
                     </Badge>
                     {def.erpNextDoctypes.length > 0 && (
-                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 font-mono" dir="ltr">
-                        {def.erpNextDoctypes[0]}
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4" dir="rtl">
+                        {{ 'SMS Settings': 'إعدادات الرسائل', 'Email Account': 'حساب البريد', 'PayPal Settings': 'إعدادات PayPal', 'Stripe Settings': 'إعدادات Stripe', 'Razorpay Settings': 'إعدادات Razorpay', 'Payment Gateway': 'بوابة الدفع', 'Shopify Log': 'سجل شوبفاي', 'E Commerce Item': 'صنف التجارة الإلكترونية', 'Webhook': 'خطاف الويب' }[def.erpNextDoctypes[0]] ?? def.erpNextDoctypes[0]}
                       </Badge>
                     )}
                   </div>
@@ -644,11 +644,11 @@ export default function SettingsIntegrationsPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-[13px] font-semibold">مزود الرسائل النصية</Label>
-              <Input value={smsProvider} onChange={(e) => setSmsProvider(e.target.value)} placeholder="Unifonic" />
+              <Input value={smsProvider} onChange={(e) => setSmsProvider(e.target.value)} placeholder="يونيفونيك" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-[13px] font-semibold">مزود WhatsApp</Label>
-              <Input value={waProvider} onChange={(e) => setWaProvider(e.target.value)} placeholder="Meta" />
+              <Input value={waProvider} onChange={(e) => setWaProvider(e.target.value)} placeholder="ميتا" />
             </div>
           </div>
 
@@ -671,8 +671,8 @@ export default function SettingsIntegrationsPage() {
         <Link2 className="h-4 w-4" />
         <AlertTitle className="text-sm">ملاحظات حول التكاملات</AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
-          حالات الاتصال تُجلب مباشرة من سجلات ERPNext (SMS Settings، Email Account، Payment Gateway، Webhook...).
-          مزامنة الطلبات والمخزون مع Salla / Zid / Shopify تتطلب مفاتيح API وواجهة خلفية مخصصة.
+          حالات الاتصال تُجلب مباشرة من سجلات ERPNext (إعدادات الرسائل، حساب البريد، بوابة الدفع، خطاف الويب...).
+          مزامنة الطلبات والمخزون مع سلة / زيد / شوبفاي تتطلب مفاتيح API وواجهة خلفية مخصصة.
           لتفعيل البريد الصادر، انتقل إلى صفحة إعدادات SMTP. لبوابات الدفع، تأكد من ضبط مفاتيح API من صفحة بوابات الدفع.
         </AlertDescription>
       </Alert>
@@ -771,11 +771,11 @@ export default function SettingsIntegrationsPage() {
                 </p>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">مزود الرسائل النصية</Label>
-                  <Input value={smsProvider} onChange={(e) => setSmsProvider(e.target.value)} placeholder="Unifonic" />
+                  <Input value={smsProvider} onChange={(e) => setSmsProvider(e.target.value)} placeholder="يونيفونيك" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">مزود WhatsApp</Label>
-                  <Input value={waProvider} onChange={(e) => setWaProvider(e.target.value)} placeholder="Meta" />
+                  <Input value={waProvider} onChange={(e) => setWaProvider(e.target.value)} placeholder="ميتا" />
                 </div>
               </div>
             )}
@@ -808,7 +808,7 @@ export default function SettingsIntegrationsPage() {
             {configKey === 'webhooks' && (
               <div className="space-y-3">
                 <p className="text-xs text-muted-foreground">
-                  لإعداد Webhooks، انتقل إلى صفحة واجهة المطور حيث يمكنك إدارة نقاط النهاية. يمكنك أيضاً إنشاء خطافات ويب مباشرة في ERPNext.
+                  لإعداد خطافات الويب، انتقل إلى صفحة واجهة المطور حيث يمكنك إدارة نقاط النهاية. يمكنك أيضاً إنشاء خطافات ويب مباشرة في ERPNext.
                 </p>
                 <Link href="/operations/developer-api">
                   <Button variant="outline" size="sm" className="gap-1.5">

@@ -67,11 +67,11 @@ const DOCTYPE_OPTIONS = [
   'Delivery Note',
 ];
 
-function buildDemoPreviewHtml(html: string, css: string): string {
+function buildPreviewHtml(html: string, css: string): string {
   let body = html?.trim() ? html : '<p style="color:#999;">— لا محتوى HTML —</p>';
   body = body.replace(/\{\{\s*doc\.name\s*\}\}/gi, 'INV-2026-00001');
-  body = body.replace(/\{\{\s*doc\.customer_name\s*\}\}/gi, 'عميل تجريبي');
-  body = body.replace(/\{\{\s*doc\.supplier_name\s*\}\}/gi, 'مورد تجريبي');
+  body = body.replace(/\{\{\s*doc\.customer_name\s*\}\}/gi, 'اسم العميل');
+  body = body.replace(/\{\{\s*doc\.supplier_name\s*\}\}/gi, 'اسم المورد');
   body = body.replace(/\{\{\s*doc\.grand_total\s*\}\}/gi, '12,500.00');
   body = body.replace(/\{\{\s*doc\.posting_date\s*\}\}/gi, '2026-03-01');
   body = body.replace(/\{\{\s*doc\.status\s*\}\}/gi, 'غير مدفوع');
@@ -201,17 +201,17 @@ export default function PrintTemplatesPage() {
     [openEditor, openPreview]
   );
 
-  const previewSrc = buildDemoPreviewHtml(htmlDraft, cssDraft);
+  const previewSrc = buildPreviewHtml(htmlDraft, cssDraft);
   const templatePreviewSrc = previewTemplate
-    ? buildDemoPreviewHtml(
+    ? buildPreviewHtml(
         `<div dir="rtl" style="padding:20px;">
           <h2 style="color:#2563eb;border-bottom:2px solid #2563eb;padding-bottom:8px;">${previewTemplate}</h2>
           <p>رقم المستند: INV-2026-00001</p>
           <p>التاريخ: 2026-03-01</p>
-          <p>العميل: عميل تجريبي</p>
+          <p>العميل: اسم العميل</p>
           <table style="margin-top:16px;">
             <thead><tr style="background:#f1f5f9;"><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
-            <tbody><tr><td>صنف تجريبي</td><td>2</td><td>5,000.00</td><td>10,000.00</td></tr></tbody>
+            <tbody><tr><td>اسم الصنف</td><td>2</td><td>5,000.00</td><td>10,000.00</td></tr></tbody>
           </table>
           <p style="margin-top:12px;font-weight:bold;">الإجمالي: 12,500.00</p>
         </div>`,
@@ -359,7 +359,7 @@ export default function PrintTemplatesPage() {
           <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
             <DialogTitle className="text-start">تحرير القالب: {editingName ?? '—'}</DialogTitle>
             <p className="text-xs text-muted-foreground text-start font-normal">
-              المعاينة تستبدل بعض حقول <code className="text-[10px]">{'{{ doc.* }}'}</code> بقيم تجريبية.
+              المعاينة تعرض قيماً توضيحية بدلاً من حقول <code className="text-[10px]">{'{{ doc.* }}'}</code>.
             </p>
           </DialogHeader>
           {docQuery.isLoading && (

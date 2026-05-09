@@ -18,7 +18,7 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Plus, Receipt, Send, CheckCircle2, XCircle, Filter, ChevronDown, Upload, X, DollarSign, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
@@ -50,7 +50,6 @@ const EXPENSE_STATUS_MAP: Record<string, string> = {
   'Cancelled': 'ملغي'};
 
 export default function DailyExpensesPage() {
-  const { toast } = useToast();
   const { company: defaultCompany } = useDefaultCompanyName();
   const createExpense = useCreateDoc('Expense Claim');
   const submitExpense = useSubmitDoc('Expense Claim');
@@ -116,16 +115,16 @@ export default function DailyExpensesPage() {
   // Create expense
   const handleCreateExpense = useCallback(async () => {
     if (!employee || !expenseType || !amount) {
-      toast({ title: 'يرجى تعبئة جميع الحقول المطلوبة', variant: 'destructive' });
+      toast.error('يرجى تعبئة جميع الحقول المطلوبة');
       return;
     }
     const amt = parseFloat(amount);
     if (isNaN(amt) || amt <= 0) {
-      toast({ title: 'المبلغ غير صالح', variant: 'destructive' });
+      toast.error('المبلغ غير صالح');
       return;
     }
     if (!defaultCompany) {
-      toast({ title: 'يجب ضبط الشركة الافتراضية أولاً', variant: 'destructive' });
+      toast.error('يجب ضبط الشركة الافتراضية أولاً');
       return;
     }
     setBusy(true);
@@ -137,7 +136,7 @@ export default function DailyExpensesPage() {
         expenses: [{ expense_type: expenseType, amount: amt, cost_center: costCenter || undefined }],
         remark,
         company: defaultCompany});
-      toast({ title: 'تم إنشاء المصروف بنجاح' });
+      toast.success('تم إنشاء المصروف بنجاح');
       setEmployee('');
       setExpenseType('');
       setAmount('');
@@ -147,7 +146,7 @@ export default function DailyExpensesPage() {
       void refetch();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل إنشاء المصروف', description: msg, variant: 'destructive' });
+      toast.error('فشل إنشاء المصروف', { description: msg });
     } finally {
       setBusy(false);
     }
@@ -157,11 +156,11 @@ export default function DailyExpensesPage() {
   const handleSubmit = useCallback(async (name: string) => {
     try {
       await submitExpense.mutateAsync(name);
-      toast({ title: 'تم اعتماد المصروف' });
+      toast.success('تم اعتماد المصروف');
       void refetch();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل الاعتماد', description: msg, variant: 'destructive' });
+      toast.error('فشل الاعتماد', { description: msg });
     }
   }, [submitExpense, refetch, toast]);
 
@@ -169,11 +168,11 @@ export default function DailyExpensesPage() {
   const handleCancel = useCallback(async (name: string) => {
     try {
       await cancelExpense.mutateAsync(name);
-      toast({ title: 'تم إلغاء المصروف' });
+      toast.success('تم إلغاء المصروف');
       void refetch();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast({ title: 'فشل الإلغاء', description: msg, variant: 'destructive' });
+      toast.error('فشل الإلغاء', { description: msg });
     }
   }, [cancelExpense, refetch, toast]);
 

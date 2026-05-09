@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/app-format';
 import { cn } from '@/lib/utils';
 import {
@@ -128,8 +128,6 @@ function getProgressTrackColor(pct: number): string {
    Main Component
    ═══════════════════════════════════════════════════════════ */
 export default function BudgetsPage() {
-  const { toast } = useToast();
-
   /* ─── Fetch Cost Centers dynamically ─── */
   const {
     data: costCentersRaw = [],
@@ -294,15 +292,15 @@ export default function BudgetsPage() {
 
   const saveBudget = useCallback(async () => {
     if (!form.name.trim()) {
-      toast({ title: 'يرجى إدخال اسم الميزانية', variant: 'destructive' });
+      toast.error('يرجى إدخال اسم الميزانية');
       return;
     }
     if (!form.costCenter) {
-      toast({ title: 'يرجى اختيار مركز التكلفة', variant: 'destructive' });
+      toast.error('يرجى اختيار مركز التكلفة');
       return;
     }
     if (form.allocatedAmount <= 0) {
-      toast({ title: 'يرجى إدخال مبلغ مخصص صحيح', variant: 'destructive' });
+      toast.error('يرجى إدخال مبلغ مخصص صحيح');
       return;
     }
 
@@ -324,7 +322,7 @@ export default function BudgetsPage() {
             })),
           },
         });
-        toast({ title: 'تم تحديث الميزانية بنجاح' });
+        toast.success('تم تحديث الميزانية بنجاح');
       } else {
         await createBudgetMutation.mutateAsync({
           doctype: 'Budget',
@@ -337,11 +335,11 @@ export default function BudgetsPage() {
             budget_amount: d.amount,
           })),
         });
-        toast({ title: 'تم إنشاء الميزانية بنجاح' });
+        toast.success('تم إنشاء الميزانية بنجاح');
       }
       setDialogOpen(false);
     } catch (err) {
-      toast({ title: 'خطأ', description: String(err), variant: 'destructive' });
+      toast.error('خطأ', { description: String(err) });
     }
   }, [form, distribution, editingBudget, createBudgetMutation, updateBudgetMutation, toast]);
 
@@ -351,9 +349,9 @@ export default function BudgetsPage() {
       await deleteBudgetMutation.mutateAsync(toDelete.id);
       setDeleteOpen(false);
       setToDelete(null);
-      toast({ title: 'تم حذف الميزانية' });
+      toast.success('تم حذف الميزانية');
     } catch (err) {
-      toast({ title: 'خطأ في الحذف', description: String(err), variant: 'destructive' });
+      toast.error('خطأ في الحذف', { description: String(err) });
     }
   }, [toDelete, deleteBudgetMutation, toast]);
 

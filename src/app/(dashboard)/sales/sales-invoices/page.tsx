@@ -31,7 +31,7 @@ import { isBranchesEnabled } from '@/lib/core/setup-config';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface InvoiceRow {
   name: string;
@@ -68,8 +68,6 @@ export default function SalesInvoicesPage() {
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setStatusFilter('all'); setInvoiceStatusFilter('all'); };
   const branchesEnabled = isBranchesEnabled();
   const { company: defaultCompany } = useDefaultCompanyName();
-  const { toast } = useToast();
-
   const { data, isLoading, isError, error, refetch } = useDocList<InvoiceRow>('Sales Invoice', {
     fields: [
       'name',
@@ -177,8 +175,8 @@ export default function SalesInvoicesPage() {
                 disabled={submitMutation.isPending}
                 onClick={() =>
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم ترحيل الفاتورة' }); void refetch(); },
-                    onError: () => toast({ title: 'فشل الترحيل — تحقق من البيانات', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('تم ترحيل الفاتورة'); void refetch(); },
+                    onError: () => toast.error('فشل الترحيل — تحقق من البيانات')})
                 }
               >
                 <Send className="h-3 w-3 ms-1" />ترحيل
@@ -193,8 +191,8 @@ export default function SalesInvoicesPage() {
                 disabled={cancelMutation.isPending}
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
-                    onSuccess: () => { toast({ title: 'تم إلغاء الترحيل' }); void refetch(); },
-                    onError: () => toast({ title: 'فشل الإلغاء', variant: 'destructive' })})
+                    onSuccess: () => { toast.success('تم إلغاء الترحيل'); void refetch(); },
+                    onError: () => toast.error('فشل الإلغاء')})
                 }
               >
                 <Undo2 className="h-3 w-3 ms-1" />إلغاء
@@ -379,8 +377,8 @@ export default function SalesInvoicesPage() {
               onClick={() => {
                 if (selectedInvoice) {
                   deleteMutation.mutate(selectedInvoice.name, {
-                    onSuccess: () => { toast({ title: 'تم حذف الفاتورة' }); void refetch(); },
-                    onError: () => toast({ title: 'حدث خطأ أثناء الحذف', variant: 'destructive' })});
+                    onSuccess: () => { toast.success('تم حذف الفاتورة'); void refetch(); },
+                    onError: () => toast.error('حدث خطأ أثناء الحذف')});
                   setDeleteDialogOpen(false);
                 }
               }}
