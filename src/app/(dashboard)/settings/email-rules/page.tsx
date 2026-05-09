@@ -166,17 +166,7 @@ function formatDelay(delayType: string, delayValue: number): string {
   return `بعد ${delayValue} ${unit.many}`;
 }
 
-/* ─── Mock Activity Log (for demonstration) ─── */
-const MOCK_ACTIVITY_LOG = [
-  { id: '1', rule_name: 'إشعار فاتورة جديدة', trigger: 'invoice_created', recipient: 'شركة النور التجارية', email: 'info@alnoor.com', status: 'sent', sent_at: '2025-01-15 14:30', channel: 'email' },
-  { id: '2', rule_name: 'تذكير فاتورة متأخرة', trigger: 'invoice_overdue', recipient: 'مؤسسة الأمل', email: 'contact@alamal.com', status: 'sent', sent_at: '2025-01-15 10:00', channel: 'email' },
-  { id: '3', rule_name: 'إشعار دفع فاتورة', trigger: 'invoice_paid', recipient: 'شركة الفجر', email: 'admin@alfajr.com', status: 'failed', sent_at: '2025-01-14 16:45', channel: 'email' },
-  { id: '4', rule_name: 'إشعار عرض سعر', trigger: 'quote_created', recipient: 'مؤسسة السلام', email: 'info@alsalam.com', status: 'sent', sent_at: '2025-01-14 09:15', channel: 'both' },
-  { id: '5', rule_name: 'إشعار إشعار دائن', trigger: 'credit_note_created', recipient: 'أحمد محمد', email: 'ahmed@mail.com', status: 'sent', sent_at: '2025-01-13 11:30', channel: 'email' },
-  { id: '6', rule_name: 'إشعار فاتورة جديدة', trigger: 'invoice_created', recipient: 'شركة البناء الحديث', email: 'build@modern.com', status: 'pending', sent_at: '2025-01-12 15:20', channel: 'notification' },
-  { id: '7', rule_name: 'إشعار مرتجع', trigger: 'return_created', recipient: 'مؤسسة التجارة', email: 'trade@co.com', status: 'sent', sent_at: '2025-01-12 10:00', channel: 'email' },
-  { id: '8', rule_name: 'إشعار إكمال أمر عمل', trigger: 'work_order_completed', recipient: 'شركة الصناعة', email: 'industry@co.com', status: 'sent', sent_at: '2025-01-11 08:45', channel: 'both' },
-];
+
 
 /* ─── Main Component ─── */
 export default function EmailAutoRulesPage() {
@@ -705,11 +695,11 @@ export default function EmailAutoRulesPage() {
                 </div>
                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                   <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                  <span>{MOCK_ACTIVITY_LOG.filter(l => l.status === 'sent').length} نجاح</span>
+                  <span>{logs.filter(l => l.sent_or_received === 'Sent').length} نجاح</span>
                   <XCircle className="h-3 w-3 text-rose-500 ms-2" />
-                  <span>{MOCK_ACTIVITY_LOG.filter(l => l.status === 'failed').length} فشل</span>
+                  <span>{logs.filter(l => l.status === 'Error' || l.status === 'Errors').length} فشل</span>
                   <Clock className="h-3 w-3 text-amber-500 ms-2" />
-                  <span>{MOCK_ACTIVITY_LOG.filter(l => l.status === 'pending').length} انتظار</span>
+                  <span>{logs.filter(l => l.sent_or_received !== 'Sent' && l.status !== 'Error' && l.status !== 'Errors').length} انتظار</span>
                 </div>
               </div>
 
@@ -727,43 +717,37 @@ export default function EmailAutoRulesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {MOCK_ACTIVITY_LOG.map((log) => {
-                        const trigger = getTriggerInfo(log.trigger);
-                        const ch = CHANNEL_OPTIONS.find(c => c.value === log.channel) ?? CHANNEL_OPTIONS[0];
+                      {logs.map((log, idx) => {
                         return (
-                          <tr key={log.id} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
-                            <td className="p-2.5 text-muted-foreground">{log.sent_at}</td>
-                            <td className="p-2.5 font-medium">{log.rule_name}</td>
+                          <tr key={idx} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                            <td className="p-2.5 text-muted-foreground">{log.creation ? String(log.creation).slice(0, 16) : '—'}</td>
+                            <td className="p-2.5 font-medium">{log.reference_doctype || '—'}</td>
                             <td className="p-2.5">
-                              <Badge variant="outline" className={`text-[9px] border ${trigger.color}`}>
-                                {trigger.label}
-                              </Badge>
+                              <span className="text-[10px] text-muted-foreground">{log.reference_name || log.reference_doctype || ''}</span>
                             </td>
                             <td className="p-2.5">
                               <div>
-                                <p className="font-medium">{log.recipient}</p>
-                                <p className="text-muted-foreground" dir="ltr">{log.email}</p>
+                                <p className="font-medium">{log.recipients || '—'}</p>
+                                <p className="text-muted-foreground" dir="ltr">{log.subject || ''}</p>
                               </div>
                             </td>
                             <td className="p-2.5">
-                              <Badge variant="secondary" className={`text-[9px] ${ch.color}`}>
-                                {ch.label}
-                              </Badge>
+                              <span className="text-[10px]">{log.communication_medium || 'Email'}</span>
                             </td>
                             <td className="p-2.5">
-                              {log.status === 'sent' && (
+                              {log.sent_or_received === 'Sent' && (
                                 <Badge variant="outline" className="text-[9px] border-emerald-300 text-emerald-700 bg-emerald-50">
                                   <CheckCircle2 className="h-2.5 w-2.5 me-1" />
                                   تم الإرسال
                                 </Badge>
                               )}
-                              {log.status === 'failed' && (
+                              {(log.status === 'Error' || log.status === 'Errors') && (
                                 <Badge variant="outline" className="text-[9px] border-rose-300 text-rose-700 bg-rose-50">
                                   <XCircle className="h-2.5 w-2.5 me-1" />
                                   فشل الإرسال
                                 </Badge>
                               )}
-                              {log.status === 'pending' && (
+                              {log.sent_or_received !== 'Sent' && log.status !== 'Error' && log.status !== 'Errors' && (
                                 <Badge variant="outline" className="text-[9px] border-amber-300 text-amber-700 bg-amber-50">
                                   <Clock className="h-2.5 w-2.5 me-1" />
                                   قيد الانتظار

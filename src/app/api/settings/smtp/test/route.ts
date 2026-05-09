@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'عنوان المستلم مطلوب' }, { status: 400 });
   }
 
-  const cfg = loadSmtpConfig();
+  const cfg = await loadSmtpConfig();
   if (!cfg || !cfg.pass) {
     return NextResponse.json({ success: false, error: 'لم يُحفظ إعداد SMTP أو كلمة المرور' }, { status: 400 });
   }

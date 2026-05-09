@@ -62,7 +62,7 @@ export async function GET() {
     let emailLastSync: string | null = null;
 
     // Check local SMTP config
-    const smtpCfg = loadSmtpConfig();
+    const smtpCfg = await loadSmtpConfig();
     if (smtpCfg?.host) {
       emailConfigured = true;
       emailDetails = `SMTP: ${smtpCfg.host}:${smtpCfg.port}`;

@@ -182,17 +182,7 @@ function formatTargetLabel(target: string): string {
   return getTargetInfo(target).label;
 }
 
-/* ─── Mock Activity Log Data (simulated) ─── */
-const MOCK_ACTIVITY_LOG = [
-  { id: '1', rule_name: 'إشعار فاتورة جديدة', trigger: 'invoice_created', recipient: 'شركة النور التجارية', phone: '777123456', status: 'sent', sent_at: '2025-01-15 14:30', send_via: 'sms' },
-  { id: '2', rule_name: 'تذكير فاتورة متأخرة', trigger: 'invoice_overdue', recipient: 'مؤسسة الأمل', phone: '777987654', status: 'sent', sent_at: '2025-01-15 10:00', send_via: 'whatsapp' },
-  { id: '3', rule_name: 'إشعار دفع فاتورة', trigger: 'invoice_paid', recipient: 'شركة الفجر', phone: '777345678', status: 'failed', sent_at: '2025-01-14 16:45', send_via: 'sms' },
-  { id: '4', rule_name: 'إشعار فاتورة جديدة', trigger: 'invoice_created', recipient: 'مؤسسة السلام', phone: '777567890', status: 'sent', sent_at: '2025-01-14 09:15', send_via: 'both' },
-  { id: '5', rule_name: 'تذكير موعد', trigger: 'appointment_reminder', recipient: 'أحمد محمد', phone: '777234567', status: 'sent', sent_at: '2025-01-13 08:00', send_via: 'whatsapp' },
-  { id: '6', rule_name: 'إشعار عرض سعر', trigger: 'quote_created', recipient: 'شركة النور التجارية', phone: '777123456', status: 'sent', sent_at: '2025-01-13 11:30', send_via: 'sms' },
-  { id: '7', rule_name: 'إشعار فاتورة جديدة', trigger: 'invoice_created', recipient: 'مؤسسة البناء الحديث', phone: '777456789', status: 'pending', sent_at: '2025-01-12 15:20', send_via: 'sms' },
-  { id: '8', rule_name: 'تذكير فاتورة متأخرة', trigger: 'invoice_overdue', recipient: 'شركة التجارة المتحدة', phone: '777678901', status: 'sent', sent_at: '2025-01-12 10:00', send_via: 'both' },
-];
+
 
 /* ─── Main Component ─── */
 export default function SmsAutoRulesPage() {
@@ -521,85 +511,7 @@ export default function SmsAutoRulesPage() {
     [toggleActive, getTemplateName, openEdit, updateMut.isPending]
   );
 
-  /* ─── Activity Log Columns ─── */
-  const activityColumns: Column<typeof MOCK_ACTIVITY_LOG[number]>[] = useMemo(
-    () => [
-      {
-        key: 'sent_at',
-        header: 'التاريخ',
-        sortable: true,
-        render: (v) => (
-          <span className="text-xs text-muted-foreground">{String(v)}</span>
-        ),
-      },
-      {
-        key: 'rule_name',
-        header: 'القاعدة',
-        render: (v) => (
-          <span className="text-xs font-medium">{String(v)}</span>
-        ),
-      },
-      {
-        key: 'trigger',
-        header: 'الحدث',
-        render: (v) => {
-          const trigger = getTriggerInfo(String(v || ''));
-          return (
-            <Badge variant="outline" className={`text-[10px] border ${trigger.color}`}>
-              {trigger.label}
-            </Badge>
-          );
-        },
-      },
-      {
-        key: 'recipient',
-        header: 'المستلم',
-        render: (v) => (
-          <div className="min-w-0">
-            <p className="text-xs truncate">{String(v)}</p>
-          </div>
-        ),
-      },
-      {
-        key: 'send_via',
-        header: 'الوسيلة',
-        render: (v) => {
-          const via = getSendViaInfo(String(v || ''));
-          return <span className="text-[10px]">{via.label}</span>;
-        },
-      },
-      {
-        key: 'status',
-        header: 'الحالة',
-        render: (v) => {
-          const status = String(v);
-          if (status === 'sent') {
-            return (
-              <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50">
-                <CheckCircle2 className="h-2.5 w-2.5 me-1" />
-                تم الإرسال
-              </Badge>
-            );
-          }
-          if (status === 'failed') {
-            return (
-              <Badge variant="outline" className="text-[10px] border-rose-300 text-rose-700 bg-rose-50">
-                <XCircle className="h-2.5 w-2.5 me-1" />
-                فشل الإرسال
-              </Badge>
-            );
-          }
-          return (
-            <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700 bg-amber-50">
-              <Clock className="h-2.5 w-2.5 me-1" />
-              قيد الانتظار
-            </Badge>
-          );
-        },
-      },
-    ],
-    []
-  );
+
 
   /* ─── Selected template preview ─── */
   const selectedTemplate = useMemo(() => {
@@ -709,11 +621,11 @@ export default function SmsAutoRulesPage() {
                 </div>
                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                   <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                  <span>{MOCK_ACTIVITY_LOG.filter(l => l.status === 'sent').length} نجاح</span>
+                  <span>{logs.filter(l => l.sent_or_received === 'Sent').length} نجاح</span>
                   <XCircle className="h-3 w-3 text-rose-500 ms-2" />
-                  <span>{MOCK_ACTIVITY_LOG.filter(l => l.status === 'failed').length} فشل</span>
+                  <span>{logs.filter(l => l.status === 'Error' || l.status === 'Errors').length} فشل</span>
                   <Clock className="h-3 w-3 text-amber-500 ms-2" />
-                  <span>{MOCK_ACTIVITY_LOG.filter(l => l.status === 'pending').length} انتظار</span>
+                  <span>{logs.filter(l => l.sent_or_received !== 'Sent' && l.status !== 'Error' && l.status !== 'Errors').length} انتظار</span>
                 </div>
               </div>
 
@@ -732,43 +644,37 @@ export default function SmsAutoRulesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {MOCK_ACTIVITY_LOG.map((log) => {
-                        const trigger = getTriggerInfo(log.trigger);
-                        const via = getSendViaInfo(log.send_via);
+                      {logs.map((log, idx) => {
                         return (
-                          <tr key={log.id} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
-                            <td className="p-2.5 text-muted-foreground">{log.sent_at}</td>
-                            <td className="p-2.5 font-medium">{log.rule_name}</td>
+                          <tr key={idx} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                            <td className="p-2.5 text-muted-foreground">{log.creation ? String(log.creation).slice(0, 16) : '—'}</td>
+                            <td className="p-2.5 font-medium">{log.reference_doctype || '—'}</td>
                             <td className="p-2.5">
-                              <Badge variant="outline" className={`text-[9px] border ${trigger.color}`}>
-                                {trigger.label}
-                              </Badge>
+                              <span className="text-[10px] text-muted-foreground">{log.subject || ''}</span>
                             </td>
                             <td className="p-2.5">
                               <div>
-                                <p className="font-medium">{log.recipient}</p>
-                                <p className="text-muted-foreground" dir="ltr">{log.phone}</p>
+                                <p className="font-medium">{log.recipients || '—'}</p>
+                                <p className="text-muted-foreground" dir="ltr">{log.content ? String(log.content).slice(0, 30) : ''}</p>
                               </div>
                             </td>
                             <td className="p-2.5">
-                              <Badge variant="secondary" className={`text-[9px] ${via.color}`}>
-                                {via.label}
-                              </Badge>
+                              <span className="text-[10px]">{log.communication_medium || 'SMS'}</span>
                             </td>
                             <td className="p-2.5">
-                              {log.status === 'sent' && (
+                              {log.sent_or_received === 'Sent' && (
                                 <Badge variant="outline" className="text-[9px] border-emerald-300 text-emerald-700 bg-emerald-50">
                                   <CheckCircle2 className="h-2.5 w-2.5 me-1" />
                                   تم الإرسال
                                 </Badge>
                               )}
-                              {log.status === 'failed' && (
+                              {(log.status === 'Error' || log.status === 'Errors') && (
                                 <Badge variant="outline" className="text-[9px] border-rose-300 text-rose-700 bg-rose-50">
                                   <XCircle className="h-2.5 w-2.5 me-1" />
                                   فشل
                                 </Badge>
                               )}
-                              {log.status === 'pending' && (
+                              {log.sent_or_received !== 'Sent' && log.status !== 'Error' && log.status !== 'Errors' && (
                                 <Badge variant="outline" className="text-[9px] border-amber-300 text-amber-700 bg-amber-50">
                                   <Clock className="h-2.5 w-2.5 me-1" />
                                   انتظار

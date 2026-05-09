@@ -4,8 +4,12 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { getDoc, updateDoc, createDoc } from './backend';
 
 const FILE_NAME = 'crm-messaging.json';
+
+const ERPNEXT_DOCTYPE = 'CRM Messaging Settings';
+const ERPNEXT_DOC_NAME = 'Config';
 
 export type CrmMessagingSettings = {
   sms_provider: string;
@@ -47,8 +51,8 @@ function filePath(): string {
   return path.join(dir, FILE_NAME);
 }
 
-/** تحميل الإعدادات من الملف */
-export function loadCrmMessagingSettings(): CrmMessagingSettings {
+/** Load from local JSON only (sync, for internal use) */
+function loadCrmMessagingSettingsLocal(): CrmMessagingSettings {
   try {
     const raw = fs.readFileSync(filePath(), 'utf8');
     const data = JSON.parse(raw) as Partial<CrmMessagingSettings>;
@@ -58,11 +62,52 @@ export function loadCrmMessagingSettings(): CrmMessagingSettings {
   }
 }
 
+async function syncToErpnext(data: CrmMessagingSettings, sid?: string) {
+  try {
+    const existing = await getDoc(ERPNEXT_DOCTYPE, ERPNEXT_DOC_NAME, sid).catch(() => null);
+    const jsonStr = JSON.stringify(data);
+    if (existing) {
+      await updateDoc(ERPNEXT_DOCTYPE, ERPNEXT_DOC_NAME, { config_json: jsonStr }, sid);
+    } else {
+      await createDoc(ERPNEXT_DOCTYPE, {
+        doctype: ERPNEXT_DOCTYPE,
+        name: ERPNEXT_DOC_NAME,
+        __newname: ERPNEXT_DOC_NAME,
+        config_json: jsonStr,
+      }, sid);
+    }
+  } catch (err) {
+    console.error('[crm-messaging] ERPNext sync failed:', (err as Error).message);
+  }
+}
+
+async function loadFromErpnext(sid?: string): Promise<CrmMessagingSettings | null> {
+  try {
+    const doc = await getDoc(ERPNEXT_DOCTYPE, ERPNEXT_DOC_NAME, sid) as Record<string, unknown> | null;
+    if (doc?.config_json) {
+      const parsed = JSON.parse(doc.config_json as string) as Partial<CrmMessagingSettings>;
+      return { ...defaults(), ...parsed };
+    }
+  } catch {
+    // Not found or error — fall back to local
+  }
+  return null;
+}
+
+/** تحميل الإعدادات — يجرّب ERPNext أولاً ثم يعود للملف المحلي */
+export async function loadCrmMessagingSettings(sid?: string): Promise<CrmMessagingSettings> {
+  // Try ERPNext first, fall back to local
+  const erpData = await loadFromErpnext(sid);
+  if (erpData) return erpData;
+  return loadCrmMessagingSettingsLocal();
+}
+
 /** حفظ الإعدادات مع دمج القيم السابقة (يحافظ على كلمات المرور إذا لم تُرسَل) */
 export function saveCrmMessagingSettings(
   partial: Partial<CrmMessagingSettings>,
+  sid?: string,
 ): CrmMessagingSettings {
-  const prev = loadCrmMessagingSettings();
+  const prev = loadCrmMessagingSettingsLocal();
   const merged: CrmMessagingSettings = {
     ...prev,
     ...partial,
@@ -76,6 +121,8 @@ export function saveCrmMessagingSettings(
   const fp = filePath();
   fs.mkdirSync(path.dirname(fp), { recursive: true });
   fs.writeFileSync(fp, JSON.stringify(merged, null, 2), 'utf8');
+  // Non-blocking ERPNext sync
+  syncToErpnext(merged, sid).catch(() => {});
   return merged;
 }
 

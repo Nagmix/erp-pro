@@ -10,7 +10,7 @@ import { appendAppAuditLog } from '@/lib/server/app-audit-log';
 
 export async function GET() {
   try {
-    const settings = loadCrmMessagingSettings();
+    const settings = await loadCrmMessagingSettings();
     const masked = maskSensitive(settings);
     const status = getChannelStatus(settings);
     return NextResponse.json({
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // دمج مع القيم السابقة للتحقق
-    const prev = loadCrmMessagingSettings();
+    const prev = await loadCrmMessagingSettings();
     const merged = { ...prev, ...sanitized };
 
     // التحقق من الصحة

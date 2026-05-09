@@ -3,7 +3,7 @@ import { appendAppAuditLog } from '@/lib/server/app-audit-log';
 import { loadSmtpConfig, saveSmtpConfig, type SmtpConfigPersisted } from '@/lib/server/smtp-config-store';
 
 export async function GET() {
-  const cfg = loadSmtpConfig();
+  const cfg = await loadSmtpConfig();
   if (!cfg) {
     return NextResponse.json({
       success: true,
@@ -28,7 +28,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as Partial<SmtpConfigPersisted>;
-  const prev = loadSmtpConfig();
+  const prev = await loadSmtpConfig();
   const merged: Omit<SmtpConfigPersisted, 'updatedAt'> = {
     host: typeof body.host === 'string' ? body.host.trim() : prev?.host ?? '',
     port: Number(body.port) || prev?.port || 587,

@@ -4,8 +4,12 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { getDoc, updateDoc, createDoc } from './backend';
 
 const FILE_NAME = 'ecommerce-platform.json';
+
+const ERPNEXT_DOCTYPE = 'Ecommerce Integration Settings';
+const ERPNEXT_DOC_NAME = 'Config';
 
 export type PlatformId = 'salla' | 'zid' | 'shopify' | 'woocommerce';
 
@@ -57,13 +61,13 @@ const defaults = (): EcommercePlatformSettings => ({
   ],
 });
 
-export function loadEcommercePlatformSettings(): EcommercePlatformSettings {
+/** Load from local JSON only (sync, for internal use) */
+function loadEcommercePlatformSettingsLocal(): EcommercePlatformSettings {
   try {
     const raw = fs.readFileSync(filePath(), 'utf8');
     const data = JSON.parse(raw) as Partial<EcommercePlatformSettings>;
     const base = defaults();
     if (Array.isArray(data.platforms)) {
-      // Ensure all 4 platforms exist
       const platformIds: PlatformId[] = ['salla', 'zid', 'shopify', 'woocommerce'];
       for (const pid of platformIds) {
         if (!data.platforms.find((p) => p.platform === pid)) {
@@ -76,6 +80,55 @@ export function loadEcommercePlatformSettings(): EcommercePlatformSettings {
   } catch {
     return defaults();
   }
+}
+
+async function syncToErpnext(data: EcommercePlatformSettings, sid?: string) {
+  try {
+    const existing = await getDoc(ERPNEXT_DOCTYPE, ERPNEXT_DOC_NAME, sid).catch(() => null);
+    const jsonStr = JSON.stringify(data);
+    if (existing) {
+      await updateDoc(ERPNEXT_DOCTYPE, ERPNEXT_DOC_NAME, { config_json: jsonStr }, sid);
+    } else {
+      await createDoc(ERPNEXT_DOCTYPE, {
+        doctype: ERPNEXT_DOCTYPE,
+        name: ERPNEXT_DOC_NAME,
+        __newname: ERPNEXT_DOC_NAME,
+        config_json: jsonStr,
+      }, sid);
+    }
+  } catch (err) {
+    console.error('[ecommerce-platform] ERPNext sync failed:', (err as Error).message);
+  }
+}
+
+async function loadFromErpnext(sid?: string): Promise<EcommercePlatformSettings | null> {
+  try {
+    const doc = await getDoc(ERPNEXT_DOCTYPE, ERPNEXT_DOC_NAME, sid) as Record<string, unknown> | null;
+    if (doc?.config_json) {
+      const data = JSON.parse(doc.config_json as string) as Partial<EcommercePlatformSettings>;
+      const base = defaults();
+      if (Array.isArray(data.platforms)) {
+        const platformIds: PlatformId[] = ['salla', 'zid', 'shopify', 'woocommerce'];
+        for (const pid of platformIds) {
+          if (!data.platforms.find((p) => p.platform === pid)) {
+            data.platforms.push(defaultPlatform(pid));
+          }
+        }
+        base.platforms = data.platforms;
+      }
+      return base;
+    }
+  } catch {
+    // Not found or error — fall back to local
+  }
+  return null;
+}
+
+export async function loadEcommercePlatformSettings(sid?: string): Promise<EcommercePlatformSettings> {
+  // Try ERPNext first, fall back to local
+  const erpData = await loadFromErpnext(sid);
+  if (erpData) return erpData;
+  return loadEcommercePlatformSettingsLocal();
 }
 
 async function mirrorToSqlite(merged: EcommercePlatformSettings): Promise<void> {
@@ -91,8 +144,8 @@ async function mirrorToSqlite(merged: EcommercePlatformSettings): Promise<void> 
   }
 }
 
-export function saveEcommercePlatformSettings(next: Partial<EcommercePlatformSettings>): EcommercePlatformSettings {
-  const current = loadEcommercePlatformSettings();
+export function saveEcommercePlatformSettings(next: Partial<EcommercePlatformSettings>, sid?: string): EcommercePlatformSettings {
+  const current = loadEcommercePlatformSettingsLocal();
   const merged: EcommercePlatformSettings = {
     platforms: Array.isArray(next.platforms) ? next.platforms : current.platforms,
   };
@@ -107,19 +160,22 @@ export function saveEcommercePlatformSettings(next: Partial<EcommercePlatformSet
   fs.mkdirSync(path.dirname(fp), { recursive: true });
   fs.writeFileSync(fp, JSON.stringify(merged, null, 2), 'utf8');
   void mirrorToSqlite(merged);
+  // Non-blocking ERPNext sync
+  syncToErpnext(merged, sid).catch(() => {});
   return merged;
 }
 
 /** Update a single platform config */
 export function updatePlatformConfig(
   platform: PlatformId,
-  patch: Partial<PlatformConfig>
+  patch: Partial<PlatformConfig>,
+  sid?: string,
 ): EcommercePlatformSettings {
-  const current = loadEcommercePlatformSettings();
+  const current = loadEcommercePlatformSettingsLocal();
   const platforms = current.platforms.map((p) =>
     p.platform === platform ? { ...p, ...patch, platform } : p
   );
-  return saveEcommercePlatformSettings({ platforms });
+  return saveEcommercePlatformSettings({ platforms }, sid);
 }
 
 /** دمج ملف `data/` مع SQLite — يفضّل الأحدث حسب `updatedAt`. */

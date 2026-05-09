@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { getList, createDoc, updateDoc, deleteDoc } from '@/lib/server/backend';
+import { getFrappeSidFromRequest } from '@/lib/server/request-session';
+
+const DOCTYPE = 'Vault Permission';
 
 // GET /api/accounting/vault-permissions — list all
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const permissions = await db.vaultPermission.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-    return NextResponse.json({ success: true, data: permissions });
+    const sid = getFrappeSidFromRequest(request);
+    const data = await getList(DOCTYPE, {
+      fields: ['name', 'employee', 'employee_id', 'vault', 'vault_id', 'can_deposit', 'can_withdraw', 'can_view', 'creation', 'modified'],
+      limit: 500,
+      order_by: 'creation desc',
+    }, sid);
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل تحميل الصلاحيات';
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
@@ -24,27 +30,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'بيانات الصلاحيات غير صالحة' }, { status: 400 });
     }
 
-    // Use a transaction to replace all permissions
-    await db.$transaction(async (tx) => {
-      // Delete all existing
-      await tx.vaultPermission.deleteMany();
+    const sid = getFrappeSidFromRequest(request);
+    
+    // Get existing permissions
+    const existing = await getList(DOCTYPE, { fields: ['name'], limit: 500 }, sid);
+    
+    // Delete all existing
+    for (const item of (existing || [])) {
+      try { await deleteDoc(DOCTYPE, (item as { name: string }).name, sid); } catch {}
+    }
+    
+    // Create new ones
+    const created: Record<string, unknown>[] = [];
+    for (const p of perms) {
+      try {
+        const doc = await createDoc(DOCTYPE, {
+          doctype: DOCTYPE,
+          employee_id: p.employeeId,
+          vault_id: p.vaultId,
+          can_deposit: Boolean(p.canDeposit) ? 1 : 0,
+          can_withdraw: Boolean(p.canWithdraw) ? 1 : 0,
+          can_view: Boolean(p.canView) ? 1 : 0,
+        }, sid);
+        created.push(doc as Record<string, unknown>);
+      } catch {}
+    }
 
-      // Insert new ones
-      if (perms.length > 0) {
-        await tx.vaultPermission.createMany({
-          data: perms.map((p) => ({
-            employeeId: p.employeeId,
-            vaultId: p.vaultId,
-            canDeposit: Boolean(p.canDeposit),
-            canWithdraw: Boolean(p.canWithdraw),
-            canView: Boolean(p.canView),
-          })),
-        });
-      }
-    });
-
-    const result = await db.vaultPermission.findMany();
-    return NextResponse.json({ success: true, data: result });
+    return NextResponse.json({ success: true, data: created });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل حفظ الصلاحيات';
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
@@ -55,31 +67,34 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { employeeId, vaultId, canDeposit, canWithdraw, canView } = body;
-
-    if (!employeeId || !vaultId) {
-      return NextResponse.json({ success: false, error: 'معرف الموظف والخزينة مطلوبان' }, { status: 400 });
+    const { name, employeeId, vaultId, canDeposit, canWithdraw, canView } = body;
+    const sid = getFrappeSidFromRequest(request);
+    
+    if (name) {
+      // Update existing
+      const doc = await updateDoc(DOCTYPE, String(name), {
+        ...(employeeId !== undefined && { employee_id: String(employeeId) }),
+        ...(vaultId !== undefined && { vault_id: String(vaultId) }),
+        ...(canDeposit !== undefined && { can_deposit: Boolean(canDeposit) ? 1 : 0 }),
+        ...(canWithdraw !== undefined && { can_withdraw: Boolean(canWithdraw) ? 1 : 0 }),
+        ...(canView !== undefined && { can_view: Boolean(canView) ? 1 : 0 }),
+      }, sid);
+      return NextResponse.json({ success: true, data: doc });
+    } else {
+      // Create new
+      if (!employeeId || !vaultId) {
+        return NextResponse.json({ success: false, error: 'معرف الموظف والخزينة مطلوبان' }, { status: 400 });
+      }
+      const doc = await createDoc(DOCTYPE, {
+        doctype: DOCTYPE,
+        employee_id: String(employeeId),
+        vault_id: String(vaultId),
+        can_deposit: Boolean(canDeposit) ? 1 : 0,
+        can_withdraw: Boolean(canWithdraw) ? 1 : 0,
+        can_view: Boolean(canView) ? 1 : 0,
+      }, sid);
+      return NextResponse.json({ success: true, data: doc }, { status: 201 });
     }
-
-    const perm = await db.vaultPermission.upsert({
-      where: {
-        employeeId_vaultId: { employeeId, vaultId },
-      },
-      create: {
-        employeeId,
-        vaultId,
-        canDeposit: Boolean(canDeposit ?? false),
-        canWithdraw: Boolean(canWithdraw ?? false),
-        canView: Boolean(canView ?? false),
-      },
-      update: {
-        ...(canDeposit !== undefined && { canDeposit: Boolean(canDeposit) }),
-        ...(canWithdraw !== undefined && { canWithdraw: Boolean(canWithdraw) }),
-        ...(canView !== undefined && { canView: Boolean(canView) }),
-      },
-    });
-
-    return NextResponse.json({ success: true, data: perm });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل تحديث الصلاحية';
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
@@ -89,17 +104,12 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/accounting/vault-permissions — delete single permission
 export async function DELETE(request: NextRequest) {
   try {
-    const employeeId = request.nextUrl.searchParams.get('employeeId');
-    const vaultId = request.nextUrl.searchParams.get('vaultId');
-
-    if (!employeeId || !vaultId) {
-      return NextResponse.json({ success: false, error: 'معرف الموظف والخزينة مطلوبان' }, { status: 400 });
+    const name = request.nextUrl.searchParams.get('name');
+    if (!name) {
+      return NextResponse.json({ success: false, error: 'اسم الصلاحية مطلوب' }, { status: 400 });
     }
-
-    await db.vaultPermission.delete({
-      where: { employeeId_vaultId: { employeeId, vaultId } },
-    });
-
+    const sid = getFrappeSidFromRequest(request);
+    await deleteDoc(DOCTYPE, String(name), sid);
     return NextResponse.json({ success: true });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل حذف الصلاحية';

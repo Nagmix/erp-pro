@@ -3,12 +3,12 @@ import type { ProductExtensionsSettings } from '@/lib/product-extensions-setting
 import { loadProductExtensionsSettings, saveProductExtensionsSettings } from '@/lib/server/product-extensions-store';
 
 export async function GET() {
-  return NextResponse.json({ success: true, data: loadProductExtensionsSettings() });
+  return NextResponse.json({ success: true, data: await loadProductExtensionsSettings() });
 }
 
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as ProductExtensionsSettings;
-  const prev = loadProductExtensionsSettings();
+  const prev = await loadProductExtensionsSettings();
   const merged: ProductExtensionsSettings = {
     ...prev,
     ...body,
