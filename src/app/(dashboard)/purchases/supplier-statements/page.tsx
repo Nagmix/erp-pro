@@ -111,12 +111,12 @@ function getTransactionTypeLabel(voucherType: string): string {
 
 function getTransactionTypeBadgeColor(voucherType: string): string {
   switch (voucherType) {
-    case 'Purchase Invoice': return 'bg-amber-100/80 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200';
-    case 'Payment Entry': return 'bg-emerald-100/80 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200';
-    case 'Journal Entry': return 'bg-sky-100/80 dark:bg-sky-950/30 text-sky-800 dark:text-sky-200';
+    case 'Purchase Invoice': return 'bg-chart-2/10 text-chart-2';
+    case 'Payment Entry': return 'bg-primary/10 text-primary';
+    case 'Journal Entry': return 'bg-chart-1/10 text-chart-1';
     default:
       if (voucherType.includes('Debit Note') || voucherType.includes('Return'))
-        return 'bg-orange-100/80 dark:bg-orange-950/30 text-orange-800 dark:text-orange-200';
+        return 'bg-chart-4/10 text-chart-4';
       return 'bg-muted text-muted-foreground';
   }
 }
@@ -826,11 +826,11 @@ export default function SupplierAccountStatementPage() {
                     {(() => {
                       if (agingTotal === 0) return <div className="w-full bg-muted/20 flex items-center justify-center text-[10px] text-muted-foreground">لا توجد ذمم مستحقة</div>;
                       const segments = [
-                        { value: aging.current, color: 'bg-emerald-500/80', label: 'حالي' },
-                        { value: aging.days1to30, color: 'bg-sky-500/80', label: '1-30 يوم' },
-                        { value: aging.days31to60, color: 'bg-amber-500/80', label: '31-60 يوم' },
-                        { value: aging.days61to90, color: 'bg-orange-500/80', label: '61-90 يوم' },
-                        { value: aging.daysAbove90, color: 'bg-red-500/80', label: '+90 يوم' },
+                        { value: aging.current, color: 'bg-chart-3/80', label: 'حالي' },
+                        { value: aging.days1to30, color: 'bg-chart-1/80', label: '1-30 يوم' },
+                        { value: aging.days31to60, color: 'bg-chart-2/80', label: '31-60 يوم' },
+                        { value: aging.days61to90, color: 'bg-chart-4/80', label: '61-90 يوم' },
+                        { value: aging.daysAbove90, color: 'bg-destructive/80', label: '+90 يوم' },
                       ];
                       return segments.map((seg) => {
                         const pct = (seg.value / agingTotal) * 100;
@@ -853,7 +853,7 @@ export default function SupplierAccountStatementPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between items-center py-1.5">
                       <span className="text-xs flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-chart-3/80" />
                         حالي
                       </span>
                       <span className="text-xs font-medium tabular-nums" dir="ltr">
@@ -862,7 +862,7 @@ export default function SupplierAccountStatementPage() {
                     </div>
                     <div className="flex justify-between items-center py-1.5">
                       <span className="text-xs flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-sky-500/80" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-chart-1/80" />
                         1 - 30 يوم
                       </span>
                       <span className="text-xs font-medium tabular-nums" dir="ltr">
@@ -871,7 +871,7 @@ export default function SupplierAccountStatementPage() {
                     </div>
                     <div className="flex justify-between items-center py-1.5">
                       <span className="text-xs flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-chart-2/80" />
                         31 - 60 يوم
                       </span>
                       <span className="text-xs font-medium tabular-nums" dir="ltr">
@@ -880,7 +880,7 @@ export default function SupplierAccountStatementPage() {
                     </div>
                     <div className="flex justify-between items-center py-1.5">
                       <span className="text-xs flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-orange-500/80" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-chart-4/80" />
                         61 - 90 يوم
                       </span>
                       <span className="text-xs font-medium tabular-nums" dir="ltr">
@@ -889,7 +889,7 @@ export default function SupplierAccountStatementPage() {
                     </div>
                     <div className="flex justify-between items-center py-1.5">
                       <span className="text-xs flex items-center gap-1.5">
-                        <span className="h-2.5 w-2.5 rounded-full bg-red-500/80" />
+                        <span className="h-2.5 w-2.5 rounded-full bg-destructive/80" />
                         أكثر من 90 يوم
                       </span>
                       <span className="text-xs font-medium tabular-nums text-red-600 dark:text-red-400" dir="ltr">

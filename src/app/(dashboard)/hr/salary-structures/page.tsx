@@ -600,7 +600,7 @@ export default function SalaryStructuresPage() {
               }
               disabled={!!editingDoc}
             />
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-xs">العملة</Label>
                 <ErpLinkCombobox
@@ -636,7 +636,7 @@ export default function SalaryStructuresPage() {
               الاستحقاقات (Salary Component)
             </p>
             {formData.earnings.map((row, idx) => (
-              <div key={idx} className="grid grid-cols-2 gap-2">
+              <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <ErpLinkCombobox
                   doctype="Salary Component"
                   value={row.salary_component}
@@ -673,7 +673,7 @@ export default function SalaryStructuresPage() {
               الاستقطاعات (اختياري)
             </p>
             {formData.deductions.map((row, idx) => (
-              <div key={idx} className="grid grid-cols-2 gap-2">
+              <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <ErpLinkCombobox
                   doctype="Salary Component"
                   value={row.salary_component}

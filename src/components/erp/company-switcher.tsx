@@ -90,7 +90,7 @@ export function CompanySwitcher() {
 
       <DropdownMenuContent
         align="start"
-        className="w-[260px] p-1"
+        className="w-[calc(100vw-2rem)] sm:w-[260px] p-1"
       >
         <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground px-2 py-1.5">
           الشركات المتاحة

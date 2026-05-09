@@ -149,7 +149,7 @@ export function PosSellCheckoutColumn({
           customerInfoError={customerInfoError}
           profileDefaultCustomer={profileDefaultCustomer}
         />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <div>
             <Label className="text-xs">ملف نقطة البيع *</Label>
             <ErpLinkCombobox doctype="POS Profile" value={posProfile} onChange={onPosProfileChange} />

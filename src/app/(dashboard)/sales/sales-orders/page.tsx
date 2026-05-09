@@ -234,13 +234,13 @@ export default function SalesOrdersPage() {
         width: 'w-48',
         render: (_v, row) => {
           const ds = Number(row.docstatus);
-          if (ds !== 1) return <span className="text-[10px] text-muted-foreground">رحّل أولاً</span>;
+          if (ds !== 1) return <span className="text-xs text-muted-foreground">رحّل أولاً</span>;
           return (
             <div className="flex flex-col gap-1">
               <Button
                 type="button"
                 size="sm"
-                className="h-7 text-[10px] px-2 w-full"
+                className="h-7 text-xs px-2 w-full"
                 disabled={!!pending}
                 onClick={() =>
                   void mapAndInsert(
@@ -259,7 +259,7 @@ export default function SalesOrdersPage() {
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-7 text-[10px] px-2 w-full"
+                className="h-7 text-xs px-2 w-full"
                 disabled={!!pending}
                 onClick={() =>
                   void mapAndInsert(
@@ -290,7 +290,7 @@ export default function SalesOrdersPage() {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="h-7 text-[10px] gap-1"
+                  className="h-7 text-xs gap-1"
                   disabled={submitMutation.isPending}
                   onClick={() =>
                     submitMutation.mutate(row.name, {
@@ -305,7 +305,7 @@ export default function SalesOrdersPage() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-[10px] text-destructive"
+                  className="h-7 text-xs text-destructive"
                   onClick={() => { setSelectedOrder(row); setDeleteDialogOpen(true); }}
                 >
                   <Trash2 className="h-3 w-3" />
@@ -319,7 +319,7 @@ export default function SalesOrdersPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] gap-1"
+                className="h-7 text-xs gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('أُلغي الترحيل'); void refetch(); },
@@ -382,15 +382,15 @@ export default function SalesOrdersPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -464,7 +464,7 @@ export default function SalesOrdersPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">العميل <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox
                       doctype="Customer"
                       value={customer}
@@ -474,7 +474,7 @@ export default function SalesOrdersPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">مركز تكلفة (اختياري)</Label>
+                    <Label className="text-xs font-medium">مركز تكلفة (اختياري)</Label>
                     <ErpLinkCombobox
                       doctype="Cost Center"
                       value={costCenter}
@@ -483,13 +483,13 @@ export default function SalesOrdersPage() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تاريخ الأمر</Label>
+                    <Label className="text-xs font-medium">تاريخ الأمر</Label>
                     <Input type="date" dir="ltr" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-10" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تاريخ التسليم المستهدف</Label>
+                    <Label className="text-xs font-medium">تاريخ التسليم المستهدف</Label>
                     <Input type="date" dir="ltr" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="h-10" />
                   </div>
                 </div>
@@ -507,11 +507,11 @@ export default function SalesOrdersPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">العملة</Label>
+                    <Label className="text-xs font-medium">العملة</Label>
                     <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="YER" className="h-10 text-sm" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">سعر التحويل</Label>
+                    <Label className="text-xs font-medium">سعر التحويل</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -536,7 +536,7 @@ export default function SalesOrdersPage() {
               </div>
               <div className="p-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">الشروط</Label>
+                  <Label className="text-xs font-medium">الشروط</Label>
                   <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} className="min-h-[80px] text-sm" />
                 </div>
               </div>
@@ -664,7 +664,7 @@ export default function SalesOrdersPage() {
                   setDeleteDialogOpen(false);
                 }
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف

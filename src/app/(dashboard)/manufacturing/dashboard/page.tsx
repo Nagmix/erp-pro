@@ -71,10 +71,10 @@ const STATUS_COLORS: Record<string, string> = {
 
 const STATUS_BG: Record<string, string> = {
   'Draft': 'bg-slate-100 text-slate-700 dark:bg-slate-800/40 dark:text-slate-300',
-  'Not Started': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  'In Process': 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
-  'Completed': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-  'Stopped': 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
+  'Not Started': 'bg-chart-2/10 text-chart-2',
+  'In Process': 'bg-chart-1/10 text-chart-1',
+  'Completed': 'bg-primary/10 text-primary',
+  'Stopped': 'bg-destructive/10 text-destructive',
   'Cancelled': 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400',
 };
 
@@ -84,10 +84,10 @@ const STATUS_BG: Record<string, string> = {
 /*  Quick Actions                                                      */
 /* ------------------------------------------------------------------ */
 const QUICK_ACTIONS = [
-  { label: 'قائمة مواد جديدة', href: '/manufacturing/bom?new=1', icon: Package, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
-  { label: 'أمر عمل جديد', href: '/manufacturing/work-orders?new=1', icon: ClipboardList, color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
-  { label: 'خطة إنتاج جديدة', href: '/manufacturing/production-plans?new=1', icon: FileText, color: 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' },
-  { label: 'محطات العمل', href: '/manufacturing/workstations', icon: Wrench, color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' },
+  { label: 'قائمة مواد جديدة', href: '/manufacturing/bom?new=1', icon: Package, color: 'bg-primary/10 text-primary' },
+  { label: 'أمر عمل جديد', href: '/manufacturing/work-orders?new=1', icon: ClipboardList, color: 'bg-chart-2/10 text-chart-2' },
+  { label: 'خطة إنتاج جديدة', href: '/manufacturing/production-plans?new=1', icon: FileText, color: 'bg-chart-1/10 text-chart-1' },
+  { label: 'محطات العمل', href: '/manufacturing/workstations', icon: Wrench, color: 'bg-chart-5/10 text-chart-5' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -481,7 +481,7 @@ export default function ManufacturingDashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-amber-500" />
+                <BarChart3 className="h-4 w-4 text-chart-2" />
                 <CardTitle className="text-sm font-semibold">أوامر العمل حسب الحالة</CardTitle>
               </div>
               <Link href="/manufacturing/work-orders" className="text-xs text-primary hover:underline">
@@ -497,8 +497,8 @@ export default function ManufacturingDashboardPage() {
             )}
             {!isLoading && workOrdersByStatus.length === 0 && (
               <div className="py-8 text-center">
-                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-                  <BarChart3 className="h-6 w-6 text-amber-600" />
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-chart-2/10">
+                  <BarChart3 className="h-6 w-6 text-chart-2" />
                 </div>
                 <p className="text-xs text-muted-foreground">لا توجد أوامر عمل بعد.</p>
               </div>
@@ -537,7 +537,7 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-emerald-500" />
+              <TrendingUp className="h-4 w-4 text-primary" />
               <CardTitle className="text-sm font-semibold">الإنتاج الشهري (آخر ٦ أشهر)</CardTitle>
             </div>
           </CardHeader>
@@ -549,8 +549,8 @@ export default function ManufacturingDashboardPage() {
             )}
             {!isLoading && monthlyProduction.every((m) => m.total === 0) && (
               <div className="py-8 text-center">
-                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                  <TrendingUp className="h-6 w-6 text-emerald-600" />
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <TrendingUp className="h-6 w-6 text-primary" />
                 </div>
                 <p className="text-xs text-muted-foreground">لا توجد بيانات إنتاج شهرية.</p>
               </div>
@@ -605,7 +605,7 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-sky-500" />
+              <Activity className="h-4 w-4 text-chart-1" />
               <CardTitle className="text-sm font-semibold">توزيع حالات أوامر العمل</CardTitle>
             </div>
           </CardHeader>
@@ -666,7 +666,7 @@ export default function ManufacturingDashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Box className="h-4 w-4 text-emerald-500" />
+                <Box className="h-4 w-4 text-primary" />
                 <CardTitle className="text-sm font-semibold">أعلى ٥ أصناف مُنتَجة</CardTitle>
               </div>
               <Link href="/manufacturing/work-orders" className="text-xs text-primary hover:underline">
@@ -680,8 +680,8 @@ export default function ManufacturingDashboardPage() {
             )}
             {!isLoading && topProducedItems.length === 0 && (
               <div className="py-8 text-center">
-                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                  <Box className="h-6 w-6 text-emerald-600" />
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <Box className="h-6 w-6 text-primary" />
                 </div>
                 <p className="text-xs text-muted-foreground">لا توجد بيانات إنتاج بعد.</p>
               </div>
@@ -695,7 +695,7 @@ export default function ManufacturingDashboardPage() {
                     <div key={item.item} className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
                             {i + 1}
                           </span>
                           <span className="text-xs font-medium truncate max-w-[140px]">{item.item}</span>
@@ -704,14 +704,14 @@ export default function ManufacturingDashboardPage() {
                           <span className="text-[10px] text-muted-foreground">
                             {formatNumber(item.totalProduced)}/{formatNumber(item.totalQty)}
                           </span>
-                          <span className={`text-[10px] font-semibold ${completionRate >= 80 ? 'text-emerald-600' : completionRate >= 50 ? 'text-amber-600' : 'text-rose-600'}`}>
+                          <span className={`text-[10px] font-semibold ${completionRate >= 80 ? 'text-primary' : completionRate >= 50 ? 'text-chart-2' : 'text-destructive'}`}>
                             {completionRate}%
                           </span>
                         </div>
                       </div>
                       <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all duration-500 ${completionRate >= 80 ? 'bg-emerald-500' : completionRate >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                          className={`h-full rounded-full transition-all duration-500 ${completionRate >= 80 ? 'bg-chart-3' : completionRate >= 50 ? 'bg-chart-2' : 'bg-destructive'}`}
                           style={{ width: `${ratio}%` }}
                         />
                       </div>
@@ -731,7 +731,7 @@ export default function ManufacturingDashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Cog className="h-4 w-4 text-amber-500" />
+                <Cog className="h-4 w-4 text-chart-2" />
                 <CardTitle className="text-sm font-semibold">أوامر العمل قيد التنفيذ</CardTitle>
               </div>
               <Link href="/manufacturing/work-orders" className="text-xs text-primary hover:underline">
@@ -743,8 +743,8 @@ export default function ManufacturingDashboardPage() {
             {isLoading && <p className="text-xs text-muted-foreground py-6 text-center">جاري التحميل…</p>}
             {!isLoading && inProgressOrders.length === 0 && (
               <div className="py-8 text-center">
-                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                  <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <CheckCircle2 className="h-6 w-6 text-primary" />
                 </div>
                 <p className="text-xs text-muted-foreground">لا توجد أوامر عمل قيد التنفيذ حالياً</p>
               </div>
@@ -757,8 +757,8 @@ export default function ManufacturingDashboardPage() {
                     className="flex items-center justify-between p-3 rounded-lg hover:bg-accent/50 transition-colors border border-border/30"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30 shrink-0">
-                        <Factory className="h-4 w-4 text-amber-600" />
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-chart-2/10 shrink-0">
+                        <Factory className="h-4 w-4 text-chart-2" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-medium truncate">{wo.name}</p>
@@ -793,7 +793,7 @@ export default function ManufacturingDashboardPage() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <ClipboardList className="h-4 w-4 text-sky-500" />
+                  <ClipboardList className="h-4 w-4 text-chart-1" />
                   <CardTitle className="text-sm font-semibold">خطط الإنتاج</CardTitle>
                 </div>
                 <Link href="/manufacturing/production-plans" className="text-xs text-primary hover:underline">
@@ -828,7 +828,7 @@ export default function ManufacturingDashboardPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
-                <Wrench className="h-4 w-4 text-purple-500" />
+                <Wrench className="h-4 w-4 text-chart-5" />
                 <CardTitle className="text-sm font-semibold">محطات العمل</CardTitle>
               </div>
             </CardHeader>
@@ -842,8 +842,8 @@ export default function ManufacturingDashboardPage() {
                   {workstationOverview.map((ws, i) => (
                     <div key={i} className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors">
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-purple-100 dark:bg-purple-900/30 shrink-0">
-                          <Hammer className="h-3 w-3 text-purple-600" />
+                        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-chart-5/10 shrink-0">
+                          <Hammer className="h-3 w-3 text-chart-5" />
                         </div>
                         <span className="text-[11px] font-medium truncate max-w-[100px]">{ws.name}</span>
                       </div>
@@ -996,8 +996,8 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                <Package className="h-5 w-5 text-emerald-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <Package className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-[11px] text-muted-foreground">قوائم المواد الفعّالة</p>
@@ -1017,8 +1017,8 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                <Factory className="h-5 w-5 text-amber-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-2/10">
+                <Factory className="h-5 w-5 text-chart-2" />
               </div>
               <div>
                 <p className="text-[11px] text-muted-foreground">إجمالي أوامر العمل</p>
@@ -1038,8 +1038,8 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-900/30">
-                <ClipboardList className="h-5 w-5 text-sky-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-1/10">
+                <ClipboardList className="h-5 w-5 text-chart-1" />
               </div>
               <div>
                 <p className="text-[11px] text-muted-foreground">خطط الإنتاج</p>
@@ -1059,8 +1059,8 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                <Wrench className="h-5 w-5 text-purple-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-5/10">
+                <Wrench className="h-5 w-5 text-chart-5" />
               </div>
               <div>
                 <p className="text-[11px] text-muted-foreground">محطات العمل</p>
@@ -1079,25 +1079,25 @@ export default function ManufacturingDashboardPage() {
 
       {/* ── Stopped Orders Alert ── */}
       {stoppedWorkOrders > 0 && (
-        <Card className="border-rose-200 dark:border-rose-800/40 border-border/40">
+        <Card className="border-destructive/30 border-border/40">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-rose-500" />
-              <CardTitle className="text-sm font-semibold text-rose-700 dark:text-rose-400">تنبيه: أوامر عمل متوقفة</CardTitle>
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <CardTitle className="text-sm font-semibold text-destructive">تنبيه: أوامر عمل متوقفة</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-rose-50 dark:bg-rose-900/20">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-100 dark:bg-rose-900/30">
-                  <StopCircle className="h-5 w-5 text-rose-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+                  <StopCircle className="h-5 w-5 text-destructive" />
                 </div>
                 <div>
                   <p className="text-xs font-medium">يوجد {stoppedWorkOrders} أمر عمل متوقف</p>
                   <p className="text-[10px] text-muted-foreground">تحقق من الأوامر المتوقفة وأعد تشغيلها أو ألغها</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="text-xs gap-1.5 border-rose-200 dark:border-rose-800/40 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20" asChild>
+              <Button variant="outline" size="sm" className="text-xs gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/5" asChild>
                 <Link href="/manufacturing/work-orders">
                   عرض الأوامر
                   <ArrowLeft className="h-3 w-3" />
@@ -1112,7 +1112,7 @@ export default function ManufacturingDashboardPage() {
       <Card className="border-border/40">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-amber-500" />
+            <BarChart3 className="h-4 w-4 text-chart-2" />
             <CardTitle className="text-sm font-semibold">نظرة عامة على كفاءة الإنتاج</CardTitle>
           </div>
         </CardHeader>
@@ -1123,27 +1123,27 @@ export default function ManufacturingDashboardPage() {
           )}
           {!isLoading && workOrders.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-chart-2/5">
                 <span className="text-[10px] text-muted-foreground">لم يبدأ</span>
-                <span className="text-lg font-bold tabular-nums text-amber-700 dark:text-amber-300">
+                <span className="text-lg font-bold tabular-nums text-chart-2">
                   {workOrders.filter((wo) => String(wo.status) === 'Not Started').length}
                 </span>
               </div>
-              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20">
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-chart-1/5">
                 <span className="text-[10px] text-muted-foreground">قيد التنفيذ</span>
-                <span className="text-lg font-bold tabular-nums text-sky-700 dark:text-sky-300">
+                <span className="text-lg font-bold tabular-nums text-chart-1">
                   {workOrders.filter((wo) => String(wo.status) === 'In Process').length}
                 </span>
               </div>
-              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-primary/5">
                 <span className="text-[10px] text-muted-foreground">مكتمل</span>
-                <span className="text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-300">
+                <span className="text-lg font-bold tabular-nums text-primary">
                   {completedWorkOrders}
                 </span>
               </div>
-              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-rose-50 dark:bg-rose-900/20">
+              <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-destructive/5">
                 <span className="text-[10px] text-muted-foreground">متوقف</span>
-                <span className="text-lg font-bold tabular-nums text-rose-700 dark:text-rose-300">
+                <span className="text-lg font-bold tabular-nums text-destructive">
                   {stoppedWorkOrders}
                 </span>
               </div>
@@ -1166,13 +1166,13 @@ export default function ManufacturingDashboardPage() {
             <div className="mt-4 pt-3 border-t border-border/30">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-xs text-muted-foreground">معدل الإنجاز الإجمالي</span>
-                <span className={`text-xs font-semibold ${avgCompletionRate >= 80 ? 'text-emerald-600' : avgCompletionRate >= 50 ? 'text-amber-600' : 'text-rose-600'}`}>
+                <span className={`text-xs font-semibold ${avgCompletionRate >= 80 ? 'text-primary' : avgCompletionRate >= 50 ? 'text-chart-2' : 'text-destructive'}`}>
                   {avgCompletionRate}%
                 </span>
               </div>
               <div className="h-2.5 rounded-full bg-muted overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${avgCompletionRate >= 80 ? 'bg-emerald-500' : avgCompletionRate >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                  className={`h-full rounded-full transition-all duration-700 ${avgCompletionRate >= 80 ? 'bg-chart-3' : avgCompletionRate >= 50 ? 'bg-chart-2' : 'bg-destructive'}`}
                   style={{ width: `${avgCompletionRate}%` }}
                 />
               </div>

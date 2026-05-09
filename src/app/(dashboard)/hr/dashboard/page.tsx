@@ -36,24 +36,24 @@ import {
 /*  Quick Actions                                                      */
 /* ------------------------------------------------------------------ */
 const QUICK_ACTIONS = [
-  { label: 'موظف جديد', href: '/hr/employees?new=1', icon: UserCircle, color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' },
-  { label: 'تسجيل حضور', href: '/hr/attendance', icon: ClipboardCheck, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
-  { label: 'طلب إجازة', href: '/hr/leave-applications?new=1', icon: PlaneTakeoff, color: 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' },
-  { label: 'مسير الرواتب', href: '/hr/payroll-entry', icon: Calculator, color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
+  { label: 'موظف جديد', href: '/hr/employees?new=1', icon: UserCircle, color: 'bg-chart-5/10 text-chart-5' },
+  { label: 'تسجيل حضور', href: '/hr/attendance', icon: ClipboardCheck, color: 'bg-primary/10 text-primary' },
+  { label: 'طلب إجازة', href: '/hr/leave-applications?new=1', icon: PlaneTakeoff, color: 'bg-chart-1/10 text-chart-1' },
+  { label: 'مسير الرواتب', href: '/hr/payroll-entry', icon: Calculator, color: 'bg-chart-2/10 text-chart-2' },
 ];
 
 /* ------------------------------------------------------------------ */
 /*  Department colors for donut representation                         */
 /* ------------------------------------------------------------------ */
 const DEPT_COLORS = [
-  'bg-purple-500',
-  'bg-sky-500',
-  'bg-emerald-500',
-  'bg-amber-500',
-  'bg-rose-500',
-  'bg-teal-500',
-  'bg-orange-500',
-  'bg-pink-500',
+  'bg-chart-5',
+  'bg-chart-1',
+  'bg-chart-3',
+  'bg-chart-2',
+  'bg-destructive',
+  'bg-chart-3',
+  'bg-chart-4',
+  'bg-chart-5',
 ];
 
 /* ------------------------------------------------------------------ */
@@ -72,14 +72,12 @@ function SimpleDonut({ segments }: { segments: { label: string; value: number; c
     const colorClass = seg.color.replace('bg-', '');
     // Map tailwind bg classes to actual colors for inline style
     const colorMap: Record<string, string> = {
-      'purple-500': '#a855f7',
-      'sky-500': '#0ea5e9',
-      'emerald-500': '#10b981',
-      'amber-500': '#f59e0b',
-      'rose-500': '#f43f5e',
-      'teal-500': '#14b8a6',
-      'orange-500': '#f97316',
-      'pink-500': '#ec4899',
+      'chart-5': 'hsl(var(--chart-5))',
+      'chart-1': 'hsl(var(--chart-1))',
+      'chart-3': 'hsl(var(--chart-3))',
+      'chart-2': 'hsl(var(--chart-2))',
+      'destructive': 'hsl(var(--destructive))',
+      'chart-4': 'hsl(var(--chart-4))',
     };
     const color = colorMap[colorClass] || '#6b7280';
     return `${color} ${start}deg ${end}deg`;
@@ -428,39 +426,39 @@ export default function HrDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                  <UserCheck className="h-5 w-5 text-emerald-600" />
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                  <UserCheck className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{todayAttendance.present}</p>
+                  <p className="text-lg font-bold text-primary">{todayAttendance.present}</p>
                   <p className="text-[10px] text-muted-foreground">حاضر</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-rose-50 dark:bg-rose-900/20">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-100 dark:bg-rose-900/30">
-                  <UserX className="h-5 w-5 text-rose-600" />
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+                  <UserX className="h-5 w-5 text-destructive" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-rose-700 dark:text-rose-300">{todayAttendance.absent}</p>
+                  <p className="text-lg font-bold text-destructive">{todayAttendance.absent}</p>
                   <p className="text-[10px] text-muted-foreground">غائب</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-sky-50 dark:bg-sky-900/20">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-900/30">
-                  <PlaneTakeoff className="h-5 w-5 text-sky-600" />
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-1/5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-1/10">
+                  <PlaneTakeoff className="h-5 w-5 text-chart-1" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-sky-700 dark:text-sky-300">{todayAttendance.onLeave}</p>
+                  <p className="text-lg font-bold text-chart-1">{todayAttendance.onLeave}</p>
                   <p className="text-[10px] text-muted-foreground">في إجازة</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                  <Clock className="h-5 w-5 text-amber-600" />
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-2/5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-2/10">
+                  <Clock className="h-5 w-5 text-chart-2" />
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{todayAttendance.halfDay}</p>
+                  <p className="text-lg font-bold text-chart-2">{todayAttendance.halfDay}</p>
                   <p className="text-[10px] text-muted-foreground">نصف يوم</p>
                 </div>
               </div>
@@ -473,7 +471,7 @@ export default function HrDashboardPage() {
               </div>
               <div className="h-2 rounded-full bg-muted overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${avgAttendanceRate >= 90 ? 'bg-emerald-500' : avgAttendanceRate >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                  className={`h-full rounded-full transition-all duration-500 ${avgAttendanceRate >= 90 ? 'bg-chart-3' : avgAttendanceRate >= 70 ? 'bg-chart-2' : 'bg-destructive'}`}
                   style={{ width: `${avgAttendanceRate}%` }}
                 />
               </div>
@@ -488,15 +486,15 @@ export default function HrDashboardPage() {
         <Card className="border-border/40">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-purple-500" />
+              <CalendarDays className="h-4 w-4 text-chart-5" />
               <CardTitle className="text-sm font-semibold">العطلات القادمة</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             {upcomingHolidays.length === 0 && (
               <div className="py-6 text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
-                  <CalendarDays className="h-5 w-5 text-purple-600" />
+                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-chart-5/10">
+                  <CalendarDays className="h-5 w-5 text-chart-5" />
                 </div>
                 <p className="text-xs text-muted-foreground">لا توجد عطلات قادمة مسجلة</p>
                 <Link href="/hr/holidays" className="text-[10px] text-primary hover:underline mt-1 inline-block">
@@ -533,8 +531,8 @@ export default function HrDashboardPage() {
           <CardContent>
             {pendingLeaveList.length === 0 && (
               <div className="py-6 text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                  <ClipboardCheck className="h-5 w-5 text-emerald-600" />
+                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <ClipboardCheck className="h-5 w-5 text-primary" />
                 </div>
                 <p className="text-xs text-muted-foreground">لا توجد طلبات إجازة معلّقة</p>
               </div>
@@ -549,7 +547,7 @@ export default function HrDashboardPage() {
                         {la.leaveType} — {la.totalDays} يوم
                       </p>
                     </div>
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-0 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-0 bg-chart-2/10 text-chart-2">
                       معلّق
                     </Badge>
                   </div>
@@ -580,7 +578,7 @@ export default function HrDashboardPage() {
               <div className="h-px bg-border" />
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium">صافي الرواتب</span>
-                <span className="text-sm font-bold text-emerald-600">{formatCurrency(salaryBreakdown.totalNet)}</span>
+                <span className="text-sm font-bold text-primary">{formatCurrency(salaryBreakdown.totalNet)}</span>
               </div>
               <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                 <span>عدد الكشوف</span>
@@ -591,21 +589,21 @@ export default function HrDashboardPage() {
                 <div className="mt-2">
                   <div className="flex rounded-full overflow-hidden h-2.5">
                     <div
-                      className="bg-emerald-500 transition-all duration-500"
+                      className="bg-chart-3 transition-all duration-500"
                       style={{ width: `${((salaryBreakdown.totalGross - salaryBreakdown.totalDeductions) / salaryBreakdown.totalGross) * 100}%` }}
                     />
                     <div
-                      className="bg-rose-500 transition-all duration-500"
+                      className="bg-destructive transition-all duration-500"
                       style={{ width: `${(salaryBreakdown.totalDeductions / salaryBreakdown.totalGross) * 100}%` }}
                     />
                   </div>
                   <div className="flex items-center justify-between mt-1">
                     <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                      <div className="h-2 w-2 rounded-full bg-chart-3" />
                       <span className="text-[9px] text-muted-foreground">صافي</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <div className="h-2 w-2 rounded-full bg-rose-500" />
+                      <div className="h-2 w-2 rounded-full bg-destructive" />
                       <span className="text-[9px] text-muted-foreground">خصومات</span>
                     </div>
                   </div>
@@ -637,11 +635,11 @@ export default function HrDashboardPage() {
                   className="flex items-center justify-between p-2.5 rounded-lg hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-chart-5/10">
                       {act.type === 'إجازة' ? (
-                        <PlaneTakeoff className="h-4 w-4 text-purple-600" />
+                        <PlaneTakeoff className="h-4 w-4 text-chart-5" />
                       ) : (
-                        <DollarSign className="h-4 w-4 text-emerald-600" />
+                        <DollarSign className="h-4 w-4 text-primary" />
                       )}
                     </div>
                     <div className="min-w-0">
@@ -651,7 +649,7 @@ export default function HrDashboardPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-muted-foreground">{act.date}</span>
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-0 bg-purple/10 text-purple-700 dark:text-purple-300">
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-0 bg-purple/10 text-chart-5">
                       {act.type}
                     </Badge>
                   </div>

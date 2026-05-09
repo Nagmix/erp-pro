@@ -466,10 +466,10 @@ export default function InventoryPermitsPage() {
             <Badge
               variant="outline"
               className={cn(
-                'text-[10px] font-medium gap-1',
+                'text-xs font-medium gap-1',
                 isInbound
-                  ? 'border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400'
-                  : 'border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-400'
+                  ? 'border-primary/30 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400'
+                  : 'border-chart-2/30 text-amber-700 dark:border-amber-700 dark:text-amber-400'
               )}
             >
               {isInbound ? <ArrowDownToLine className="h-3 w-3" /> : <ArrowUpFromLine className="h-3 w-3" />}
@@ -537,7 +537,7 @@ export default function InventoryPermitsPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 onClick={() => handleView(row)}
               >
                 <Eye className="h-3 w-3" />
@@ -547,7 +547,7 @@ export default function InventoryPermitsPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 onClick={() => handlePrint(row)}
               >
                 <Printer className="h-3 w-3" />
@@ -558,7 +558,7 @@ export default function InventoryPermitsPage() {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="h-7 text-[10px] px-2"
+                  className="h-7 text-xs px-2"
                   disabled={submitMutation.isPending}
                   onClick={() => handleConfirm(row)}
                 >
@@ -571,7 +571,7 @@ export default function InventoryPermitsPage() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-[10px] px-2 text-amber-600"
+                  className="h-7 text-xs px-2 text-amber-600"
                   disabled={cancelMutation.isPending}
                   onClick={() => handleCancel(row)}
                 >
@@ -675,7 +675,7 @@ export default function InventoryPermitsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">نوع الإذن</Label>
+                <Label className="text-xs">نوع الإذن</Label>
                 <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>
                   <SelectTrigger className="h-8 text-xs w-32">
                     <SelectValue />
@@ -688,7 +688,7 @@ export default function InventoryPermitsPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">الحالة</Label>
+                <Label className="text-xs">الحالة</Label>
                 <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
                   <SelectTrigger className="h-8 text-xs w-28">
                     <SelectValue />
@@ -702,7 +702,7 @@ export default function InventoryPermitsPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">المستودع</Label>
+                <Label className="text-xs">المستودع</Label>
                 <ErpLinkCombobox
                   doctype="Warehouse"
                   value={warehouseFilter === 'all' ? '' : warehouseFilter}
@@ -711,7 +711,7 @@ export default function InventoryPermitsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">من تاريخ</Label>
+                <Label className="text-xs">من تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -721,7 +721,7 @@ export default function InventoryPermitsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">إلى تاريخ</Label>
+                <Label className="text-xs">إلى تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -775,7 +775,7 @@ export default function InventoryPermitsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع الإذن <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">نوع الإذن <span className="text-destructive text-xs">*</span></Label>
                     <Select value={permitType} onValueChange={(v) => setPermitType(v as 'outbound' | 'inbound')}>
                       <SelectTrigger>
                         <SelectValue />
@@ -795,14 +795,14 @@ export default function InventoryPermitsPage() {
                         </SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {permitType === 'outbound'
                         ? 'إذن الصرف: يُستخدم لإخراج بضائع من المستودع'
                         : 'إذن الإضافة: يُستخدم لإدخال بضائع إلى المستودع'}
                     </p>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">التاريخ</Label>
+                    <Label className="text-xs font-medium">التاريخ</Label>
                     <Input
                       type="date"
                       dir="ltr"
@@ -814,7 +814,7 @@ export default function InventoryPermitsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold flex items-center gap-1.5">
+                    <Label className="text-xs font-medium flex items-center gap-1.5">
                       <Warehouse className="h-3.5 w-3.5" />
                       المستودع <span className="text-destructive text-xs">*</span>
                     </Label>
@@ -826,7 +826,7 @@ export default function InventoryPermitsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold flex items-center gap-1.5">
+                    <Label className="text-xs font-medium flex items-center gap-1.5">
                       <Link2 className="h-3.5 w-3.5" />
                       الفاتورة المرجعية
                     </Label>
@@ -844,7 +844,7 @@ export default function InventoryPermitsPage() {
 
                 {referenceDoctype && (
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">رقم الفاتورة</Label>
+                    <Label className="text-xs font-medium">رقم الفاتورة</Label>
                     <ErpLinkCombobox
                       doctype={referenceDoctype}
                       value={referenceInvoice}
@@ -860,8 +860,8 @@ export default function InventoryPermitsPage() {
                     onCheckedChange={setAutoCreateOnInvoice}
                   />
                   <div>
-                    <Label className="text-[13px] font-semibold">إنشاء تلقائي عند الفاتورة</Label>
-                    <p className="text-[10px] text-muted-foreground">
+                    <Label className="text-xs font-medium">إنشاء تلقائي عند الفاتورة</Label>
+                    <p className="text-xs text-muted-foreground">
                       يتم إنشاء الإذن تلقائياً عند تأكيد الفاتورة المرتبطة
                     </p>
                   </div>
@@ -1037,11 +1037,11 @@ export default function InventoryPermitsPage() {
               {/* ── Permit Info Grid ── */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
-                  <p className="text-[10px] text-muted-foreground mb-0.5">رقم الإذن</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">رقم الإذن</p>
                   <p className="text-sm font-semibold text-primary">{viewTarget.name}</p>
                 </div>
                 <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
-                  <p className="text-[10px] text-muted-foreground mb-0.5">النوع</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">النوع</p>
                   <div className="flex items-center gap-1.5">
                     {getPermitType(viewTarget) === 'inbound' ? (
                       <ArrowDownToLine className="h-3.5 w-3.5 text-emerald-600" />
@@ -1054,21 +1054,21 @@ export default function InventoryPermitsPage() {
                   </div>
                 </div>
                 <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
-                  <p className="text-[10px] text-muted-foreground mb-0.5">الحالة</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">الحالة</p>
                   <DocStatusBadge docstatus={Number(viewTarget.docstatus) as 0 | 1 | 2} />
                 </div>
                 <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
-                  <p className="text-[10px] text-muted-foreground mb-0.5">التاريخ</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">التاريخ</p>
                   <p className="text-sm font-semibold">{formatDate(viewTarget.posting_date)}</p>
                 </div>
                 <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
-                  <p className="text-[10px] text-muted-foreground mb-0.5">المستودع</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">المستودع</p>
                   <p className="text-sm font-semibold">
                     {viewTarget.from_warehouse || viewTarget.to_warehouse || '—'}
                   </p>
                 </div>
                 <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
-                  <p className="text-[10px] text-muted-foreground mb-0.5">إجمالي القيمة</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">إجمالي القيمة</p>
                   <p className="text-sm font-bold tabular-nums">
                     {formatCurrency(Number(viewTarget.total_incoming_value ?? viewTarget.total_outgoing_value ?? 0))}
                   </p>
@@ -1078,7 +1078,7 @@ export default function InventoryPermitsPage() {
               {/* ── Remarks ── */}
               {viewTarget.remarks && (
                 <div className="rounded-lg border border-border/40 p-3">
-                  <p className="text-[10px] text-muted-foreground mb-1">ملاحظات</p>
+                  <p className="text-xs text-muted-foreground mb-1">ملاحظات</p>
                   <p className="text-sm">{viewTarget.remarks}</p>
                 </div>
               )}
@@ -1125,7 +1125,7 @@ export default function InventoryPermitsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="gap-1.5 text-amber-600 border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+                    className="gap-1.5 text-chart-2 border-chart-2/30 hover:bg-chart-2/5"
                     disabled={cancelMutation.isPending}
                     onClick={() => {
                       handleCancel(viewTarget);
@@ -1156,7 +1156,7 @@ export default function InventoryPermitsPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

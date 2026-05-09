@@ -266,9 +266,9 @@ export default function BankAccountsPage() {
       header: 'الحالة',
       render: (v) => {
         const statusMap: Record<string, { label: string; color: string }> = {
-          'Pending': { label: 'معلّق', color: 'bg-yellow-100 text-yellow-700' },
-          'Reconciled': { label: 'مطابق', color: 'bg-green-100 text-green-700' },
-          'Unreconciled': { label: 'غير مطابق', color: 'bg-red-100 text-red-700' },
+          'Pending': { label: 'معلّق', color: 'bg-chart-2/10 text-chart-2' },
+          'Reconciled': { label: 'مطابق', color: 'bg-primary/10 text-green-700' },
+          'Unreconciled': { label: 'غير مطابق', color: 'bg-destructive/10 text-red-700' },
         };
         const info = statusMap[String(v)] || { label: String(v || '—'), color: 'bg-muted text-muted-foreground' };
         return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${info.color}`}>{info.label}</span>;
@@ -537,7 +537,7 @@ export default function BankAccountsPage() {
           const d = reconDecisions[row.matchKey];
           return (
             <div className="flex flex-wrap items-center justify-end gap-1" dir="ltr">
-              <Button type="button" size="sm" variant="outline" className="h-7 px-2 gap-1 text-emerald-700 border-emerald-500/40 hover:bg-emerald-500/10" disabled={busy || d === 'confirmed'} onClick={() => void confirmReconciliation(row)}>
+              <Button type="button" size="sm" variant="outline" className="h-7 px-2 gap-1 text-emerald-700 border-primary/40 hover:bg-chart-3/10" disabled={busy || d === 'confirmed'} onClick={() => void confirmReconciliation(row)}>
                 {busy ? <RefreshCw className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}✓
               </Button>
               <Button type="button" size="sm" variant="outline" className="h-7 px-2 gap-1 text-destructive border-destructive/40 hover:bg-destructive/10" disabled={busy || d === 'rejected'} onClick={() => void rejectReconciliation(row)}>
@@ -858,7 +858,7 @@ export default function BankAccountsPage() {
                   });
                 }
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف

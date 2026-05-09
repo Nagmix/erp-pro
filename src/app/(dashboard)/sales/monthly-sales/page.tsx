@@ -409,7 +409,7 @@ export default function MonthlySalesReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <CalendarDays className="h-4 w-4 text-emerald-600" />
+                <CalendarDays className="h-4 w-4 text-primary" />
                 الاتجاه اليومي للمبيعات — مقارنة مع الشهر السابق
               </CardTitle>
             </CardHeader>
@@ -477,7 +477,7 @@ export default function MonthlySalesReportPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Clock className="h-4 w-4 text-purple-600" />
+                  <Clock className="h-4 w-4 text-chart-5" />
                   مقارنة أسبوعية
                 </CardTitle>
               </CardHeader>
@@ -513,7 +513,7 @@ export default function MonthlySalesReportPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <PieChartIcon className="h-4 w-4 text-amber-600" />
+                  <PieChartIcon className="h-4 w-4 text-chart-2" />
                   المبيعات حسب الفئة
                 </CardTitle>
               </CardHeader>
@@ -568,7 +568,7 @@ export default function MonthlySalesReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="h-4 w-4 text-sky-600" />
+                <Users className="h-4 w-4 text-chart-1" />
                 أكثر 10 عملاء من حيث المبيعات
               </CardTitle>
             </CardHeader>
@@ -598,7 +598,7 @@ export default function MonthlySalesReportPage() {
                             <div className="flex items-center gap-2">
                               <div className="h-2 w-20 rounded-full bg-muted">
                                 <div
-                                  className="h-2 rounded-full bg-sky-500"
+                                  className="h-2 rounded-full bg-chart-1"
                                   style={{ width: `${pct}%` }}
                                 />
                               </div>
@@ -618,7 +618,7 @@ export default function MonthlySalesReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Package className="h-4 w-4 text-amber-600" />
+                <Package className="h-4 w-4 text-chart-2" />
                 أكثر 10 منتجات من حيث الإيرادات
               </CardTitle>
             </CardHeader>
@@ -673,7 +673,7 @@ export default function MonthlySalesReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Award className="h-4 w-4 text-indigo-600" />
+                <Award className="h-4 w-4 text-chart-1" />
                 المبيعات حسب المندوب — معاينة العمولة
               </CardTitle>
             </CardHeader>
@@ -702,14 +702,14 @@ export default function MonthlySalesReportPage() {
                             <Badge variant="outline" className="text-xs">{rep.count}</Badge>
                           </TableCell>
                           <TableCell className="tabular-nums font-medium">{fmt(rep.total)} ر.ي</TableCell>
-                          <TableCell className="tabular-nums text-indigo-600 dark:text-indigo-400">
+                          <TableCell className="tabular-nums text-chart-1 dark:text-indigo-400">
                             {fmt(rep.commissionPreview)} ر.ي
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <div className="h-2 w-20 rounded-full bg-muted">
                                 <div
-                                  className="h-2 rounded-full bg-indigo-500"
+                                  className="h-2 rounded-full bg-chart-1"
                                   style={{ width: `${share}%` }}
                                 />
                               </div>
@@ -728,7 +728,7 @@ export default function MonthlySalesReportPage() {
                         <TableCell className="tabular-nums">
                           {fmt(data.salesByRep.reduce((s, r) => s + r.total, 0))} ر.ي
                         </TableCell>
-                        <TableCell className="tabular-nums text-indigo-600 dark:text-indigo-400">
+                        <TableCell className="tabular-nums text-chart-1 dark:text-indigo-400">
                           {fmt(data.salesByRep.reduce((s, r) => s + r.commissionPreview, 0))} ر.ي
                         </TableCell>
                         <TableCell />
@@ -744,15 +744,15 @@ export default function MonthlySalesReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <ArrowLeftRight className="h-4 w-4 text-emerald-600" />
+                <ArrowLeftRight className="h-4 w-4 text-primary" />
                 مقارنة مع الشهر السابق ({data.previousMonth.month})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
-                  <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">صافي مبيعات الشهر الحالي</p>
-                  <p className="mt-1 text-xl font-bold text-emerald-800 dark:text-emerald-300 tabular-nums">
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  <p className="text-xs font-medium text-primary">صافي مبيعات الشهر الحالي</p>
+                  <p className="mt-1 text-xl font-bold text-primary tabular-nums">
                     {fmt(summary?.netSales || 0)} ر.ي
                   </p>
                 </div>
@@ -764,20 +764,20 @@ export default function MonthlySalesReportPage() {
                 </div>
                 <div className={`rounded-lg border p-4 ${
                   (summary?.growthPercent || 0) >= 0
-                    ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-950/20'
-                    : 'border-red-200 bg-red-50/50 dark:border-red-900/40 dark:bg-red-950/20'
+                    ? 'border-primary/20 bg-primary/5'
+                    : 'border-destructive/20 bg-destructive/5'
                 }`}>
                   <p className={`text-xs font-medium ${
                     (summary?.growthPercent || 0) >= 0
-                      ? 'text-emerald-700 dark:text-emerald-400'
-                      : 'text-red-700 dark:text-red-400'
+                      ? 'text-primary'
+                      : 'text-destructive'
                   }`}>
                     الفرق
                   </p>
                   <p className={`mt-1 text-xl font-bold tabular-nums ${
                     (summary?.growthPercent || 0) >= 0
-                      ? 'text-emerald-800 dark:text-emerald-300'
-                      : 'text-red-800 dark:text-red-300'
+                      ? 'text-primary'
+                      : 'text-destructive'
                   }`}>
                     {(summary?.growthPercent || 0) >= 0 ? '+' : ''}{(summary?.growthPercent || 0).toFixed(1)}%
                   </p>

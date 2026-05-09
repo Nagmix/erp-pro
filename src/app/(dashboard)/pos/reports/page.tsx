@@ -187,11 +187,11 @@ export default function PosReportsHubPage() {
       {/* ── منتقي الفترة ── */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">من تاريخ</Label>
+          <Label className="text-xs text-muted-foreground">من تاريخ</Label>
           <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
         </div>
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">إلى تاريخ</Label>
+          <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
           <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -246,7 +246,7 @@ export default function PosReportsHubPage() {
             <Link href="/reports?openReport=pos-transactions" className="text-[10px] text-primary hover:underline">التقرير ←</Link>
           </div>
           <p className="text-xl font-bold tabular-nums text-success">{formatCurrency(netSales)}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">مبيعات الشهر مطروح منها المرتجعات ({formatCurrency(totalReturnsAmount)})</p>
+          <p className="text-xs text-muted-foreground mt-1">مبيعات الشهر مطروح منها المرتجعات ({formatCurrency(totalReturnsAmount)})</p>
         </PageShell>
 
         {/* توزيع المدفوعات */}
@@ -286,7 +286,7 @@ export default function PosReportsHubPage() {
             <Link href="/pos/returns" className="text-[10px] text-primary hover:underline">التفاصيل ←</Link>
           </div>
           <p className="text-xl font-bold tabular-nums text-destructive">{formatCurrency(totalReturnsAmount)}</p>
-          <p className="text-[11px] text-muted-foreground mt-1">{returnInvoices.length} فاتورة مرتجع في الفترة</p>
+          <p className="text-xs text-muted-foreground mt-1">{returnInvoices.length} فاتورة مرتجع في الفترة</p>
         </PageShell>
       </div>
 

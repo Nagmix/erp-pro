@@ -81,19 +81,19 @@ function CheckItem({
     <div
       className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
         pass
-          ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/30'
+          ? 'border-primary/20 bg-primary/5'
           : warning
-            ? 'border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/30'
-            : 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/30'
+            ? 'border-chart-2/20 bg-chart-2/5'
+            : 'border-destructive/20 bg-destructive/5'
       }`}
     >
       <div
         className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
           pass
-            ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-400'
+            ? 'bg-primary/10 text-primary'
             : warning
-              ? 'bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-400'
-              : 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400'
+              ? 'bg-chart-2/10 text-chart-2'
+              : 'bg-destructive/10 text-destructive'
         }`}
       >
         {pass ? <CheckCircle2 className="h-4 w-4" /> : warning ? <AlertTriangle className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
@@ -136,7 +136,7 @@ function StepIndicator({
               isActive
                 ? 'bg-primary text-primary-foreground shadow-sm'
                 : isDone
-                  ? 'text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                  ? 'text-primary hover:bg-primary/5'
                   : 'text-muted-foreground hover:bg-muted/50'
             }`}
             disabled={!isDone && !isActive}
@@ -449,7 +449,7 @@ export default function PosSetupWizardPage() {
           accent="amber"
           breadcrumbs={[{ label: 'نقاط البيع', href: '/pos' }, { label: 'معالج الإعداد' }]}
         />
-        <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30">
+        <Alert className="border-chart-2/20 bg-chart-2/5">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertTitle>لم يتم تحديد شركة</AlertTitle>
           <AlertDescription className="text-sm">
@@ -542,7 +542,7 @@ export default function PosSetupWizardPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">الحالة:</span>
                       {readiness.ready ? (
-                        <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1">
+                        <Badge className="bg-primary hover:bg-primary text-white gap-1">
                           <CheckCircle2 className="h-3.5 w-3.5" />
                           جاهز للعمل
                         </Badge>
@@ -566,7 +566,7 @@ export default function PosSetupWizardPage() {
                       </Badge>
                     )}
                     {warningIssues.length > 0 && (
-                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 gap-1">
+                      <Badge className="bg-chart-2/10 text-chart-2 hover:bg-chart-2/10 gap-1">
                         <AlertTriangle className="h-3 w-3" />
                         {warningIssues.length} تنبيه
                       </Badge>
@@ -608,10 +608,10 @@ export default function PosSetupWizardPage() {
               )}
 
               {readiness?.ready && (
-                <Alert className="border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20">
+                <Alert className="border-primary/20 bg-primary/5">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                  <AlertTitle className="text-emerald-800 dark:text-emerald-300">نقطة البيع جاهزة!</AlertTitle>
-                  <AlertDescription className="text-sm text-emerald-700 dark:text-emerald-400">
+                  <AlertTitle className="text-primary">نقطة البيع جاهزة!</AlertTitle>
+                  <AlertDescription className="text-sm text-primary">
                     جميع الفحوصات اجتازت بنجاح. يمكنك الانتقال مباشرة لشاشة البيع.
                   </AlertDescription>
                 </Alert>
@@ -636,7 +636,7 @@ export default function PosSetupWizardPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             {readiness?.ready && (
-              <Button asChild className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+              <Button asChild className="gap-2 bg-primary hover:bg-primary/90">
                 <Link href="/pos/sell">
                   <ShoppingCart className="h-4 w-4" />
                   الانتقال لشاشة البيع
@@ -688,14 +688,14 @@ export default function PosSetupWizardPage() {
               )}
 
               {setupActions.length > 0 && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20 p-4 space-y-3">
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                    <h4 className="font-semibold text-emerald-800 dark:text-emerald-300">الإجراءات التي تم تنفيذها</h4>
+                    <h4 className="font-semibold text-primary">الإجراءات التي تم تنفيذها</h4>
                   </div>
                   <ul className="space-y-1.5">
                     {setupActions.map((action, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+                      <li key={i} className="flex items-start gap-2 text-sm text-primary">
                         <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-500" />
                         {action}
                       </li>
@@ -721,7 +721,7 @@ export default function PosSetupWizardPage() {
                   <div className="flex flex-wrap items-center gap-3 p-3 rounded-lg bg-muted/15 border border-border/40">
                     <span className="text-sm text-muted-foreground">الجاهزية بعد الإصلاح:</span>
                     {readiness.ready ? (
-                      <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white gap-1">
+                      <Badge className="bg-primary hover:bg-primary text-white gap-1">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         جاهز للعمل
                       </Badge>
@@ -750,7 +750,7 @@ export default function PosSetupWizardPage() {
             </Button>
             <div className="flex items-center gap-2">
               {readiness?.ready ? (
-                <Button asChild className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+                <Button asChild className="gap-2 bg-primary hover:bg-primary/90">
                   <Link href="/pos/sell">
                     <ShoppingCart className="h-4 w-4" />
                     الانتقال لشاشة البيع
@@ -1009,18 +1009,18 @@ export default function PosSetupWizardPage() {
                   {verificationResult.ready ? (
                     /* ═══ نجاح: نقطة البيع جاهزة ═══ */
                     <div className="flex flex-col items-center py-8 gap-4 text-center">
-                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/50 ring-4 ring-emerald-200 dark:ring-emerald-800">
+                      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ring-4 ring-primary/20">
                         <CheckCircle2 className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
                       </div>
                       <div className="space-y-2">
-                        <h3 className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                        <h3 className="text-2xl font-bold text-primary">
                           نقطة البيع جاهزة!
                         </h3>
                         <p className="text-sm text-muted-foreground max-w-md">
                           جميع المتطلبات مستوفاة. يمكنك الآن بدء البيع من شاشة نقطة البيع.
                         </p>
                       </div>
-                      <Button asChild size="lg" className="gap-2 h-12 bg-emerald-600 hover:bg-emerald-700 text-base">
+                      <Button asChild size="lg" className="gap-2 h-12 bg-primary hover:bg-primary/90 text-base">
                         <Link href="/pos/sell">
                           <ShoppingCart className="h-5 w-5" />
                           الانتقال لشاشة البيع
@@ -1030,10 +1030,10 @@ export default function PosSetupWizardPage() {
                   ) : (
                     /* ═══ لا يزال هناك مشاكل ═══ */
                     <div className="space-y-4">
-                      <Alert className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-950/30">
+                      <Alert className="border-chart-2/20 bg-chart-2/5">
                         <AlertTriangle className="h-4 w-4 text-amber-600" />
-                        <AlertTitle className="text-amber-800 dark:text-amber-300">لا تزال هناك مشاكل تحتاج اهتماماً</AlertTitle>
-                        <AlertDescription className="text-sm text-amber-700 dark:text-amber-400">
+                        <AlertTitle className="text-chart-2">لا تزال هناك مشاكل تحتاج اهتماماً</AlertTitle>
+                        <AlertDescription className="text-sm text-chart-2">
                           بعض المشاكل لا يمكن إصلاحها تلقائياً. راجع القائمة أدناه واتبع التعليمات.
                         </AlertDescription>
                       </Alert>
@@ -1101,7 +1101,7 @@ export default function PosSetupWizardPage() {
               السابق: الإعداد اليدوي
             </Button>
             {verificationResult?.ready && (
-              <Button asChild className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+              <Button asChild className="gap-2 bg-primary hover:bg-primary/90">
                 <Link href="/pos/sell">
                   <ShoppingCart className="h-4 w-4" />
                   الانتقال لشاشة البيع

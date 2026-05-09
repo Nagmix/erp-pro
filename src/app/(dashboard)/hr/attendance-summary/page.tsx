@@ -90,12 +90,12 @@ interface Employee {
 
 /* ─── Leave Type Icons ─── */
 const LEAVE_TYPE_MAP: Record<string, { label: string; icon: typeof Heart; color: string }> = {
-  'Sick Leave': { label: 'إجازة مرضية', icon: Stethoscope, color: 'text-rose-500 bg-rose-50 border-rose-200' },
-  'Annual Leave': { label: 'إجازة سنوية', icon: Plane, color: 'text-sky-500 bg-sky-50 border-sky-200' },
-  'Casual Leave': { label: 'إجازة عرضية', icon: Clock, color: 'text-amber-500 bg-amber-50 border-amber-200' },
-  'Maternity Leave': { label: 'إجازة أمومة', icon: Baby, color: 'text-pink-500 bg-pink-50 border-pink-200' },
-  'Study Leave': { label: 'إجازة دراسية', icon: GraduationCap, color: 'text-violet-500 bg-violet-50 border-violet-200' },
-  'Compensatory Off': { label: 'إجازة تعويضية', icon: Moon, color: 'text-indigo-500 bg-indigo-50 border-indigo-200' },
+  'Sick Leave': { label: 'إجازة مرضية', icon: Stethoscope, color: 'text-destructive bg-destructive/10 border-destructive/20' },
+  'Annual Leave': { label: 'إجازة سنوية', icon: Plane, color: 'text-chart-1 bg-chart-1/10 border-chart-1/20' },
+  'Casual Leave': { label: 'إجازة عرضية', icon: Clock, color: 'text-chart-2 bg-chart-2/10 border-chart-2/20' },
+  'Maternity Leave': { label: 'إجازة أمومة', icon: Baby, color: 'text-chart-5 bg-chart-5/10 border-chart-5/20' },
+  'Study Leave': { label: 'إجازة دراسية', icon: GraduationCap, color: 'text-chart-5 bg-chart-5/10 border-chart-5/20' },
+  'Compensatory Off': { label: 'إجازة تعويضية', icon: Moon, color: 'text-chart-1 bg-chart-1/10 border-chart-1/20' },
   'Leave Without Pay': { label: 'إجازة بدون راتب', icon: Star, color: 'text-gray-500 bg-gray-50 border-gray-200' },
 };
 
@@ -335,7 +335,7 @@ export default function AttendanceSummaryPage() {
         header: 'أيام الحضور',
         sortable: true,
         render: (v) => (
-          <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50 tabular-nums">
+          <Badge variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/5 tabular-nums">
             {String(v)}
           </Badge>
         ),
@@ -345,7 +345,7 @@ export default function AttendanceSummaryPage() {
         header: 'أيام الغياب',
         sortable: true,
         render: (v) => Number(v) > 0 ? (
-          <Badge variant="outline" className="text-[10px] border-rose-300 text-rose-700 bg-rose-50 tabular-nums">
+          <Badge variant="outline" className="text-[10px] border-destructive/30 text-destructive bg-destructive/5 tabular-nums">
             {String(v)}
           </Badge>
         ) : (
@@ -357,7 +357,7 @@ export default function AttendanceSummaryPage() {
         header: 'أيام التأخير',
         sortable: true,
         render: (v) => Number(v) > 0 ? (
-          <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700 bg-amber-50 tabular-nums">
+          <Badge variant="outline" className="text-[10px] border-chart-2/30 text-chart-2 bg-chart-2/5 tabular-nums">
             {String(v)}
           </Badge>
         ) : (
@@ -369,7 +369,7 @@ export default function AttendanceSummaryPage() {
         header: 'أيام الإجازة',
         sortable: true,
         render: (v) => Number(v) > 0 ? (
-          <Badge variant="outline" className="text-[10px] border-sky-300 text-sky-700 bg-sky-50 tabular-nums">
+          <Badge variant="outline" className="text-[10px] border-chart-1/30 text-chart-1 bg-chart-1/5 tabular-nums">
             {String(v)}
           </Badge>
         ) : (
@@ -719,7 +719,7 @@ export default function AttendanceSummaryPage() {
                   {lateArrivals.map((emp, idx) => (
                     <div key={emp.employee} className="flex items-center justify-between rounded-lg border border-border/30 p-3 hover:bg-muted/20 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center text-xs font-bold text-amber-600">
+                        <div className="h-8 w-8 rounded-full bg-chart-2/5 flex items-center justify-center text-xs font-bold text-amber-600">
                           {idx + 1}
                         </div>
                         <div>
@@ -737,9 +737,9 @@ export default function AttendanceSummaryPage() {
                           <p className="text-[9px] text-muted-foreground">يوم حضور</p>
                         </div>
                         <Badge variant="outline" className={`text-[10px] ${
-                          emp.late_days > 5 ? 'border-rose-300 text-rose-700 bg-rose-50' :
-                          emp.late_days > 2 ? 'border-amber-300 text-amber-700 bg-amber-50' :
-                          'border-sky-300 text-sky-700 bg-sky-50'
+                          emp.late_days > 5 ? 'border-destructive/30 text-destructive bg-destructive/5' :
+                          emp.late_days > 2 ? 'border-chart-2/30 text-chart-2 bg-chart-2/5' :
+                          'border-chart-1/30 text-chart-1 bg-chart-1/5'
                         }`}>
                           {emp.late_days > 5 ? 'تأخير متكرر' : emp.late_days > 2 ? 'تأخير متوسط' : 'تأخير خفيف'}
                         </Badge>

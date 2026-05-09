@@ -93,13 +93,13 @@ function getFileTypeInfo(fileType: string) {
   const category = getFileTypeCategory(fileType);
   switch (category) {
     case 'PDF':
-      return { icon: FileText, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-950/40', border: 'border-red-200 dark:border-red-900/50', label: 'PDF' };
+      return { icon: FileText, color: 'text-destructive', bg: 'bg-destructive/10', border: 'border-destructive/20', label: 'PDF' };
     case 'وورد':
-      return { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/40', border: 'border-blue-200 dark:border-blue-900/50', label: 'وورد' };
+      return { icon: FileText, color: 'text-chart-1', bg: 'bg-chart-1/10', border: 'border-chart-1/20', label: 'وورد' };
     case 'إكسل':
-      return { icon: FileSpreadsheet, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/40', border: 'border-emerald-200 dark:border-emerald-900/50', label: 'إكسل' };
+      return { icon: FileSpreadsheet, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20', label: 'إكسل' };
     case 'صورة':
-      return { icon: ImageIcon, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/40', border: 'border-purple-200 dark:border-purple-900/50', label: 'صورة' };
+      return { icon: ImageIcon, color: 'text-chart-5', bg: 'bg-chart-5/10', border: 'border-chart-5/20', label: 'صورة' };
     default:
       return { icon: File, color: 'text-gray-500', bg: 'bg-gray-50 dark:bg-gray-950/40', border: 'border-gray-200 dark:border-gray-900/50', label: 'أخرى' };
   }
@@ -291,12 +291,12 @@ export default function DocManagementPage() {
         sortable: true,
         render: (_val: unknown, row: ERPFile) => (
           Number(row.is_private) === 1 ? (
-            <Badge variant="secondary" className="text-[10px] gap-1">
+            <Badge variant="secondary" className="text-xs gap-1">
               <Lock className="h-2.5 w-2.5" />
               خاص
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-[10px] gap-1">
+            <Badge variant="outline" className="text-xs gap-1">
               <Globe className="h-2.5 w-2.5" />
               عام
             </Badge>
@@ -412,7 +412,7 @@ export default function DocManagementPage() {
             >
               <Folder className="h-4 w-4 shrink-0 text-muted-foreground" />
               <span className="truncate flex-1">جميع الملفات</span>
-              <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-mono">
+              <Badge variant="secondary" className="text-xs h-5 px-1.5 font-mono">
                 {files.length}
               </Badge>
             </div>
@@ -440,7 +440,7 @@ export default function DocManagementPage() {
                     <span className="w-4 shrink-0" />
                     <Folder className="h-4 w-4 shrink-0 text-info" />
                     <span className="truncate flex-1">{displayName}</span>
-                    <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-mono">
+                    <Badge variant="secondary" className="text-xs h-5 px-1.5 font-mono">
                       {docCount}
                     </Badge>
                   </div>
@@ -649,29 +649,29 @@ export default function DocManagementPage() {
               </div>
 
               {/* Details grid */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">النوع</Label>
+                  <Label className="text-xs text-muted-foreground">النوع</Label>
                   <p className="text-sm">{getFileTypeCategory(selectedFile.file_type)}</p>
                 </div>
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">الحجم</Label>
+                  <Label className="text-xs text-muted-foreground">الحجم</Label>
                   <p className="text-sm">{formatFileSize(Number(selectedFile.file_size) || 0)}</p>
                 </div>
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">الخصوصية</Label>
+                  <Label className="text-xs text-muted-foreground">الخصوصية</Label>
                   <p className="text-sm">{Number(selectedFile.is_private) === 1 ? 'خاص' : 'عام'}</p>
                 </div>
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">المجلد</Label>
+                  <Label className="text-xs text-muted-foreground">المجلد</Label>
                   <p className="text-sm">{selectedFile.folder || '—'}</p>
                 </div>
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">رفع بواسطة</Label>
+                  <Label className="text-xs text-muted-foreground">رفع بواسطة</Label>
                   <p className="text-sm">{selectedFile.owner || '—'}</p>
                 </div>
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">تاريخ الرفع</Label>
+                  <Label className="text-xs text-muted-foreground">تاريخ الرفع</Label>
                   <p className="text-sm">{selectedFile.creation ? formatDate(selectedFile.creation) : '—'}</p>
                 </div>
               </div>
@@ -679,7 +679,7 @@ export default function DocManagementPage() {
               {/* Attached to */}
               {selectedFile.attached_to_doctype && (
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">مرتبط بـ</Label>
+                  <Label className="text-xs text-muted-foreground">مرتبط بـ</Label>
                   <a
                     href={`/doc/${selectedFile.attached_to_doctype}/${selectedFile.attached_to_name}`}
                     className="flex items-center gap-1 text-sm text-primary hover:underline mt-1"
@@ -693,7 +693,7 @@ export default function DocManagementPage() {
               {/* File URL */}
               {selectedFile.file_url && (
                 <div>
-                  <Label className="text-[10px] text-muted-foreground">رابط الملف</Label>
+                  <Label className="text-xs text-muted-foreground">رابط الملف</Label>
                   <a
                     href={selectedFile.file_url}
                     target="_blank"

@@ -137,7 +137,7 @@ function ProjectStatusBadge({ status }: { status: ProjectStatus }) {
 function AvatarGroup({ names, max = 3 }: { names: string[]; max?: number }) {
   const display = names.slice(0, max);
   const extra = names.length - max;
-  const colors = ['bg-amber-500', 'bg-emerald-500', 'bg-sky-500', 'bg-rose-500', 'bg-violet-500'];
+  const colors = ['bg-chart-2', 'bg-chart-3', 'bg-chart-1', 'bg-destructive', 'bg-chart-5'];
   return (
     <div className="flex -space-x-2 rtl:space-x-reverse">
       {display.map((name, i) => (
@@ -699,7 +699,7 @@ export default function ProjectsManagementPage() {
               <Label className="text-xs">اسم المشروع *</Label>
               <Input className="h-9 text-sm" value={projectForm.name} onChange={e => setProjectForm(f => ({ ...f, name: e.target.value }))} placeholder="أدخل اسم المشروع" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">العميل</Label>
                 <Input className="h-9 text-sm" value={projectForm.customer} onChange={e => setProjectForm(f => ({ ...f, customer: e.target.value }))} placeholder="اسم العميل" />
@@ -709,7 +709,7 @@ export default function ProjectsManagementPage() {
                 <Input className="h-9 text-sm" value={projectForm.manager} onChange={e => setProjectForm(f => ({ ...f, manager: e.target.value }))} placeholder="اسم المسؤول" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">تاريخ البدء</Label>
                 <Input type="date" className="h-9 text-sm" value={projectForm.startDate} onChange={e => setProjectForm(f => ({ ...f, startDate: e.target.value }))} />
@@ -719,7 +719,7 @@ export default function ProjectsManagementPage() {
                 <Input type="date" className="h-9 text-sm" value={projectForm.endDate} onChange={e => setProjectForm(f => ({ ...f, endDate: e.target.value }))} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">الميزانية التقديرية</Label>
                 <Input type="number" className="h-9 text-sm" value={projectForm.budget} onChange={e => setProjectForm(f => ({ ...f, budget: e.target.value }))} placeholder="0" />
@@ -756,7 +756,7 @@ export default function ProjectsManagementPage() {
               <Label className="text-xs">اسم المرحلة *</Label>
               <Input className="h-9 text-sm" value={phaseForm.name} onChange={e => setPhaseForm(f => ({ ...f, name: e.target.value }))} placeholder="أدخل اسم المرحلة" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">تاريخ البدء</Label>
                 <Input type="date" className="h-9 text-sm" value={phaseForm.startDate} onChange={e => setPhaseForm(f => ({ ...f, startDate: e.target.value }))} />
@@ -766,7 +766,7 @@ export default function ProjectsManagementPage() {
                 <Input type="date" className="h-9 text-sm" value={phaseForm.endDate} onChange={e => setPhaseForm(f => ({ ...f, endDate: e.target.value }))} />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">نسبة الإنجاز</Label>
                 <Input type="number" min={0} max={100} className="h-9 text-sm" value={phaseForm.progress} onChange={e => setPhaseForm(f => ({ ...f, progress: e.target.value }))} />

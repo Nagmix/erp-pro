@@ -391,8 +391,8 @@ export default function ProfitLossMonthlyPage() {
                     key={i}
                     className={cn(
                       'rounded-[var(--radius-md-ui)] border border-border/50 bg-card px-3 py-2.5',
-                      s.indicator === 'Red' && 'border-red-200/80 bg-red-50/50 dark:border-red-900/40',
-                      s.indicator === 'Green' && 'border-emerald-200/80 bg-emerald-50/50 dark:border-emerald-900/40'
+                      s.indicator === 'Red' && 'border-destructive/20/80 bg-destructive/5/50 dark:border-red-900/40',
+                      s.indicator === 'Green' && 'border-primary/20/80 bg-primary/5/50 dark:border-emerald-900/40'
                     )}
                   >
                     <p className="text-[10px] font-medium text-muted-foreground">{String(s.label ?? '')}</p>
@@ -413,20 +413,20 @@ export default function ProfitLossMonthlyPage() {
               <div className="space-y-2">
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-emerald-600 font-medium">الإيرادات</span>
+                    <span className="text-primary font-medium">الإيرادات</span>
                     <span className="tabular-nums">{formatCurrency(summaryKpis.totalRevenue, 'YER')}</span>
                   </div>
                   <div className="h-3 rounded-full bg-muted/50 overflow-hidden">
-                    <div className="h-full bg-emerald-500/70 rounded-full transition-all" style={{ width: `${revPct}%` }} />
+                    <div className="h-full bg-chart-3/70 rounded-full transition-all" style={{ width: `${revPct}%` }} />
                   </div>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-rose-600 font-medium">المصروفات</span>
+                    <span className="text-destructive font-medium">المصروفات</span>
                     <span className="tabular-nums">{formatCurrency(summaryKpis.totalExpenses, 'YER')}</span>
                   </div>
                   <div className="h-3 rounded-full bg-muted/50 overflow-hidden">
-                    <div className="h-full bg-rose-500/70 rounded-full transition-all" style={{ width: `${expPct}%` }} />
+                    <div className="h-full bg-destructive/70 rounded-full transition-all" style={{ width: `${expPct}%` }} />
                   </div>
                 </div>
               </div>
@@ -442,7 +442,7 @@ export default function ProfitLossMonthlyPage() {
           )} style={{ borderRightWidth: '3px' }}>
             <CardContent className="p-4">
               <p className="text-[10px] font-medium text-muted-foreground">إجمالي الربح</p>
-              <p className={cn('text-lg font-semibold tabular-nums', grossProfit >= 0 ? 'text-emerald-600' : 'text-rose-600')}>
+              <p className={cn('text-lg font-semibold tabular-nums', grossProfit >= 0 ? 'text-primary' : 'text-destructive')}>
                 {formatCurrency(grossProfit, 'YER')}
               </p>
               <p className="text-[10px] text-muted-foreground mt-1">الإيرادات - تكلفة البضاعة المباعة</p>
@@ -451,7 +451,7 @@ export default function ProfitLossMonthlyPage() {
           <Card className="border-border/40 border-s-sky-500/50" style={{ borderRightWidth: '3px' }}>
             <CardContent className="p-4">
               <p className="text-[10px] font-medium text-muted-foreground">ربح التشغيل</p>
-              <p className={cn('text-lg font-semibold tabular-nums', grossProfit - summaryKpis.totalExpenses >= 0 ? 'text-sky-600' : 'text-rose-600')}>
+              <p className={cn('text-lg font-semibold tabular-nums', grossProfit - summaryKpis.totalExpenses >= 0 ? 'text-chart-1' : 'text-destructive')}>
                 {formatCurrency(grossProfit - summaryKpis.totalExpenses, 'YER')}
               </p>
               <p className="text-[10px] text-muted-foreground mt-1">إجمالي الربح - المصروفات التشغيلية</p>
@@ -463,7 +463,7 @@ export default function ProfitLossMonthlyPage() {
           )} style={{ borderRightWidth: '3px' }}>
             <CardContent className="p-4">
               <p className="text-[10px] font-medium text-muted-foreground">صافي الربح</p>
-              <p className={cn('text-lg font-semibold tabular-nums', summaryKpis.netProfit >= 0 ? 'text-blue-600' : 'text-rose-600')}>
+              <p className={cn('text-lg font-semibold tabular-nums', summaryKpis.netProfit >= 0 ? 'text-chart-1' : 'text-destructive')}>
                 {formatCurrency(summaryKpis.netProfit, 'YER')}
               </p>
               <p className="text-[10px] text-muted-foreground mt-1">هامش: {summaryKpis.profitMargin.toFixed(1)}%</p>
@@ -478,7 +478,7 @@ export default function ProfitLossMonthlyPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-chart-3" />
                   حسابات الإيرادات
                 </CardTitle>
               </CardHeader>
@@ -502,18 +502,18 @@ export default function ProfitLossMonthlyPage() {
                           const accountName = String(r.account_name ?? r.account ?? '');
                           const total = Math.abs(Number(r.total ?? r.amount ?? 0) || 0);
                           return (
-                            <TableRow key={idx} className="border-b border-border/20 hover:bg-emerald-5">
+                            <TableRow key={idx} className="border-b border-border/20 hover:bg-primary/5">
                               <TableCell className="text-xs py-1.5">{accountName}</TableCell>
-                              <TableCell className="text-xs py-1.5 tabular-nums text-emerald-700 dark:text-emerald-400 font-medium" dir="ltr">
+                              <TableCell className="text-xs py-1.5 tabular-nums text-primary font-medium" dir="ltr">
                                 {total > 0 ? formatCurrency(total, 'YER') : '—'}
                               </TableCell>
                             </TableRow>
                           );
                         })}
                       {/* Income total */}
-                      <TableRow className="bg-emerald-50/50 dark:bg-emerald-950/20 font-semibold border-t-2 border-emerald-300/40">
+                      <TableRow className="bg-primary/5/50 dark:bg-primary/5 font-semibold border-t-2 border-primary/30/40">
                         <TableCell className="text-xs py-2">إجمالي الإيرادات</TableCell>
-                        <TableCell className="text-xs py-2 tabular-nums text-emerald-700 dark:text-emerald-400 font-bold" dir="ltr">
+                        <TableCell className="text-xs py-2 tabular-nums text-primary font-bold" dir="ltr">
                           {formatCurrency(summaryKpis.totalRevenue, 'YER')}
                         </TableCell>
                       </TableRow>
@@ -527,7 +527,7 @@ export default function ProfitLossMonthlyPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-destructive" />
                   حسابات المصروفات
                 </CardTitle>
               </CardHeader>
@@ -551,18 +551,18 @@ export default function ProfitLossMonthlyPage() {
                           const accountName = String(r.account_name ?? r.account ?? '');
                           const total = Math.abs(Number(r.total ?? r.amount ?? 0) || 0);
                           return (
-                            <TableRow key={idx} className="border-b border-border/20 hover:bg-rose-5">
+                            <TableRow key={idx} className="border-b border-border/20 hover:bg-destructive/5">
                               <TableCell className="text-xs py-1.5">{accountName}</TableCell>
-                              <TableCell className="text-xs py-1.5 tabular-nums text-rose-700 dark:text-rose-400 font-medium" dir="ltr">
+                              <TableCell className="text-xs py-1.5 tabular-nums text-destructive font-medium" dir="ltr">
                                 {total > 0 ? formatCurrency(total, 'YER') : '—'}
                               </TableCell>
                             </TableRow>
                           );
                         })}
                       {/* Expense total */}
-                      <TableRow className="bg-rose-50/50 dark:bg-rose-950/20 font-semibold border-t-2 border-rose-300/40">
+                      <TableRow className="bg-destructive/5/50 dark:bg-destructive/5 font-semibold border-t-2 border-destructive/30/40">
                         <TableCell className="text-xs py-2">إجمالي المصروفات</TableCell>
-                        <TableCell className="text-xs py-2 tabular-nums text-rose-700 dark:text-rose-400 font-bold" dir="ltr">
+                        <TableCell className="text-xs py-2 tabular-nums text-destructive font-bold" dir="ltr">
                           {formatCurrency(summaryKpis.totalExpenses, 'YER')}
                         </TableCell>
                       </TableRow>
@@ -607,8 +607,8 @@ export default function ProfitLossMonthlyPage() {
                           key={rIdx}
                           className={cn(
                             'border-b border-border/20 transition-colors',
-                            rootType === 'Income' && 'hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20',
-                            rootType === 'Expense' && 'hover:bg-rose-50/50 dark:hover:bg-rose-950/20',
+                            rootType === 'Income' && 'hover:bg-primary/5/50 dark:hover:bg-primary/5',
+                            rootType === 'Expense' && 'hover:bg-destructive/5/50 dark:hover:bg-destructive/5',
                           )}
                         >
                           {normalized.columns.map((col, cIdx) => {
@@ -622,8 +622,8 @@ export default function ProfitLossMonthlyPage() {
                                   'text-xs py-1.5',
                                   isCurrency && 'tabular-nums',
                                   cIdx === 0 && 'sticky end-0 z-[1] border-s border-border/40 bg-card',
-                                  rootType === 'Income' && isCurrency && Number.isFinite(num) && num !== 0 && 'text-emerald-700 dark:text-emerald-400',
-                                  rootType === 'Expense' && isCurrency && Number.isFinite(num) && num !== 0 && 'text-rose-700 dark:text-rose-400',
+                                  rootType === 'Income' && isCurrency && Number.isFinite(num) && num !== 0 && 'text-primary',
+                                  rootType === 'Expense' && isCurrency && Number.isFinite(num) && num !== 0 && 'text-destructive',
                                 )}
                                 dir={isCurrency ? 'ltr' : undefined}
                               >

@@ -93,7 +93,7 @@ function WarehouseTreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 text-[13px]"
+        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 text-xs"
         style={{ paddingRight: `${level * 1.25 + 1}rem` }}
       >
         {hasChildren ? (
@@ -125,7 +125,7 @@ function WarehouseTreeItem({
           {isDisabled && (
             <Badge variant="outline" className="text-[9px] px-1.5 py-0 text-muted-foreground">معطّل</Badge>
           )}
-          <span className="text-muted-foreground text-[11px] max-w-[120px] truncate">{wh.company || ''}</span>
+          <span className="text-muted-foreground text-xs max-w-[120px] truncate">{wh.company || ''}</span>
           <button
             onClick={() => onDelete(wh)}
             className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
@@ -455,7 +455,7 @@ export default function WarehousesPage() {
           )}
 
           <div className="ms-auto">
-            <Badge variant="outline" className="text-[11px] h-7 px-2.5 rounded-lg border-border/40 bg-muted/30 text-muted-foreground">
+            <Badge variant="outline" className="text-xs h-7 px-2.5 rounded-lg border-border/40 bg-muted/30 text-muted-foreground">
               {filteredRows.length} من {totalWarehouses}
             </Badge>
           </div>
@@ -465,7 +465,7 @@ export default function WarehousesPage() {
         {filtersOpen && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/30">
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground">الشركة</Label>
+              <Label className="text-xs font-medium text-muted-foreground">الشركة</Label>
               <Select value={filterCompany} onValueChange={setFilterCompany}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="جميع الشركات" />
@@ -479,7 +479,7 @@ export default function WarehousesPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground">النوع</Label>
+              <Label className="text-xs font-medium text-muted-foreground">النوع</Label>
               <Select value={filterIsGroup} onValueChange={setFilterIsGroup}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
@@ -492,7 +492,7 @@ export default function WarehousesPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground">الحالة</Label>
+              <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
               <Select value={filterDisabled} onValueChange={setFilterDisabled}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
@@ -529,7 +529,7 @@ export default function WarehousesPage() {
         </PageShell>
       ) : (
         <PageShell padded={false}>
-          <div className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-4 py-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none">
+          <div className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-4 py-2 flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none">
             <span className="flex-1">المستودع</span>
             <span className="w-24 text-center">الحالة</span>
             <span className="w-24 text-center">الشركة</span>
@@ -580,7 +580,7 @@ export default function WarehousesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={handleDeleteConfirm} variant="destructive">
               {deleteMutation.isPending ? (
                 <span className="flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" />جاري الحذف...</span>
               ) : 'حذف'}
@@ -616,7 +616,7 @@ export default function WarehousesPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">اسم المستودع <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">اسم المستودع <span className="text-destructive text-xs">*</span></Label>
                   <Input
                     value={whName}
                     onChange={(e) => setWhName(e.target.value)}
@@ -625,7 +625,7 @@ export default function WarehousesPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">مستودع أب (اختياري)</Label>
+                  <Label className="text-xs font-medium">مستودع أب (اختياري)</Label>
                   <ErpLinkCombobox
                     doctype="Warehouse"
                     value={parent}
@@ -649,7 +649,7 @@ export default function WarehousesPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">الشركة</Label>
+                  <Label className="text-xs font-medium">الشركة</Label>
                   <ErpLinkCombobox
                     doctype="Company"
                     value={whCompany || company}
@@ -661,7 +661,7 @@ export default function WarehousesPage() {
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">حساب المخزون (اختياري)</Label>
+                  <Label className="text-xs font-medium">حساب المخزون (اختياري)</Label>
                   <ErpLinkCombobox
                     doctype="Account"
                     value={whAccount}
@@ -681,14 +681,14 @@ export default function WarehousesPage() {
                 <Checkbox checked={isGroup} onCheckedChange={(checked) => setIsGroup(!!checked)} />
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-medium">مجموعة</span>
-                  <span className="text-[11px] text-muted-foreground block">ليس مخزناً تفصيلياً — يحتوي على مستودعات فرعية فقط</span>
+                  <span className="text-xs text-muted-foreground block">ليس مخزناً تفصيلياً — يحتوي على مستودعات فرعية فقط</span>
                 </div>
               </label>
               <label className="flex items-center gap-3 cursor-pointer hover:bg-accent/30 rounded-lg px-2 py-1.5 transition-colors">
                 <Checkbox checked={isDisabled} onCheckedChange={(checked) => setIsDisabled(!!checked)} />
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-medium">معطّل</span>
-                  <span className="text-[11px] text-muted-foreground block">لن يظهر في الحركات الجديدة</span>
+                  <span className="text-xs text-muted-foreground block">لن يظهر في الحركات الجديدة</span>
                 </div>
               </label>
             </div>

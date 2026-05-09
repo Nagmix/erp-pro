@@ -216,7 +216,7 @@ export default function PosInvoiceDetailPage() {
           </Card>
 
           {isDraft && (
-            <Card className="border-amber-500/35 bg-amber-500/5">
+            <Card className="border-chart-2/35 bg-chart-2/5">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base font-semibold">إكمال الدفع وترحيل المسودة</CardTitle>
               </CardHeader>
@@ -250,7 +250,7 @@ export default function PosInvoiceDetailPage() {
                       <span
                         className={
                           finalizeOk
-                            ? 'text-green-700 dark:text-green-400 font-medium tabular-nums'
+                            ? 'text-primary font-medium tabular-nums'
                             : 'text-destructive font-medium tabular-nums'
                         }
                       >

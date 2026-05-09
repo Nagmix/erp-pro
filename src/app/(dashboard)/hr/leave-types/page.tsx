@@ -100,11 +100,11 @@ const initialForm: LeaveTypeFormState = {
 function BoolBadge({ value, yesLabel = 'نعم', noLabel = 'لا' }: { value: boolean | number | unknown; yesLabel?: string; noLabel?: string }) {
   const isYes = Number(value) === 1 || value === true;
   return isYes ? (
-    <Badge className="text-[10px] px-1.5 py-0 h-5 bg-success/12 text-success ring-1 ring-inset ring-success/25 border-0 hover:bg-success/20">
+    <Badge className="text-xs px-1.5 py-0 h-5 bg-success/12 text-success ring-1 ring-inset ring-success/25 border-0 hover:bg-success/20">
       {yesLabel}
     </Badge>
   ) : (
-    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 border-0">
+    <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 border-0">
       {noLabel}
     </Badge>
   );
@@ -338,7 +338,7 @@ export default function LeaveTypesPage() {
               type="button"
               size="sm"
               variant="secondary"
-              className="h-7 text-[10px] gap-1"
+              className="h-7 text-xs gap-1"
               onClick={() => openEditDialog(row)}
             >
               <Edit className="h-3 w-3" />
@@ -348,7 +348,7 @@ export default function LeaveTypesPage() {
               type="button"
               size="sm"
               variant="ghost"
-              className="h-7 text-[10px] text-destructive"
+              className="h-7 text-xs text-destructive"
               onClick={() => setDeleteDialog(row)}
             >
               <Trash2 className="h-3 w-3" />
@@ -439,7 +439,7 @@ export default function LeaveTypesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">النوع</Label>
+                <Label className="text-xs">النوع</Label>
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger className="h-8 text-xs w-36">
                     <SelectValue />
@@ -500,7 +500,7 @@ export default function LeaveTypesPage() {
                 min={0}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="lt_is_lwp"
@@ -585,7 +585,7 @@ export default function LeaveTypesPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteDialog && handleDelete(deleteDialog)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

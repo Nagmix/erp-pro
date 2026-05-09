@@ -354,7 +354,7 @@ export default function DailySalesReportPage() {
             <Card className="border-border/40 lg:col-span-2">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Clock className="h-4 w-4 text-emerald-600" />
+                  <Clock className="h-4 w-4 text-primary" />
                   المبيعات حسب الساعة
                 </CardTitle>
               </CardHeader>
@@ -406,7 +406,7 @@ export default function DailySalesReportPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Wallet className="h-4 w-4 text-purple-600" />
+                  <Wallet className="h-4 w-4 text-chart-5" />
                   طرق الدفع
                 </CardTitle>
               </CardHeader>
@@ -454,7 +454,7 @@ export default function DailySalesReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Package className="h-4 w-4 text-amber-600" />
+                <Package className="h-4 w-4 text-chart-2" />
                 أكثر المنتجات مبيعاً
               </CardTitle>
             </CardHeader>
@@ -526,7 +526,7 @@ export default function DailySalesReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Users className="h-4 w-4 text-sky-600" />
+                <Users className="h-4 w-4 text-chart-1" />
                 المبيعات حسب مندوب المبيعات
               </CardTitle>
             </CardHeader>
@@ -550,7 +550,7 @@ export default function DailySalesReportPage() {
                         </div>
                         <div className="h-2 w-full rounded-full bg-muted">
                           <div
-                            className="h-2 rounded-full bg-emerald-500 transition-all"
+                            className="h-2 rounded-full bg-chart-3 transition-all"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -590,7 +590,7 @@ export default function DailySalesReportPage() {
                   </TableHeader>
                   <TableBody>
                     {data.invoices.map((inv) => (
-                      <TableRow key={inv.name} className={inv.isReturn ? 'bg-red-50/50 dark:bg-red-950/10' : ''}>
+                      <TableRow key={inv.name} className={inv.isReturn ? 'bg-destructive/5' : ''}>
                         <TableCell className="font-medium">{inv.name}</TableCell>
                         <TableCell>{inv.customer}</TableCell>
                         <TableCell>
@@ -606,9 +606,9 @@ export default function DailySalesReportPage() {
                         </TableCell>
                         <TableCell className="tabular-nums">
                           {inv.outstanding > 0 ? (
-                            <span className="text-amber-600">{fmt(inv.outstanding)} ر.ي</span>
+                            <span className="text-chart-2">{fmt(inv.outstanding)} ر.ي</span>
                           ) : (
-                            <span className="text-emerald-600">مسددة</span>
+                            <span className="text-primary">مسددة</span>
                           )}
                         </TableCell>
                         <TableCell className="text-muted-foreground">{inv.time?.slice(0, 5)}</TableCell>
@@ -632,33 +632,33 @@ export default function DailySalesReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <ArrowLeftRight className="h-4 w-4 text-indigo-600" />
+                <ArrowLeftRight className="h-4 w-4 text-chart-1" />
                 ملخص النقدي والآجل
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
-                  <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">النقدي المحصّل</p>
-                  <p className="mt-1 text-xl font-bold text-emerald-800 dark:text-emerald-300 tabular-nums">
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  <p className="text-xs font-medium text-primary">النقدي المحصّل</p>
+                  <p className="mt-1 text-xl font-bold text-primary tabular-nums">
                     {fmt(summary?.totalCashReceived || 0)} ر.ي
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {summary?.netSales ? ((summary.totalCashReceived / summary.netSales) * 100).toFixed(1) : 0}% من صافي المبيعات
                   </p>
                 </div>
-                <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
-                  <p className="text-xs font-medium text-amber-700 dark:text-amber-400">الآجل</p>
-                  <p className="mt-1 text-xl font-bold text-amber-800 dark:text-amber-300 tabular-nums">
+                <div className="rounded-lg border border-chart-2/20 bg-chart-2/5 p-4">
+                  <p className="text-xs font-medium text-chart-2">الآجل</p>
+                  <p className="mt-1 text-xl font-bold text-chart-2 tabular-nums">
                     {fmt(summary?.totalCredit || 0)} ر.ي
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {summary?.netSales ? ((summary.totalCredit / summary.netSales) * 100).toFixed(1) : 0}% من صافي المبيعات
                   </p>
                 </div>
-                <div className="rounded-lg border border-sky-200 bg-sky-50/50 p-4 dark:border-sky-900/40 dark:bg-sky-950/20">
-                  <p className="text-xs font-medium text-sky-700 dark:text-sky-400">صافي المبيعات</p>
-                  <p className="mt-1 text-xl font-bold text-sky-800 dark:text-sky-300 tabular-nums">
+                <div className="rounded-lg border border-chart-1/20 bg-chart-1/5 p-4">
+                  <p className="text-xs font-medium text-chart-1">صافي المبيعات</p>
+                  <p className="mt-1 text-xl font-bold text-chart-1 tabular-nums">
                     {fmt(summary?.netSales || 0)} ر.ي
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">

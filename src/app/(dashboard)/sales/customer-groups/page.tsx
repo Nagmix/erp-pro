@@ -219,7 +219,7 @@ export default function CustomerGroupsPage() {
           </Badge>
 
           {node.parent_customer_group && (
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               ← {node.parent_customer_group}
             </span>
           )}
@@ -520,7 +520,7 @@ export default function CustomerGroupsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">نوع المجموعة</Label>
+                <Label className="text-xs">نوع المجموعة</Label>
                 <Select
                   value={groupTypeFilter}
                   onValueChange={(v) => setGroupTypeFilter(v as 'all' | 'root' | 'sub')}
@@ -536,7 +536,7 @@ export default function CustomerGroupsPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">المجموعة الأب</Label>
+                <Label className="text-xs">المجموعة الأب</Label>
                 <Select
                   value={parentFilter}
                   onValueChange={setParentFilter}
@@ -607,11 +607,11 @@ export default function CustomerGroupsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">اسم المجموعة <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">اسم المجموعة <span className="text-destructive text-xs">*</span></Label>
                   <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="مثال: عملاء جملة، عملاء تجزئة" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">المجموعة الأب</Label>
+                  <Label className="text-xs font-medium">المجموعة الأب</Label>
                   <ErpLinkCombobox
                     doctype="Customer Group"
                     value={parentGroup}
@@ -675,11 +675,11 @@ export default function CustomerGroupsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">اسم المجموعة</Label>
+                  <Label className="text-xs font-medium">اسم المجموعة</Label>
                   <Input value={editGroup?.name || ''} disabled className="bg-muted" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">المجموعة الأب</Label>
+                  <Label className="text-xs font-medium">المجموعة الأب</Label>
                   <ErpLinkCombobox
                     doctype="Customer Group"
                     value={editParentGroup}
@@ -718,7 +718,7 @@ export default function CustomerGroupsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void handleDelete()} className="bg-destructive text-destructive-foreground">حذف</AlertDialogAction>
+            <AlertDialogAction onClick={() => void handleDelete()} variant="destructive">حذف</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

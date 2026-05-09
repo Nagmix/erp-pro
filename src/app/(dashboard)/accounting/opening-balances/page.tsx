@@ -1233,7 +1233,7 @@ export default function OpeningBalancesPage() {
                 <p className="text-xs text-muted-foreground">إجمالي الأصول الافتتاحية</p>
                 <p className="text-lg font-bold text-emerald-600 mt-1">{formatNumber(openingAssets)}</p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <div className="h-9 w-9 rounded-lg bg-chart-3/10 flex items-center justify-center">
                 <Wallet className="h-4 w-4 text-emerald-600" />
               </div>
             </div>
@@ -1246,7 +1246,7 @@ export default function OpeningBalancesPage() {
                 <p className="text-xs text-muted-foreground">إجمالي الالتزامات الافتتاحية</p>
                 <p className="text-lg font-bold text-rose-600 mt-1">{formatNumber(openingLiabilities)}</p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-rose-500/10 flex items-center justify-center">
+              <div className="h-9 w-9 rounded-lg bg-destructive/10 flex items-center justify-center">
                 <Banknote className="h-4 w-4 text-rose-600" />
               </div>
             </div>
@@ -1259,7 +1259,7 @@ export default function OpeningBalancesPage() {
                 <p className="text-xs text-muted-foreground">إجمالي حقوق الملكية الافتتاحية</p>
                 <p className="text-lg font-bold text-amber-600 mt-1">{formatNumber(openingEquity)}</p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <div className="h-9 w-9 rounded-lg bg-chart-2/10 flex items-center justify-center">
                 <Landmark className="h-4 w-4 text-amber-600" />
               </div>
             </div>
@@ -1455,15 +1455,15 @@ export default function OpeningBalancesPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-center">
+                  <div className="rounded-lg border border-primary/20 bg-primary/5/50 p-3 text-center">
                     <p className="text-xs text-muted-foreground">إجمالي المدين</p>
                     <p className="text-lg font-bold text-emerald-600 mt-1">{formatNumber(totalAccountDebit)}</p>
                   </div>
-                  <div className="rounded-lg border border-rose-200 bg-rose-50/50 p-3 text-center">
+                  <div className="rounded-lg border border-destructive/20 bg-destructive/5/50 p-3 text-center">
                     <p className="text-xs text-muted-foreground">إجمالي الدائن</p>
                     <p className="text-lg font-bold text-rose-600 mt-1">{formatNumber(totalAccountCredit)}</p>
                   </div>
-                  <div className={`rounded-lg border p-3 text-center ${isBalanced ? 'border-emerald-200 bg-emerald-50/50' : 'border-rose-200 bg-rose-50/50'}`}>
+                  <div className={`rounded-lg border p-3 text-center ${isBalanced ? 'border-primary/20 bg-primary/5/50' : 'border-destructive/20 bg-destructive/5/50'}`}>
                     <p className="text-xs text-muted-foreground">الفرق</p>
                     <p className={`text-lg font-bold mt-1 ${isBalanced ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {formatNumber(balanceDiff)}

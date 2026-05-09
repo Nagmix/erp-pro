@@ -340,15 +340,15 @@ export default function PosReturnsPage() {
       {/* ── فلاتر التاريخ والعميل ── */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">من تاريخ</Label>
+          <Label className="text-xs text-muted-foreground">من تاريخ</Label>
           <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
         </div>
         <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground">إلى تاريخ</Label>
+          <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
           <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
         </div>
         <div className="space-y-1 min-w-[180px]">
-          <Label className="text-[11px] text-muted-foreground">فلتر العميل</Label>
+          <Label className="text-xs text-muted-foreground">فلتر العميل</Label>
           <ErpLinkCombobox
             doctype="Customer"
             value={customerFilter}
@@ -677,7 +677,7 @@ function ReturnDetailField({
   const displayValue = value || '—';
   return (
     <div className="space-y-1">
-      <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
         {icon}
         {label}
       </p>

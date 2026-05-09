@@ -506,7 +506,7 @@ export default function RecurringInvoicesPage() {
         render: (v) => {
           const val = String(v || '');
           return (
-            <Badge variant="outline" className="text-[10px] font-medium border-border/40">
+            <Badge variant="outline" className="text-xs font-medium border-border/40">
               {FREQUENCY_MAP[val] || val || '—'}
             </Badge>
           );
@@ -532,11 +532,11 @@ export default function RecurringInvoicesPage() {
         header: 'الحالة',
         render: (v) =>
           chk(v) ? (
-            <Badge variant="outline" className="text-[10px] font-semibold bg-warning/12 text-warning ring-1 ring-inset ring-warning/25 border-0">
+            <Badge variant="outline" className="text-xs font-medium bg-warning/12 text-warning ring-1 ring-inset ring-warning/25 border-0">
               متوقف
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-[10px] font-semibold bg-success/12 text-success ring-1 ring-inset ring-success/25 border-0">
+            <Badge variant="outline" className="text-xs font-medium bg-success/12 text-success ring-1 ring-inset ring-success/25 border-0">
               نشط
             </Badge>
           ),
@@ -554,7 +554,7 @@ export default function RecurringInvoicesPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 onClick={() => handleTogglePause(row)}
                 title={isPaused ? 'استئناف' : 'إيقاف مؤقت'}
               >
@@ -564,7 +564,7 @@ export default function RecurringInvoicesPage() {
                 type="button"
                 size="sm"
                 variant="secondary"
-                className="h-7 text-[10px] px-2 gap-1"
+                className="h-7 text-xs px-2 gap-1"
                 disabled={isGenerating || isPaused}
                 onClick={() => handleGenerateNow(row.name)}
               >
@@ -575,7 +575,7 @@ export default function RecurringInvoicesPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 onClick={() => handleViewGenerated(row)}
                 title="عرض الفواتير المولّدة"
               >
@@ -585,7 +585,7 @@ export default function RecurringInvoicesPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 onClick={() => openEditDialog(row)}
               >
                 <Edit className="h-3 w-3" />
@@ -689,7 +689,7 @@ export default function RecurringInvoicesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">الحالة</Label>
+                <Label className="text-xs">الحالة</Label>
                 <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | 'active' | 'paused')}>
                   <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -700,7 +700,7 @@ export default function RecurringInvoicesPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">التكرار</Label>
+                <Label className="text-xs">التكرار</Label>
                 <Select value={frequencyFilter} onValueChange={setFrequencyFilter}>
                   <SelectTrigger className="h-8 text-xs w-36"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -755,7 +755,7 @@ export default function RecurringInvoicesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">العميل <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox
                       doctype="Customer"
                       value={formCustomer}
@@ -765,7 +765,7 @@ export default function RecurringInvoicesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">التكرار <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">التكرار <span className="text-destructive text-xs">*</span></Label>
                     <Select value={formFrequency} onValueChange={setFormFrequency}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -779,11 +779,11 @@ export default function RecurringInvoicesPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تاريخ أول فاتورة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">تاريخ أول فاتورة <span className="text-destructive text-xs">*</span></Label>
                     <Input type="date" dir="ltr" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">عدد مرات التكرار</Label>
+                    <Label className="text-xs font-medium">عدد مرات التكرار</Label>
                     <div className="flex items-center gap-3">
                       <Input
                         type="number"
@@ -805,7 +805,7 @@ export default function RecurringInvoicesPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">إصدار مبكر (أيام قبل الاستحقاق)</Label>
+                    <Label className="text-xs font-medium">إصدار مبكر (أيام قبل الاستحقاق)</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -816,7 +816,7 @@ export default function RecurringInvoicesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">إشعار قبل التوليد</Label>
+                    <Label className="text-xs font-medium">إشعار قبل التوليد</Label>
                     <div className="flex items-center gap-2 h-9">
                       <Switch checked={formNotifyBefore} onCheckedChange={setFormNotifyBefore} />
                       <span className="text-xs text-muted-foreground">{formNotifyBefore ? 'مفعّل' : 'معطّل'}</span>
@@ -924,8 +924,8 @@ export default function RecurringInvoicesPage() {
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-info" />
                       <div>
-                        <Label className="text-[13px] font-semibold">إرسال بريد تلقائي</Label>
-                        <p className="text-[10px] text-muted-foreground">إرسال الفاتورة بالبريد عند التوليد</p>
+                        <Label className="text-xs font-medium">إرسال بريد تلقائي</Label>
+                        <p className="text-xs text-muted-foreground">إرسال الفاتورة بالبريد عند التوليد</p>
                       </div>
                     </div>
                     <Switch checked={formAutoSendEmail} onCheckedChange={setFormAutoSendEmail} />
@@ -934,8 +934,8 @@ export default function RecurringInvoicesPage() {
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4 text-warning" />
                       <div>
-                        <Label className="text-[13px] font-semibold">دفع تلقائي من الرصيد</Label>
-                        <p className="text-[10px] text-muted-foreground">خصم من رصيد العميل الدائن</p>
+                        <Label className="text-xs font-medium">دفع تلقائي من الرصيد</Label>
+                        <p className="text-xs text-muted-foreground">خصم من رصيد العميل الدائن</p>
                       </div>
                     </div>
                     <Switch checked={formAutoPayCredit} onCheckedChange={setFormAutoPayCredit} />
@@ -946,8 +946,8 @@ export default function RecurringInvoicesPage() {
                     <div className="flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-success" />
                       <div>
-                        <Label className="text-[13px] font-semibold">عرض فترة الفاتورة</Label>
-                        <p className="text-[10px] text-muted-foreground">إظهار تواريخ البداية والنهاية</p>
+                        <Label className="text-xs font-medium">عرض فترة الفاتورة</Label>
+                        <p className="text-xs text-muted-foreground">إظهار تواريخ البداية والنهاية</p>
                       </div>
                     </div>
                     <Switch checked={formShowPeriodDates} onCheckedChange={setFormShowPeriodDates} />
@@ -956,8 +956,8 @@ export default function RecurringInvoicesPage() {
                     <div className="flex items-center gap-2">
                       <Bell className="h-4 w-4 text-destructive" />
                       <div>
-                        <Label className="text-[13px] font-semibold">إشعار قبل التوليد</Label>
-                        <p className="text-[10px] text-muted-foreground">تنبيه قبل إنشاء الفاتورة</p>
+                        <Label className="text-xs font-medium">إشعار قبل التوليد</Label>
+                        <p className="text-xs text-muted-foreground">تنبيه قبل إنشاء الفاتورة</p>
                       </div>
                     </div>
                     <Switch checked={formNotifyBefore} onCheckedChange={setFormNotifyBefore} />
@@ -995,7 +995,7 @@ export default function RecurringInvoicesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={handleDelete} variant="destructive">
               حذف
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1049,7 +1049,7 @@ export default function RecurringInvoicesPage() {
                       <TableCell className="text-xs tabular-nums">{inv.posting_date ? formatDate(inv.posting_date) : '—'}</TableCell>
                       <TableCell className="text-xs font-semibold tabular-nums">{Number(inv.grand_total) ? formatCurrency(Number(inv.grand_total)) : '—'}</TableCell>
                       <TableCell className="text-xs">
-                        <Badge variant="outline" className="text-[10px]">
+                        <Badge variant="outline" className="text-xs">
                           {inv.docstatus === 1 ? 'مُقدّم' : inv.docstatus === 2 ? 'ملغي' : 'مسودة'}
                         </Badge>
                       </TableCell>
@@ -1108,7 +1108,7 @@ export default function RecurringInvoicesPage() {
                 <Separator />
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">التكرار</span>
-                  <Badge variant="outline" className="text-[10px]">{FREQUENCY_MAP[previewData.frequency || ''] || previewData.frequency || '—'}</Badge>
+                  <Badge variant="outline" className="text-xs">{FREQUENCY_MAP[previewData.frequency || ''] || previewData.frequency || '—'}</Badge>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between text-xs">
@@ -1126,9 +1126,9 @@ export default function RecurringInvoicesPage() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">الحالة</span>
                   {chk(previewData.disable) ? (
-                    <Badge variant="outline" className="text-[10px] bg-warning/12 text-warning border-0">متوقف</Badge>
+                    <Badge variant="outline" className="text-xs bg-warning/12 text-warning border-0">متوقف</Badge>
                   ) : (
-                    <Badge variant="outline" className="text-[10px] bg-success/12 text-success border-0">نشط</Badge>
+                    <Badge variant="outline" className="text-xs bg-success/12 text-success border-0">نشط</Badge>
                   )}
                 </div>
               </div>
@@ -1138,7 +1138,7 @@ export default function RecurringInvoicesPage() {
                   <Bell className="h-4 w-4 text-info shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs font-semibold text-info">توليد تلقائي</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {chk(previewData.disable)
                         ? 'الفاتورة متوقفة حالياً ولن يتم توليدها تلقائياً حتى يتم استئنافها.'
                         : previewData.next_schedule_date

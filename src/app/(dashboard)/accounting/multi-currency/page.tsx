@@ -480,7 +480,7 @@ export default function MultiCurrencyPage() {
         header: 'سعر الشراء',
         sortable: true,
         render: (_v, row: Currency) => (
-          <span className="tabular-nums font-medium text-emerald-600 dark:text-emerald-400">
+          <span className="tabular-nums font-medium text-primary dark:text-emerald-400">
             {row.buyRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
           </span>
         ),
@@ -490,7 +490,7 @@ export default function MultiCurrencyPage() {
         header: 'سعر البيع',
         sortable: true,
         render: (_v, row: Currency) => (
-          <span className="tabular-nums font-medium text-rose-600 dark:text-rose-400">
+          <span className="tabular-nums font-medium text-destructive dark:text-rose-400">
             {row.sellRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
           </span>
         ),
@@ -525,7 +525,7 @@ export default function MultiCurrencyPage() {
               disabled={row.code === 'YER'}
               aria-label={`تفعيل/تعطيل ${row.nameAr}`}
             />
-            <span className={`text-xs font-medium ${row.active ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+            <span className={`text-xs font-medium ${row.active ? 'text-primary dark:text-emerald-400' : 'text-muted-foreground'}`}>
               {row.active ? 'مفعّلة' : 'معطّلة'}
             </span>
           </div>
@@ -607,7 +607,7 @@ export default function MultiCurrencyPage() {
         header: 'الفرق',
         sortable: true,
         render: (_v, row: ExchangeEntry) => (
-          <span className={`tabular-nums font-semibold ${row.type === 'ربح' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+          <span className={`tabular-nums font-semibold ${row.type === 'ربح' ? 'text-primary dark:text-emerald-400' : 'text-destructive dark:text-rose-400'}`}>
             {row.difference > 0 ? '+' : ''}{row.difference.toLocaleString('ar-YE')}
           </span>
         ),
@@ -620,8 +620,8 @@ export default function MultiCurrencyPage() {
           <span
             className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
               row.type === 'ربح'
-                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-500/25'
-                : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 ring-rose-500/25'
+                ? 'bg-primary/10 text-primary ring-primary/25'
+                : 'bg-destructive/10 text-destructive ring-destructive/25'
             }`}
           >
             {row.type === 'ربح' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -752,7 +752,7 @@ export default function MultiCurrencyPage() {
             <Card className="border-border/40">
               <CardContent className="p-6 space-y-5">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary dark:text-emerald-400">
                     <ArrowRightLeft className="h-4 w-4" />
                   </div>
                   <div>
@@ -824,9 +824,9 @@ export default function MultiCurrencyPage() {
                 </div>
 
                 {/* Result */}
-                <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-950/20 p-5 text-center space-y-2">
+                <div className="rounded-xl border border-primary/20 bg-primary/5/50 dark:bg-primary/5 p-5 text-center space-y-2">
                   <p className="text-xs text-muted-foreground">النتيجة</p>
-                  <p className="text-3xl sm:text-4xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
+                  <p className="text-3xl sm:text-4xl font-bold tabular-nums text-primary">
                     {convertResult.result.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -843,7 +843,7 @@ export default function MultiCurrencyPage() {
             <Card className="border-border/40">
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-chart-1/10 text-chart-1 dark:text-sky-400">
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                   <div>
@@ -886,42 +886,42 @@ export default function MultiCurrencyPage() {
         <TabsContent value="gainloss" className="space-y-5">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card className="border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/30 dark:bg-emerald-950/10">
+            <Card className="border-primary/20 bg-primary/5/30 dark:bg-primary/5">
               <CardContent className="p-5 flex items-center gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:text-emerald-400">
                   <TrendingUp className="h-6 w-6" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">إجمالي الأرباح</p>
-                  <p className="text-xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                  <p className="text-xl font-bold tabular-nums text-primary dark:text-emerald-400">
                     {formatCurrency(totalGains)}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-rose-200 dark:border-rose-800/40 bg-rose-50/30 dark:bg-rose-950/10">
+            <Card className="border-destructive/20 bg-destructive/5/30 dark:bg-destructive/5">
               <CardContent className="p-5 flex items-center gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive dark:text-rose-400">
                   <TrendingDown className="h-6 w-6" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">إجمالي الخسائر</p>
-                  <p className="text-xl font-bold tabular-nums text-rose-600 dark:text-rose-400">
+                  <p className="text-xl font-bold tabular-nums text-destructive dark:text-rose-400">
                     {formatCurrency(totalLosses)}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className={`border-border/40 ${netGainLoss >= 0 ? 'bg-emerald-50/30 dark:bg-emerald-950/10' : 'bg-rose-50/30 dark:bg-rose-950/10'}`}>
+            <Card className={`border-border/40 ${netGainLoss >= 0 ? 'bg-primary/5/30 dark:bg-primary/5' : 'bg-destructive/5/30 dark:bg-destructive/5'}`}>
               <CardContent className="p-5 flex items-center gap-4">
-                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${netGainLoss >= 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'}`}>
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${netGainLoss >= 0 ? 'bg-primary/10 text-primary dark:text-emerald-400' : 'bg-destructive/10 text-destructive dark:text-rose-400'}`}>
                   <DollarSign className="h-6 w-6" />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground font-medium">الصافي</p>
-                  <p className={`text-xl font-bold tabular-nums ${netGainLoss >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                  <p className={`text-xl font-bold tabular-nums ${netGainLoss >= 0 ? 'text-primary dark:text-emerald-400' : 'text-destructive dark:text-rose-400'}`}>
                     {netGainLoss >= 0 ? '+' : ''}{formatCurrency(netGainLoss)}
                   </p>
                 </div>
@@ -958,7 +958,7 @@ export default function MultiCurrencyPage() {
         <DialogContent className="sm:max-w-md" dir="rtl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-emerald-600" />
+              <DollarSign className="h-5 w-5 text-primary" />
               تعديل سعر الصرف — {editingCurrency?.nameAr} ({editingCurrency?.code})
             </DialogTitle>
           </DialogHeader>
@@ -970,11 +970,11 @@ export default function MultiCurrencyPage() {
                 <p className="text-[11px] font-medium text-muted-foreground">الأسعار الحالية</p>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">سعر الشراء:</span>
-                  <span className="tabular-nums font-medium text-emerald-600">{editingCurrency.buyRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}</span>
+                  <span className="tabular-nums font-medium text-primary">{editingCurrency.buyRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">سعر البيع:</span>
-                  <span className="tabular-nums font-medium text-rose-600">{editingCurrency.sellRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}</span>
+                  <span className="tabular-nums font-medium text-destructive">{editingCurrency.sellRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
             )}
@@ -1027,7 +1027,7 @@ export default function MultiCurrencyPage() {
                   const spreadPct = buy > 0 ? ((spread / buy) * 100).toFixed(4) : '0';
                   return (
                     <div className="flex justify-between text-xs">
-                      <span className={spread >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                      <span className={spread >= 0 ? 'text-primary' : 'text-destructive'}>
                         {spread.toLocaleString('ar-YE', { minimumFractionDigits: 2 })} ({spreadPct}%)
                       </span>
                     </div>

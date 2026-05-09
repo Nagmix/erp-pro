@@ -95,7 +95,7 @@ function validateSettings(s: CrmMessagingSettings): string[] {
 
 function StatusBadge({ status, label }: { status: 'connected' | 'disconnected'; label: string }) {
   return status === 'connected' ? (
-    <Badge variant="default" className="text-[10px] gap-1 bg-emerald-600 hover:bg-emerald-700">
+    <Badge variant="default" className="text-[10px] gap-1 bg-chart-3 hover:bg-chart-3">
       <Wifi className="h-3 w-3" />
       {label} — متصل
     </Badge>

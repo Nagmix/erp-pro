@@ -68,7 +68,7 @@ const STATUS_AR: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  Open: 'bg-sky-500/10 text-sky-700 dark:text-sky-400',
+  Open: 'bg-chart-1/10 text-chart-1',
   Closed: 'bg-muted text-muted-foreground',
 };
 
@@ -426,7 +426,7 @@ export default function AppointmentsPage() {
                 key={r.name}
                 className={cn(
                   'rounded-lg border p-3 flex items-center justify-between',
-                  r.status === 'Open' ? 'border-sky-500/30 bg-sky-500/5' : 'border-border/40 bg-muted/30'
+                  r.status === 'Open' ? 'border-chart-1/30 bg-chart-1/5' : 'border-border/40 bg-muted/30'
                 )}
               >
                 <div className="min-w-0">
@@ -516,26 +516,26 @@ export default function AppointmentsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">الموضوع <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">الموضوع <span className="text-destructive text-xs">*</span></Label>
                   <Input placeholder="موضوع الموعد" value={form.subject} onChange={(e) => setForm(prev => ({ ...prev, subject: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">التاريخ <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">التاريخ <span className="text-destructive text-xs">*</span></Label>
                   <Input type="date" dir="ltr" value={form.date} onChange={(e) => setForm(prev => ({ ...prev, date: e.target.value }))} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">من</Label>
+                    <Label className="text-xs font-medium">من</Label>
                     <Input type="time" dir="ltr" value={form.timeStart} onChange={(e) => setForm(prev => ({ ...prev, timeStart: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">إلى</Label>
+                    <Label className="text-xs font-medium">إلى</Label>
                     <Input type="time" dir="ltr" value={form.timeEnd} onChange={(e) => setForm(prev => ({ ...prev, timeEnd: e.target.value }))} />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع الحدث</Label>
+                    <Label className="text-xs font-medium">نوع الحدث</Label>
                     <Select dir="rtl" value={form.eventType} onValueChange={(val) => setForm(prev => ({ ...prev, eventType: val as 'Private' | 'Public' }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -545,7 +545,7 @@ export default function AppointmentsPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">التكرار</Label>
+                    <Label className="text-xs font-medium">التكرار</Label>
                     <Select dir="rtl" value={form.repeat} onValueChange={(val) => setForm(prev => ({ ...prev, repeat: val as typeof form.repeat }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -558,7 +558,7 @@ export default function AppointmentsPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">الوصف</Label>
+                  <Label className="text-xs font-medium">الوصف</Label>
                   <Textarea placeholder="وصف الموعد..." value={form.desc} onChange={(e) => setForm(prev => ({ ...prev, desc: e.target.value }))} rows={2} />
                 </div>
               </div>
@@ -579,21 +579,21 @@ export default function AppointmentsPage() {
                     onChange={(e) => setForm(prev => ({ ...prev, sendReminder: e.target.checked }))}
                     className="h-4 w-4 rounded border-border"
                   />
-                  <Label className="text-[13px] font-semibold">إرسال تنبيه</Label>
+                  <Label className="text-xs font-medium">إرسال تنبيه</Label>
                 </div>
                 {form.sendReminder && (
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">وقت التنبيه</Label>
+                    <Label className="text-xs font-medium">وقت التنبيه</Label>
                     <Input type="datetime-local" dir="ltr" value={form.reminderDatetime} onChange={(e) => setForm(prev => ({ ...prev, reminderDatetime: e.target.value }))} />
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تعيين لموظف</Label>
+                    <Label className="text-xs font-medium">تعيين لموظف</Label>
                     <ErpLinkCombobox doctype="User" value={form.assignee} onChange={(v) => setForm(prev => ({ ...prev, assignee: v }))} displayKey="full_name" className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">مرجع (اختياري)</Label>
+                    <Label className="text-xs font-medium">مرجع (اختياري)</Label>
                     <Select dir="rtl" value={form.refType} onValueChange={(val) => { setForm(prev => ({ ...prev, refType: val, refName: '' })); }}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر..." /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -607,7 +607,7 @@ export default function AppointmentsPage() {
                 </div>
                 {form.refType && (
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">اسم المرجع</Label>
+                    <Label className="text-xs font-medium">اسم المرجع</Label>
                     {form.refType === 'Lead' && <ErpLinkCombobox doctype="Lead" value={form.refName} onChange={(v) => setForm(prev => ({ ...prev, refName: v }))} />}
                     {form.refType === 'Customer' && <ErpLinkCombobox doctype="Customer" value={form.refName} onChange={(v) => setForm(prev => ({ ...prev, refName: v }))} displayKey="customer_name" />}
                     {form.refType === 'Opportunity' && <ErpLinkCombobox doctype="Opportunity" value={form.refName} onChange={(v) => setForm(prev => ({ ...prev, refName: v }))} />}
@@ -653,30 +653,30 @@ export default function AppointmentsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">كود الموعد</Label>
+                  <Label className="text-xs font-medium">كود الموعد</Label>
                   <Input value={selected?.name || ''} disabled className="bg-muted text-muted-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">الموضوع <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">الموضوع <span className="text-destructive text-xs">*</span></Label>
                   <Input value={editForm.subject} onChange={(e) => setEditForm(prev => ({ ...prev, subject: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">التاريخ</Label>
+                  <Label className="text-xs font-medium">التاريخ</Label>
                   <Input type="date" dir="ltr" value={editForm.date} onChange={(e) => setEditForm(prev => ({ ...prev, date: e.target.value }))} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">من</Label>
+                    <Label className="text-xs font-medium">من</Label>
                     <Input type="time" dir="ltr" value={editForm.timeStart} onChange={(e) => setEditForm(prev => ({ ...prev, timeStart: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">إلى</Label>
+                    <Label className="text-xs font-medium">إلى</Label>
                     <Input type="time" dir="ltr" value={editForm.timeEnd} onChange={(e) => setEditForm(prev => ({ ...prev, timeEnd: e.target.value }))} />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الحالة</Label>
+                    <Label className="text-xs font-medium">الحالة</Label>
                     <Select dir="rtl" value={editForm.status} onValueChange={(val) => setEditForm(prev => ({ ...prev, status: val as 'Open' | 'Closed' }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -686,7 +686,7 @@ export default function AppointmentsPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع الحدث</Label>
+                    <Label className="text-xs font-medium">نوع الحدث</Label>
                     <Select dir="rtl" value={editForm.eventType} onValueChange={(val) => setEditForm(prev => ({ ...prev, eventType: val as 'Private' | 'Public' }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -696,9 +696,9 @@ export default function AppointmentsPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">التكرار</Label>
+                    <Label className="text-xs font-medium">التكرار</Label>
                     <Select dir="rtl" value={editForm.repeat} onValueChange={(val) => setEditForm(prev => ({ ...prev, repeat: val as typeof editForm.repeat }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -710,7 +710,7 @@ export default function AppointmentsPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الوصف</Label>
+                    <Label className="text-xs font-medium">الوصف</Label>
                     <Input value={editForm.desc} onChange={(e) => setEditForm(prev => ({ ...prev, desc: e.target.value }))} />
                   </div>
                 </div>
@@ -732,11 +732,11 @@ export default function AppointmentsPage() {
                     onChange={(e) => setEditForm(prev => ({ ...prev, sendReminder: e.target.checked }))}
                     className="h-4 w-4 rounded border-border"
                   />
-                  <Label className="text-[13px] font-semibold">إرسال تنبيه</Label>
+                  <Label className="text-xs font-medium">إرسال تنبيه</Label>
                 </div>
                 {editForm.sendReminder && (
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">وقت التنبيه</Label>
+                    <Label className="text-xs font-medium">وقت التنبيه</Label>
                     <Input type="datetime-local" dir="ltr" value={editForm.reminderDatetime} onChange={(e) => setEditForm(prev => ({ ...prev, reminderDatetime: e.target.value }))} />
                   </div>
                 )}
@@ -747,7 +747,7 @@ export default function AppointmentsPage() {
                     onChange={(e) => setEditForm(prev => ({ ...prev, syncWithGoogle: e.target.checked }))}
                     className="h-4 w-4 rounded border-border"
                   />
-                  <Label className="text-[13px] font-semibold">مزامنة مع تقويم Google</Label>
+                  <Label className="text-xs font-medium">مزامنة مع تقويم Google</Label>
                 </div>
               </div>
             </fieldset>
@@ -776,7 +776,7 @@ export default function AppointmentsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} variant="destructive">حذف</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

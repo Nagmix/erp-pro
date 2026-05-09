@@ -91,7 +91,7 @@ function CostCenterTreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-[13px]"
+        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
         style={{ paddingRight: `${level * 1.25 + 1}rem` }}
       >
         {hasChildren ? (
@@ -122,7 +122,7 @@ function CostCenterTreeItem({
               {item.cost_center_number}
             </span>
           )}
-          <Badge variant="outline" className={`text-[9px] border-0 ${isGroup ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-muted text-muted-foreground'}`}>
+          <Badge variant="outline" className={`text-[9px] border-0 ${isGroup ? 'bg-chart-1/10 text-blue-700 dark:bg-chart-1/10 dark:text-blue-400' : 'bg-muted text-muted-foreground'}`}>
             {isGroup ? 'مجموعة' : 'فرعي'}
           </Badge>
           <div className="flex gap-0.5 w-16 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
@@ -484,7 +484,7 @@ export default function CostCentersPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5">
+            <AlertDialogAction onClick={handleDelete} variant="destructive" className="gap-1.5">
               <Trash2 className="h-3.5 w-3.5" />
               حذف
             </AlertDialogAction>

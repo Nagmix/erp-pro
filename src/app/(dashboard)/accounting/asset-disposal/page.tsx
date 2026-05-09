@@ -272,7 +272,7 @@ export default function AssetDisposalPage() {
                 <p className="text-[10px] text-destructive">{saleForm.formState.errors.asset.message}</p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">تاريخ البيع *</Label>
                 <Input type="date" dir="ltr" {...saleForm.register('sale_date')} />

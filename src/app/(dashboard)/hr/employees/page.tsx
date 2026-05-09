@@ -94,7 +94,7 @@ const columns: Column<EmployeeRow>[] = [
     render: (_, row) => (
       <div className="flex items-center gap-2">
         <Avatar className="h-7 w-7">
-          <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+          <AvatarFallback className="text-xs bg-primary/10 text-primary">
             {(row.first_name || '?').charAt(0)}
             {(row.last_name || '?').charAt(0)}
           </AvatarFallback>
@@ -103,7 +103,7 @@ const columns: Column<EmployeeRow>[] = [
           <span className="font-medium block">
             {row.employee_name || `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim()}
           </span>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {row.designation || '—'}
           </span>
         </div>
@@ -182,7 +182,7 @@ const columns: Column<EmployeeRow>[] = [
     render: (value) => (
       <div className="flex items-center gap-1.5">
         <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
-        <span className="text-muted-foreground text-[10px]" dir="ltr">
+        <span className="text-muted-foreground text-xs" dir="ltr">
           {String(value || '—')}
         </span>
       </div>
@@ -400,7 +400,7 @@ export default function EmployeesPage() {
                   value="personal"
                   className="space-y-4 py-4 outline-none"
                 >
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">
                         الاسم الأول <span className="text-destructive">*</span>
@@ -432,7 +432,7 @@ export default function EmployeesPage() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">الجنس</Label>
                       <Select
@@ -474,7 +474,7 @@ export default function EmployeesPage() {
                   value="job"
                   className="space-y-4 py-4 outline-none"
                 >
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">
                         المسمى الوظيفي
@@ -506,7 +506,7 @@ export default function EmployeesPage() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">
                         تاريخ الالتحاق
@@ -549,7 +549,7 @@ export default function EmployeesPage() {
                   value="contact"
                   className="space-y-4 py-4 outline-none"
                 >
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">
                         البريد الإلكتروني المفضّل
@@ -582,7 +582,7 @@ export default function EmployeesPage() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-xs font-medium">الفرع</Label>
                       <ErpLinkCombobox
@@ -606,7 +606,7 @@ export default function EmployeesPage() {
                       />
                     </div>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     الشركة الافتراضية: {defaultCompany || '—'}
                   </p>
                 </TabsContent>
@@ -709,7 +709,7 @@ export default function EmployeesPage() {
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               {/* فلتر الحالة */}
               <div className="space-y-1">
-                <Label className="text-[10px]">الحالة</Label>
+                <Label className="text-xs">الحالة</Label>
                 <Select
                   value={statusFilter}
                   onValueChange={setStatusFilter}
@@ -728,7 +728,7 @@ export default function EmployeesPage() {
 
               {/* فلتر القسم */}
               <div className="space-y-1">
-                <Label className="text-[10px]">القسم</Label>
+                <Label className="text-xs">القسم</Label>
                 <Select value={deptFilter} onValueChange={setDeptFilter}>
                   <SelectTrigger className="h-8 text-xs w-40">
                     <SelectValue />
@@ -746,7 +746,7 @@ export default function EmployeesPage() {
 
               {/* فلتر الجنس */}
               <div className="space-y-1">
-                <Label className="text-[10px]">الجنس</Label>
+                <Label className="text-xs">الجنس</Label>
                 <Select
                   value={genderFilter}
                   onValueChange={setGenderFilter}
@@ -824,7 +824,7 @@ export default function EmployeesPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteDialog && handleDelete(deleteDialog)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

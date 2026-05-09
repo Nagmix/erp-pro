@@ -174,7 +174,7 @@ export default function TreasuriesPage() {
         filterable: true,
         render: (v, row) => (
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/5 dark:bg-primary/10">
               <Wallet className="h-4 w-4 text-emerald-600" />
             </div>
             <div>
@@ -356,7 +356,7 @@ export default function TreasuriesPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleDelete()}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

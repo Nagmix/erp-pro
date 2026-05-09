@@ -603,7 +603,7 @@ export default function HolidaysPage() {
                 <span dir="ltr" className="col-span-4 tabular-nums">{h.holiday_date ? formatDate(String(h.holiday_date)) : '—'}</span>
                 <span className="col-span-3">
                   {Number(h.weekly_off) === 1 ? (
-                    <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400 font-medium">
+                    <span className="inline-flex items-center gap-1 text-chart-2 font-medium">
                       <Check className="h-3 w-3" />نعم
                     </span>
                   ) : '—'}
@@ -626,7 +626,7 @@ export default function HolidaysPage() {
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
               onClick={() => deleteDialog && handleDelete(deleteDialog)}
             >
               حذف

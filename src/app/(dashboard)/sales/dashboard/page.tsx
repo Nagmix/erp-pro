@@ -33,10 +33,10 @@ import {
 /*  Quick Actions                                                      */
 /* ------------------------------------------------------------------ */
 const QUICK_ACTIONS = [
-  { label: 'عرض سعر جديد', href: '/sales/quotations?new=1', icon: FileText, color: 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' },
-  { label: 'أمر بيع جديد', href: '/sales/sales-orders?new=1', icon: ClipboardList, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  { label: 'عرض سعر جديد', href: '/sales/quotations?new=1', icon: FileText, color: 'bg-chart-1/10 text-chart-1' },
+  { label: 'أمر بيع جديد', href: '/sales/sales-orders?new=1', icon: ClipboardList, color: 'bg-primary/10 text-primary' },
   { label: 'فاتورة مبيعات', href: '/sales/sales-invoices?new=1', icon: Receipt, color: 'bg-primary/10 text-primary' },
-  { label: 'العملاء', href: '/sales/customers', icon: UserCircle, color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
+  { label: 'العملاء', href: '/sales/customers', icon: UserCircle, color: 'bg-chart-2/10 text-chart-2' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -219,10 +219,10 @@ export default function SalesDashboardPage() {
     const orders = salesOrders.filter((so) => Number(so.docstatus) === 1).length;
     const invoices = salesInvoices.filter((si) => Number(si.docstatus) === 1).length;
     return [
-      { label: 'عملاء محتملون', count: leads, color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' },
-      { label: 'فرص', count: opportunities, color: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300' },
-      { label: 'عروض أسعار', count: qts, color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' },
-      { label: 'أوامر بيع', count: orders, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' },
+      { label: 'عملاء محتملون', count: leads, color: 'bg-chart-5/10 text-chart-5' },
+      { label: 'فرص', count: opportunities, color: 'bg-chart-1/10 text-chart-1' },
+      { label: 'عروض أسعار', count: qts, color: 'bg-chart-2/10 text-chart-2' },
+      { label: 'أوامر بيع', count: orders, color: 'bg-primary/10 text-primary' },
       { label: 'فواتير', count: invoices, color: 'bg-primary/10 text-primary' },
     ];
   }, [quotations, salesOrders, salesInvoices]);
@@ -378,7 +378,7 @@ export default function SalesDashboardPage() {
                   <div key={cust.id} className="space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-[10px] font-bold text-emerald-700 dark:text-emerald-300">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
                           {i + 1}
                         </span>
                         <span className="text-xs font-medium truncate max-w-[160px]">{cust.name}</span>
@@ -387,7 +387,7 @@ export default function SalesDashboardPage() {
                     </div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                        className="h-full rounded-full bg-chart-3 transition-all duration-500"
                         style={{ width: `${(cust.total / maxCustomerVal) * 100}%` }}
                       />
                     </div>
@@ -426,35 +426,35 @@ export default function SalesDashboardPage() {
             <CardTitle className="text-sm font-semibold">اتجاه المبيعات الشهرية (آخر ٦ أشهر)</CardTitle>
           </CardHeader>
           <CardContent>
-            <SimpleBarChart data={monthlySales} maxVal={maxSalesVal} colorClass="bg-emerald-500/80" />
+            <SimpleBarChart data={monthlySales} maxVal={maxSalesVal} colorClass="bg-chart-3/80" />
           </CardContent>
         </Card>
 
         {/* Overdue Invoices Alert */}
-        <Card className={`border-border/40 ${overdueCount > 0 ? 'border-rose-200 dark:border-rose-800/40' : ''}`}>
+        <Card className={`border-border/40 ${overdueCount > 0 ? 'border-destructive/30' : ''}`}>
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
-              {overdueCount > 0 && <AlertTriangle className="h-4 w-4 text-rose-500" />}
+              {overdueCount > 0 && <AlertTriangle className="h-4 w-4 text-destructive" />}
               <CardTitle className="text-sm font-semibold">تنبيه الفواتير المتأخرة</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             {overdueCount === 0 ? (
               <div className="py-8 text-center">
-                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
-                  <CircleDollarSign className="h-6 w-6 text-emerald-600" />
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <CircleDollarSign className="h-6 w-6 text-primary" />
                 </div>
                 <p className="text-xs text-muted-foreground">لا توجد فواتير متأخرة</p>
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-rose-50 dark:bg-rose-900/20">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/10">
                   <span className="text-xs font-medium">عدد الفواتير المتأخرة</span>
-                  <span className="text-sm font-bold text-rose-600 dark:text-rose-400">{overdueCount}</span>
+                  <span className="text-sm font-bold text-destructive">{overdueCount}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-lg bg-rose-50 dark:bg-rose-900/20">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/10">
                   <span className="text-xs font-medium">إجمالي المبلغ المتأخر</span>
-                  <span className="text-sm font-bold text-rose-600 dark:text-rose-400">{formatCurrency(overdueAmount)}</span>
+                  <span className="text-sm font-bold text-destructive">{formatCurrency(overdueAmount)}</span>
                 </div>
                 <Button variant="outline" size="sm" className="w-full text-xs mt-2" asChild>
                   <Link href="/sales/sales-invoices">عرض الفواتير</Link>
@@ -486,8 +486,8 @@ export default function SalesDashboardPage() {
                   className="flex items-center justify-between p-2.5 rounded-lg hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                      <ShoppingCart className="h-4 w-4 text-emerald-600" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                      <ShoppingCart className="h-4 w-4 text-primary" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-medium truncate">{tx.party}</p>

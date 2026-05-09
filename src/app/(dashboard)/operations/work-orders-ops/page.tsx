@@ -143,20 +143,20 @@ const PRIORITY_LABELS: Record<WorkOrderPriority, string> = {
 
 const STATUS_COLORS: Record<WorkOrderStatus, string> = {
   pending:
-    'bg-yellow-100 text-yellow-800 ring-1 ring-inset ring-yellow-300 dark:bg-yellow-900/30 dark:text-yellow-300 dark:ring-yellow-700',
+    'bg-chart-2/10 text-chart-2 ring-1 ring-inset ring-chart-2/30',
   in_progress:
-    'bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-700',
+    'bg-chart-1/10 text-chart-1',
   completed:
-    'bg-green-100 text-green-800 ring-1 ring-inset ring-green-300 dark:bg-green-900/30 dark:text-green-300 dark:ring-green-700',
+    'bg-primary/10 text-primary',
   cancelled:
-    'bg-red-100 text-red-800 ring-1 ring-inset ring-red-300 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-700',
+    'bg-destructive/10 text-destructive',
 };
 
 const PRIORITY_COLORS: Record<WorkOrderPriority, string> = {
   low: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
-  medium: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
-  high: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  urgent: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+  medium: 'bg-chart-1/10 text-chart-1',
+  high: 'bg-chart-4/10 text-chart-4',
+  urgent: 'bg-destructive/10 text-destructive',
 };
 
 const STATUS_ICONS: Record<WorkOrderStatus, React.ElementType> = {
@@ -647,7 +647,7 @@ export default function WorkOrdersOpsPage() {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                className="h-7 w-7 p-0 text-chart-1 hover:text-chart-1 hover:bg-chart-1/5"
                 title="بدء التنفيذ"
                 onClick={() => changeStatus(row, 'in_progress')}
               >
@@ -658,7 +658,7 @@ export default function WorkOrdersOpsPage() {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                className="h-7 w-7 p-0 text-primary hover:text-primary hover:bg-primary/5"
                 title="إكمال"
                 onClick={() => changeStatus(row, 'completed')}
               >
@@ -669,7 +669,7 @@ export default function WorkOrdersOpsPage() {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-7 w-7 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/5"
                 title="إلغاء"
                 onClick={() => changeStatus(row, 'cancelled')}
               >
@@ -762,28 +762,28 @@ export default function WorkOrdersOpsPage() {
           title="إجمالي أوامر الشغل"
           value={stats.total}
           icon={ClipboardList}
-          color="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+          color="bg-chart-2/10 text-chart-2"
           description="جميع الأوامر"
         />
         <StatCard
           title="قيد الانتظار"
           value={stats.pending}
           icon={Clock}
-          color="bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300"
+          color="bg-chart-2/10 text-chart-2"
           description="بانتظار البدء"
         />
         <StatCard
           title="قيد التنفيذ"
           value={stats.inProgress}
           icon={Play}
-          color="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+          color="bg-chart-1/10 text-chart-1"
           description="يتم العمل عليها حالياً"
         />
         <StatCard
           title="مكتملة"
           value={stats.completed}
           icon={CheckCircle2}
-          color="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+          color="bg-primary/10 text-primary"
           description="تم إنجازها"
         />
       </div>
@@ -937,7 +937,7 @@ export default function WorkOrdersOpsPage() {
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
               onClick={() => {
                 if (deleteName) void handleDelete(deleteName);
               }}
@@ -983,7 +983,7 @@ export default function WorkOrdersOpsPage() {
             </div>
 
             {/* Assigned To + Category */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">المسؤول</Label>
                 <Select value={formAssignedTo} onValueChange={setFormAssignedTo}>
@@ -1011,7 +1011,7 @@ export default function WorkOrdersOpsPage() {
             </div>
 
             {/* Priority + Status */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">الأولوية</Label>
                 <Select
@@ -1103,7 +1103,7 @@ export default function WorkOrdersOpsPage() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Priority */}
                     <div className="flex items-center gap-2 text-sm">
                       <Tag className="h-4 w-4 text-muted-foreground shrink-0" />

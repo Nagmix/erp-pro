@@ -297,7 +297,7 @@ export default function PurchasesPurchaseInvoicesPage() {
                 type="button"
                 size="sm"
                 variant="secondary"
-                className="h-7 text-[10px] gap-1"
+                className="h-7 text-xs gap-1"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
                     onSuccess: () => {
@@ -318,7 +318,7 @@ export default function PurchasesPurchaseInvoicesPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] gap-1"
+                className="h-7 text-xs gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => {
@@ -411,15 +411,15 @@ export default function PurchasesPurchaseInvoicesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={piStatusFilter} onValueChange={setPiStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -458,7 +458,7 @@ export default function PurchasesPurchaseInvoicesPage() {
               branchesEnabled ? (
                 <div className="flex flex-wrap items-end gap-2">
                   <div className="space-y-1 min-w-[200px]">
-                    <Label className="text-[10px] text-muted-foreground">الفرع</Label>
+                    <Label className="text-xs text-muted-foreground">الفرع</Label>
                     <ErpLinkCombobox doctype="Branch" value={branchFilter} onChange={setBranchFilter} placeholder="كل الفروع" />
                   </div>
                   {branchFilter ? (

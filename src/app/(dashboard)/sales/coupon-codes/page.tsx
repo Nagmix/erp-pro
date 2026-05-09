@@ -300,7 +300,7 @@ export default function CouponCodesPage() {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="h-7 text-[10px] px-2"
+                  className="h-7 text-xs px-2"
                   disabled={submitMutation.isPending}
                   onClick={() =>
                     submitMutation.mutate(row.name, {
@@ -321,7 +321,7 @@ export default function CouponCodesPage() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-[10px] px-2"
+                  className="h-7 text-xs px-2"
                   disabled={cancelMutation.isPending}
                   onClick={() =>
                     cancelMutation.mutate(row.name, {
@@ -431,7 +431,7 @@ export default function CouponCodesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">الحالة</Label>
+                <Label className="text-xs">الحالة</Label>
                 <Select value={activeFilter} onValueChange={(v) => setActiveFilter(v as 'all' | 'active' | 'disabled')}>
                   <SelectTrigger className="h-8 text-xs w-32">
                     <SelectValue />
@@ -444,7 +444,7 @@ export default function CouponCodesPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">نوع الكوبون</Label>
+                <Label className="text-xs">نوع الكوبون</Label>
                 <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as 'all' | 'Percentage' | 'Item Price')}>
                   <SelectTrigger className="h-8 text-xs w-40">
                     <SelectValue />
@@ -495,11 +495,11 @@ export default function CouponCodesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">اسم الكوبون <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">اسم الكوبون <span className="text-destructive text-xs">*</span></Label>
                     <Input value={formCouponName} onChange={(e) => setFormCouponName(e.target.value)} placeholder="مثال: خصم العيد 2025" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">رمز الكوبون</Label>
+                    <Label className="text-xs font-medium">رمز الكوبون</Label>
                     <div className="flex gap-2">
                       <Input
                         value={formCouponCode}
@@ -523,7 +523,7 @@ export default function CouponCodesPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">النوع</Label>
+                    <Label className="text-xs font-medium">النوع</Label>
                     <Select value={formCouponType} onValueChange={setFormCouponType}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -533,7 +533,7 @@ export default function CouponCodesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الحد الأقصى للاستخدام</Label>
+                    <Label className="text-xs font-medium">الحد الأقصى للاستخدام</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -546,17 +546,17 @@ export default function CouponCodesPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">قاعدة التسعير المرتبطة <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">قاعدة التسعير المرتبطة <span className="text-destructive text-xs">*</span></Label>
                   <ErpLinkCombobox doctype="Pricing Rule" value={formPricingRule} onChange={setFormPricingRule} placeholder="اختر قاعدة تسعير" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">صالح من</Label>
+                    <Label className="text-xs font-medium">صالح من</Label>
                     <Input type="date" dir="ltr" value={formValidFrom} onChange={(e) => setFormValidFrom(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">صالح إلى</Label>
+                    <Label className="text-xs font-medium">صالح إلى</Label>
                     <Input type="date" dir="ltr" value={formValidUpto} onChange={(e) => setFormValidUpto(e.target.value)} />
                   </div>
                 </div>
@@ -588,7 +588,7 @@ export default function CouponCodesPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

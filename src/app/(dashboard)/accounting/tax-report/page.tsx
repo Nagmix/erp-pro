@@ -434,26 +434,26 @@ export default function TaxReportPage() {
                   <p className="text-xs text-muted-foreground">صافي الضريبة المستحقة</p>
                   <p className={cn(
                     'text-2xl font-bold tabular-nums mt-1',
-                    taxKpis.netTaxPayable >= 0 ? 'text-rose-600' : 'text-emerald-600'
+                    taxKpis.netTaxPayable >= 0 ? 'text-destructive' : 'text-primary'
                   )} dir="ltr">
                     {formatCurrency(taxKpis.netTaxPayable, 'YER')}
                   </p>
                 </div>
                 <div className="text-start space-y-1">
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="h-2 w-2 rounded-full bg-rose-500" />
+                    <span className="h-2 w-2 rounded-full bg-destructive" />
                     <span className="text-muted-foreground">ضريبة مبيعات محصّلة</span>
                     <span className="font-medium tabular-nums" dir="ltr">{formatCurrency(taxKpis.totalSalesTax, 'YER')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="h-2 w-2 rounded-full bg-sky-500" />
+                    <span className="h-2 w-2 rounded-full bg-chart-1" />
                     <span className="text-muted-foreground">ضريبة مشتريات مدفوعة</span>
                     <span className="font-medium tabular-nums" dir="ltr">{formatCurrency(taxKpis.totalPurchaseTax, 'YER')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs border-t border-border/30 pt-1 mt-1">
-                    <span className={cn('h-2 w-2 rounded-full', taxKpis.netTaxPayable >= 0 ? 'bg-rose-500' : 'bg-emerald-500')} />
+                    <span className={cn('h-2 w-2 rounded-full', taxKpis.netTaxPayable >= 0 ? 'bg-destructive' : 'bg-chart-3')} />
                     <span className="text-muted-foreground">{taxKpis.netTaxPayable >= 0 ? 'واجب الدفع' : 'مسترد'}</span>
-                    <span className={cn('font-bold tabular-nums', taxKpis.netTaxPayable >= 0 ? 'text-rose-600' : 'text-emerald-600')} dir="ltr">
+                    <span className={cn('font-bold tabular-nums', taxKpis.netTaxPayable >= 0 ? 'text-destructive' : 'text-primary')} dir="ltr">
                       {formatCurrency(Math.abs(taxKpis.netTaxPayable), 'YER')}
                     </span>
                   </div>
@@ -467,8 +467,8 @@ export default function TaxReportPage() {
                 return (
                   <div className="mt-3 space-y-1">
                     <div className="flex h-3 rounded-full overflow-hidden bg-muted/50">
-                      <div className="bg-rose-500/70 transition-all" style={{ width: `${salesPct}%` }} />
-                      <div className="bg-sky-500/70 transition-all" style={{ width: `${100 - salesPct}%` }} />
+                      <div className="bg-destructive/70 transition-all" style={{ width: `${salesPct}%` }} />
+                      <div className="bg-chart-1/70 transition-all" style={{ width: `${100 - salesPct}%` }} />
                     </div>
                     <div className="flex justify-between text-[9px] text-muted-foreground">
                       <span>ضريبة مبيعات {salesPct.toFixed(0)}%</span>
@@ -488,7 +488,7 @@ export default function TaxReportPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-destructive" />
                   تفصيل ضريبة المبيعات
                 </CardTitle>
               </CardHeader>
@@ -510,17 +510,17 @@ export default function TaxReportPage() {
                             <TableCell className="text-xs py-1.5 tabular-nums" dir="ltr">
                               {formatCurrency(item.taxableAmount, 'YER')}
                             </TableCell>
-                            <TableCell className="text-xs py-1.5 tabular-nums font-medium text-rose-700 dark:text-rose-400" dir="ltr">
+                            <TableCell className="text-xs py-1.5 tabular-nums font-medium text-destructive" dir="ltr">
                               {formatCurrency(item.taxAmount, 'YER')}
                             </TableCell>
                           </TableRow>
                         ))}
-                        <TableRow className="bg-rose-50/50 dark:bg-rose-950/20 font-semibold border-t-2 border-rose-300/40">
+                        <TableRow className="bg-destructive/5/50 dark:bg-destructive/5 font-semibold border-t-2 border-destructive/30/40">
                           <TableCell className="text-xs py-2">الإجمالي</TableCell>
                           <TableCell className="text-xs py-2 tabular-nums" dir="ltr">
                             {formatCurrency(taxKpis.totalSalesExclTax, 'YER')}
                           </TableCell>
-                          <TableCell className="text-xs py-2 tabular-nums text-rose-700 dark:text-rose-400 font-bold" dir="ltr">
+                          <TableCell className="text-xs py-2 tabular-nums text-destructive font-bold" dir="ltr">
                             {formatCurrency(taxKpis.totalSalesTax, 'YER')}
                           </TableCell>
                         </TableRow>
@@ -539,7 +539,7 @@ export default function TaxReportPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-chart-1" />
                   تفصيل ضريبة المشتريات
                 </CardTitle>
               </CardHeader>
@@ -561,17 +561,17 @@ export default function TaxReportPage() {
                             <TableCell className="text-xs py-1.5 tabular-nums" dir="ltr">
                               {formatCurrency(item.taxableAmount, 'YER')}
                             </TableCell>
-                            <TableCell className="text-xs py-1.5 tabular-nums font-medium text-sky-700 dark:text-sky-400" dir="ltr">
+                            <TableCell className="text-xs py-1.5 tabular-nums font-medium text-chart-1" dir="ltr">
                               {formatCurrency(item.taxAmount, 'YER')}
                             </TableCell>
                           </TableRow>
                         ))}
-                        <TableRow className="bg-sky-50/50 dark:bg-sky-950/20 font-semibold border-t-2 border-sky-300/40">
+                        <TableRow className="bg-chart-1/5/50 dark:bg-chart-1/5 font-semibold border-t-2 border-chart-1/30/40">
                           <TableCell className="text-xs py-2">الإجمالي</TableCell>
                           <TableCell className="text-xs py-2 tabular-nums" dir="ltr">
                             {formatCurrency(taxKpis.totalPurchaseExclTax, 'YER')}
                           </TableCell>
-                          <TableCell className="text-xs py-2 tabular-nums text-sky-700 dark:text-sky-400 font-bold" dir="ltr">
+                          <TableCell className="text-xs py-2 tabular-nums text-chart-1 font-bold" dir="ltr">
                             {formatCurrency(taxKpis.totalPurchaseTax, 'YER')}
                           </TableCell>
                         </TableRow>
@@ -617,18 +617,18 @@ export default function TaxReportPage() {
                         <TableCell className="text-xs py-1.5 tabular-nums" dir="ltr">
                           {formatCurrency(t.sales, 'YER')}
                         </TableCell>
-                        <TableCell className="text-xs py-1.5 tabular-nums text-rose-700 dark:text-rose-400" dir="ltr">
+                        <TableCell className="text-xs py-1.5 tabular-nums text-destructive" dir="ltr">
                           {formatCurrency(t.salesTax, 'YER')}
                         </TableCell>
                         <TableCell className="text-xs py-1.5 tabular-nums" dir="ltr">
                           {formatCurrency(t.purchase, 'YER')}
                         </TableCell>
-                        <TableCell className="text-xs py-1.5 tabular-nums text-sky-700 dark:text-sky-400" dir="ltr">
+                        <TableCell className="text-xs py-1.5 tabular-nums text-chart-1" dir="ltr">
                           {formatCurrency(t.purchaseTax, 'YER')}
                         </TableCell>
                         <TableCell className={cn(
                           'text-xs py-1.5 tabular-nums font-semibold',
-                          t.netTax >= 0 ? 'text-rose-600' : 'text-emerald-600'
+                          t.netTax >= 0 ? 'text-destructive' : 'text-primary'
                         )} dir="ltr">
                           {formatCurrency(t.netTax, 'YER')}
                         </TableCell>
@@ -640,18 +640,18 @@ export default function TaxReportPage() {
                       <TableCell className="text-xs py-2 tabular-nums font-bold" dir="ltr">
                         {formatCurrency(taxKpis.totalSalesExclTax, 'YER')}
                       </TableCell>
-                      <TableCell className="text-xs py-2 tabular-nums font-bold text-rose-700 dark:text-rose-400" dir="ltr">
+                      <TableCell className="text-xs py-2 tabular-nums font-bold text-destructive" dir="ltr">
                         {formatCurrency(taxKpis.totalSalesTax, 'YER')}
                       </TableCell>
                       <TableCell className="text-xs py-2 tabular-nums font-bold" dir="ltr">
                         {formatCurrency(taxKpis.totalPurchaseExclTax, 'YER')}
                       </TableCell>
-                      <TableCell className="text-xs py-2 tabular-nums font-bold text-sky-700 dark:text-sky-400" dir="ltr">
+                      <TableCell className="text-xs py-2 tabular-nums font-bold text-chart-1" dir="ltr">
                         {formatCurrency(taxKpis.totalPurchaseTax, 'YER')}
                       </TableCell>
                       <TableCell className={cn(
                         'text-xs py-2 tabular-nums font-bold',
-                        taxKpis.netTaxPayable >= 0 ? 'text-rose-600' : 'text-emerald-600'
+                        taxKpis.netTaxPayable >= 0 ? 'text-destructive' : 'text-primary'
                       )} dir="ltr">
                         {formatCurrency(taxKpis.netTaxPayable, 'YER')}
                       </TableCell>
@@ -669,7 +669,7 @@ export default function TaxReportPage() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose-500" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-destructive" />
                   سجل المبيعات التفصيلي
                 </CardTitle>
                 <ExportButton
@@ -698,7 +698,7 @@ export default function TaxReportPage() {
                     {salesNormalized.rows.map((row, rIdx) => {
                       const r = row as Record<string, unknown>;
                       return (
-                        <TableRow key={rIdx} className="border-b border-border/20 hover:bg-rose-50/30 dark:hover:bg-rose-950/10">
+                        <TableRow key={rIdx} className="border-b border-border/20 hover:bg-destructive/5/30 dark:hover:bg-destructive/5">
                           {salesNormalized.columns.map((col, cIdx) => {
                             const val = r[col.key ?? ''];
                             const isCurrency = String(col.fieldtype ?? '') === 'Currency';
@@ -727,7 +727,7 @@ export default function TaxReportPage() {
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-chart-1" />
                   سجل المشتريات التفصيلي
                 </CardTitle>
                 <ExportButton
@@ -756,7 +756,7 @@ export default function TaxReportPage() {
                     {purchaseNormalized.rows.map((row, rIdx) => {
                       const r = row as Record<string, unknown>;
                       return (
-                        <TableRow key={rIdx} className="border-b border-border/20 hover:bg-sky-50/30 dark:hover:bg-sky-950/10">
+                        <TableRow key={rIdx} className="border-b border-border/20 hover:bg-chart-1/5">
                           {purchaseNormalized.columns.map((col, cIdx) => {
                             const val = r[col.key ?? ''];
                             const isCurrency = String(col.fieldtype ?? '') === 'Currency';

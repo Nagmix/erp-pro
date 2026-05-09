@@ -300,7 +300,7 @@ export default function PayrollEntryPage() {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="h-7 text-[10px] gap-1"
+                  className="h-7 text-xs gap-1"
                   onClick={() => setSubmitDialog(row)}
                 >
                   <Send className="h-3 w-3" />
@@ -312,7 +312,7 @@ export default function PayrollEntryPage() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-[10px] gap-1"
+                  className="h-7 text-xs gap-1"
                   onClick={() => setCancelDialog(row)}
                 >
                   <Undo2 className="h-3 w-3" />
@@ -516,9 +516,9 @@ export default function PayrollEntryPage() {
             >
               {f.label}
               <span
-                className={`tabular-nums text-[10px] rounded-md px-1.5 py-0.5 font-semibold ${
+                className={`tabular-nums text-xs rounded-md px-1.5 py-0.5 font-semibold ${
                   statusFilter === f.key
-                    ? 'bg-sky-500/10 text-sky-600'
+                    ? 'bg-chart-1/10 text-chart-1'
                     : 'bg-muted text-muted-foreground/70'
                 }`}
               >
@@ -564,7 +564,7 @@ export default function PayrollEntryPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">الشركة</Label>
+                <Label className="text-xs">الشركة</Label>
                 <Select value={companyFilter || '__all__'} onValueChange={(v) => setCompanyFilter(v === '__all__' ? '' : v)}>
                   <SelectTrigger className="h-9 text-xs w-44">
                     <SelectValue placeholder="كل الشركات" />
@@ -578,7 +578,7 @@ export default function PayrollEntryPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">من تاريخ</Label>
+                <Label className="text-xs">من تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -588,7 +588,7 @@ export default function PayrollEntryPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">إلى تاريخ</Label>
+                <Label className="text-xs">إلى تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -632,7 +632,7 @@ export default function PayrollEntryPage() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             {/* Company & Currency */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">
                   الشركة <span className="text-destructive">*</span>
@@ -656,7 +656,7 @@ export default function PayrollEntryPage() {
             </div>
 
             {/* Dates */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">
                   تاريخ القيد <span className="text-destructive">*</span>
@@ -716,7 +716,7 @@ export default function PayrollEntryPage() {
             </div>
 
             {/* Branch, Department, Designation */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">الفرع</Label>
                 <ErpLinkCombobox

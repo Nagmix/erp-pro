@@ -261,7 +261,7 @@ export default function JournalEntryPage() {
             {(() => {
               const href = docDetailPath('Journal Entry', row.name);
               return href ? (
-                <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[10px]">
+                <Button asChild size="sm" variant="outline" className="h-7 px-2 text-xs">
                   <Link href={href}><Eye className="h-3 w-3 ms-1" />عرض</Link>
                 </Button>
               ) : null;
@@ -270,7 +270,7 @@ export default function JournalEntryPage() {
               <Button
                 type="button"
                 size="sm"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('تم ترحيل القيد'); void refetch(); },
@@ -286,7 +286,7 @@ export default function JournalEntryPage() {
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('تم إلغاء القيد'); void refetch(); },
@@ -302,7 +302,7 @@ export default function JournalEntryPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] text-destructive"
+                className="h-7 text-xs text-destructive"
                 onClick={() => { setSelectedEntry(row); setDeleteDialogOpen(true); }}
               >
                 <Trash2 className="h-3 w-3" />
@@ -418,7 +418,7 @@ export default function JournalEntryPage() {
           <div className="flex flex-wrap items-end gap-3">
             {/* نوع القيد */}
             <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">نوع القيد</Label>
+              <Label className="text-xs text-muted-foreground">نوع القيد</Label>
               <Select value={voucherTypeFilter} onValueChange={setVoucherTypeFilter}>
                 <SelectTrigger className="h-9 text-xs w-32"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -437,7 +437,7 @@ export default function JournalEntryPage() {
             {/* فرع */}
             {branchesEnabled && (
               <div className="space-y-1">
-                <Label className="text-[10px] text-muted-foreground">الفرع</Label>
+                <Label className="text-xs text-muted-foreground">الفرع</Label>
                 <ErpLinkCombobox
                   doctype="Branch"
                   value={branchFilter}
@@ -449,7 +449,7 @@ export default function JournalEntryPage() {
             )}
             {/* بحث سريع */}
             <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">بحث</Label>
+              <Label className="text-xs text-muted-foreground">بحث</Label>
               <Input
                 placeholder="رقم أو بيان..."
                 value={search}
@@ -513,7 +513,7 @@ export default function JournalEntryPage() {
                   setDeleteDialogOpen(false);
                 }
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف

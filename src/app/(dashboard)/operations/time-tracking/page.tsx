@@ -69,9 +69,9 @@ interface TimesheetDetailRow {
 }
 
 const statusColors: Record<string, string> = {
-  'Draft': 'bg-amber-500/10 text-amber-600',
-  'Submitted': 'bg-green-500/10 text-green-600',
-  'Cancelled': 'bg-red-500/10 text-red-600',
+  'Draft': 'bg-chart-2/10 text-chart-2',
+  'Submitted': 'bg-primary/10 text-primary',
+  'Cancelled': 'bg-destructive/10 text-destructive',
 };
 
 const statusLabelAr: Record<string, string> = {
@@ -115,7 +115,7 @@ const columns: Column<TimesheetRow>[] = [
     render: (v) => {
       const s = String(v);
       const label = statusLabelAr[s] || s;
-      return <Badge variant="outline" className={`text-[10px] border-0 ${statusColors[s] || 'bg-secondary'}`}>{label}</Badge>;
+      return <Badge variant="outline" className={`text-xs border-0 ${statusColors[s] || 'bg-secondary'}`}>{label}</Badge>;
     },
   },
 ];
@@ -426,7 +426,7 @@ export default function TimeTrackingPage() {
                   placeholder="اختر الموظف..."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">المشروع</Label>
                   <ErpLinkCombobox
@@ -451,7 +451,7 @@ export default function TimeTrackingPage() {
                 <Label className="text-xs font-medium">التاريخ <span className="text-destructive">*</span></Label>
                 <Input type="date" dir="ltr" className="h-9 text-sm" value={formData.date} onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">وقت البداية <span className="text-destructive">*</span></Label>
                   <Input type="time" dir="ltr" className="h-9 text-sm" value={formData.from_time} onChange={e => setFormData(prev => ({ ...prev, from_time: e.target.value }))} />
@@ -474,45 +474,45 @@ export default function TimeTrackingPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-              <Clock className="h-4 w-4 text-blue-600" />
+            <div className="h-9 w-9 rounded-lg bg-chart-1/10 flex items-center justify-center shrink-0">
+              <Clock className="h-4 w-4 text-chart-1" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground">إجمالي الساعات</p>
+              <p className="text-xs text-muted-foreground">إجمالي الساعات</p>
               <p className="text-sm font-bold mt-0.5">{totalHours.toFixed(1)}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-green-500/10 flex items-center justify-center shrink-0">
-              <BarChart3 className="h-4 w-4 text-green-600" />
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <BarChart3 className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground">سجلات مرحّلة</p>
-              <p className="text-sm font-bold text-green-600 mt-0.5">{submittedLogs}</p>
+              <p className="text-xs text-muted-foreground">سجلات مرحّلة</p>
+              <p className="text-sm font-bold text-primary mt-0.5">{submittedLogs}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-              <Timer className="h-4 w-4 text-amber-600" />
+            <div className="h-9 w-9 rounded-lg bg-chart-2/10 flex items-center justify-center shrink-0">
+              <Timer className="h-4 w-4 text-chart-2" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground">مسودات</p>
-              <p className="text-sm font-bold text-amber-600 mt-0.5">{draftLogs}</p>
+              <p className="text-xs text-muted-foreground">مسودات</p>
+              <p className="text-sm font-bold text-chart-2 mt-0.5">{draftLogs}</p>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0">
-              <CalendarClock className="h-4 w-4 text-purple-600" />
+            <div className="h-9 w-9 rounded-lg bg-chart-5/10 flex items-center justify-center shrink-0">
+              <CalendarClock className="h-4 w-4 text-chart-5" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground">المشاريع النشطة</p>
-              <p className="text-sm font-bold text-purple-600 mt-0.5">{uniqueProjects}</p>
+              <p className="text-xs text-muted-foreground">المشاريع النشطة</p>
+              <p className="text-sm font-bold text-chart-5 mt-0.5">{uniqueProjects}</p>
             </div>
           </CardContent>
         </Card>
@@ -523,12 +523,12 @@ export default function TimeTrackingPage() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className={`h-12 w-12 rounded-xl ${timerRunning ? 'bg-red-500/10' : 'bg-rose-500/10'} flex items-center justify-center shrink-0`}>
-                <Timer className={`h-6 w-6 ${timerRunning ? 'text-red-600 animate-pulse' : 'text-rose-600'}`} />
+              <div className={`h-12 w-12 rounded-xl ${timerRunning ? 'bg-destructive/10' : 'bg-destructive/10'} flex items-center justify-center shrink-0`}>
+                <Timer className={`h-6 w-6 ${timerRunning ? 'text-destructive animate-pulse' : 'text-destructive'}`} />
               </div>
               <div>
                 <p className="text-sm font-semibold">مؤقت الوقت الحي</p>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {timerRunning
                     ? `جاري التتبع - ${employees.find(e => e.name === timerEmployee)?.employee_name || ''}`
                     : 'ابدأ تتبع الوقت الآن'}
@@ -568,7 +568,7 @@ export default function TimeTrackingPage() {
                 <p className="text-2xl font-bold tabular-nums" dir="ltr">{formatTimerDisplay(timerSeconds)}</p>
               </div>
               {!timerRunning ? (
-                <Button size="sm" className="gap-1.5 bg-green-600 hover:bg-green-700" onClick={handleStartTimer} disabled={createMutation.isPending}>
+                <Button size="sm" className="gap-1.5 bg-primary hover:bg-primary/90" onClick={handleStartTimer} disabled={createMutation.isPending}>
                   {createMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
                   بدء
                 </Button>
@@ -598,7 +598,7 @@ export default function TimeTrackingPage() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">الموظف</Label>
+              <Label className="text-xs text-muted-foreground">الموظف</Label>
               <Select value={filterEmployee} onValueChange={setFilterEmployee}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="كل الموظفين" />
@@ -612,7 +612,7 @@ export default function TimeTrackingPage() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">الحالة</Label>
+              <Label className="text-xs text-muted-foreground">الحالة</Label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="كل الحالات" />
@@ -626,7 +626,7 @@ export default function TimeTrackingPage() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">من تاريخ</Label>
+              <Label className="text-xs text-muted-foreground">من تاريخ</Label>
               <Input
                 type="date"
                 dir="ltr"
@@ -636,7 +636,7 @@ export default function TimeTrackingPage() {
               />
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px] text-muted-foreground">إلى تاريخ</Label>
+              <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
               <Input
                 type="date"
                 dir="ltr"
@@ -648,13 +648,13 @@ export default function TimeTrackingPage() {
           </div>
           {(filterEmployee !== 'all' || filterStatus !== 'all' || filterDateFrom || filterDateTo) && (
             <div className="mt-2 flex items-center gap-2">
-              <Badge variant="secondary" className="text-[10px]">
+              <Badge variant="secondary" className="text-xs">
                 {filteredData.length} من {tsData.length} سجل
               </Badge>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 text-[10px] text-muted-foreground"
+                className="h-6 text-xs text-muted-foreground"
                 onClick={() => {
                   setFilterEmployee('all');
                   setFilterStatus('all');

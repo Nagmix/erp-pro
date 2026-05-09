@@ -1082,7 +1082,7 @@ export default function POSSellPage() {
           </Alert>
         )}
         {hasOpenShift && !shiftMatchesProfile && Boolean(posProfile) && (
-          <Alert className="border-amber-500/35 bg-amber-500/[0.06]">
+          <Alert className="border-chart-2/35 bg-chart-2/5">
             <AlertTitle className="text-sm">تعارض ملف نقطة البيع</AlertTitle>
             <AlertDescription className="text-xs leading-relaxed">
               الوردية المفتوحة لملف «{openEntry?.pos_profile ?? '—'}». إمّا اختر نفس الملف أو أغلق الوردية ثم

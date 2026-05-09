@@ -344,7 +344,7 @@ export default function ItemVariantsPage() {
         key: 'item_group',
         header: 'مجموعة الأصناف',
         filterable: true,
-        render: (v) => v ? <Badge variant="outline" className="text-[10px]">{String(v)}</Badge> : '—',
+        render: (v) => v ? <Badge variant="outline" className="text-xs">{String(v)}</Badge> : '—',
       },
       {
         key: 'stock_uom',
@@ -356,12 +356,12 @@ export default function ItemVariantsPage() {
         header: 'التبديلات',
         render: (v) =>
           isFlag(v) ? (
-            <Badge className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0 gap-1">
+            <Badge className="text-xs bg-primary/10 text-emerald-700 dark:bg-chart-3/10 dark:text-emerald-400 border-0 gap-1">
               <Grid3X3 className="h-3 w-3" />
               مفعل
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-[10px]">لا</Badge>
+            <Badge variant="outline" className="text-xs">لا</Badge>
           ),
       },
       {
@@ -378,9 +378,9 @@ export default function ItemVariantsPage() {
         header: 'الحالة',
         render: (v) =>
           isFlag(v) ? (
-            <Badge className="text-[10px] bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-0">معطّل</Badge>
+            <Badge className="text-xs bg-destructive/10 text-red-700 dark:bg-destructive/10 dark:text-red-400 border-0">معطّل</Badge>
           ) : (
-            <Badge className="text-[10px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0">نشط</Badge>
+            <Badge className="text-xs bg-primary/10 text-green-700 dark:bg-primary/10 dark:text-green-400 border-0">نشط</Badge>
           ),
       },
     ],
@@ -428,9 +428,9 @@ export default function ItemVariantsPage() {
         header: 'الحالة',
         render: (v) =>
           isFlag(v) ? (
-            <Badge className="text-[10px] bg-red-100 text-red-700 border-0">معطّل</Badge>
+            <Badge className="text-xs bg-destructive/10 text-red-700 border-0">معطّل</Badge>
           ) : (
-            <Badge className="text-[10px] bg-green-100 text-green-700 border-0">نشط</Badge>
+            <Badge className="text-xs bg-primary/10 text-green-700 border-0">نشط</Badge>
           ),
       },
     ],
@@ -837,7 +837,7 @@ export default function ItemVariantsPage() {
             <CollapsibleContent>
               <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
                 <div className="space-y-1">
-                  <Label className="text-[10px]">الحالة</Label>
+                  <Label className="text-xs">الحالة</Label>
                   <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | 'active' | 'disabled')}>
                     <SelectTrigger className="h-8 text-xs w-32">
                       <SelectValue />
@@ -898,7 +898,7 @@ export default function ItemVariantsPage() {
         <DialogContent dir="rtl" className="max-w-4xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
-              <Sparkles className="h-4 w-4 text-amber-500" />
+              <Sparkles className="h-4 w-4 text-chart-2" />
               إنشاء مجموعة تبديلات جديدة
             </DialogTitle>
           </DialogHeader>
@@ -936,7 +936,7 @@ export default function ItemVariantsPage() {
                     placeholder="اختر الصنف الأساسي..."
                     displayKey="item_name"
                   />
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     الصنف الذي ستُنشأ منه التبديلات (يجب أن يكون مُفعّلاً للتبديلات)
                   </p>
                 </div>
@@ -949,7 +949,7 @@ export default function ItemVariantsPage() {
                     placeholder="مثال: TSHIRT"
                     className="h-9"
                   />
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     ستُضاف تلقائياً لكل كود تبديل (مثل: TSHIRT-001)
                   </p>
                 </div>
@@ -1003,7 +1003,7 @@ export default function ItemVariantsPage() {
                   <div key={index} className="flex items-start gap-2 p-3 rounded-lg border border-border/40 bg-muted/20">
                     <div className="flex-1 grid sm:grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <Label className="text-[10px] text-muted-foreground">اسم السمة</Label>
+                        <Label className="text-xs text-muted-foreground">اسم السمة</Label>
                         {allAttributes && allAttributes.length > 0 ? (
                           <Select
                             value={attr.attribute}
@@ -1030,7 +1030,7 @@ export default function ItemVariantsPage() {
                         )}
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-[10px] text-muted-foreground">القيم (مفصولة بفاصلة)</Label>
+                        <Label className="text-xs text-muted-foreground">القيم (مفصولة بفاصلة)</Label>
                         <Input
                           value={attr.values}
                           onChange={(e) => updateAttribute(index, 'values', e.target.value)}
@@ -1056,8 +1056,8 @@ export default function ItemVariantsPage() {
 
               {/* عدد التوليفات المتوقعة */}
               {combinations.length > 0 && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                  <Sparkles className="h-4 w-4 text-amber-600" />
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-chart-2/5 dark:bg-chart-2/5 border border-chart-2/20">
+                  <Sparkles className="h-4 w-4 text-chart-2" />
                   <span className="text-xs font-medium text-amber-800 dark:text-amber-200">
                     سيتم إنشاء {formatNumber(combinations.length)} توليفة (تبديل)
                   </span>
@@ -1065,7 +1065,7 @@ export default function ItemVariantsPage() {
                     type="button"
                     variant="link"
                     size="sm"
-                    className="h-auto p-0 text-[11px] text-amber-700 dark:text-amber-300"
+                    className="h-auto p-0 text-[11px] text-chart-2"
                     onClick={() => setActiveCreateTab('combinations')}
                   >
                     عرض التوليفات ←
@@ -1122,12 +1122,12 @@ export default function ItemVariantsPage() {
                           )}
                           <span className="font-medium flex-1">{combo.label}</span>
                           {combo.barcode && (
-                            <span className="text-[10px] text-muted-foreground font-mono" dir="ltr">
+                            <span className="text-xs text-muted-foreground font-mono" dir="ltr">
                               {combo.barcode}
                             </span>
                           )}
                           {combo.sell_price && (
-                            <span className="shrink-0 text-emerald-600 dark:text-emerald-400">
+                            <span className="shrink-0 text-primary dark:text-emerald-400">
                               {formatCurrency(Number(combo.sell_price))}
                             </span>
                           )}
@@ -1165,7 +1165,7 @@ export default function ItemVariantsPage() {
                       نسخ للكل
                     </Button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     يُطبّق على جميع التوليفات (يمكن تعديل كل تبديل لاحقاً)
                   </p>
                 </div>
@@ -1192,7 +1192,7 @@ export default function ItemVariantsPage() {
                       نسخ للكل
                     </Button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     تكلفة الشراء الافتراضية لجميع التوليفات
                   </p>
                 </div>
@@ -1204,7 +1204,7 @@ export default function ItemVariantsPage() {
               {combinations.length > 0 && (
                 <ScrollArea className="max-h-72">
                   <div className="space-y-1">
-                    <div className="grid grid-cols-[2rem_1fr_6rem_6rem] gap-2 px-3 py-1 text-[10px] font-semibold text-muted-foreground border-b">
+                    <div className="grid grid-cols-[2rem_1fr_6rem_6rem] gap-2 px-3 py-1 text-xs font-medium text-muted-foreground border-b">
                       <span>#</span>
                       <span>التوليفة</span>
                       <span>سعر الشراء</span>
@@ -1256,7 +1256,7 @@ export default function ItemVariantsPage() {
                     <Barcode className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-xs font-medium">توليد الباركود تلقائياً</p>
-                      <p className="text-[10px] text-muted-foreground">إنشاء باركود EAN-13 لكل تبديل</p>
+                      <p className="text-xs text-muted-foreground">إنشاء باركود EAN-13 لكل تبديل</p>
                     </div>
                   </div>
                   <Switch
@@ -1270,7 +1270,7 @@ export default function ItemVariantsPage() {
                     <Hash className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-xs font-medium">توليد أرقام تسلسلية تلقائياً</p>
-                      <p className="text-[10px] text-muted-foreground">إنشاء أرقام تسلسلية تلقائية لكل تبديل</p>
+                      <p className="text-xs text-muted-foreground">إنشاء أرقام تسلسلية تلقائية لكل تبديل</p>
                     </div>
                   </div>
                   <Switch
@@ -1294,20 +1294,20 @@ export default function ItemVariantsPage() {
                         </span>
                         <div className="flex-1 grid sm:grid-cols-3 gap-2 items-center">
                           <div>
-                            <span className="text-[10px] text-muted-foreground">الكود: </span>
+                            <span className="text-xs text-muted-foreground">الكود: </span>
                             <span className="font-mono text-primary" dir="ltr">
                               {combo.item_code || '—'}
                             </span>
                           </div>
                           <div>
-                            <span className="text-[10px] text-muted-foreground">الباركود: </span>
+                            <span className="text-xs text-muted-foreground">الباركود: </span>
                             <span className="font-mono text-[11px]" dir="ltr">
                               {combo.barcode || '—'}
                             </span>
                           </div>
                           {autoGenerateSerials && (
                             <div>
-                              <span className="text-[10px] text-muted-foreground">التسلسلي: </span>
+                              <span className="text-xs text-muted-foreground">التسلسلي: </span>
                               <span className="font-mono text-[11px]" dir="ltr">
                                 {generateSerialNumber(itemCodePrefix || 'SN', idx + 1)}
                               </span>
@@ -1357,9 +1357,9 @@ export default function ItemVariantsPage() {
         <DialogContent dir="rtl" className="max-w-5xl max-h-[88vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
-              <Boxes className="h-4 w-4 text-amber-500" />
+              <Boxes className="h-4 w-4 text-chart-2" />
               تبديلات: {viewingGroup?.item_name || ''}
-              <Badge variant="outline" className="text-[10px] font-mono">
+              <Badge variant="outline" className="text-xs font-mono">
                 {viewingGroup?.item_code}
               </Badge>
             </DialogTitle>
@@ -1381,7 +1381,7 @@ export default function ItemVariantsPage() {
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 text-xs gap-1 text-green-600 hover:text-green-700"
+              className="h-8 text-xs gap-1 text-primary hover:text-green-700"
               onClick={() => void handleBulkToggle(true)}
             >
               <ToggleRight className="h-3 w-3" />
@@ -1391,7 +1391,7 @@ export default function ItemVariantsPage() {
               type="button"
               variant="outline"
               size="sm"
-              className="h-8 text-xs gap-1 text-red-600 hover:text-red-700"
+              className="h-8 text-xs gap-1 text-destructive hover:text-red-700"
               onClick={() => void handleBulkToggle(false)}
             >
               <ToggleLeft className="h-3 w-3" />
@@ -1526,7 +1526,7 @@ export default function ItemVariantsPage() {
               <div className="flex items-center justify-between rounded-lg border p-3">
                 <div>
                   <p className="text-xs font-medium">تفعيل التبديل</p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     عند التعطيل لن يظهر في القوائم والعمليات
                   </p>
                 </div>
@@ -1553,7 +1553,7 @@ export default function ItemVariantsPage() {
         <DialogContent dir="rtl" className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
-              <DollarSign className="h-4 w-4 text-amber-500" />
+              <DollarSign className="h-4 w-4 text-chart-2" />
               تحديث الأسعار الجماعي
             </DialogTitle>
           </DialogHeader>
@@ -1581,7 +1581,7 @@ export default function ItemVariantsPage() {
                 className="h-9"
               />
             </div>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               سيتم تحديث {selectedVariantIds.size > 0 ? `${selectedVariantIds.size} تبديل محدد` : 'جميع التبديلات'} في هذه المجموعة
             </p>
           </div>
@@ -1619,7 +1619,7 @@ export default function ItemVariantsPage() {
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
               onClick={() => {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {

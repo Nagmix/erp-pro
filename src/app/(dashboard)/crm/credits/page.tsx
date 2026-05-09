@@ -366,13 +366,13 @@ export default function CreditsPage() {
               icon: <ArrowUpLeft className="h-3.5 w-3.5" />,
               label: 'استلام',
               color:
-                'text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30',
+                'text-emerald-700 bg-primary/10 dark:text-emerald-400 dark:bg-chart-3/10',
             },
             Pay: {
               icon: <ArrowDownLeft className="h-3.5 w-3.5" />,
               label: 'صرف',
               color:
-                'text-rose-700 bg-rose-100 dark:text-rose-400 dark:bg-rose-900/30',
+                'text-rose-700 bg-destructive/10 dark:text-rose-400 dark:bg-destructive/10',
             },
           };
           const info = typeMap[String(value)] || {
@@ -410,8 +410,8 @@ export default function CreditsPage() {
             className={cn(
               'tabular-nums font-semibold',
               row.payment_type === 'Receive'
-                ? 'text-emerald-700 dark:text-emerald-400'
-                : 'text-rose-700 dark:text-rose-400'
+                ? 'text-primary'
+                : 'text-destructive'
             )}
           >
             {row.payment_type === 'Pay' ? '−' : '+'}
@@ -425,7 +425,7 @@ export default function CreditsPage() {
         width: 'w-28',
         render: (value) =>
           value ? (
-            <Badge variant="secondary" className="text-[10px] font-normal">
+            <Badge variant="secondary" className="text-xs font-normal">
               {String(value)}
             </Badge>
           ) : (
@@ -474,7 +474,7 @@ export default function CreditsPage() {
                   asChild
                   size="sm"
                   variant="outline"
-                  className="h-7 px-2 text-[10px]"
+                  className="h-7 px-2 text-xs"
                 >
                   <Link href={href}>
                     <Eye className="h-3 w-3 ms-1" />
@@ -487,7 +487,7 @@ export default function CreditsPage() {
               <Button
                 type="button"
                 size="sm"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 onClick={() =>
                   submitMut.mutate(row.name, {
                     onSuccess: () => {
@@ -507,7 +507,7 @@ export default function CreditsPage() {
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 onClick={() =>
                   cancelMut.mutate(row.name, {
                     onSuccess: () => {
@@ -527,7 +527,7 @@ export default function CreditsPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] text-destructive px-1"
+                className="h-7 text-xs text-destructive px-1"
                 onClick={() => {
                   deleteMut.mutate(row.name, {
                     onSuccess: () => toast.success('تم حذف القيد'),
@@ -631,7 +631,7 @@ export default function CreditsPage() {
             <div className="flex items-center gap-2 mb-3">
               <Clock className="h-4 w-4 text-warning" />
               <h3 className="text-sm font-semibold text-foreground">ملخص تقادم المستحقات</h3>
-              <span className="text-[10px] text-muted-foreground">— تصنيف المبالغ غير المسددة حسب الأيام المتأخرة</span>
+              <span className="text-xs text-muted-foreground">— تصنيف المبالغ غير المسددة حسب الأيام المتأخرة</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               <AgingBucket
@@ -655,8 +655,8 @@ export default function CreditsPage() {
               <AgingBucket
                 label="61-90 يوم"
                 amount={aging.days90}
-                color="bg-amber-500/10 text-amber-600 border-amber-500/20"
-                barColor="bg-amber-500"
+                color="bg-chart-2/10 text-chart-2 border-chart-2/20"
+                barColor="bg-chart-2"
               />
               <AgingBucket
                 label="أكثر من 90 يوم"
@@ -691,7 +691,7 @@ export default function CreditsPage() {
               </Button>
             </CollapsibleTrigger>
             {activeFiltersCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-2 py-0.5 text-[10px] font-semibold text-warning">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">
                 {activeFiltersCount} فلتر نشط
                 <Button
                   variant="ghost"
@@ -707,7 +707,7 @@ export default function CreditsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-3 border-t mt-1">
               <div className="space-y-1 min-w-[200px]">
-                <Label className="text-[10px]">العميل</Label>
+                <Label className="text-xs">العميل</Label>
                 <ErpLinkCombobox
                   doctype="Customer"
                   value={customerFilter}
@@ -717,7 +717,7 @@ export default function CreditsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">من تاريخ</Label>
+                <Label className="text-xs">من تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -727,7 +727,7 @@ export default function CreditsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">إلى تاريخ</Label>
+                <Label className="text-xs">إلى تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -737,7 +737,7 @@ export default function CreditsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">النوع</Label>
+                <Label className="text-xs">النوع</Label>
                 <Select
                   value={paymentTypeFilter}
                   onValueChange={setPaymentTypeFilter}
@@ -753,7 +753,7 @@ export default function CreditsPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">الحالة</Label>
+                <Label className="text-xs">الحالة</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="h-9 text-xs w-28">
                     <SelectValue />
@@ -824,14 +824,14 @@ export default function CreditsPage() {
             {/* نوع العملية */}
             <div className="space-y-2">
               <Label className="text-xs font-medium">نوع العملية *</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Button
                   type="button"
                   variant={formPaymentType === 'Receive' ? 'default' : 'outline'}
                   className={cn(
                     'h-auto py-2.5 text-xs gap-2',
                     formPaymentType === 'Receive' &&
-                      'bg-emerald-600 hover:bg-emerald-700 text-white'
+                      'bg-chart-3 hover:bg-chart-3 text-white'
                   )}
                   onClick={() => setFormPaymentType('Receive')}
                 >
@@ -844,7 +844,7 @@ export default function CreditsPage() {
                   className={cn(
                     'h-auto py-2.5 text-xs gap-2',
                     formPaymentType === 'Pay' &&
-                      'bg-rose-600 hover:bg-rose-700 text-white'
+                      'bg-destructive hover:bg-destructive text-white'
                   )}
                   onClick={() => setFormPaymentType('Pay')}
                 >
@@ -867,7 +867,7 @@ export default function CreditsPage() {
             </div>
 
             {/* المبلغ والعملة */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="col-span-2 space-y-2">
                 <Label className="text-xs font-medium">المبلغ *</Label>
                 <Input
@@ -909,7 +909,7 @@ export default function CreditsPage() {
             </div>
 
             {/* الحسابات */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">
                   {formPaymentType === 'Receive'
@@ -947,7 +947,7 @@ export default function CreditsPage() {
             </div>
 
             {/* التاريخ والمرجع */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">تاريخ القيد *</Label>
                 <Input
@@ -1044,7 +1044,7 @@ function AgingBucket({
   const barWidth = Math.min((amount / maxAmount) * 100, 100);
   return (
     <div className={cn('rounded-lg border p-3 space-y-2', color)}>
-      <p className="text-[10px] font-medium opacity-80">{label}</p>
+      <p className="text-xs font-medium opacity-80">{label}</p>
       <p className="text-sm font-bold tabular-nums" dir="ltr">{formatCurrency(amount)}</p>
       <div className="h-1.5 rounded-full bg-muted/30 overflow-hidden">
         <div

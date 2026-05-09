@@ -141,15 +141,15 @@ function DraftEditCard({
         {showJournal && (
           <>
             <div className="space-y-1">
-              <Label className="text-[10px]">العنوان</Label>
+              <Label className="text-xs">العنوان</Label>
               <Input className="h-9 text-sm" value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">ملاحظات المستخدم</Label>
+              <Label className="text-xs">ملاحظات المستخدم</Label>
               <Textarea className="text-sm min-h-[60px]" value={userRemark} onChange={(e) => setUserRemark(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">تاريخ الترحيل</Label>
+              <Label className="text-xs">تاريخ الترحيل</Label>
               <Input type="date" dir="ltr" className="h-9" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} />
             </div>
           </>
@@ -157,11 +157,11 @@ function DraftEditCard({
         {showExpense && (
           <>
             <div className="space-y-1">
-              <Label className="text-[10px]">ملاحظات</Label>
+              <Label className="text-xs">ملاحظات</Label>
               <Textarea className="text-sm min-h-[60px]" value={remark} onChange={(e) => setRemark(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">تاريخ الترحيل</Label>
+              <Label className="text-xs">تاريخ الترحيل</Label>
               <Input type="date" dir="ltr" className="h-9" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} />
             </div>
           </>
@@ -169,18 +169,18 @@ function DraftEditCard({
         {showPayment && (
           <>
             <div className="space-y-1">
-              <Label className="text-[10px]">رقم المرجع</Label>
+              <Label className="text-xs">رقم المرجع</Label>
               <Input className="h-9 text-sm" dir="ltr" value={referenceNo} onChange={(e) => setReferenceNo(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">تاريخ الترحيل</Label>
+              <Label className="text-xs">تاريخ الترحيل</Label>
               <Input type="date" dir="ltr" className="h-9" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} />
             </div>
           </>
         )}
         {showTerms && (
           <div className="space-y-1">
-            <Label className="text-[10px]">الشروط والملاحظات</Label>
+            <Label className="text-xs">الشروط والملاحظات</Label>
             <Textarea className="text-sm min-h-[80px]" value={terms} onChange={(e) => setTerms(e.target.value)} />
           </div>
         )}
@@ -431,7 +431,7 @@ export default function DocDetailPage() {
             <BookMarked className="h-4 w-4" />
             قيود دفتر الأستاذ (GL)
             {!glEnabled && d && (
-              <span className="text-[10px] font-normal text-muted-foreground">(تظهر بعد ترحيل المستند)</span>
+              <span className="text-xs font-normal text-muted-foreground">(تظهر بعد ترحيل المستند)</span>
             )}
           </CardTitle>
         </CardHeader>

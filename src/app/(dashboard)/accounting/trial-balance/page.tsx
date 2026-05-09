@@ -336,13 +336,13 @@ export default function TrialBalanceDetailPage() {
         )}
 
         {!fyLoading && company && !fiscalYearName && (
-          <p className="text-sm text-amber-700 dark:text-amber-400">
+          <p className="text-sm text-chart-2">
             لا توجد سنة مالية تغطي «إلى تاريخ» المحدد. عدّل التاريخ أو أنشئ السنة المالية في النظام.
           </p>
         )}
 
         {normalized.notice && (
-          <div className="rounded-[var(--radius-md-ui)] border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+          <div className="rounded-[var(--radius-md-ui)] border border-chart-2/20/80 bg-chart-2/5/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-chart-2/10 dark:text-amber-100">
             {normalized.notice}
           </div>
         )}
@@ -392,8 +392,8 @@ export default function TrialBalanceDetailPage() {
                     key={i}
                     className={cn(
                       'rounded-[var(--radius-md-ui)] border border-border/50 bg-card px-3 py-2.5',
-                      s.indicator === 'Red' && 'border-red-200/80 bg-red-50/50 dark:border-red-900/40',
-                      s.indicator === 'Green' && 'border-emerald-200/80 bg-emerald-50/50 dark:border-emerald-900/40'
+                      s.indicator === 'Red' && 'border-destructive/20/80 bg-destructive/5/50 dark:border-red-900/40',
+                      s.indicator === 'Green' && 'border-primary/20/80 bg-primary/5/50 dark:border-emerald-900/40'
                     )}
                   >
                     <p className="text-[10px] font-medium text-muted-foreground">{String(s.label ?? '')}</p>
@@ -424,8 +424,8 @@ export default function TrialBalanceDetailPage() {
                         const debitPct = (kpis.openingDebit / total) * 100;
                         return (
                           <>
-                            <div className="bg-sky-500/70 transition-all" style={{ width: `${debitPct}%` }} />
-                            <div className="bg-emerald-500/70 transition-all" style={{ width: `${100 - debitPct}%` }} />
+                            <div className="bg-chart-1/70 transition-all" style={{ width: `${debitPct}%` }} />
+                            <div className="bg-chart-3/70 transition-all" style={{ width: `${100 - debitPct}%` }} />
                           </>
                         );
                       })()}
@@ -444,8 +444,8 @@ export default function TrialBalanceDetailPage() {
                         const debitPct = (kpis.closingDebit / total) * 100;
                         return (
                           <>
-                            <div className="bg-sky-500/70 transition-all" style={{ width: `${debitPct}%` }} />
-                            <div className="bg-emerald-500/70 transition-all" style={{ width: `${100 - debitPct}%` }} />
+                            <div className="bg-chart-1/70 transition-all" style={{ width: `${debitPct}%` }} />
+                            <div className="bg-chart-3/70 transition-all" style={{ width: `${100 - debitPct}%` }} />
                           </>
                         );
                       })()}
@@ -454,11 +454,11 @@ export default function TrialBalanceDetailPage() {
                   {/* Legend */}
                   <div className="flex items-center gap-4 text-[10px] text-muted-foreground pt-1">
                     <span className="flex items-center gap-1">
-                      <span className="h-2.5 w-2.5 rounded-full bg-sky-500/70" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-chart-1/70" />
                       مدين
                     </span>
                     <span className="flex items-center gap-1">
-                      <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/70" />
+                      <span className="h-2.5 w-2.5 rounded-full bg-chart-3/70" />
                       دائن
                     </span>
                   </div>

@@ -172,7 +172,7 @@ export default function PurchaseRequestsPage() {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="h-7 text-[10px] px-2"
+                  className="h-7 text-xs px-2"
                   onClick={() =>
                     submitMutation.mutate(row.name, {
                       onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
@@ -189,7 +189,7 @@ export default function PurchaseRequestsPage() {
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="h-7 text-[10px] px-2"
+                    className="h-7 text-xs px-2"
                     disabled={converting === row.name}
                     onClick={() => void handleMakePo(row.name)}
                   >
@@ -200,7 +200,7 @@ export default function PurchaseRequestsPage() {
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="h-7 text-[10px] px-2"
+                    className="h-7 text-xs px-2"
                     onClick={() =>
                       cancelMutation.mutate(row.name, {
                         onSuccess: () => { toast.success('أُلغي'); void refetch(); },
@@ -262,15 +262,15 @@ export default function PurchaseRequestsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-28"><SelectValue /></SelectTrigger>
               <SelectContent>

@@ -72,16 +72,16 @@ interface ApprovalRequest {
 /* ──────────────── Helpers ──────────────── */
 
 const priorityColors: Record<string, string> = {
-  'عاجل': 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 ring-1 ring-inset ring-rose-300',
-  'مهم': 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 ring-1 ring-inset ring-amber-300',
+  'عاجل': 'bg-destructive/10 text-destructive ring-1 ring-inset ring-destructive/30',
+  'مهم': 'bg-chart-2/10 text-chart-2 ring-1 ring-inset ring-chart-2/30',
   'عادي': 'bg-slate-100 text-slate-600 dark:bg-slate-800/40 dark:text-slate-400 ring-1 ring-inset ring-slate-300',
 };
 
 const decisionColors: Record<string, string> = {
-  'موافق': 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 ring-1 ring-inset ring-emerald-300',
-  'مرفوض': 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 ring-1 ring-inset ring-rose-300',
-  'معلومات إضافية': 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 ring-1 ring-inset ring-amber-300',
-  'بانتظار': 'bg-sky-100 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 ring-1 ring-inset ring-sky-300',
+  'موافق': 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/30',
+  'مرفوض': 'bg-destructive/10 text-destructive ring-1 ring-inset ring-destructive/30',
+  'معلومات إضافية': 'bg-chart-2/10 text-chart-2 ring-1 ring-inset ring-chart-2/30',
+  'بانتظار': 'bg-chart-1/10 text-chart-1 ring-1 ring-inset ring-chart-1/30',
 };
 
 const doctypeIcons: Record<string, string> = {
@@ -360,19 +360,19 @@ export default function ApprovalsPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">وقت الانتظار</span>
-                        <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                        <span className="flex items-center gap-1 text-chart-2 dark:text-amber-400 font-medium">
                           <Clock className="h-3 w-3" />{hoursWaiting(req.requestedAt)}
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 pt-1 border-t border-border/30">
-                      <Button type="button" size="sm" variant="outline" disabled={actionLoading === req.id} className="flex-1 h-8 text-xs gap-1 text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800 dark:hover:bg-emerald-950/30" onClick={() => { setNotesDialog({ id: req.id, decision: 'موافق' }); setNotesText(''); }}>
+                      <Button type="button" size="sm" variant="outline" disabled={actionLoading === req.id} className="flex-1 h-8 text-xs gap-1 text-primary border-primary/30 hover:bg-primary/5" onClick={() => { setNotesDialog({ id: req.id, decision: 'موافق' }); setNotesText(''); }}>
                         {actionLoading === req.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />} موافقة
                       </Button>
-                      <Button type="button" size="sm" variant="outline" disabled={actionLoading === req.id} className="flex-1 h-8 text-xs gap-1 text-rose-700 border-rose-300 hover:bg-rose-50 dark:text-rose-400 dark:border-rose-800 dark:hover:bg-rose-950/30" onClick={() => { setNotesDialog({ id: req.id, decision: 'مرفوض' }); setNotesText(''); }}>
+                      <Button type="button" size="sm" variant="outline" disabled={actionLoading === req.id} className="flex-1 h-8 text-xs gap-1 text-destructive border-destructive/30 hover:bg-destructive/5" onClick={() => { setNotesDialog({ id: req.id, decision: 'مرفوض' }); setNotesText(''); }}>
                         <XCircle className="h-3.5 w-3.5" /> رفض
                       </Button>
-                      <Button type="button" size="sm" variant="outline" disabled={actionLoading === req.id} className="flex-1 h-8 text-xs gap-1 text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-950/30" onClick={() => { setNotesDialog({ id: req.id, decision: 'معلومات إضافية' }); setNotesText(''); }}>
+                      <Button type="button" size="sm" variant="outline" disabled={actionLoading === req.id} className="flex-1 h-8 text-xs gap-1 text-chart-2 border-chart-2/30 hover:bg-chart-2/5" onClick={() => { setNotesDialog({ id: req.id, decision: 'معلومات إضافية' }); setNotesText(''); }}>
                         <AlertCircle className="h-3.5 w-3.5" /> طلب معلومات
                       </Button>
                     </div>
@@ -388,7 +388,7 @@ export default function ApprovalsPage() {
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-muted-foreground font-medium">تصفية القرار:</span>
             {['الكل', 'موافق', 'مرفوض', 'معلومات إضافية'].map((f) => (
-              <Button key={f} type="button" size="sm" variant={logFilter === f ? 'default' : 'outline'} className={cn('h-8 text-xs', logFilter === f && f === 'موافق' && 'bg-emerald-600 hover:bg-emerald-700', logFilter === f && f === 'مرفوض' && 'bg-rose-600 hover:bg-rose-700', logFilter === f && f === 'معلومات إضافية' && 'bg-amber-600 hover:bg-amber-700')} onClick={() => setLogFilter(f)}>
+              <Button key={f} type="button" size="sm" variant={logFilter === f ? 'default' : 'outline'} className={cn('h-8 text-xs', logFilter === f && f === 'موافق' && 'bg-chart-3 hover:bg-chart-3', logFilter === f && f === 'مرفوض' && 'bg-destructive hover:bg-destructive', logFilter === f && f === 'معلومات إضافية' && 'bg-chart-2 hover:bg-chart-2')} onClick={() => setLogFilter(f)}>
                 {f}
               </Button>
             ))}
@@ -434,7 +434,7 @@ export default function ApprovalsPage() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch checked={!!wf.is_active} disabled aria-label="حالة سير العمل" />
-                              <Badge variant="outline" className={cn('text-[10px] border-0', wf.is_active ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-800/40 dark:text-slate-400')}>
+                              <Badge variant="outline" className={cn('text-[10px] border-0', wf.is_active ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-600 dark:bg-slate-800/40 dark:text-slate-400')}>
                                 {wf.is_active ? 'نشط' : 'غير نشط'}
                               </Badge>
                             </div>
@@ -476,7 +476,7 @@ export default function ApprovalsPage() {
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-muted-foreground">الموافقة إلى:</span>
                               {ar.to_user && <Badge variant="outline" className="text-[10px] gap-1 border-primary/30 bg-primary/5"><User className="h-3 w-3" />{ar.to_user}</Badge>}
-                              {ar.to_role && <Badge variant="outline" className="text-[10px] gap-1 border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30">{ar.to_role}</Badge>}
+                              {ar.to_role && <Badge variant="outline" className="text-[10px] gap-1 border-primary/30 bg-primary/5 ">{ar.to_role}</Badge>}
                             </div>
                           </div>
                         </CardContent>
@@ -517,9 +517,9 @@ export default function ApprovalsPage() {
         <DialogContent dir="rtl" className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {notesDialog?.decision === 'موافق' && <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600" />}
-              {notesDialog?.decision === 'مرفوض' && <XCircle className="h-4.5 w-4.5 text-rose-600" />}
-              {notesDialog?.decision === 'معلومات إضافية' && <AlertCircle className="h-4.5 w-4.5 text-amber-600" />}
+              {notesDialog?.decision === 'موافق' && <CheckCircle2 className="h-4.5 w-4.5 text-primary" />}
+              {notesDialog?.decision === 'مرفوض' && <XCircle className="h-4.5 w-4.5 text-destructive" />}
+              {notesDialog?.decision === 'معلومات إضافية' && <AlertCircle className="h-4.5 w-4.5 text-chart-2" />}
               {notesDialog?.decision === 'موافق' && 'تأكيد الموافقة'}
               {notesDialog?.decision === 'مرفوض' && 'تأكيد الرفض'}
               {notesDialog?.decision === 'معلومات إضافية' && 'طلب معلومات إضافية'}
@@ -533,7 +533,7 @@ export default function ApprovalsPage() {
           </div>
           <DialogFooter className="gap-2">
             <Button type="button" variant="ghost" onClick={() => { setNotesDialog(null); setNotesText(''); }} className="text-muted-foreground">إلغاء</Button>
-            <Button type="button" onClick={submitNotes} className={cn('gap-1.5', notesDialog?.decision === 'موافق' && 'bg-emerald-600 hover:bg-emerald-700', notesDialog?.decision === 'مرفوض' && 'bg-rose-600 hover:bg-rose-700', notesDialog?.decision === 'معلومات إضافية' && 'bg-amber-600 hover:bg-amber-700')}>
+            <Button type="button" onClick={submitNotes} className={cn('gap-1.5', notesDialog?.decision === 'موافق' && 'bg-chart-3 hover:bg-chart-3', notesDialog?.decision === 'مرفوض' && 'bg-destructive hover:bg-destructive', notesDialog?.decision === 'معلومات إضافية' && 'bg-chart-2 hover:bg-chart-2')}>
               {notesDialog?.decision === 'موافق' && <CheckCircle2 className="h-3.5 w-3.5" />}
               {notesDialog?.decision === 'مرفوض' && <XCircle className="h-3.5 w-3.5" />}
               {notesDialog?.decision === 'معلومات إضافية' && <AlertCircle className="h-3.5 w-3.5" />}

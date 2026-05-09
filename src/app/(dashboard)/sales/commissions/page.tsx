@@ -529,7 +529,7 @@ export default function SalesCommissionsPage() {
         render: (v) => {
           const val = String(v || '');
           return (
-            <Badge variant="outline" className="text-[10px] font-medium border-border/40">
+            <Badge variant="outline" className="text-xs font-medium border-border/40">
               {PERIOD_MAP[val] || val || '—'}
             </Badge>
           );
@@ -592,11 +592,11 @@ export default function SalesCommissionsPage() {
         header: 'الحالة',
         render: (v, row) =>
           chk(row.disable) || v === 'Inactive' ? (
-            <Badge variant="outline" className="text-[10px] font-semibold bg-muted text-muted-foreground ring-1 ring-inset ring-border/40 border-0">
+            <Badge variant="outline" className="text-xs font-medium bg-muted text-muted-foreground ring-1 ring-inset ring-border/40 border-0">
               غير نشط
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-[10px] font-semibold bg-success/12 text-success ring-1 ring-inset ring-success/25 border-0">
+            <Badge variant="outline" className="text-xs font-medium bg-success/12 text-success ring-1 ring-inset ring-success/25 border-0">
               نشط
             </Badge>
           ),
@@ -611,7 +611,7 @@ export default function SalesCommissionsPage() {
               type="button"
               size="sm"
               variant="ghost"
-              className="h-7 text-[10px] px-2"
+              className="h-7 text-xs px-2"
               onClick={() => openEditDialog(row)}
             >
               <Edit className="h-3 w-3" />
@@ -719,11 +719,11 @@ export default function SalesCommissionsPage() {
         render: (v) => {
           const info = CALC_STATUS_MAP[String(v || '')];
           return info ? (
-            <Badge variant="outline" className={cn('text-[10px] font-semibold border-0', info.color)}>
+            <Badge variant="outline" className={cn('text-xs font-medium border-0', info.color)}>
               {info.label}
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-[10px]">{String(v || '—')}</Badge>
+            <Badge variant="outline" className="text-xs">{String(v || '—')}</Badge>
           );
         },
       },
@@ -739,7 +739,7 @@ export default function SalesCommissionsPage() {
               type="button"
               size="sm"
               variant="secondary"
-              className="h-7 text-[10px] px-2 gap-1"
+              className="h-7 text-xs px-2 gap-1"
               disabled={isPaying}
               onClick={() => { setPayTarget(row); setPayDialogOpen(true); }}
             >
@@ -868,7 +868,7 @@ export default function SalesCommissionsPage() {
               <CollapsibleContent>
                 <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
                   <div className="space-y-1">
-                    <Label className="text-[10px]">الحالة</Label>
+                    <Label className="text-xs">الحالة</Label>
                     <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | 'active' | 'inactive')}>
                       <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -905,7 +905,7 @@ export default function SalesCommissionsPage() {
             <Collapsible open={true}>
               <div className="flex flex-wrap items-end gap-3">
                 <div className="space-y-1">
-                  <Label className="text-[10px]">الحالة</Label>
+                  <Label className="text-xs">الحالة</Label>
                   <Select value={calcStatusFilter} onValueChange={setCalcStatusFilter}>
                     <SelectTrigger className="h-8 text-xs w-36"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -918,7 +918,7 @@ export default function SalesCommissionsPage() {
                   </Select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px]">الموظف</Label>
+                  <Label className="text-xs">الموظف</Label>
                   <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
                     <SelectTrigger className="h-8 text-xs w-48"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -930,7 +930,7 @@ export default function SalesCommissionsPage() {
                   </Select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px]">الفترة</Label>
+                  <Label className="text-xs">الفترة</Label>
                   <Select value={periodFilter} onValueChange={setPeriodFilter}>
                     <SelectTrigger className="h-8 text-xs w-36"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -980,7 +980,7 @@ export default function SalesCommissionsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold truncate">{emp.employee_name}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{emp.employee}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{emp.employee}</p>
                     </div>
                     <div className="h-8 w-8 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
                       <CircleDollarSign className="h-4 w-4 text-success" />
@@ -991,19 +991,19 @@ export default function SalesCommissionsPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className="text-[10px] text-muted-foreground">إجمالي العمولة</p>
+                      <p className="text-xs text-muted-foreground">إجمالي العمولة</p>
                       <p className="text-sm font-bold tabular-nums text-success">{formatCurrency(emp.total_commission)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground">إجمالي المبيعات</p>
+                      <p className="text-xs text-muted-foreground">إجمالي المبيعات</p>
                       <p className="text-sm font-semibold tabular-nums">{formatCurrency(emp.total_sales)}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground">عدد الحسابات</p>
+                      <p className="text-xs text-muted-foreground">عدد الحسابات</p>
                       <p className="text-xs font-semibold">{emp.calculation_count}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-muted-foreground">المدفوع / المعلّق</p>
+                      <p className="text-xs text-muted-foreground">المدفوع / المعلّق</p>
                       <div className="flex items-center gap-1">
                         <Badge variant="outline" className="text-[9px] bg-success/12 text-success border-0 h-4 px-1">{emp.paid_count}</Badge>
                         <Badge variant="outline" className="text-[9px] bg-warning/12 text-warning border-0 h-4 px-1">{emp.pending_count}</Badge>
@@ -1043,11 +1043,11 @@ export default function SalesCommissionsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
                     <Input value={formRuleName} onChange={(e) => setFormRuleName(e.target.value)} placeholder="مثال: عمولة المبيعات الشهرية" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الفترة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">الفترة <span className="text-destructive text-xs">*</span></Label>
                     <Select value={formPeriod} onValueChange={setFormPeriod}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -1061,7 +1061,7 @@ export default function SalesCommissionsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">أساس الحساب <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">أساس الحساب <span className="text-destructive text-xs">*</span></Label>
                     <Select value={formBasis} onValueChange={setFormBasis}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -1072,7 +1072,7 @@ export default function SalesCommissionsPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">المستهدف (مبلغ)</Label>
+                    <Label className="text-xs font-medium">المستهدف (مبلغ)</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -1087,7 +1087,7 @@ export default function SalesCommissionsPage() {
 
                 {(formBasis === 'sales_quantity') && (
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">المستهدف (كمية)</Label>
+                    <Label className="text-xs font-medium">المستهدف (كمية)</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -1109,7 +1109,7 @@ export default function SalesCommissionsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع العمولة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">نوع العمولة <span className="text-destructive text-xs">*</span></Label>
                     <Select value={formCommissionType} onValueChange={setFormCommissionType}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -1121,7 +1121,7 @@ export default function SalesCommissionsPage() {
                   </div>
                   {formCommissionType === 'percentage' ? (
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">نسبة العمولة (%) <span className="text-destructive text-xs">*</span></Label>
+                      <Label className="text-xs font-medium">نسبة العمولة (%) <span className="text-destructive text-xs">*</span></Label>
                       <div className="relative">
                         <Input
                           type="number"
@@ -1138,7 +1138,7 @@ export default function SalesCommissionsPage() {
                     </div>
                   ) : (
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">مبلغ العمولة الثابت <span className="text-destructive text-xs">*</span></Label>
+                      <Label className="text-xs font-medium">مبلغ العمولة الثابت <span className="text-destructive text-xs">*</span></Label>
                       <Input
                         type="number"
                         dir="ltr"
@@ -1197,8 +1197,8 @@ export default function SalesCommissionsPage() {
 
                 <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border/30 bg-background/50">
                   <div>
-                    <Label className="text-[13px] font-semibold">حالة القاعدة</Label>
-                    <p className="text-[10px] text-muted-foreground">تفعيل أو تعطيل القاعدة</p>
+                    <Label className="text-xs font-medium">حالة القاعدة</Label>
+                    <p className="text-xs text-muted-foreground">تفعيل أو تعطيل القاعدة</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={cn('text-xs', formStatus === 'active' ? 'text-success font-semibold' : 'text-muted-foreground')}>
@@ -1242,7 +1242,7 @@ export default function SalesCommissionsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={handleDelete} variant="destructive">
               حذف
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1282,7 +1282,7 @@ export default function SalesCommissionsPage() {
 
               <p className="text-xs text-muted-foreground text-center">اختر طريقة صرف العمولة</p>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
                   className="rounded-xl border border-border/40 p-4 text-center hover:bg-primary/5 hover:border-primary/30 transition-colors"
@@ -1291,7 +1291,7 @@ export default function SalesCommissionsPage() {
                 >
                   <Wallet className="h-6 w-6 mx-auto mb-2 text-info" />
                   <p className="text-xs font-semibold">إضافة للراتب</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">سيتم إضافتها مع الراتب الشهري</p>
+                  <p className="text-xs text-muted-foreground mt-1">سيتم إضافتها مع الراتب الشهري</p>
                 </button>
                 <button
                   type="button"
@@ -1301,7 +1301,7 @@ export default function SalesCommissionsPage() {
                 >
                   <Banknote className="h-6 w-6 mx-auto mb-2 text-success" />
                   <p className="text-xs font-semibold">سند مصروف</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">صرف فوري كمصروف نقدي</p>
+                  <p className="text-xs text-muted-foreground mt-1">صرف فوري كمصروف نقدي</p>
                 </button>
               </div>
             </div>
@@ -1330,22 +1330,22 @@ export default function SalesCommissionsPage() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="rounded-xl border border-border/40 p-3 text-center">
                   <CircleDollarSign className="h-5 w-5 mx-auto text-success mb-1" />
-                  <p className="text-[10px] text-muted-foreground">إجمالي العمولة</p>
+                  <p className="text-xs text-muted-foreground">إجمالي العمولة</p>
                   <p className="text-sm font-bold tabular-nums text-success">{formatCurrency(selectedSummary.total_commission)}</p>
                 </div>
                 <div className="rounded-xl border border-border/40 p-3 text-center">
                   <TrendingUp className="h-5 w-5 mx-auto text-primary mb-1" />
-                  <p className="text-[10px] text-muted-foreground">إجمالي المبيعات</p>
+                  <p className="text-xs text-muted-foreground">إجمالي المبيعات</p>
                   <p className="text-sm font-bold tabular-nums">{formatCurrency(selectedSummary.total_sales)}</p>
                 </div>
                 <div className="rounded-xl border border-border/40 p-3 text-center">
                   <CheckCircle className="h-5 w-5 mx-auto text-success mb-1" />
-                  <p className="text-[10px] text-muted-foreground">مدفوع</p>
+                  <p className="text-xs text-muted-foreground">مدفوع</p>
                   <p className="text-sm font-bold">{selectedSummary.paid_count}</p>
                 </div>
                 <div className="rounded-xl border border-border/40 p-3 text-center">
                   <Clock className="h-5 w-5 mx-auto text-warning mb-1" />
-                  <p className="text-[10px] text-muted-foreground">معلّق</p>
+                  <p className="text-xs text-muted-foreground">معلّق</p>
                   <p className="text-sm font-bold">{selectedSummary.pending_count}</p>
                 </div>
               </div>
@@ -1384,11 +1384,11 @@ export default function SalesCommissionsPage() {
                                 <TableCell className="text-xs font-semibold tabular-nums text-success">{formatCurrency(Number(calc.commission_amount) || 0)}</TableCell>
                                 <TableCell className="text-xs">
                                   {statusInfo ? (
-                                    <Badge variant="outline" className={cn('text-[10px] font-semibold border-0', statusInfo.color)}>
+                                    <Badge variant="outline" className={cn('text-xs font-medium border-0', statusInfo.color)}>
                                       {statusInfo.label}
                                     </Badge>
                                   ) : (
-                                    <Badge variant="outline" className="text-[10px]">{calc.status || '—'}</Badge>
+                                    <Badge variant="outline" className="text-xs">{calc.status || '—'}</Badge>
                                   )}
                                 </TableCell>
                                 <TableCell className="text-xs">
@@ -1397,7 +1397,7 @@ export default function SalesCommissionsPage() {
                                       type="button"
                                       size="sm"
                                       variant="secondary"
-                                      className="h-6 text-[10px] px-2 gap-1"
+                                      className="h-6 text-xs px-2 gap-1"
                                       disabled={payingName === calc.name}
                                       onClick={() => { setPayTarget(calc); setPayDialogOpen(true); setSummaryOpen(false); }}
                                     >

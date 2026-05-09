@@ -32,10 +32,10 @@ import {
 /*  Quick Actions                                                      */
 /* ------------------------------------------------------------------ */
 const QUICK_ACTIONS = [
-  { label: 'حركة مخزون جديدة', href: '/inventory/stock-entry?new=1', icon: ArrowRightLeft, color: 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' },
-  { label: 'جرد المخزون', href: '/inventory/stock-count', icon: ClipboardCheck, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
-  { label: 'الأصناف', href: '/inventory/items', icon: Package, color: 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' },
-  { label: 'المستودعات', href: '/inventory/warehouses', icon: Warehouse, color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
+  { label: 'حركة مخزون جديدة', href: '/inventory/stock-entry?new=1', icon: ArrowRightLeft, color: 'bg-chart-4/10 text-chart-4' },
+  { label: 'جرد المخزون', href: '/inventory/stock-count', icon: ClipboardCheck, color: 'bg-primary/10 text-primary' },
+  { label: 'الأصناف', href: '/inventory/items', icon: Package, color: 'bg-chart-1/10 text-chart-1' },
+  { label: 'المستودعات', href: '/inventory/warehouses', icon: Warehouse, color: 'bg-chart-2/10 text-chart-2' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -227,10 +227,10 @@ export default function InventoryDashboardPage() {
       map.set(type, (map.get(type) || 0) + 1);
     }
     const colorMap: Record<string, string> = {
-      'Material Receipt': 'bg-emerald-500',
-      'Material Issue': 'bg-rose-500',
-      'Material Transfer': 'bg-sky-500',
-      'Manufacture': 'bg-amber-500',
+      'Material Receipt': 'bg-chart-3',
+      'Material Issue': 'bg-destructive',
+      'Material Transfer': 'bg-chart-1',
+      'Manufacture': 'bg-chart-2',
     };
     return Array.from(map.entries()).map(([type, count]) => ({
       type,
@@ -340,7 +340,7 @@ export default function InventoryDashboardPage() {
       {/* ── Low Stock Alerts & Stock by Warehouse ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Low stock alert list */}
-        <Card className={`border-border/40 ${lowStockAlerts.length > 0 ? 'border-amber-200 dark:border-amber-800/40' : ''}`}>
+        <Card className={`border-border/40 ${lowStockAlerts.length > 0 ? 'border-chart-2/30' : ''}`}>
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               {lowStockAlerts.length > 0 && <AlertTriangle className="h-4 w-4 text-amber-500" />}
@@ -350,7 +350,7 @@ export default function InventoryDashboardPage() {
           <CardContent>
             {lowStockAlerts.length === 0 && (
               <div className="py-8 text-center">
-                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                   <Package className="h-6 w-6 text-emerald-600" />
                 </div>
                 <p className="text-xs text-muted-foreground">جميع الأصناف فوق مستوى إعادة الطلب</p>
@@ -363,7 +363,7 @@ export default function InventoryDashboardPage() {
                   return (
                     <div key={i} className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors">
                       <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-7 w-7 flex items-center justify-center rounded-md bg-amber-100 dark:bg-amber-900/30 shrink-0">
+                        <div className="h-7 w-7 flex items-center justify-center rounded-md bg-chart-2/10 shrink-0">
                           <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
                         </div>
                         <div className="min-w-0">
@@ -379,7 +379,7 @@ export default function InventoryDashboardPage() {
                         </div>
                         <div className="h-1 rounded-full bg-muted overflow-hidden mt-1">
                           <div
-                            className={`h-full rounded-full ${ratio < 30 ? 'bg-rose-500' : ratio < 70 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                            className={`h-full rounded-full ${ratio < 30 ? 'bg-destructive' : ratio < 70 ? 'bg-chart-2' : 'bg-chart-3'}`}
                             style={{ width: `${Math.min(ratio, 100)}%` }}
                           />
                         </div>
@@ -410,7 +410,7 @@ export default function InventoryDashboardPage() {
                   <div key={wh.id} className="space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 text-[10px] font-bold text-orange-700 dark:text-orange-300">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-chart-4/10 text-[10px] font-bold text-chart-4">
                           {i + 1}
                         </span>
                         <span className="text-xs font-medium truncate max-w-[160px]">{wh.name}</span>
@@ -419,7 +419,7 @@ export default function InventoryDashboardPage() {
                     </div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-orange-500 transition-all duration-500"
+                        className="h-full rounded-full bg-chart-4 transition-all duration-500"
                         style={{ width: `${(wh.value / maxWarehouseValue) * 100}%` }}
                       />
                     </div>
@@ -454,7 +454,7 @@ export default function InventoryDashboardPage() {
                     className="flex items-center justify-between p-2.5 rounded-lg hover:bg-accent/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-chart-4/10">
                         <ArrowRightLeft className="h-4 w-4 text-orange-600" />
                       </div>
                       <div className="min-w-0">
@@ -463,7 +463,7 @@ export default function InventoryDashboardPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-0 bg-orange/10 text-orange-700 dark:text-orange-300">
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-0 bg-orange/10 text-chart-4">
                         {mv.typeAr}
                       </Badge>
                       {mv.amount > 0 && (

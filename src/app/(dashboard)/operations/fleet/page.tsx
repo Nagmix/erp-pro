@@ -857,10 +857,10 @@ export default function FleetManagementPage() {
     const total = totalMaintenance + totalFuel + totalInsurance + totalFees;
 
     const categories = [
-      { key: 'صيانة', amount: totalMaintenance, color: 'bg-amber-500', pct: total ? Math.round((totalMaintenance / total) * 100) : 0 },
-      { key: 'وقود', amount: totalFuel, color: 'bg-emerald-500', pct: total ? Math.round((totalFuel / total) * 100) : 0 },
-      { key: 'تأمين', amount: totalInsurance, color: 'bg-sky-500', pct: total ? Math.round((totalInsurance / total) * 100) : 0 },
-      { key: 'رسوم', amount: totalFees, color: 'bg-rose-500', pct: total ? Math.round((totalFees / total) * 100) : 0 },
+      { key: 'صيانة', amount: totalMaintenance, color: 'bg-chart-2', pct: total ? Math.round((totalMaintenance / total) * 100) : 0 },
+      { key: 'وقود', amount: totalFuel, color: 'bg-chart-3', pct: total ? Math.round((totalFuel / total) * 100) : 0 },
+      { key: 'تأمين', amount: totalInsurance, color: 'bg-chart-1', pct: total ? Math.round((totalInsurance / total) * 100) : 0 },
+      { key: 'رسوم', amount: totalFees, color: 'bg-destructive', pct: total ? Math.round((totalFees / total) * 100) : 0 },
     ];
 
     const perVehicle = vehicles.map((v) => {
@@ -1032,7 +1032,7 @@ export default function FleetManagementPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Card className="border-border/40">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/[0.09] text-emerald-800 dark:text-emerald-300">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-3/[0.09] text-primary">
                   <DollarSign className="h-[18px] w-[18px]" />
                 </div>
                 <div>
@@ -1043,7 +1043,7 @@ export default function FleetManagementPage() {
             </Card>
             <Card className="border-border/40">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/[0.09] text-sky-800 dark:text-sky-300">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-1/[0.09] text-chart-1">
                   <Fuel className="h-[18px] w-[18px]" />
                 </div>
                 <div>
@@ -1054,7 +1054,7 @@ export default function FleetManagementPage() {
             </Card>
             <Card className="border-border/40">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/[0.09] text-amber-800 dark:text-amber-300">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-2/[0.09] text-chart-2">
                   <Clock className="h-[18px] w-[18px]" />
                 </div>
                 <div>

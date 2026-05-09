@@ -192,7 +192,7 @@ export default function PosSettingsPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-muted-foreground">الحالة:</span>
                     {readiness.ready ? (
-                      <Badge variant="default" className="bg-emerald-600 hover:bg-emerald-600">
+                      <Badge variant="default" className="bg-primary hover:bg-primary">
                         جاهز للعمل
                       </Badge>
                     ) : (

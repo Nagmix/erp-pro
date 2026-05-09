@@ -67,9 +67,9 @@ interface ItemRow {
 // ============================================================
 
 const UNIT_STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  متاح: { label: 'متاح', cls: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' },
-  محجوز: { label: 'محجوز', cls: 'bg-amber-500/10 text-amber-700 dark:text-amber-300' },
-  صيانة: { label: 'صيانة', cls: 'bg-red-500/10 text-red-700 dark:text-red-300' },
+  متاح: { label: 'متاح', cls: 'bg-primary/10 text-primary' },
+  محجوز: { label: 'محجوز', cls: 'bg-chart-2/10 text-chart-2' },
+  صيانة: { label: 'صيانة', cls: 'bg-destructive/10 text-destructive' },
 };
 
 // ============================================================
@@ -188,7 +188,7 @@ export default function RentalUnitsPage() {
         header: 'مجموعة الأصناف',
         sortable: true,
         render: (v) => (
-          <Badge variant="outline" className="text-[10px] border-0 bg-muted text-muted-foreground">
+          <Badge variant="outline" className="text-xs border-0 bg-muted text-muted-foreground">
             {String(v ?? '—')}
           </Badge>
         ),
@@ -224,7 +224,7 @@ export default function RentalUnitsPage() {
             ? UNIT_STATUS_MAP['محجوز']
             : UNIT_STATUS_MAP['متاح'];
           return (
-            <Badge variant="outline" className={cn('text-[10px] border-0', statusInfo.cls)}>
+            <Badge variant="outline" className={cn('text-xs border-0', statusInfo.cls)}>
               {statusInfo.label}
             </Badge>
           );
@@ -348,24 +348,24 @@ export default function RentalUnitsPage() {
     form: UseFormReturn<UnitFormInput, any, UnitFormOutput>
   ) => (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-medium">اسم الوحدة *</Label>
           <Input placeholder="اسم وحدة الإيجار" {...form.register('item_name')} />
           {form.formState.errors.item_name && (
-            <p className="text-[10px] text-destructive">{form.formState.errors.item_name.message}</p>
+            <p className="text-xs text-destructive">{form.formState.errors.item_name.message}</p>
           )}
         </div>
         <div className="space-y-2">
           <Label className="text-xs font-medium">كود الوحدة *</Label>
           <Input placeholder="كود الوحدة" dir="ltr" {...form.register('item_code')} />
           {form.formState.errors.item_code && (
-            <p className="text-[10px] text-destructive">{form.formState.errors.item_code.message}</p>
+            <p className="text-xs text-destructive">{form.formState.errors.item_code.message}</p>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-medium">مجموعة الأصناف *</Label>
           <ErpLinkCombobox
@@ -375,7 +375,7 @@ export default function RentalUnitsPage() {
             placeholder="اختر مجموعة الأصناف..."
           />
           {form.formState.errors.item_group && (
-            <p className="text-[10px] text-destructive">{form.formState.errors.item_group.message}</p>
+            <p className="text-xs text-destructive">{form.formState.errors.item_group.message}</p>
           )}
         </div>
         <div className="space-y-2">
@@ -393,7 +393,7 @@ export default function RentalUnitsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-medium">السعر اليومي</Label>
           <Input
@@ -501,7 +501,7 @@ export default function RentalUnitsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">مجموعة الأصناف</Label>
+                <Label className="text-xs">مجموعة الأصناف</Label>
                 <Select value={itemGroupFilter} onValueChange={setItemGroupFilter}>
                   <SelectTrigger className="h-8 text-xs w-44">
                     <SelectValue />
@@ -538,7 +538,7 @@ export default function RentalUnitsPage() {
               {f.label}
               <span
                 className={cn(
-                  'tabular-nums text-[10px] rounded-md px-1.5 py-0.5 font-semibold',
+                  'tabular-nums text-xs rounded-md px-1.5 py-0.5 font-semibold',
                   statusFilter === f.key
                     ? 'bg-primary/10 text-primary'
                     : 'bg-muted text-muted-foreground/70'
@@ -643,7 +643,7 @@ export default function RentalUnitsPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف

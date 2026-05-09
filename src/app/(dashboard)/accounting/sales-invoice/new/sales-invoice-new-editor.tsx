@@ -333,7 +333,7 @@ export function SalesInvoiceNewEditor() {
                 <p className="text-xs font-medium text-destructive">{form.formState.errors.customer.message}</p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4" dir="rtl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" dir="rtl">
               <div className="space-y-2.5">
                 <Label className="text-xs font-semibold text-foreground/90">تاريخ الفاتورة</Label>
                 <Input
@@ -358,7 +358,7 @@ export function SalesInvoiceNewEditor() {
                 </p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4" dir="rtl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" dir="rtl">
               <div className="space-y-2.5">
                 <Label className="text-xs font-semibold text-foreground/90">العملة</Label>
                 <ErpLinkCombobox
@@ -579,12 +579,12 @@ export function SalesInvoiceNewEditor() {
                   {formatCurrency(grandTotalPreview)}
                 </motion.span>
               </div>
-              <p className="mt-3 text-[10px] font-medium leading-relaxed text-muted-foreground/80">
+              <p className="mt-3 text-xs font-medium leading-relaxed text-muted-foreground/80">
                 {taxesAndCharges?.trim()
                   ? 'الإجمالي المعروض قبل الضريبة؛ الضريبة والإجمالي النهائي يُحسبان من القالب عند الحفظ في النظام.'
                   : 'القيم المعروضة تقديرية قبل الحفظ النهائي (بدون قالب ضريبة يُعرض تقدير 15% للعرض فقط).'}
               </p>
-              <p className="mt-1 text-[10px] text-muted-foreground/80">
+              <p className="mt-1 text-xs text-muted-foreground/80">
                 العملة: <span className="font-semibold">{form.watch('currency') || 'YER'}</span> | سعر الصرف: {form.watch('exchange_rate') || 1}
               </p>
             </div>
@@ -646,10 +646,10 @@ export function SalesInvoiceNewEditor() {
       </div>
       <ScrollArea className={cn('min-h-0 flex-1', 'h-[min(52vh,520px)] xl:h-full')}>
         <div className="p-4 sm:p-5">
-          <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
+          <div className="overflow-x-auto rounded-xl border border-border/60 bg-card">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleLinesDragEnd}>
               <SortableContext items={items.map((i) => i._rid)} strategy={verticalListSortingStrategy}>
-                <table className="w-full min-w-[1080px] border-collapse text-sm" dir="rtl">
+                <table className="w-full border-collapse text-sm" dir="rtl">
                   <thead>
                     <tr className="border-b border-border/60 bg-muted/70 text-xs font-semibold tracking-wide text-muted-foreground [&>th]:px-4 [&>th]:py-3.5 [&>th]:text-start">
                       <th className="w-10 text-center" aria-label="ترتيب البنود" title="اسحب للترتيب">
@@ -775,7 +775,7 @@ export function SalesInvoiceNewEditor() {
                         <td colSpan={9} className="px-4 py-3">
                           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                             <div className="space-y-1">
-                              <Label className="text-[10px] text-muted-foreground">بداية الخدمة</Label>
+                              <Label className="text-xs text-muted-foreground">بداية الخدمة</Label>
                               <Input
                                 type="date"
                                 dir="ltr"
@@ -785,7 +785,7 @@ export function SalesInvoiceNewEditor() {
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px] text-muted-foreground">نهاية الخدمة</Label>
+                              <Label className="text-xs text-muted-foreground">نهاية الخدمة</Label>
                               <Input
                                 type="date"
                                 dir="ltr"
@@ -795,7 +795,7 @@ export function SalesInvoiceNewEditor() {
                               />
                             </div>
                             <div className="space-y-1 sm:col-span-1">
-                              <Label className="text-[10px] text-muted-foreground">حساب الإيراد المؤجل (التزام)</Label>
+                              <Label className="text-xs text-muted-foreground">حساب الإيراد المؤجل (التزام)</Label>
                               <ErpLinkCombobox
                                 doctype="Account"
                                 value={item.deferred_revenue_account}
@@ -805,7 +805,7 @@ export function SalesInvoiceNewEditor() {
                               />
                             </div>
                           </div>
-                          <p className="mt-2 text-[10px] text-muted-foreground leading-relaxed">
+                          <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
                             عند الحفظ يُحدَّث تعريف الصنف على الخادم (تمكين الإيراد المؤجل وعدد الأشهر) تلقائياً دون فتح
                             أي شاشة خارج التطبيق. لإقران الفترة المحاسبية استخدم{' '}
                             <Link href="/accounting/deferred-revenue" className="font-medium text-primary underline-offset-2 hover:underline">

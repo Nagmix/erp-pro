@@ -192,7 +192,7 @@ export default function AutoRepeatPage() {
         sortable: true,
         filterable: true,
         render: (v) => (
-          <Badge variant="outline" className="text-[11px] font-medium">
+          <Badge variant="outline" className="text-xs font-medium">
             {DOCTYPE_AR[String(v)] || String(v || '—')}
           </Badge>
         ),
@@ -209,7 +209,7 @@ export default function AutoRepeatPage() {
         header: 'التكرار',
         sortable: true,
         render: (v) => (
-          <Badge variant="secondary" className="text-[11px]">
+          <Badge variant="secondary" className="text-xs">
             {FREQUENCY_AR[String(v)] || String(v || '—')}
           </Badge>
         ),
@@ -259,7 +259,7 @@ export default function AutoRepeatPage() {
               disabled={updateMutation.isPending}
               aria-label={row.disabled ? 'تفعيل الجدول' : 'تعطيل الجدول'}
             />
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {row.disabled ? 'معطّل' : 'مفعّل'}
             </span>
           </div>
@@ -371,7 +371,7 @@ export default function AutoRepeatPage() {
           فلاتر:
         </div>
         <div className="w-44">
-          <Label className="text-[11px] text-muted-foreground mb-1">نوع المستند</Label>
+          <Label className="text-xs text-muted-foreground mb-1">نوع المستند</Label>
           <Select value={filterDoctype} onValueChange={setFilterDoctype}>
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="الكل" />
@@ -387,7 +387,7 @@ export default function AutoRepeatPage() {
           </Select>
         </div>
         <div className="w-36">
-          <Label className="text-[11px] text-muted-foreground mb-1">الحالة</Label>
+          <Label className="text-xs text-muted-foreground mb-1">الحالة</Label>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="الكل" />
@@ -401,7 +401,7 @@ export default function AutoRepeatPage() {
           </Select>
         </div>
         <div className="w-36">
-          <Label className="text-[11px] text-muted-foreground mb-1">التكرار</Label>
+          <Label className="text-xs text-muted-foreground mb-1">التكرار</Label>
           <Select value={filterFrequency} onValueChange={setFilterFrequency}>
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="الكل" />
@@ -423,7 +423,7 @@ export default function AutoRepeatPage() {
           </Select>
         </div>
         <div className="w-48">
-          <Label className="text-[11px] text-muted-foreground mb-1">بحث</Label>
+          <Label className="text-xs text-muted-foreground mb-1">بحث</Label>
           <input
             className="flex h-8 w-full rounded-md border border-input bg-background px-3 text-xs"
             placeholder="بحث بالاسم أو النوع…"
@@ -523,7 +523,7 @@ export default function AutoRepeatPage() {
             </div>
 
             {/* تواريخ */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">تاريخ البدء *</Label>
                 <Input type="date" dir="ltr" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
@@ -545,7 +545,7 @@ export default function AutoRepeatPage() {
                 <Label htmlFor="notify-email" className="text-xs font-medium cursor-pointer">
                   إرسال إشعار بالبريد الإلكتروني
                 </Label>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   سيتم إرسال تنبيه عند كل تنفيذ للجدول
                 </p>
               </div>

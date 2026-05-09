@@ -221,7 +221,7 @@ export default function DepreciationRunPage() {
       <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span>
     )},
     { key: 'journal_entry', header: 'قيد يومية', render: (v) => v ? (
-      <span className="font-mono text-[10px] text-primary">{String(v)}</span>
+      <span className="font-mono text-xs text-primary">{String(v)}</span>
     ) : (
       <span className="text-muted-foreground">—</span>
     )},
@@ -329,11 +329,11 @@ export default function DepreciationRunPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">من تاريخ</Label>
+                <Label className="text-xs">من تاريخ</Label>
                 <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">إلى تاريخ</Label>
+                <Label className="text-xs">إلى تاريخ</Label>
                 <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
               </div>
             </div>
@@ -364,7 +364,7 @@ export default function DepreciationRunPage() {
                 <div key={item.name} className="flex items-center justify-between rounded-lg border border-border/40 px-3 py-2 text-sm hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-medium truncate">{item.name}</span>
-                    <Badge variant="secondary" className="text-[10px] shrink-0">{item.pendingCount} قيد</Badge>
+                    <Badge variant="secondary" className="text-xs shrink-0">{item.pendingCount} قيد</Badge>
                   </div>
                   <span className="font-semibold tabular-nums shrink-0" dir="ltr">{formatCurrency(item.pendingAmount)}</span>
                 </div>

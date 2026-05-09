@@ -426,7 +426,7 @@ export default function ShippingCompaniesPage() {
         render: (v) => {
           const val = String(v || '');
           return (
-            <Badge variant="outline" className="text-[10px] font-medium">
+            <Badge variant="outline" className="text-xs font-medium">
               {FEES_TYPE_MAP[val] || val || '—'}
             </Badge>
           );
@@ -451,8 +451,8 @@ export default function ShippingCompaniesPage() {
         render: (v) =>
           chk(v) ? (
             <div className="flex items-center gap-1">
-              <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              <span className="text-xs text-emerald-700 dark:text-emerald-400">مفعّل</span>
+              <CheckCircle className="h-4 w-4 text-primary dark:text-emerald-400" />
+              <span className="text-xs text-primary">مفعّل</span>
             </div>
           ) : (
             <div className="flex items-center gap-1">
@@ -471,9 +471,9 @@ export default function ShippingCompaniesPage() {
             <Badge
               variant={isActive ? 'default' : 'secondary'}
               className={cn(
-                'text-[10px] font-medium',
-                isActive && 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400',
-                !isActive && 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400'
+                'text-xs font-medium',
+                isActive && 'bg-primary/10 text-primary',
+                !isActive && 'bg-destructive/10 text-destructive'
               )}
             >
               {STATUS_MAP[val] || val || '—'}
@@ -510,7 +510,7 @@ export default function ShippingCompaniesPage() {
               type="button"
               size="sm"
               variant="ghost"
-              className="h-7 text-[10px] px-2"
+              className="h-7 text-xs px-2"
               onClick={() => openEditDialog(row)}
             >
               <Edit3 className="h-3 w-3" />
@@ -521,8 +521,8 @@ export default function ShippingCompaniesPage() {
               size="sm"
               variant="ghost"
               className={cn(
-                'h-7 text-[10px] px-2',
-                row.status === 'Active' ? 'text-amber-600' : 'text-emerald-600'
+                'h-7 text-xs px-2',
+                row.status === 'Active' ? 'text-chart-2' : 'text-primary'
               )}
               onClick={() => handleToggleStatus(row)}
             >
@@ -647,7 +647,7 @@ export default function ShippingCompaniesPage() {
                 <Receipt className="h-3.5 w-3.5 text-destructive" />
                 حساب مصروفات الشحن
               </Label>
-              <p className="text-[10px] text-muted-foreground mb-1">
+              <p className="text-xs text-muted-foreground mb-1">
                 الحساب الذي تُسجَّل فيه مصروفات الشحن كخصم
               </p>
               <ErpLinkCombobox
@@ -660,10 +660,10 @@ export default function ShippingCompaniesPage() {
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-semibold flex items-center gap-1.5">
-                <TrendingUp className="h-3.5 w-3.5 text-emerald-600" />
+                <TrendingUp className="h-3.5 w-3.5 text-primary" />
                 حساب إيرادات الشحن
               </Label>
-              <p className="text-[10px] text-muted-foreground mb-1">
+              <p className="text-xs text-muted-foreground mb-1">
                 الحساب الذي تُسجَّل فيه إيرادات الشحن كمردود
               </p>
               <ErpLinkCombobox
@@ -721,7 +721,7 @@ export default function ShippingCompaniesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">حالة الشركة</Label>
+                <Label className="text-xs">حالة الشركة</Label>
                 <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
                   <SelectTrigger className="h-8 text-xs w-32">
                     <SelectValue />
@@ -734,7 +734,7 @@ export default function ShippingCompaniesPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">نوع الرسوم</Label>
+                <Label className="text-xs">نوع الرسوم</Label>
                 <Select value={feesTypeFilter} onValueChange={(v) => setFeesTypeFilter(v as typeof feesTypeFilter)}>
                   <SelectTrigger className="h-8 text-xs w-36">
                     <SelectValue />
@@ -747,7 +747,7 @@ export default function ShippingCompaniesPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">الدفع عند الاستلام</Label>
+                <Label className="text-xs">الدفع عند الاستلام</Label>
                 <Select value={codFilter} onValueChange={(v) => setCodFilter(v as typeof codFilter)}>
                   <SelectTrigger className="h-8 text-xs w-36">
                     <SelectValue />
@@ -804,7 +804,7 @@ export default function ShippingCompaniesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">
+                    <Label className="text-xs font-medium">
                       اسم الشركة <span className="text-destructive text-xs">*</span>
                     </Label>
                     <Input
@@ -814,7 +814,7 @@ export default function ShippingCompaniesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">جهة الاتصال</Label>
+                    <Label className="text-xs font-medium">جهة الاتصال</Label>
                     <Input
                       value={form.contact_person}
                       onChange={(e) => updateField('contact_person', e.target.value)}
@@ -824,7 +824,7 @@ export default function ShippingCompaniesPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">رقم الهاتف</Label>
+                    <Label className="text-xs font-medium">رقم الهاتف</Label>
                     <Input
                       value={form.phone}
                       onChange={(e) => updateField('phone', e.target.value)}
@@ -833,7 +833,7 @@ export default function ShippingCompaniesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">البريد الإلكتروني</Label>
+                    <Label className="text-xs font-medium">البريد الإلكتروني</Label>
                     <Input
                       type="email"
                       value={form.email}
@@ -844,7 +844,7 @@ export default function ShippingCompaniesPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold flex items-center gap-1.5">
+                  <Label className="text-xs font-medium flex items-center gap-1.5">
                     <Globe className="h-3.5 w-3.5" />
                     رابط التتبع
                   </Label>
@@ -854,13 +854,13 @@ export default function ShippingCompaniesPage() {
                     placeholder="https://track.example.com/{tracking_number}"
                     dir="ltr"
                   />
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     استخدم {'{tracking_number}'} كعنصر نائب لرقم التتبع
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">حالة الشركة</Label>
+                    <Label className="text-xs font-medium">حالة الشركة</Label>
                     <Select value={form.status} onValueChange={(v) => updateField('status', v)}>
                       <SelectTrigger>
                         <SelectValue />
@@ -887,7 +887,7 @@ export default function ShippingCompaniesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع الرسوم</Label>
+                    <Label className="text-xs font-medium">نوع الرسوم</Label>
                     <Select value={form.fees_type} onValueChange={(v) => updateField('fees_type', v)}>
                       <SelectTrigger>
                         <SelectValue />
@@ -899,7 +899,7 @@ export default function ShippingCompaniesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">
+                    <Label className="text-xs font-medium">
                       قيمة الرسوم {form.fees_type === 'Percentage' ? '(%)' : ''}
                     </Label>
                     <Input
@@ -932,15 +932,15 @@ export default function ShippingCompaniesPage() {
               </div>
               {form.cod_enabled && (
                 <div className="p-4 space-y-4 bg-card/50">
-                  <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/50 dark:bg-emerald-900/10 p-3 mb-2">
-                    <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 mb-2">
+                    <p className="text-xs text-primary leading-relaxed">
                       عند تفعيل رسوم الدفع عند الاستلام، سيتم إضافة رسوم إضافية على الطلبات التي تتم
                       بطريقة الدفع عند الاستلام عبر شركة الشحن هذه.
                     </p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">نوع رسوم COD</Label>
+                      <Label className="text-xs font-medium">نوع رسوم COD</Label>
                       <Select value={form.cod_fees_type} onValueChange={(v) => updateField('cod_fees_type', v)}>
                         <SelectTrigger>
                           <SelectValue />
@@ -952,7 +952,7 @@ export default function ShippingCompaniesPage() {
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">
+                      <Label className="text-xs font-medium">
                         قيمة رسوم COD {form.cod_fees_type === 'Percentage' ? '(%)' : ''}
                       </Label>
                       <Input
@@ -991,7 +991,7 @@ export default function ShippingCompaniesPage() {
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">حساب مصروفات الشحن</Label>
+                    <Label className="text-xs font-medium">حساب مصروفات الشحن</Label>
                     <ErpLinkCombobox
                       doctype="Account"
                       value={form.expense_account}
@@ -1000,7 +1000,7 @@ export default function ShippingCompaniesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">حساب إيرادات الشحن</Label>
+                    <Label className="text-xs font-medium">حساب إيرادات الشحن</Label>
                     <ErpLinkCombobox
                       doctype="Account"
                       value={form.revenue_account}
@@ -1057,7 +1057,7 @@ export default function ShippingCompaniesPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

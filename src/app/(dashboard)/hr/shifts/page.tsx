@@ -109,7 +109,7 @@ const shiftColumns: Column<ShiftRow>[] = [
   {
     key: 'shift_type',
     header: 'نوع الوردية',
-    render: (value) => <Badge variant="outline" className="text-[10px] font-medium border-0 bg-info/10 text-info">{String(value || '—')}</Badge>,
+    render: (value) => <Badge variant="outline" className="text-xs font-medium border-0 bg-info/10 text-info">{String(value || '—')}</Badge>,
   },
   {
     key: 'start_time',
@@ -180,11 +180,11 @@ const shiftColumns: Column<ShiftRow>[] = [
 const assignColumns: Column<AssignRow>[] = [
   { key: 'name', header: 'الرقم', render: (v) => <span className="text-primary font-medium text-xs">{String(v)}</span> },
   { key: 'employee_name', header: 'الموظف', render: (_, r) => r.employee_name || '—' },
-  { key: 'shift_type', header: 'الوردية', render: (v) => <Badge variant="outline" className="text-[10px] font-medium border-0 bg-info/10 text-info">{String(v || '—')}</Badge> },
+  { key: 'shift_type', header: 'الوردية', render: (v) => <Badge variant="outline" className="text-xs font-medium border-0 bg-info/10 text-info">{String(v || '—')}</Badge> },
   { key: 'start_date', header: 'من', render: (v) => <span className="text-xs">{v ? formatDate(String(v)) : '—'}</span> },
   { key: 'end_date', header: 'إلى', render: (v) => <span className="text-xs">{v ? formatDate(String(v)) : '—'}</span> },
   { key: 'status', header: 'الحالة', render: (v) => <StatusBadge status={String(v || '')} /> },
-  { key: 'docstatus', header: 'المستند', render: (v) => <Badge variant="outline" className="text-[10px] font-medium border-0 bg-muted text-muted-foreground">{Number(v) === 1 ? 'مُرحّل' : 'مسودة'}</Badge> },
+  { key: 'docstatus', header: 'المستند', render: (v) => <Badge variant="outline" className="text-xs font-medium border-0 bg-muted text-muted-foreground">{Number(v) === 1 ? 'مُرحّل' : 'مسودة'}</Badge> },
 ];
 
 /* ────────────────────────────────────────────
@@ -438,7 +438,7 @@ export default function ShiftsPage() {
             <CollapsibleContent>
               <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
                 <div className="space-y-1">
-                  <Label className="text-[10px]">نوع الوردية</Label>
+                  <Label className="text-xs">نوع الوردية</Label>
                   <Select value={shiftTypeFilter} onValueChange={setShiftTypeFilter}>
                     <SelectTrigger className="h-8 text-xs w-36"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -448,7 +448,7 @@ export default function ShiftsPage() {
                   </Select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px]">الحالة</Label>
+                  <Label className="text-xs">الحالة</Label>
                   <Select value={shiftStatusFilter} onValueChange={setShiftStatusFilter}>
                     <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -516,7 +516,7 @@ export default function ShiftsPage() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">وقت البداية</Label>
                 <Input
@@ -604,7 +604,7 @@ export default function ShiftsPage() {
                 placeholder="اختر نوع الوردية..."
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">من تاريخ</Label>
                 <Input
@@ -666,7 +666,7 @@ export default function ShiftsPage() {
                 onSuccess: () => { toast.success('تم حذف نوع الوردية'); setDeleteDialog(null); },
                 onError: () => toast.error('حدث خطأ أثناء الحذف'),
               })}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>
@@ -690,7 +690,7 @@ export default function ShiftsPage() {
                 onSuccess: () => { toast.success('تم حذف التعيين'); setDeleteAssign(null); },
                 onError: () => toast.error('حدث خطأ أثناء الحذف'),
               })}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

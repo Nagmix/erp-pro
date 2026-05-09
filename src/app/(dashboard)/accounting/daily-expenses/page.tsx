@@ -207,7 +207,7 @@ export default function DailyExpensesPage() {
         filterable: true,
         render: (v) => {
           const label = EXPENSE_STATUS_MAP[String(v)] || String(v);
-          return <Badge variant="outline" className="text-[10px]">{label}</Badge>;
+          return <Badge variant="outline" className="text-xs">{label}</Badge>;
         }},
       { key: 'docstatus', header: 'حالة المستند', render: (v) => <DocStatusBadge docstatus={Number(v) as 0 | 1 | 2} /> },
       {
@@ -291,15 +291,15 @@ export default function DailyExpensesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-28"><SelectValue /></SelectTrigger>
               <SelectContent>

@@ -215,7 +215,7 @@ export default function EmployeeRequestsPage() {
           <DialogHeader><DialogTitle>{editingDoc ? `تعديل طلب الحضور — ${editingDoc.name}` : 'طلب حضور'}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2"><Label className="text-xs">الموظف</Label><ErpLinkCombobox doctype="Employee" value={formData.employee} onChange={(v) => setFormData((p) => ({ ...p, employee: v }))} displayKey="employee_name" disabled={!!editingDoc} /></div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2"><Label className="text-xs">من</Label><Input type="date" dir="ltr" value={formData.from_date} onChange={(e) => setFormData((p) => ({ ...p, from_date: e.target.value }))} /></div>
               <div className="space-y-2"><Label className="text-xs">إلى</Label><Input type="date" dir="ltr" value={formData.to_date} onChange={(e) => setFormData((p) => ({ ...p, to_date: e.target.value }))} /></div>
             </div>

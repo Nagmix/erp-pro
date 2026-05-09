@@ -99,11 +99,11 @@ const OPP_STATUS_AR: Record<string, string> = {
 };
 
 const OPP_STATUS_COLORS: Record<string, string> = {
-  Open: 'bg-sky-500/10 text-sky-700 dark:text-sky-400',
-  Quotation: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
-  Converted: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
-  Lost: 'bg-rose-500/10 text-rose-700 dark:text-rose-400',
-  Replied: 'bg-purple-500/10 text-purple-700 dark:text-purple-400',
+  Open: 'bg-chart-1/10 text-chart-1',
+  Quotation: 'bg-chart-2/10 text-chart-2',
+  Converted: 'bg-primary/10 text-primary',
+  Lost: 'bg-destructive/10 text-destructive',
+  Replied: 'bg-chart-5/10 text-chart-5',
   Closed: 'bg-muted text-muted-foreground',
 };
 
@@ -378,9 +378,9 @@ export default function OpportunitiesPage() {
       {/* ملخص خط المبيعات */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'مفتوح', count: openCount, color: 'bg-sky-500', icon: Target },
-          { label: 'تم التحويل', count: convertedCount, color: 'bg-emerald-500', icon: TrendingUp },
-          { label: 'مفقود', count: lostCount, color: 'bg-rose-500', icon: Building2 },
+          { label: 'مفتوح', count: openCount, color: 'bg-chart-1', icon: Target },
+          { label: 'تم التحويل', count: convertedCount, color: 'bg-chart-3', icon: TrendingUp },
+          { label: 'مفقود', count: lostCount, color: 'bg-destructive', icon: Building2 },
           { label: 'إجمالي القيمة', count: null, color: 'bg-primary', icon: Wallet, value: formatCurrency(totalValue) },
         ].map((item, i) => (
           <div key={i} className="rounded-xl border border-border/40 bg-card p-3 flex items-center gap-3">
@@ -449,9 +449,9 @@ export default function OpportunitiesPage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">من</Label>
+                    <Label className="text-xs font-medium">من</Label>
                     <Select dir="rtl" value={form.opportunity_from} onValueChange={(val) => setForm(p => ({ ...p, opportunity_from: val, party_name: '' }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -461,7 +461,7 @@ export default function OpportunitiesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الطرف <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">الطرف <span className="text-destructive text-xs">*</span></Label>
                     {form.opportunity_from === 'Lead' ? (
                       <ErpLinkCombobox doctype="Lead" value={form.party_name} onChange={(v) => setForm(p => ({ ...p, party_name: v }))} displayKey="lead_name" className="h-9" />
                     ) : (
@@ -469,9 +469,9 @@ export default function OpportunitiesPage() {
                     )}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الحالة</Label>
+                    <Label className="text-xs font-medium">الحالة</Label>
                     <Select dir="rtl" value={form.status} onValueChange={(val) => setForm(p => ({ ...p, status: val }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -482,7 +482,7 @@ export default function OpportunitiesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">إغلاق متوقع</Label>
+                    <Label className="text-xs font-medium">إغلاق متوقع</Label>
                     <Input type="date" dir="ltr" value={form.expected_closing} onChange={(e) => setForm(p => ({ ...p, expected_closing: e.target.value }))} className="h-9" />
                   </div>
                 </div>
@@ -497,13 +497,13 @@ export default function OpportunitiesPage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">مبلغ الفرصة</Label>
+                    <Label className="text-xs font-medium">مبلغ الفرصة</Label>
                     <Input dir="ltr" type="number" value={form.opportunity_amount} onChange={(e) => setForm(p => ({ ...p, opportunity_amount: e.target.value }))} className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">العملة</Label>
+                    <Label className="text-xs font-medium">العملة</Label>
                     <ErpLinkCombobox doctype="Currency" value={form.currency} onChange={(v) => setForm(p => ({ ...p, currency: v }))} placeholder="اختياري" className="h-9" />
                   </div>
                 </div>
@@ -518,13 +518,13 @@ export default function OpportunitiesPage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">شخص الاتصال</Label>
+                    <Label className="text-xs font-medium">شخص الاتصال</Label>
                     <Input value={form.contact_person} onChange={(e) => setForm(p => ({ ...p, contact_person: e.target.value }))} className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">عدد الموظفين</Label>
+                    <Label className="text-xs font-medium">عدد الموظفين</Label>
                     <Select dir="rtl" value={form.no_of_employees} onValueChange={(val) => setForm(p => ({ ...p, no_of_employees: val }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر..." /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -537,13 +537,13 @@ export default function OpportunitiesPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الصناعة</Label>
+                    <Label className="text-xs font-medium">الصناعة</Label>
                     <ErpLinkCombobox doctype="Industry Type" value={form.industry} onChange={(v) => setForm(p => ({ ...p, industry: v }))} placeholder="اختياري" className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">المصدر</Label>
+                    <Label className="text-xs font-medium">المصدر</Label>
                     <Select dir="rtl" value={form.source} onValueChange={(val) => setForm(p => ({ ...p, source: val }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر..." /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -596,12 +596,12 @@ export default function OpportunitiesPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">كود الفرصة</Label>
+                  <Label className="text-xs font-medium">كود الفرصة</Label>
                   <Input value={selected?.name || ''} disabled className="bg-muted text-muted-foreground" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الحالة</Label>
+                    <Label className="text-xs font-medium">الحالة</Label>
                     <Select dir="rtl" value={editForm.status} onValueChange={(val) => setEditForm(p => ({ ...p, status: val }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -612,7 +612,7 @@ export default function OpportunitiesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">إغلاق متوقع</Label>
+                    <Label className="text-xs font-medium">إغلاق متوقع</Label>
                     <Input type="date" dir="ltr" value={editForm.expected_closing} onChange={(e) => setEditForm(p => ({ ...p, expected_closing: e.target.value }))} className="h-9" />
                   </div>
                 </div>
@@ -627,13 +627,13 @@ export default function OpportunitiesPage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">مبلغ الفرصة</Label>
+                    <Label className="text-xs font-medium">مبلغ الفرصة</Label>
                     <Input dir="ltr" type="number" value={editForm.opportunity_amount} onChange={(e) => setEditForm(p => ({ ...p, opportunity_amount: e.target.value }))} className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">العملة</Label>
+                    <Label className="text-xs font-medium">العملة</Label>
                     <ErpLinkCombobox doctype="Currency" value={editForm.currency} onChange={(v) => setEditForm(p => ({ ...p, currency: v }))} placeholder="اختياري" className="h-9" />
                   </div>
                 </div>
@@ -648,13 +648,13 @@ export default function OpportunitiesPage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">شخص الاتصال</Label>
+                    <Label className="text-xs font-medium">شخص الاتصال</Label>
                     <Input value={editForm.contact_person} onChange={(e) => setEditForm(p => ({ ...p, contact_person: e.target.value }))} className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">عدد الموظفين</Label>
+                    <Label className="text-xs font-medium">عدد الموظفين</Label>
                     <Select dir="rtl" value={editForm.no_of_employees} onValueChange={(val) => setEditForm(p => ({ ...p, no_of_employees: val }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر..." /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -667,13 +667,13 @@ export default function OpportunitiesPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الصناعة</Label>
+                    <Label className="text-xs font-medium">الصناعة</Label>
                     <ErpLinkCombobox doctype="Industry Type" value={editForm.industry} onChange={(v) => setEditForm(p => ({ ...p, industry: v }))} placeholder="اختياري" className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">المصدر</Label>
+                    <Label className="text-xs font-medium">المصدر</Label>
                     <Select dir="rtl" value={editForm.source} onValueChange={(val) => setEditForm(p => ({ ...p, source: val }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر..." /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -850,7 +850,7 @@ export default function OpportunitiesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} variant="destructive">حذف</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

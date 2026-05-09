@@ -275,7 +275,7 @@ export default function BankDisbursementPage() {
           {/* Filters */}
           <div className="flex flex-wrap items-end gap-3">
             <div className="space-y-1">
-              <Label className="text-[10px]">البنك</Label>
+              <Label className="text-xs">البنك</Label>
               <select
                 className="h-8 rounded-md border bg-background px-2 text-xs"
                 value={bankFilter}
@@ -288,7 +288,7 @@ export default function BankDisbursementPage() {
               </select>
             </div>
             <div className="space-y-1 flex-1 min-w-[200px]">
-              <Label className="text-[10px]">بحث</Label>
+              <Label className="text-xs">بحث</Label>
               <Input
                 placeholder="بحث بالموظف أو رقم الكشف..."
                 value={periodFilter}
@@ -327,7 +327,7 @@ export default function BankDisbursementPage() {
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-muted-foreground" aria-hidden />
                     <span className="text-sm font-semibold">{bank}</span>
-                    <span className="text-[10px] text-muted-foreground">({rows.length} موظف)</span>
+                    <span className="text-xs text-muted-foreground">({rows.length} موظف)</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-semibold tabular-nums">{formatCurrency(bankTotal)}</span>
@@ -381,7 +381,7 @@ export default function BankDisbursementPage() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-6 text-[10px] gap-1"
+                              className="h-6 text-xs gap-1"
                               disabled={payingSlip === r.name}
                               onClick={() => createPaymentForSlip(r)}
                             >

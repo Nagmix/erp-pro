@@ -209,7 +209,7 @@ export default function BatchesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">حالة الصلاحية</Label>
+                <Label className="text-xs">حالة الصلاحية</Label>
                 <Select value={expiryFilter} onValueChange={setExpiryFilter}>
                   <SelectTrigger className="h-8 text-xs w-36"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -239,7 +239,7 @@ export default function BatchesPage() {
           });
         }}
       />
-      <p className="text-[10px] text-muted-foreground">للمسودات: من القائمة «تعديل» لترحيل الدفعة، أو «حذف» لإزالة المسودة.</p>
+      <p className="text-xs text-muted-foreground">للمسودات: من القائمة «تعديل» لترحيل الدفعة، أو «حذف» لإزالة المسودة.</p>
 
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
         <AlertDialogContent dir="rtl">

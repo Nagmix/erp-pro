@@ -209,7 +209,7 @@ export default function PurchasesPurchaseOrdersPage() {
         key: 'branch',
         header: 'الفرع',
         width: 'w-24',
-        render: (v) => (v ? <span className="text-[10px] text-muted-foreground">{String(v)}</span> : '—')},
+        render: (v) => (v ? <span className="text-xs text-muted-foreground">{String(v)}</span> : '—')},
       { key: 'transaction_date', header: 'التاريخ', sortable: true, render: (v) => formatDate(String(v)) },
       { key: 'base_grand_total', header: 'الإجمالي', sortable: true, render: (v) => <span className="font-semibold tabular-nums">{formatCurrency(Number(v))}</span> },
       { key: 'per_received', header: 'استلام', width: 'w-16', render: (v) => `${Number(v ?? 0)}%` },
@@ -227,7 +227,7 @@ export default function PurchasesPurchaseOrdersPage() {
                 type="button"
                 size="sm"
                 variant="secondary"
-                className="h-7 text-[10px] gap-1"
+                className="h-7 text-xs gap-1"
                 onClick={() =>
                   submitMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
@@ -245,7 +245,7 @@ export default function PurchasesPurchaseOrdersPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] gap-1"
+                className="h-7 text-xs gap-1"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('أُلغي'); void refetch(); },
@@ -265,7 +265,7 @@ export default function PurchasesPurchaseOrdersPage() {
         width: 'w-36',
         render: (_v, row) => {
           const ds = Number(row.docstatus);
-          if (ds !== 1) return <span className="text-muted-foreground text-[10px]">—</span>;
+          if (ds !== 1) return <span className="text-muted-foreground text-xs">—</span>;
           const busy = mapping?.endsWith(row.name);
           return (
             <div className="flex flex-col gap-1">
@@ -355,15 +355,15 @@ export default function PurchasesPurchaseOrdersPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={poStatusFilter} onValueChange={setPoStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -449,17 +449,17 @@ export default function PurchasesPurchaseOrdersPage() {
                 <div className="p-4 space-y-4 bg-card/50">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">المورد <span className="text-destructive text-xs">*</span></Label>
+                      <Label className="text-xs font-medium">المورد <span className="text-destructive text-xs">*</span></Label>
                       <ErpLinkCombobox doctype="Supplier" value={supplier} onChange={setSupplier} displayKey="supplier_name" className="h-10" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">التاريخ</Label>
+                      <Label className="text-xs font-medium">التاريخ</Label>
                       <Input type="date" dir="ltr" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-10" />
                     </div>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">مركز تكلفة</Label>
+                      <Label className="text-xs font-medium">مركز تكلفة</Label>
                       <ErpLinkCombobox doctype="Cost Center" value={costCenter} onChange={setCostCenter} className="h-10" />
                     </div>
                   </div>
@@ -477,11 +477,11 @@ export default function PurchasesPurchaseOrdersPage() {
                 <div className="p-4 space-y-4 bg-card/50">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">العملة</Label>
+                      <Label className="text-xs font-medium">العملة</Label>
                       <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="YER" className="h-10 text-sm" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">سعر التحويل</Label>
+                      <Label className="text-xs font-medium">سعر التحويل</Label>
                       <Input
                         type="number"
                         dir="ltr"
@@ -506,7 +506,7 @@ export default function PurchasesPurchaseOrdersPage() {
                 </div>
                 <div className="p-4 bg-card/50">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الشروط</Label>
+                    <Label className="text-xs font-medium">الشروط</Label>
                     <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} className="min-h-[80px] text-sm" />
                   </div>
                 </div>

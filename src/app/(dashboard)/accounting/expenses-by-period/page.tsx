@@ -152,16 +152,16 @@ function getGroupLabel(key: string, groupBy: GroupBy): string {
 
 /* ─── Color palette for categories ─── */
 const CATEGORY_COLORS = [
-  'bg-sky-100 text-sky-700 border-sky-200',
-  'bg-emerald-100 text-emerald-700 border-emerald-200',
-  'bg-amber-100 text-amber-700 border-amber-200',
-  'bg-violet-100 text-violet-700 border-violet-200',
-  'bg-rose-100 text-rose-700 border-rose-200',
-  'bg-teal-100 text-teal-700 border-teal-200',
-  'bg-orange-100 text-orange-700 border-orange-200',
-  'bg-pink-100 text-pink-700 border-pink-200',
-  'bg-cyan-100 text-cyan-700 border-cyan-200',
-  'bg-lime-100 text-lime-700 border-lime-200',
+  'bg-chart-1/10 text-chart-1 border-chart-1/20',
+  'bg-chart-3/10 text-chart-3 border-chart-3/20',
+  'bg-chart-2/10 text-chart-2 border-chart-2/20',
+  'bg-chart-5/10 text-chart-5 border-chart-5/20',
+  'bg-destructive/10 text-destructive border-destructive/20',
+  'bg-chart-3/10 text-chart-3 border-chart-3/20',
+  'bg-chart-4/10 text-chart-4 border-chart-4/20',
+  'bg-chart-5/10 text-chart-5 border-chart-5/20',
+  'bg-chart-1/10 text-chart-1 border-chart-1/20',
+  'bg-chart-2/10 text-chart-2 border-chart-2/20',
 ];
 
 /* ─── Main Component ─── */
@@ -692,7 +692,7 @@ export default function ExpensesByPeriodPage() {
                         <div className="h-6 bg-muted/30 rounded-md overflow-hidden relative">
                           <div
                             className={`h-full rounded-md transition-all duration-500 ${
-                              change !== null && change > 0 ? 'bg-rose-400/70' : change !== null && change < 0 ? 'bg-emerald-400/70' : 'bg-amber-400/70'
+                              change !== null && change > 0 ? 'bg-destructive/70' : change !== null && change < 0 ? 'bg-chart-3/70' : 'bg-chart-2/70'
                             }`}
                             style={{ width: `${barWidth}%` }}
                           />
@@ -709,7 +709,7 @@ export default function ExpensesByPeriodPage() {
           <div className="grid sm:grid-cols-3 gap-3">
             <Card className="border-border/40">
               <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-rose-100 flex items-center justify-center shrink-0">
+                <div className="h-9 w-9 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
                   <TrendingUp className="h-4 w-4 text-rose-600" />
                 </div>
                 <div>
@@ -720,7 +720,7 @@ export default function ExpensesByPeriodPage() {
             </Card>
             <Card className="border-border/40">
               <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <TrendingDown className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div>
@@ -733,7 +733,7 @@ export default function ExpensesByPeriodPage() {
             </Card>
             <Card className="border-border/40">
               <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-sky-100 flex items-center justify-center shrink-0">
+                <div className="h-9 w-9 rounded-lg bg-chart-1/10 flex items-center justify-center shrink-0">
                   <Activity className="h-4 w-4 text-sky-600" />
                 </div>
                 <div>
@@ -780,7 +780,7 @@ export default function ExpensesByPeriodPage() {
                           <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all duration-500 ${
-                                idx % 2 === 0 ? 'bg-rose-400/70' : 'bg-amber-400/70'
+                                idx % 2 === 0 ? 'bg-destructive/70' : 'bg-chart-2/70'
                               }`}
                               style={{ width: `${pct}%` }}
                             />
@@ -813,7 +813,7 @@ export default function ExpensesByPeriodPage() {
                       return (
                         <div key={category} className="flex items-center justify-between rounded-lg border border-border/30 p-3 hover:bg-muted/20 transition-colors">
                           <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center text-xs font-bold text-amber-600">
+                            <div className="h-8 w-8 rounded-full bg-chart-2/5 flex items-center justify-center text-xs font-bold text-chart-2">
                               {idx + 1}
                             </div>
                             <div>

@@ -403,7 +403,7 @@ export default function EmployeeAdvancesPage() {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="h-7 text-[10px] gap-1"
+                  className="h-7 text-xs gap-1"
                   onClick={() => openEditDialog(row)}
                 >
                   <Edit className="h-3 w-3" />
@@ -414,7 +414,7 @@ export default function EmployeeAdvancesPage() {
                 <Button
                   type="button"
                   size="sm"
-                  className="h-7 text-[10px] gap-1"
+                  className="h-7 text-xs gap-1"
                   onClick={() => handleSubmit(row)}
                 >
                   <Send className="h-3 w-3" />
@@ -426,7 +426,7 @@ export default function EmployeeAdvancesPage() {
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="h-7 text-[10px] gap-1"
+                  className="h-7 text-xs gap-1"
                   onClick={() => handleCancel(row)}
                 >
                   <Undo2 className="h-3 w-3" />
@@ -438,7 +438,7 @@ export default function EmployeeAdvancesPage() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-[10px] text-destructive"
+                  className="h-7 text-xs text-destructive"
                   onClick={() => setDeleteDialog(row)}
                 >
                   <Trash2 className="h-3 w-3" />
@@ -531,7 +531,7 @@ export default function EmployeeAdvancesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">الموظف</Label>
+                <Label className="text-xs">الموظف</Label>
                 <div className="w-56">
                   <ErpLinkCombobox
                     doctype="Employee"
@@ -543,7 +543,7 @@ export default function EmployeeAdvancesPage() {
                 </div>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">حالة المستند</Label>
+                <Label className="text-xs">حالة المستند</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="h-8 text-xs w-32">
                     <SelectValue />
@@ -606,7 +606,7 @@ export default function EmployeeAdvancesPage() {
                 placeholder="سبب السلفة..."
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">
                   مبلغ السلفة <span className="text-destructive">*</span>
@@ -629,7 +629,7 @@ export default function EmployeeAdvancesPage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">الشركة</Label>
                 <Input
@@ -700,7 +700,7 @@ export default function EmployeeAdvancesPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteDialog && handleDelete(deleteDialog)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

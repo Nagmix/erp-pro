@@ -60,17 +60,17 @@ type TreeNode = Emp & { children: TreeNode[] };
 
 // ── Department Color Map ─────────────────────────────────────
 const DEPT_COLORS: Record<string, string> = {
-  'إدارة': 'bg-violet-500',
-  'المبيعات': 'bg-emerald-500',
-  'المشتريات': 'bg-amber-500',
-  'المحاسبة': 'bg-sky-500',
-  'الموارد البشرية': 'bg-pink-500',
-  'تقنية المعلومات': 'bg-cyan-500',
-  'التصنيع': 'bg-orange-500',
-  'المخزون': 'bg-teal-500',
-  'التسويق': 'bg-rose-500',
-  'الدعم الفني': 'bg-lime-600',
-  'البحث والتطوير': 'bg-fuchsia-500',
+  'إدارة': 'bg-chart-5',
+  'المبيعات': 'bg-chart-3',
+  'المشتريات': 'bg-chart-2',
+  'المحاسبة': 'bg-chart-1',
+  'الموارد البشرية': 'bg-chart-5',
+  'تقنية المعلومات': 'bg-chart-1',
+  'التصنيع': 'bg-chart-4',
+  'المخزون': 'bg-chart-3',
+  'التسويق': 'bg-destructive',
+  'الدعم الفني': 'bg-chart-2',
+  'البحث والتطوير': 'bg-chart-5',
   'الشؤون القانونية': 'bg-slate-500',
 };
 
@@ -83,9 +83,9 @@ function getDeptColor(dept?: string): string {
     hash = dept.charCodeAt(i) + ((hash << 5) - hash);
   }
   const palette = [
-    'bg-violet-500', 'bg-emerald-500', 'bg-amber-500', 'bg-sky-500',
-    'bg-pink-500', 'bg-cyan-500', 'bg-orange-500', 'bg-teal-500',
-    'bg-rose-500', 'bg-lime-600', 'bg-fuchsia-500', 'bg-indigo-500',
+    'bg-chart-5', 'bg-chart-3', 'bg-chart-2', 'bg-chart-1',
+    'bg-chart-5', 'bg-chart-1', 'bg-chart-4', 'bg-chart-3',
+    'bg-destructive', 'bg-chart-2', 'bg-chart-5', 'bg-chart-1',
   ];
   return palette[Math.abs(hash) % palette.length];
 }
@@ -220,7 +220,7 @@ function OrgNode({
 
             {/* Children count badge */}
             {hasChildren && (
-              <Badge variant="secondary" className="text-[10px] shrink-0 tabular-nums">
+              <Badge variant="secondary" className="text-xs shrink-0 tabular-nums">
                 {node.children.length}
               </Badge>
             )}
@@ -286,7 +286,7 @@ function EmployeeDetailDialog({
               <h3 className="text-base font-semibold truncate">{nm}</h3>
               <p className="text-xs text-muted-foreground mt-0.5">{employee.name}</p>
               {employee.department && (
-                <Badge variant="outline" className={cn('text-[10px] px-2 py-0.5 mt-1.5 border-0 font-medium', getDeptBgLight(employee.department), getDeptTextColor(employee.department))}>
+                <Badge variant="outline" className={cn('text-xs px-2 py-0.5 mt-1.5 border-0 font-medium', getDeptBgLight(employee.department), getDeptTextColor(employee.department))}>
                   {employee.department}
                 </Badge>
               )}
@@ -301,7 +301,7 @@ function EmployeeDetailDialog({
                   <Briefcase className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">المسمى الوظيفي</p>
+                  <p className="text-xs text-muted-foreground">المسمى الوظيفي</p>
                   <p className="text-sm font-medium">{employee.designation}</p>
                 </div>
               </div>
@@ -312,40 +312,40 @@ function EmployeeDetailDialog({
                   <Building2 className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">القسم</p>
+                  <p className="text-xs text-muted-foreground">القسم</p>
                   <p className="text-sm font-medium">{employee.department}</p>
                 </div>
               </div>
             )}
             {employee.company_email && (
               <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
-                <div className="h-8 w-8 rounded-md bg-sky-500/10 flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-md bg-chart-1/10 flex items-center justify-center shrink-0">
                   <Mail className="h-4 w-4 text-sky-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">البريد الإلكتروني</p>
+                  <p className="text-xs text-muted-foreground">البريد الإلكتروني</p>
                   <p className="text-sm font-medium" dir="ltr">{employee.company_email}</p>
                 </div>
               </div>
             )}
             {employee.reports_to && (
               <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
-                <div className="h-8 w-8 rounded-md bg-amber-500/10 flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-md bg-chart-2/10 flex items-center justify-center shrink-0">
                   <Network className="h-4 w-4 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">المدير المباشر</p>
+                  <p className="text-xs text-muted-foreground">المدير المباشر</p>
                   <p className="text-sm font-medium">{employee.reports_to}</p>
                 </div>
               </div>
             )}
             {employee.children.length > 0 && (
               <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
-                <div className="h-8 w-8 rounded-md bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
                   <Users className="h-4 w-4 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted-foreground">المرؤوسون المباشرون</p>
+                  <p className="text-xs text-muted-foreground">المرؤوسون المباشرون</p>
                   <p className="text-sm font-medium">{employee.children.length} موظف</p>
                 </div>
               </div>
@@ -526,7 +526,7 @@ export default function OrgChartPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">القسم</Label>
+                <Label className="text-xs">القسم</Label>
                 <Select value={deptFilter} onValueChange={setDeptFilter}>
                   <SelectTrigger className="h-9 text-xs w-48">
                     <SelectValue placeholder="كل الأقسام" />
@@ -540,7 +540,7 @@ export default function OrgChartPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">المسمى الوظيفي</Label>
+                <Label className="text-xs">المسمى الوظيفي</Label>
                 <Select value={desigFilter} onValueChange={setDesigFilter}>
                   <SelectTrigger className="h-9 text-xs w-48">
                     <SelectValue placeholder="كل المسميات" />
@@ -561,14 +561,14 @@ export default function OrgChartPage() {
       {/* ── Department Color Legend ── */}
       {departments.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[10px] text-muted-foreground font-medium">الأقسام:</span>
+          <span className="text-xs text-muted-foreground font-medium">الأقسام:</span>
           {departments.map((dept) => (
             <button
               key={dept}
               type="button"
               onClick={() => setDeptFilter(deptFilter === dept ? '' : dept)}
               className={cn(
-                'flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] transition-all border',
+                'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-all border',
                 deptFilter === dept
                   ? 'border-primary/40 bg-primary/5 ring-1 ring-primary/20 font-semibold'
                   : 'border-border/30 bg-muted/20 hover:bg-muted/40',

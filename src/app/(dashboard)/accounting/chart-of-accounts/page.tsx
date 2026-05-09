@@ -91,48 +91,48 @@ const rootTypeConfig: Record<string, {
 }> = {
   Asset: {
     label: 'أصول',
-    accent: 'text-blue-600 dark:text-blue-400',
-    bgLight: 'bg-blue-50 dark:bg-blue-950/40',
+    accent: 'text-chart-1 dark:text-blue-400',
+    bgLight: 'bg-chart-1/10',
     icon: 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-blue-500/25',
     gradient: 'from-blue-500/8 to-transparent',
-    border: 'border-blue-200/60 dark:border-blue-800/40',
-    badge: 'bg-blue-100/80 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 ring-1 ring-inset ring-blue-200/50 dark:ring-blue-700/30',
+    border: 'border-chart-1/20/60 dark:border-blue-800/40',
+    badge: 'bg-chart-1/10/80 text-chart-1 ring-1 ring-inset ring-chart-1/30',
   },
   Liability: {
     label: 'الالتزامات',
-    accent: 'text-amber-600 dark:text-amber-400',
-    bgLight: 'bg-amber-50 dark:bg-amber-950/40',
+    accent: 'text-chart-2 dark:text-amber-400',
+    bgLight: 'bg-chart-2/10',
     icon: 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-amber-500/25',
     gradient: 'from-amber-500/8 to-transparent',
-    border: 'border-amber-200/60 dark:border-amber-800/40',
-    badge: 'bg-amber-100/80 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 ring-1 ring-inset ring-amber-200/50 dark:ring-amber-700/30',
+    border: 'border-chart-2/20/60 dark:border-amber-800/40',
+    badge: 'bg-chart-2/10/80 text-chart-2 ring-1 ring-inset ring-chart-2/30',
   },
   Equity: {
     label: 'حقوق الملكية',
-    accent: 'text-violet-600 dark:text-violet-400',
-    bgLight: 'bg-violet-50 dark:bg-violet-950/40',
+    accent: 'text-chart-5 dark:text-violet-400',
+    bgLight: 'bg-chart-5/10',
     icon: 'bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-violet-500/25',
     gradient: 'from-violet-500/8 to-transparent',
-    border: 'border-violet-200/60 dark:border-violet-800/40',
-    badge: 'bg-violet-100/80 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 ring-1 ring-inset ring-violet-200/50 dark:ring-violet-700/30',
+    border: 'border-chart-5/20',
+    badge: 'bg-chart-5/10/80 text-chart-5 ring-1 ring-inset ring-chart-5/30',
   },
   Income: {
     label: 'الإيرادات',
-    accent: 'text-emerald-600 dark:text-emerald-400',
-    bgLight: 'bg-emerald-50 dark:bg-emerald-950/40',
+    accent: 'text-primary dark:text-emerald-400',
+    bgLight: 'bg-primary/10',
     icon: 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-emerald-500/25',
     gradient: 'from-emerald-500/8 to-transparent',
-    border: 'border-emerald-200/60 dark:border-emerald-800/40',
-    badge: 'bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 ring-1 ring-inset ring-emerald-200/50 dark:ring-emerald-700/30',
+    border: 'border-primary/20/60 dark:border-emerald-800/40',
+    badge: 'bg-primary/10/80 text-primary ring-1 ring-inset ring-primary/30',
   },
   Expense: {
     label: 'المصروفات',
-    accent: 'text-rose-600 dark:text-rose-400',
-    bgLight: 'bg-rose-50 dark:bg-rose-950/40',
+    accent: 'text-destructive dark:text-rose-400',
+    bgLight: 'bg-destructive/10',
     icon: 'bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-rose-500/25',
     gradient: 'from-rose-500/8 to-transparent',
-    border: 'border-rose-200/60 dark:border-rose-800/40',
-    badge: 'bg-rose-100/80 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300 ring-1 ring-inset ring-rose-200/50 dark:ring-rose-700/30',
+    border: 'border-destructive/20/60 dark:border-rose-800/40',
+    badge: 'bg-destructive/10/80 text-destructive ring-1 ring-inset ring-destructive/30',
   },
 };
 
@@ -199,7 +199,7 @@ function AccountTreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-[13px]"
+        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
         style={{ paddingRight: `${level * 1.25 + 1}rem` }}
       >
         {hasChildren ? (
@@ -239,7 +239,7 @@ function AccountTreeItem({
               </Badge>
             ) : null}
           </span>
-          <span className="tabular-nums min-w-[110px] text-start text-[13px]" dir="ltr">
+          <span className="tabular-nums min-w-[110px] text-start text-xs" dir="ltr">
             {isGroup ? (
               <span className="text-muted-foreground/40">—</span>
             ) : (
@@ -312,7 +312,7 @@ function FormField({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[13px] font-semibold text-foreground flex items-center gap-2">
+      <Label className="text-xs font-medium text-foreground flex items-center gap-2">
         <span className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
           <Icon className="h-3.5 w-3.5 text-muted-foreground" />
         </span>
@@ -1072,7 +1072,7 @@ export default function ChartOfAccountsPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف

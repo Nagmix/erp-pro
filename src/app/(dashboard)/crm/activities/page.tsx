@@ -82,11 +82,11 @@ const MEDIUM_ICON: Record<string, typeof Phone> = {
 };
 
 const MEDIUM_COLORS: Record<string, string> = {
-  Phone: 'border-emerald-400/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300',
-  Email: 'border-sky-400/40 bg-sky-50 text-sky-700 dark:bg-sky-950/30 dark:text-sky-300',
-  Meeting: 'border-violet-400/40 bg-violet-50 text-violet-700 dark:bg-violet-950/30 dark:text-violet-300',
-  Visit: 'border-amber-400/40 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300',
-  SMS: 'border-pink-400/40 bg-pink-50 text-pink-700 dark:bg-pink-950/30 dark:text-pink-300',
+  Phone: 'border-primary/30 bg-primary/5 text-primary',
+  Email: 'border-chart-1/30 bg-chart-1/5 text-chart-1',
+  Meeting: 'border-chart-5/30 bg-chart-5/5 text-chart-5',
+  Visit: 'border-chart-2/30 bg-chart-2/5 text-chart-2',
+  SMS: 'border-chart-5/30 bg-chart-5/5 text-chart-5',
   Other: 'border-gray-400/40 bg-gray-50 text-gray-700 dark:bg-gray-950/30 dark:text-gray-300',
 };
 
@@ -430,7 +430,7 @@ export default function ActivitiesPage() {
           )}
 
           <div className="ms-auto">
-            <Badge variant="outline" className="text-[11px] h-7 px-2.5 rounded-lg border-border/40 bg-muted/30 text-muted-foreground">
+            <Badge variant="outline" className="text-xs h-7 px-2.5 rounded-lg border-border/40 bg-muted/30 text-muted-foreground">
               {filteredData.length} من {totalActivities}
             </Badge>
           </div>
@@ -441,7 +441,7 @@ export default function ActivitiesPage() {
           <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-semibold text-muted-foreground">وسيلة التواصل</Label>
+                <Label className="text-xs font-medium text-muted-foreground">وسيلة التواصل</Label>
                 <Select value={filterMedium} onValueChange={setFilterMedium}>
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="الكل" />
@@ -455,7 +455,7 @@ export default function ActivitiesPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-semibold text-muted-foreground">نوع المرجع</Label>
+                <Label className="text-xs font-medium text-muted-foreground">نوع المرجع</Label>
                 <Select value={filterRefType} onValueChange={setFilterRefType}>
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="الكل" />
@@ -469,11 +469,11 @@ export default function ActivitiesPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-semibold text-muted-foreground">من تاريخ</Label>
+                <Label className="text-xs font-medium text-muted-foreground">من تاريخ</Label>
                 <Input type="date" dir="ltr" value={filterDateFrom} onChange={(e) => setFilterDateFrom(e.target.value)} className="h-8 text-xs" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[11px] font-semibold text-muted-foreground">إلى تاريخ</Label>
+                <Label className="text-xs font-medium text-muted-foreground">إلى تاريخ</Label>
                 <Input type="date" dir="ltr" value={filterDateTo} onChange={(e) => setFilterDateTo(e.target.value)} className="h-8 text-xs" />
               </div>
             </div>
@@ -523,12 +523,12 @@ export default function ActivitiesPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">الموضوع <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">الموضوع <span className="text-destructive text-xs">*</span></Label>
                   <Input placeholder="موضوع النشاط" value={subject} onChange={(e) => setSubject(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">وسيلة التواصل</Label>
+                    <Label className="text-xs font-medium">وسيلة التواصل</Label>
                     <Select value={medium} onValueChange={(v) => setMedium(v as MediumType)}>
                       <SelectTrigger className="h-10 text-sm">
                         <SelectValue />
@@ -541,7 +541,7 @@ export default function ActivitiesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">المرسل</Label>
+                    <Label className="text-xs font-medium">المرسل</Label>
                     <ErpLinkCombobox
                       doctype="User"
                       value={sender}
@@ -554,12 +554,12 @@ export default function ActivitiesPage() {
                 </div>
                 {(medium === 'Phone' || medium === 'SMS') && (
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">رقم الهاتف</Label>
+                    <Label className="text-xs font-medium">رقم الهاتف</Label>
                     <Input dir="ltr" placeholder="رقم الهاتف" value={phoneNo} onChange={(e) => setPhoneNo(e.target.value)} />
                   </div>
                 )}
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">المحتوى / الملاحظات</Label>
+                  <Label className="text-xs font-medium">المحتوى / الملاحظات</Label>
                   <Textarea placeholder="أدخل تفاصيل النشاط..." value={content} onChange={(e) => setContent(e.target.value)} className="min-h-[80px]" />
                 </div>
               </div>
@@ -576,9 +576,9 @@ export default function ActivitiesPage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع المرجع</Label>
+                    <Label className="text-xs font-medium">نوع المرجع</Label>
                     <Select value={refType || '_none'} onValueChange={(v) => { setRefType(v === '_none' ? '' : v); setRefName(''); }}>
                       <SelectTrigger className="h-10 text-sm">
                         <SelectValue placeholder="بدون مرجع" />
@@ -593,7 +593,7 @@ export default function ActivitiesPage() {
                   </div>
                   {refType && (
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">اسم المرجع</Label>
+                      <Label className="text-xs font-medium">اسم المرجع</Label>
                       <ErpLinkCombobox
                         doctype={refType}
                         value={refName}

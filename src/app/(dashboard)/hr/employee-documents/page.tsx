@@ -144,7 +144,7 @@ function ValidityBadge({ validTo }: { validTo?: string }) {
   const status = getDocValidityStatus(validTo);
   const Icon = status.icon;
   return (
-    <Badge variant="outline" className={cn('text-[10px] font-semibold px-2 py-0.5 border-0 gap-1', status.className)}>
+    <Badge variant="outline" className={cn('text-xs font-medium px-2 py-0.5 border-0 gap-1', status.className)}>
       <Icon className="h-3 w-3" />
       {status.label}
     </Badge>
@@ -354,7 +354,7 @@ export default function EmployeeDocumentsPage() {
         render: (v) => {
           const val = String(v || '—');
           return val !== '—' ? (
-            <Badge variant="secondary" className="text-[10px] border-0">
+            <Badge variant="secondary" className="text-xs border-0">
               {val}
             </Badge>
           ) : (
@@ -417,7 +417,7 @@ export default function EmployeeDocumentsPage() {
               type="button"
               size="sm"
               variant="secondary"
-              className="h-7 text-[10px] gap-1"
+              className="h-7 text-xs gap-1"
               onClick={() => openEditDialog(row)}
             >
               <Edit className="h-3 w-3" />
@@ -427,7 +427,7 @@ export default function EmployeeDocumentsPage() {
               type="button"
               size="sm"
               variant="ghost"
-              className="h-7 text-[10px] text-destructive"
+              className="h-7 text-xs text-destructive"
               onClick={() => setDeleteDialog(row)}
             >
               <Trash2 className="h-3 w-3" />
@@ -522,7 +522,7 @@ export default function EmployeeDocumentsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">الموظف</Label>
+                <Label className="text-xs">الموظف</Label>
                 <div className="w-56">
                   <ErpLinkCombobox
                     doctype="Employee"
@@ -534,7 +534,7 @@ export default function EmployeeDocumentsPage() {
                 </div>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">نوع المستند</Label>
+                <Label className="text-xs">نوع المستند</Label>
                 <Select value={docTypeFilter} onValueChange={setDocTypeFilter}>
                   <SelectTrigger className="h-8 text-xs w-40">
                     <SelectValue />
@@ -628,7 +628,7 @@ export default function EmployeeDocumentsPage() {
                 placeholder="/files/passport.pdf"
               />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">تاريخ الإصدار</Label>
                 <Input
@@ -689,7 +689,7 @@ export default function EmployeeDocumentsPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteDialog && handleDelete(deleteDialog)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

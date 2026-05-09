@@ -90,8 +90,8 @@ type ApprovalDecision = 'موافق' | 'مرفوض' | 'معلومات إضافي
 /* ──────────────── Helpers ──────────────── */
 
 const priorityColors: Record<string, string> = {
-  High: 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 ring-1 ring-inset ring-rose-300',
-  Medium: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 ring-1 ring-inset ring-amber-300',
+  High: 'bg-destructive/10 text-rose-700 dark:bg-destructive/10 dark:text-rose-300 ring-1 ring-inset ring-rose-300',
+  Medium: 'bg-chart-2/10 text-amber-700 dark:bg-chart-2/10 dark:text-amber-300 ring-1 ring-inset ring-amber-300',
   Low: 'bg-slate-100 text-slate-600 dark:bg-slate-800/40 dark:text-slate-400 ring-1 ring-inset ring-slate-300',
 };
 
@@ -340,10 +340,10 @@ export default function ApprovalWorkflowPage() {
       render: (v) => {
         const action = String(v);
         const color = action === 'موافق'
-          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+          ? 'bg-primary/10 text-emerald-700 dark:bg-primary/10 dark:text-emerald-300'
           : action === 'مرفوض'
-            ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
-            : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300';
+            ? 'bg-destructive/10 text-rose-700 dark:bg-destructive/10 dark:text-rose-300'
+            : 'bg-chart-2/10 text-amber-700 dark:bg-chart-2/10 dark:text-amber-300';
         return (
           <Badge variant="outline" className={cn('text-[10px] font-semibold border-0 px-2 py-0.5', color)}>
             {action}
@@ -412,7 +412,7 @@ export default function ApprovalWorkflowPage() {
         <Badge variant="outline" className={cn(
           'text-[10px] border-0',
           Number(v) === 1
-            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+            ? 'bg-primary/10 text-emerald-700 dark:bg-primary/10 dark:text-emerald-300'
             : 'bg-slate-100 text-slate-600 dark:bg-slate-800/40 dark:text-slate-400'
         )}>
           {Number(v) === 1 ? 'نشط' : 'غير نشط'}
@@ -558,7 +558,7 @@ export default function ApprovalWorkflowPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">وقت الانتظار</span>
-                        <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                        <span className="flex items-center gap-1 text-chart-2 dark:text-amber-400 font-medium">
                           <Clock className="h-3 w-3" />{hoursWaiting(todo.date)}
                         </span>
                       </div>
@@ -569,7 +569,7 @@ export default function ApprovalWorkflowPage() {
                         size="sm"
                         variant="outline"
                         disabled={actionLoading === todo.name}
-                        className="flex-1 h-8 text-xs gap-1 text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
+                        className="flex-1 h-8 text-xs gap-1 text-primary border-primary/30 hover:bg-primary/5"
                         onClick={() => { setNotesDialog({ id: todo.name, decision: 'موافق' }); setNotesText(''); }}
                       >
                         {actionLoading === todo.name ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
@@ -580,7 +580,7 @@ export default function ApprovalWorkflowPage() {
                         size="sm"
                         variant="outline"
                         disabled={actionLoading === todo.name}
-                        className="flex-1 h-8 text-xs gap-1 text-rose-700 border-rose-300 hover:bg-rose-50 dark:text-rose-400 dark:border-rose-800 dark:hover:bg-rose-950/30"
+                        className="flex-1 h-8 text-xs gap-1 text-destructive border-destructive/30 hover:bg-destructive/5"
                         onClick={() => { setNotesDialog({ id: todo.name, decision: 'مرفوض' }); setNotesText(''); }}
                       >
                         <XCircle className="h-3.5 w-3.5" /> رفض
@@ -590,7 +590,7 @@ export default function ApprovalWorkflowPage() {
                         size="sm"
                         variant="outline"
                         disabled={actionLoading === todo.name}
-                        className="flex-1 h-8 text-xs gap-1 text-amber-700 border-amber-300 hover:bg-amber-50 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-950/30"
+                        className="flex-1 h-8 text-xs gap-1 text-chart-2 border-chart-2/30 hover:bg-chart-2/5"
                         onClick={() => { setNotesDialog({ id: todo.name, decision: 'معلومات إضافية' }); setNotesText(''); }}
                       >
                         <AlertCircle className="h-3.5 w-3.5" /> معلومات
@@ -696,7 +696,7 @@ export default function ApprovalWorkflowPage() {
                           </Badge>
                         )}
                         {rule.to_role && (
-                          <Badge variant="outline" className="text-[10px] gap-1 border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30">
+                          <Badge variant="outline" className="text-[10px] gap-1 border-primary/30 bg-primary/5">
                             <Shield className="h-3 w-3" />{rule.to_role}
                           </Badge>
                         )}
@@ -731,9 +731,9 @@ export default function ApprovalWorkflowPage() {
                 variant={historyFilter === f ? 'default' : 'outline'}
                 className={cn(
                   'h-8 text-xs',
-                  historyFilter === f && f === 'موافق' && 'bg-emerald-600 hover:bg-emerald-700',
-                  historyFilter === f && f === 'مرفوض' && 'bg-rose-600 hover:bg-rose-700',
-                  historyFilter === f && f === 'معلومات إضافية' && 'bg-amber-600 hover:bg-amber-700',
+                  historyFilter === f && f === 'موافق' && 'bg-chart-3 hover:bg-chart-3',
+                  historyFilter === f && f === 'مرفوض' && 'bg-destructive hover:bg-destructive',
+                  historyFilter === f && f === 'معلومات إضافية' && 'bg-chart-2 hover:bg-chart-2',
                 )}
                 onClick={() => setHistoryFilter(f)}
               >
@@ -771,9 +771,9 @@ export default function ApprovalWorkflowPage() {
         <DialogContent dir="rtl" className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {notesDialog?.decision === 'موافق' && <CheckCircle2 className="h-5 w-5 text-emerald-600" />}
-              {notesDialog?.decision === 'مرفوض' && <XCircle className="h-5 w-5 text-rose-600" />}
-              {notesDialog?.decision === 'معلومات إضافية' && <AlertCircle className="h-5 w-5 text-amber-600" />}
+              {notesDialog?.decision === 'موافق' && <CheckCircle2 className="h-5 w-5 text-primary" />}
+              {notesDialog?.decision === 'مرفوض' && <XCircle className="h-5 w-5 text-destructive" />}
+              {notesDialog?.decision === 'معلومات إضافية' && <AlertCircle className="h-5 w-5 text-chart-2" />}
               {notesDialog?.decision === 'موافق' && 'تأكيد الموافقة'}
               {notesDialog?.decision === 'مرفوض' && 'تأكيد الرفض'}
               {notesDialog?.decision === 'معلومات إضافية' && 'طلب معلومات إضافية'}
@@ -800,9 +800,9 @@ export default function ApprovalWorkflowPage() {
               onClick={submitNotes}
               className={cn(
                 'gap-1.5',
-                notesDialog?.decision === 'موافق' && 'bg-emerald-600 hover:bg-emerald-700',
-                notesDialog?.decision === 'مرفوض' && 'bg-rose-600 hover:bg-rose-700',
-                notesDialog?.decision === 'معلومات إضافية' && 'bg-amber-600 hover:bg-amber-700',
+                notesDialog?.decision === 'موافق' && 'bg-chart-3 hover:bg-chart-3',
+                notesDialog?.decision === 'مرفوض' && 'bg-destructive hover:bg-destructive',
+                notesDialog?.decision === 'معلومات إضافية' && 'bg-chart-2 hover:bg-chart-2',
               )}
             >
               {notesDialog?.decision === 'موافق' && <CheckCircle2 className="h-3.5 w-3.5" />}
@@ -830,7 +830,7 @@ export default function ApprovalWorkflowPage() {
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-1.5">
-              <Label className="text-[13px] font-semibold">نوع المستند <span className="text-destructive text-xs">*</span></Label>
+              <Label className="text-xs font-medium">نوع المستند <span className="text-destructive text-xs">*</span></Label>
               <Select dir="rtl" value={ruleForm.doctype} onValueChange={(val) => setRuleForm(prev => ({ ...prev, doctype: val }))}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر نوع المستند..." /></SelectTrigger>
                 <SelectContent dir="rtl" align="start">
@@ -844,9 +844,9 @@ export default function ApprovalWorkflowPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">الحالة الحالية <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-xs font-medium">الحالة الحالية <span className="text-destructive text-xs">*</span></Label>
                 <Input
                   placeholder="مثال: مسودة"
                   value={ruleForm.currentState}
@@ -854,7 +854,7 @@ export default function ApprovalWorkflowPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">الحالة التالية <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-xs font-medium">الحالة التالية <span className="text-destructive text-xs">*</span></Label>
                 <Input
                   placeholder="مثال: موافق عليه"
                   value={ruleForm.nextState}
@@ -862,9 +862,9 @@ export default function ApprovalWorkflowPage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">دور الموافق</Label>
+                <Label className="text-xs font-medium">دور الموافق</Label>
                 <ErpLinkCombobox
                   doctype="Role"
                   value={ruleForm.approverRole}
@@ -874,7 +874,7 @@ export default function ApprovalWorkflowPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">مستخدم الموافق</Label>
+                <Label className="text-xs font-medium">مستخدم الموافق</Label>
                 <ErpLinkCombobox
                   doctype="User"
                   value={ruleForm.approverUser}
@@ -898,7 +898,7 @@ export default function ApprovalWorkflowPage() {
                     {ruleForm.currentState}
                   </div>
                   <ArrowRight className="h-5 w-5 text-primary" />
-                  <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-4 py-2 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                  <div className="rounded-lg bg-primary/5 border border-primary/20 px-4 py-2 text-sm font-medium text-primary">
                     {ruleForm.nextState}
                   </div>
                 </div>

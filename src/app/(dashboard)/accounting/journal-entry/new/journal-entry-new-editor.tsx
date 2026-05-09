@@ -168,7 +168,7 @@ function JournalLineRow({
       </div>
       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end pb-1">
         <div className="md:col-span-5">
-          <Label className="text-[10px] text-muted-foreground mb-1 block">مركز التكلفة</Label>
+          <Label className="text-xs text-muted-foreground mb-1 block">مركز التكلفة</Label>
           <ErpLinkCombobox
             doctype="Cost Center"
             value={line.cost_center}
@@ -178,7 +178,7 @@ function JournalLineRow({
           />
         </div>
         <div className="md:col-span-3">
-          <Label className="text-[10px] text-muted-foreground mb-1 block" title="سعر صرف عملة الحساب (1 = محلي)">
+          <Label className="text-xs text-muted-foreground mb-1 block" title="سعر صرف عملة الحساب (1 = محلي)">
             سعر الصرف
           </Label>
           <Input
@@ -439,7 +439,7 @@ export function JournalEntryNewEditor() {
                   <Label className="text-xs font-medium">العنوان *</Label>
                   <Input placeholder="عنوان القيد..." {...form.register('title')} />
                   {form.formState.errors.title && (
-                    <p className="text-[10px] text-destructive">{form.formState.errors.title.message}</p>
+                    <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -453,7 +453,7 @@ export function JournalEntryNewEditor() {
               <div className="rounded-xl border border-border/40 overflow-hidden bg-card">
                 <div className="bg-muted/50 px-3 py-2 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-xs font-semibold">بنود القيد</span>
-                  <span className="text-[10px] text-muted-foreground">اسحب ⋮ لإعادة ترتيب الصفوف — يُحفظ الترتيب كـ idx على الخادم</span>
+                  <span className="text-xs text-muted-foreground">اسحب ⋮ لإعادة ترتيب الصفوف — يُحفظ الترتيب كـ idx على الخادم</span>
                 </div>
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleJournalDragEnd}>
                   <SortableContext items={lines.map((l) => l._rid!)} strategy={verticalListSortingStrategy}>
@@ -477,7 +477,7 @@ export function JournalEntryNewEditor() {
                   </Button>
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-2">
+              <p className="text-xs text-muted-foreground mt-2">
                 صيغة الاستيراد: الحساب، نوع_الطرف، الطرف، مدين، دائن، مركز_تكلفة، ملاحظة، سعر_صرف
               </p>
             </TabsContent>

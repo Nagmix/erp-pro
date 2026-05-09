@@ -201,11 +201,11 @@ function getSourceAccent(source: TimelineItem['source']) {
 function getSourceIconBg(source: TimelineItem['source']) {
   switch (source) {
     case 'Communication':
-      return 'bg-sky-500/10 text-sky-700 dark:text-sky-300';
+      return 'bg-chart-1/10 text-chart-1';
     case 'Event':
-      return 'bg-amber-500/10 text-amber-700 dark:text-amber-300';
+      return 'bg-chart-2/10 text-chart-2';
     case 'ToDo':
-      return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300';
+      return 'bg-primary/10 text-primary';
   }
 }
 
@@ -669,9 +669,9 @@ export default function CrmTimelinePage() {
                                 {item.priority && (
                                   <Badge variant="outline" className={cn(
                                     'shrink-0 text-[10px] font-semibold px-1.5 py-0 border-0',
-                                    item.priority === 'High' && 'bg-rose-500/10 text-rose-700 dark:text-rose-300',
-                                    item.priority === 'Medium' && 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
-                                    item.priority === 'Low' && 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
+                                    item.priority === 'High' && 'bg-destructive/10 text-destructive',
+                                    item.priority === 'Medium' && 'bg-chart-2/10 text-chart-2',
+                                    item.priority === 'Low' && 'bg-chart-1/10 text-chart-1',
                                   )}>
                                     {PRIORITY_AR[item.priority] || item.priority}
                                   </Badge>
@@ -761,7 +761,7 @@ export default function CrmTimelinePage() {
                   <Label className="text-xs font-medium">الموضوع *</Label>
                   <Input placeholder="موضوع الحدث" value={eventSubject} onChange={(e) => setEventSubject(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium">يبدأ في *</Label>
                     <Input type="datetime-local" value={eventStartsOn} onChange={(e) => setEventStartsOn(e.target.value)} />
@@ -797,7 +797,7 @@ export default function CrmTimelinePage() {
                   <Label className="text-xs font-medium">الوصف *</Label>
                   <Textarea placeholder="وصف المهمة..." value={todoDescription} onChange={(e) => setTodoDescription(e.target.value)} rows={3} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium">تاريخ الاستحقاق</Label>
                     <Input type="date" value={todoDate} onChange={(e) => setTodoDate(e.target.value)} />
@@ -821,7 +821,7 @@ export default function CrmTimelinePage() {
             <Separator />
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">مرجع (اختياري)</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Select value={refType} onValueChange={(v) => { setRefType(v); setRefName(''); }}>
                   <SelectTrigger>
                     <SelectValue placeholder="بدون مرجع" />

@@ -181,7 +181,7 @@ export default function DeliveryNotesPage() {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="h-7 text-[10px] gap-1"
+                  className="h-7 text-xs gap-1"
                   disabled={submitMutation.isPending}
                   onClick={() =>
                     submitMutation.mutate(row.name, {
@@ -196,7 +196,7 @@ export default function DeliveryNotesPage() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-[10px] text-destructive"
+                  className="h-7 text-xs text-destructive"
                   onClick={() => { setSelectedNote(row); setDeleteDialogOpen(true); }}
                 >
                   <Trash2 className="h-3 w-3" />
@@ -210,7 +210,7 @@ export default function DeliveryNotesPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px]"
+                className="h-7 text-xs"
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('أُلغي'); void refetch(); },
@@ -272,15 +272,15 @@ export default function DeliveryNotesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={dnStatusFilter} onValueChange={setDnStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -334,22 +334,22 @@ export default function DeliveryNotesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">العميل <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox doctype="Customer" value={customer} onChange={setCustomer} displayKey="customer_name" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">التاريخ</Label>
+                    <Label className="text-xs font-medium">التاريخ</Label>
                     <Input type="date" dir="ltr" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} />
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">مركز تكلفة</Label>
+                    <Label className="text-xs font-medium">مركز تكلفة</Label>
                     <ErpLinkCombobox doctype="Cost Center" value={costCenter} onChange={setCostCenter} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">ملاحظات / شروط</Label>
+                  <Label className="text-xs font-medium">ملاحظات / شروط</Label>
                   <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} className="min-h-[50px] text-sm" />
                 </div>
               </div>
@@ -419,7 +419,7 @@ export default function DeliveryNotesPage() {
                   setDeleteDialogOpen(false);
                 }
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف

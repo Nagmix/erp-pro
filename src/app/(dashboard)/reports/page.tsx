@@ -63,12 +63,12 @@ const CATEGORY_META: Record<
   (typeof CATEGORY_ORDER)[number],
   { name: string; icon: LucideIcon; color: string }
 > = {
-  financial: { name: 'التقارير المالية', icon: BarChart3, color: 'bg-blue-500/10 text-blue-600' },
-  sales: { name: 'تقارير المبيعات', icon: ShoppingCart, color: 'bg-green-500/10 text-green-600' },
-  purchase: { name: 'تقارير المشتريات', icon: Package, color: 'bg-amber-500/10 text-amber-600' },
-  inventory: { name: 'تقارير المخزون والتصنيع', icon: Package, color: 'bg-orange-500/10 text-orange-600' },
-  hr: { name: 'تقارير الموارد البشرية', icon: Users, color: 'bg-purple-500/10 text-purple-600' },
-  crm: { name: 'تقارير العملاء وCRM', icon: Building2, color: 'bg-pink-500/10 text-pink-600' },
+  financial: { name: 'التقارير المالية', icon: BarChart3, color: 'bg-chart-1/10 text-chart-1' },
+  sales: { name: 'تقارير المبيعات', icon: ShoppingCart, color: 'bg-primary/10 text-primary' },
+  purchase: { name: 'تقارير المشتريات', icon: Package, color: 'bg-chart-2/10 text-chart-2' },
+  inventory: { name: 'تقارير المخزون والتصنيع', icon: Package, color: 'bg-chart-4/10 text-chart-4' },
+  hr: { name: 'تقارير الموارد البشرية', icon: Users, color: 'bg-chart-5/10 text-chart-5' },
+  crm: { name: 'تقارير العملاء وCRM', icon: Building2, color: 'bg-chart-5/10 text-chart-5' },
 };
 
 function iconForCatalogId(id: string): LucideIcon {
@@ -261,9 +261,9 @@ export default function ReportsPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium leading-snug">{report.title}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{report.reportName}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{report.reportName}</p>
                         </div>
-                        <Badge variant="outline" className="text-[10px] border-0 bg-secondary shrink-0">
+                        <Badge variant="outline" className="text-xs border-0 bg-secondary shrink-0">
                           <PieChart className="h-3 w-3 ms-1" />
                           عرض
                         </Badge>
@@ -298,7 +298,7 @@ export default function ReportsPage() {
                   </div>
                   {!hideDateFilters && !singleDateMode && (
                     <div className="space-y-1">
-                      <Label className="text-[10px]">من تاريخ</Label>
+                      <Label className="text-xs">من تاريخ</Label>
                       <Input
                         type="date"
                         dir="ltr"
@@ -310,7 +310,7 @@ export default function ReportsPage() {
                   )}
                   {!hideDateFilters && (
                     <div className="space-y-1">
-                      <Label className="text-[10px]">
+                      <Label className="text-xs">
                         {singleDateMode
                           ? 'كما في تاريخ'
                           : PAYMENT_LEDGER_CATALOG_IDS.has(selectedReport.id)
@@ -327,7 +327,7 @@ export default function ReportsPage() {
                     </div>
                   )}
                   {selectedReport.id === 'stock-reconciliation' && (
-                    <p className="text-[10px] text-muted-foreground max-w-xs">
+                    <p className="text-xs text-muted-foreground max-w-xs">
                       مطابقة المخزون: يُفضَّل ضبط من/إلى؛ يُستخدم تاريخ النهاية كـ as_on_date عند الحاجة.
                     </p>
                   )}
@@ -337,7 +337,7 @@ export default function ReportsPage() {
                 </div>
 
                 {!effectiveCompany && (
-                  <p className="text-xs text-amber-700 dark:text-amber-300">اختر الشركة لتشغيل التقرير.</p>
+                  <p className="text-xs text-chart-2">اختر الشركة لتشغيل التقرير.</p>
                 )}
 
                 <div className="flex items-center justify-between bg-muted/50 rounded-lg p-4">
@@ -366,7 +366,7 @@ export default function ReportsPage() {
                 )}
 
                 {!isFinancialDeepLink && normalized.notice && (
-                  <div className="rounded-[var(--radius-md-ui)] border border-amber-200/80 bg-amber-50/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+                  <div className="rounded-[var(--radius-md-ui)] border border-chart-2/30 bg-chart-2/5 px-3 py-2 text-sm text-chart-2">
                     {normalized.notice}
                   </div>
                 )}
@@ -384,11 +384,11 @@ export default function ReportsPage() {
                         key={i}
                         className={cn(
                           'rounded-[var(--radius-md-ui)] border border-border/50 bg-card px-3 py-2.5',
-                          s.indicator === 'Red' && 'border-red-200/80 bg-red-50/50 dark:border-red-900/40',
-                          s.indicator === 'Green' && 'border-emerald-200/80 bg-emerald-50/50 dark:border-emerald-900/40'
+                          s.indicator === 'Red' && 'border-destructive/30 bg-destructive/5',
+                          s.indicator === 'Green' && 'border-primary/30 bg-primary/5'
                         )}
                       >
-                        <p className="text-[10px] font-medium text-muted-foreground">{String(s.label ?? '')}</p>
+                        <p className="text-xs font-medium text-muted-foreground">{String(s.label ?? '')}</p>
                         <p className="text-lg font-semibold tabular-nums tracking-tight">{String(s.value ?? '—')}</p>
                       </div>
                     ))}

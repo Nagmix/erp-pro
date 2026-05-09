@@ -484,7 +484,7 @@ export default function TaxDeclarationPage() {
         key: 'netTaxPayable',
         header: 'صافي المستحق',
         render: (v) => (
-          <span className={`text-xs font-semibold tabular-nums ${Number(v) >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
+          <span className={`text-xs font-semibold tabular-nums ${Number(v) >= 0 ? 'text-primary' : 'text-destructive'}`}>
             {formatCurrency(Number(v))}
           </span>
         ),
@@ -504,7 +504,7 @@ export default function TaxDeclarationPage() {
         key: 'doctype',
         header: 'نوع المستند',
         render: (v) => (
-          <span className={`text-xs font-medium ${v === 'فاتورة مبيعات' ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+          <span className={`text-xs font-medium ${v === 'فاتورة مبيعات' ? 'text-primary' : 'text-chart-2'}`}>
             {String(v)}
           </span>
         ),
@@ -938,7 +938,7 @@ export default function TaxDeclarationPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleteWhMutation.isPending}>إلغاء</AlertDialogCancel>
-            <AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={confirmDeleteWh} disabled={deleteWhMutation.isPending}>
+            <AlertDialogAction variant="destructive" onClick={confirmDeleteWh} disabled={deleteWhMutation.isPending}>
               {deleteWhMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>

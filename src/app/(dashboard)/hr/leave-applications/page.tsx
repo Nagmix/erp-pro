@@ -173,16 +173,16 @@ export default function LeaveApplicationsPage() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="space-y-1.5"><Label className="text-[13px] font-semibold">الموظف <span className="text-destructive text-xs">*</span></Label><ErpLinkCombobox doctype="Employee" value={formData.employee} onChange={(v) => setFormData((p) => ({ ...p, employee: v }))} displayKey="employee_name" className="h-10" /></div>
-              <div className="space-y-1.5"><Label className="text-[13px] font-semibold">نوع الإجازة</Label><ErpLinkCombobox doctype="Leave Type" value={formData.leave_type} onChange={(v) => setFormData((p) => ({ ...p, leave_type: v }))} className="h-10" /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5"><Label className="text-[13px] font-semibold">من تاريخ</Label><Input type="date" dir="ltr" value={formData.from_date} onChange={(e) => setFormData((p) => ({ ...p, from_date: e.target.value }))} className="h-10" /></div>
-                <div className="space-y-1.5"><Label className="text-[13px] font-semibold">إلى تاريخ</Label><Input type="date" dir="ltr" value={formData.to_date} onChange={(e) => setFormData((p) => ({ ...p, to_date: e.target.value }))} className="h-10" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-medium">الموظف <span className="text-destructive text-xs">*</span></Label><ErpLinkCombobox doctype="Employee" value={formData.employee} onChange={(v) => setFormData((p) => ({ ...p, employee: v }))} displayKey="employee_name" className="h-10" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-medium">نوع الإجازة</Label><ErpLinkCombobox doctype="Leave Type" value={formData.leave_type} onChange={(v) => setFormData((p) => ({ ...p, leave_type: v }))} className="h-10" /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5"><Label className="text-xs font-medium">من تاريخ</Label><Input type="date" dir="ltr" value={formData.from_date} onChange={(e) => setFormData((p) => ({ ...p, from_date: e.target.value }))} className="h-10" /></div>
+                <div className="space-y-1.5"><Label className="text-xs font-medium">إلى تاريخ</Label><Input type="date" dir="ltr" value={formData.to_date} onChange={(e) => setFormData((p) => ({ ...p, to_date: e.target.value }))} className="h-10" /></div>
               </div>
               {calculateDays() > 0 && <div className="bg-muted/35 rounded-lg p-3 text-sm"><span className="text-muted-foreground">أيام تقريبية: </span><span className="font-bold">{calculateDays()}</span> (يحسبها النظام عند الحفظ)</div>}
-              <div className="flex items-center gap-2"><input type="checkbox" id="lahd" checked={formData.half_day} onChange={(e) => setFormData((p) => ({ ...p, half_day: e.target.checked }))} className="rounded" /><Label htmlFor="lahd" className="text-[13px]">نصف يوم</Label></div>
-              {formData.half_day && <div className="space-y-1.5"><Label className="text-[13px] font-semibold">تاريخ نصف اليوم</Label><Input type="date" dir="ltr" value={formData.half_day_date} onChange={(e) => setFormData((p) => ({ ...p, half_day_date: e.target.value }))} className="h-10" /></div>}
-              <div className="space-y-1.5"><Label className="text-[13px] font-semibold">السبب</Label><Textarea placeholder="سبب الإجازة..." value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} rows={2} /></div>
+              <div className="flex items-center gap-2"><input type="checkbox" id="lahd" checked={formData.half_day} onChange={(e) => setFormData((p) => ({ ...p, half_day: e.target.checked }))} className="rounded" /><Label htmlFor="lahd" className="text-xs">نصف يوم</Label></div>
+              {formData.half_day && <div className="space-y-1.5"><Label className="text-xs font-medium">تاريخ نصف اليوم</Label><Input type="date" dir="ltr" value={formData.half_day_date} onChange={(e) => setFormData((p) => ({ ...p, half_day_date: e.target.value }))} className="h-10" /></div>}
+              <div className="space-y-1.5"><Label className="text-xs font-medium">السبب</Label><Textarea placeholder="سبب الإجازة..." value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} rows={2} /></div>
               <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
                 <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
                 <Button onClick={handleCreate} disabled={createMutation.isPending} className="gap-1.5 min-w-[130px]">
@@ -222,15 +222,15 @@ export default function LeaveApplicationsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={leaveStatusFilter} onValueChange={setLeaveStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -278,7 +278,7 @@ export default function LeaveApplicationsPage() {
               <div className="flex-1">
                 <span className="font-medium text-sm">{leave.employee_name}</span>
                 <span className="text-muted-foreground text-xs me-2">- {leave.leave_type}</span>
-                <span className="text-muted-foreground text-[10px] block">{leave.description}</span>
+                <span className="text-muted-foreground text-xs block">{leave.description}</span>
               </div>
               <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => handleSubmitForApproval(leave)} disabled={submitMut.isPending}><CheckCircle className="h-3 w-3" />ترحيل</Button>
               <Button size="sm" variant="outline" className="text-xs" onClick={() => updateMut.mutate({ name: leave.name, doc: { status: 'Approved' } }, { onSuccess: () => toast.success('تمت الموافقة'), onError: () => toast.error('تعذر الموافقة') })}>موافقة</Button>
@@ -289,7 +289,7 @@ export default function LeaveApplicationsPage() {
       )}
 
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
-        <AlertDialogContent dir="rtl"><AlertDialogHeader><AlertDialogTitle>تأكيد الحذف</AlertDialogTitle><AlertDialogDescription>حذف {deleteDialog?.name}؟</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>إلغاء</AlertDialogCancel><AlertDialogAction onClick={() => deleteDialog && handleDelete(deleteDialog)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+        <AlertDialogContent dir="rtl"><AlertDialogHeader><AlertDialogTitle>تأكيد الحذف</AlertDialogTitle><AlertDialogDescription>حذف {deleteDialog?.name}؟</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>إلغاء</AlertDialogCancel><AlertDialogAction onClick={() => deleteDialog && handleDelete(deleteDialog)} variant="destructive">حذف</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
       </AlertDialog>
     </div>
   );

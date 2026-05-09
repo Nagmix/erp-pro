@@ -87,16 +87,16 @@ type GroupByOption = 'date' | 'doctype' | 'none';
    ────────────────────────────────────────────── */
 
 const DOCTYPE_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bg: string; ring: string }> = {
-  'Sales Invoice': { label: 'فواتير مبيعات', icon: FileText, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-500/10', ring: 'ring-red-500/20' },
-  'Purchase Invoice': { label: 'فواتير مشتريات', icon: FileText, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-500/10', ring: 'ring-orange-500/20' },
-  'Payment Entry': { label: 'مدفوعات', icon: DollarSign, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10', ring: 'ring-emerald-500/20' },
-  'Item': { label: 'مخزون', icon: Package, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-500/10', ring: 'ring-sky-500/20' },
-  'Stock Entry': { label: 'حركة مخزون', icon: Package, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-sky-500/10', ring: 'ring-sky-500/20' },
-  'Leave Application': { label: 'موارد بشرية', icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-500/10', ring: 'ring-purple-500/20' },
-  'Employee': { label: 'موارد بشرية', icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-500/10', ring: 'ring-purple-500/20' },
-  'Sales Order': { label: 'مبيعات', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10', ring: 'ring-amber-500/20' },
-  'Quotation': { label: 'مبيعات', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-500/10', ring: 'ring-amber-500/20' },
-  'Purchase Order': { label: 'مشتريات', icon: Truck, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-orange-500/10', ring: 'ring-orange-500/20' },
+  'Sales Invoice': { label: 'فواتير مبيعات', icon: FileText, color: 'text-red-600 dark:text-red-400', bg: 'bg-destructive/10', ring: 'ring-red-500/20' },
+  'Purchase Invoice': { label: 'فواتير مشتريات', icon: FileText, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-chart-4/10', ring: 'ring-orange-500/20' },
+  'Payment Entry': { label: 'مدفوعات', icon: DollarSign, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-chart-3/10', ring: 'ring-emerald-500/20' },
+  'Item': { label: 'مخزون', icon: Package, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-chart-1/10', ring: 'ring-sky-500/20' },
+  'Stock Entry': { label: 'حركة مخزون', icon: Package, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-chart-1/10', ring: 'ring-sky-500/20' },
+  'Leave Application': { label: 'موارد بشرية', icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-chart-5/10', ring: 'ring-purple-500/20' },
+  'Employee': { label: 'موارد بشرية', icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-chart-5/10', ring: 'ring-purple-500/20' },
+  'Sales Order': { label: 'مبيعات', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-chart-2/10', ring: 'ring-amber-500/20' },
+  'Quotation': { label: 'مبيعات', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-chart-2/10', ring: 'ring-amber-500/20' },
+  'Purchase Order': { label: 'مشتريات', icon: Truck, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-chart-4/10', ring: 'ring-orange-500/20' },
 };
 
 const DEFAULT_DOCTYPE_CONFIG = { label: 'نظام', icon: Settings, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-500/10', ring: 'ring-gray-500/20' };
@@ -213,7 +213,7 @@ function NotificationCard({
             {/* شارة النوع */}
             {notification.type && (
               <span className={cn(
-                'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold',
+                'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium',
                 'bg-gray-500/15 ring-1 ring-inset ring-gray-500/25 text-gray-600 dark:text-gray-400'
               )}>
                 {notification.type}
@@ -224,13 +224,13 @@ function NotificationCard({
 
         <div className="flex items-center gap-3 pt-1">
           {/* وقت الإشعار */}
-          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
             {notification.creation ? timeAgo(notification.creation) : ''}
           </span>
 
           {/* الفئة */}
-          <span className={cn('text-[10px] font-medium', catConfig.color)}>
+          <span className={cn('text-xs font-medium', catConfig.color)}>
             {catConfig.label}
           </span>
 
@@ -238,7 +238,7 @@ function NotificationCard({
           {notification.document_type && notification.document_name && (
             <a
               href={`/doc/${notification.document_type}/${notification.document_name}`}
-              className="flex items-center gap-1 text-[10px] text-primary hover:underline"
+              className="flex items-center gap-1 text-xs text-primary hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
               <ExternalLink className="h-2.5 w-2.5" />
@@ -249,7 +249,7 @@ function NotificationCard({
 
         {/* المستخدم */}
         {notification.from_user && (
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             من: {notification.from_user}
           </span>
         )}
@@ -618,7 +618,7 @@ export default function NotificationsPage() {
 
         {/* فلتر الحالة */}
         <div className="space-y-1">
-          <Label className="text-[10px]">الحالة</Label>
+          <Label className="text-xs">الحالة</Label>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | 'unread' | 'read')}>
             <SelectTrigger className="h-8 w-32 text-xs">
               <SelectValue />
@@ -633,7 +633,7 @@ export default function NotificationsPage() {
 
         {/* فلتر نوع المستند */}
         <div className="space-y-1">
-          <Label className="text-[10px]">نوع المستند</Label>
+          <Label className="text-xs">نوع المستند</Label>
           <Select value={doctypeFilter} onValueChange={setDoctypeFilter}>
             <SelectTrigger className="h-8 w-36 text-xs">
               <SelectValue />
@@ -651,7 +651,7 @@ export default function NotificationsPage() {
 
         {/* تاريخ من */}
         <div className="space-y-1">
-          <Label className="text-[10px]">من تاريخ</Label>
+          <Label className="text-xs">من تاريخ</Label>
           <Input
             type="date"
             dir="ltr"
@@ -663,7 +663,7 @@ export default function NotificationsPage() {
 
         {/* تاريخ إلى */}
         <div className="space-y-1">
-          <Label className="text-[10px]">إلى تاريخ</Label>
+          <Label className="text-xs">إلى تاريخ</Label>
           <Input
             type="date"
             dir="ltr"
@@ -675,7 +675,7 @@ export default function NotificationsPage() {
 
         {/* بحث */}
         <div className="space-y-1 relative">
-          <Label className="text-[10px]">بحث</Label>
+          <Label className="text-xs">بحث</Label>
           <div className="relative">
             <Search className="absolute start-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
@@ -739,24 +739,24 @@ export default function NotificationsPage() {
               <TabsTrigger value="all" className="text-xs gap-1.5">
                 <Bell className="h-3.5 w-3.5" />
                 الكل
-                <span className="text-[10px] text-muted-foreground">({kpis.total})</span>
+                <span className="text-xs text-muted-foreground">({kpis.total})</span>
               </TabsTrigger>
               <TabsTrigger value="unread" className="text-xs gap-1.5">
                 <AlertCircle className="h-3.5 w-3.5" />
                 غير مقروء
-                <span className="text-[10px] text-muted-foreground">({kpis.unread})</span>
+                <span className="text-xs text-muted-foreground">({kpis.unread})</span>
               </TabsTrigger>
               <TabsTrigger value="read" className="text-xs gap-1.5">
                 <CheckCheck className="h-3.5 w-3.5" />
                 مقروء
-                <span className="text-[10px] text-muted-foreground">({kpis.read})</span>
+                <span className="text-xs text-muted-foreground">({kpis.read})</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
 
           {/* خيارات التجميع */}
           <div className="flex items-center gap-2">
-            <Label className="text-[10px] text-muted-foreground">تجميع حسب:</Label>
+            <Label className="text-xs text-muted-foreground">تجميع حسب:</Label>
             <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupByOption)}>
               <SelectTrigger className="h-8 w-32 text-xs">
                 <SelectValue />
@@ -804,7 +804,7 @@ export default function NotificationsPage() {
                 <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   {group}
-                  <span className="text-[10px] text-muted-foreground font-normal">({items.length})</span>
+                  <span className="text-xs text-muted-foreground font-normal">({items.length})</span>
                 </h3>
                 <div className="space-y-2">
                   {items.map((n) => (
@@ -829,7 +829,7 @@ export default function NotificationsPage() {
                   <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                     <Icon className={cn('h-4 w-4', config.color)} />
                     {config.label}
-                    <span className="text-[10px] text-muted-foreground font-normal">({items.length})</span>
+                    <span className="text-xs text-muted-foreground font-normal">({items.length})</span>
                   </h3>
                   <div className="space-y-2">
                     {items.map((n) => (
@@ -870,7 +870,7 @@ export default function NotificationsPage() {
                   <span className="text-sm font-medium flex-1">{config.label}</span>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5">
-                      <Label className="text-[10px]">بريد</Label>
+                      <Label className="text-xs">بريد</Label>
                       <Switch
                         checked={pref.email}
                         onCheckedChange={() => togglePreference(dt, 'email')}
@@ -878,7 +878,7 @@ export default function NotificationsPage() {
                       />
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Label className="text-[10px]">داخلي</Label>
+                      <Label className="text-xs">داخلي</Label>
                       <Switch
                         checked={pref.inApp}
                         onCheckedChange={() => togglePreference(dt, 'inApp')}

@@ -327,11 +327,11 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
       header: 'النوع',
       render: (value) => {
         const typeMap: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
-          Receive: { icon: <ArrowUpLeft className="h-3.5 w-3.5" />, label: 'قبض', color: 'text-green-600 bg-green-100 dark:bg-green-900/30' },
-          Pay: { icon: <ArrowDownLeft className="h-3.5 w-3.5" />, label: 'صرف', color: 'text-red-600 bg-red-100 dark:bg-red-900/30' },
-          'Internal Transfer': { icon: <ArrowLeftRight className="h-3.5 w-3.5" />, label: 'تحويل داخلي', color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' }};
+          Receive: { icon: <ArrowUpLeft className="h-3.5 w-3.5" />, label: 'قبض', color: 'text-green-600 bg-primary/10' },
+          Pay: { icon: <ArrowDownLeft className="h-3.5 w-3.5" />, label: 'صرف', color: 'text-red-600 bg-destructive/10' },
+          'Internal Transfer': { icon: <ArrowLeftRight className="h-3.5 w-3.5" />, label: 'تحويل داخلي', color: 'text-blue-600 bg-chart-1/10' }};
         const info = typeMap[String(value)] || { icon: null, label: String(value), color: '' };
-        return <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-medium ${info.color}`}>{info.icon}{info.label}</span>;
+        return <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${info.color}`}>{info.icon}{info.label}</span>;
       }},
     {
       key: 'paid_amount',
@@ -360,7 +360,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
           {(() => {
             const href = docDetailPath('Payment Entry', row.name);
             return href ? (
-              <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[10px]">
+              <Button asChild size="sm" variant="outline" className="h-7 px-2 text-xs">
                 <Link href={href}><Eye className="h-3 w-3 ms-1" />عرض</Link>
               </Button>
             ) : null;
@@ -369,7 +369,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
             <Button
               type="button"
               size="sm"
-              className="h-7 text-[10px] px-2"
+              className="h-7 text-xs px-2"
               onClick={() => submitMutation.mutate(row.name, {
                 onSuccess: () => { toast.success('تم ترحيل السند'); void refetch(); },
                 onError: () => toast.error('فشل الترحيل — تحقق من البيانات')})}
@@ -382,7 +382,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
               type="button"
               size="sm"
               variant="outline"
-              className="h-7 text-[10px] px-2"
+              className="h-7 text-xs px-2"
               onClick={() => cancelMutation.mutate(row.name, {
                 onSuccess: () => { toast.success('تم إلغاء السند'); void refetch(); },
                 onError: () => toast.error('فشل الإلغاء')})}
@@ -395,7 +395,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
               type="button"
               size="sm"
               variant="ghost"
-              className="h-7 text-[10px] text-destructive"
+              className="h-7 text-xs text-destructive"
               onClick={() => { setSelectedEntry(row); setDeleteDialogOpen(true); }}
             >
               <Trash2 className="h-3 w-3" />
@@ -461,15 +461,15 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">النوع</Label>
+            <Label className="text-xs">النوع</Label>
             <Select value={paymentTypeFilter} onValueChange={setPaymentTypeFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -481,7 +481,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
             </Select>
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-28"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -579,7 +579,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">الحساب الدافع (من)</Label>
                   <ErpLinkCombobox
@@ -600,7 +600,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">المبلغ المدفوع *</Label>
                   <Input type="number" placeholder="0.00" dir="ltr" {...form.register('paid_amount', { valueAsNumber: true })} />
@@ -611,7 +611,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">التاريخ *</Label>
                   <Input type="date" dir="ltr" {...form.register('posting_date')} />
@@ -663,7 +663,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                     </div>
                   )}
                 </div>
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   اترك 1 للعملة المحلية فقط.
                 </p>
               </div>
@@ -674,7 +674,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                 <div className="space-y-2 border rounded-lg p-3 bg-muted/20">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-medium">ربط بفواتير (مخصص)</Label>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       مجموع: {formatCurrency(sumAllocated)} / {formatCurrency(Number(form.watch('paid_amount')) || 0)}
                     </span>
                   </div>
@@ -778,7 +778,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                   onError: () => toast.error('حدث خطأ أثناء الحذف')});
                 setDeleteDialogOpen(false);
               }
-            }} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5">
+            }} variant="destructive" className="gap-1.5">
               <Trash2 className="h-3.5 w-3.5" />
               حذف
             </AlertDialogAction>

@@ -68,9 +68,9 @@ const PRIORITY_AR: Record<string, string> = {
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  High: 'border-rose-400/40 bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300',
-  Medium: 'border-amber-400/40 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300',
-  Low: 'border-emerald-400/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300',
+  High: 'border-destructive/30 bg-destructive/5 text-destructive',
+  Medium: 'border-chart-2/30 bg-chart-2/5 text-chart-2',
+  Low: 'border-primary/30 bg-primary/5 text-primary',
 };
 
 const STATUS_AR: Record<string, string> = {
@@ -81,7 +81,7 @@ const STATUS_AR: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   Open: 'border-primary/30 bg-primary/5 text-primary',
-  Closed: 'border-emerald-400/40 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300',
+  Closed: 'border-primary/30 bg-primary/5 text-primary',
   Cancelled: 'border-muted/30 bg-muted/10 text-muted-foreground line-through',
 };
 
@@ -128,7 +128,7 @@ function getStatusBadge(status: string | undefined, date?: string) {
   const overdue = isOverdue(date, status);
   if (overdue && status === 'Open') {
     return (
-      <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 gap-1 border-rose-400/40 bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">
+      <Badge variant="outline" className="text-[9px] px-1.5 py-0.5 gap-1 border-destructive/30 bg-destructive/5 text-destructive">
         <AlertTriangle className="h-3 w-3" />
         متأخرة
       </Badge>
@@ -406,7 +406,7 @@ export default function FollowUpsPage() {
           )}
 
           <div className="ms-auto">
-            <Badge variant="outline" className="text-[11px] h-7 px-2.5 rounded-lg border-border/40 bg-muted/30 text-muted-foreground">
+            <Badge variant="outline" className="text-xs h-7 px-2.5 rounded-lg border-border/40 bg-muted/30 text-muted-foreground">
               {filteredData.length} من {totalTasks}
             </Badge>
           </div>
@@ -415,7 +415,7 @@ export default function FollowUpsPage() {
         {filtersOpen && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/30">
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground">الأولوية</Label>
+              <Label className="text-xs font-medium text-muted-foreground">الأولوية</Label>
               <Select value={filterPriority} onValueChange={setFilterPriority}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="الكل" />
@@ -429,7 +429,7 @@ export default function FollowUpsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground">الحالة</Label>
+              <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="الكل" />
@@ -442,7 +442,7 @@ export default function FollowUpsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground">المسؤول</Label>
+              <Label className="text-xs font-medium text-muted-foreground">المسؤول</Label>
               <ErpLinkCombobox
                 doctype="User"
                 value={filterAllocated}
@@ -500,16 +500,16 @@ export default function FollowUpsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">الوصف <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">الوصف <span className="text-destructive text-xs">*</span></Label>
                   <Textarea placeholder="ماذا تريد أن تتابعه؟" value={desc} onChange={(e) => setDesc(e.target.value)} className="min-h-[80px]" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تاريخ الاستحقاق</Label>
+                    <Label className="text-xs font-medium">تاريخ الاستحقاق</Label>
                     <Input type="date" dir="ltr" value={date} onChange={(e) => setDate(e.target.value)} className="h-10" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الأولوية</Label>
+                    <Label className="text-xs font-medium">الأولوية</Label>
                     <Select value={priority} onValueChange={(v) => setPriority(v as PriorityType)}>
                       <SelectTrigger className="h-10 text-sm">
                         <SelectValue />
@@ -523,7 +523,7 @@ export default function FollowUpsPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">تعيين إلى</Label>
+                  <Label className="text-xs font-medium">تعيين إلى</Label>
                   <ErpLinkCombobox
                     doctype="User"
                     value={allocatedTo}
@@ -547,9 +547,9 @@ export default function FollowUpsPage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع المرجع</Label>
+                    <Label className="text-xs font-medium">نوع المرجع</Label>
                     <Select value={refType || '_none'} onValueChange={(v) => { setRefType(v === '_none' ? '' : v); setRefName(''); }}>
                       <SelectTrigger className="h-10 text-sm">
                         <SelectValue placeholder="بدون مرجع" />
@@ -564,7 +564,7 @@ export default function FollowUpsPage() {
                   </div>
                   {refType && (
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">اسم المرجع</Label>
+                      <Label className="text-xs font-medium">اسم المرجع</Label>
                       <ErpLinkCombobox
                         doctype={refType}
                         value={refName}

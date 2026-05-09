@@ -308,7 +308,7 @@ export default function SalarySlipsPage() {
         render: (_, row) => (
           <div>
             <span className="font-medium">{row.employee_name || '—'}</span>
-            <span className="block text-[10px] text-muted-foreground">
+            <span className="block text-xs text-muted-foreground">
               {row.employee || ''}
             </span>
           </div>
@@ -374,7 +374,7 @@ export default function SalarySlipsPage() {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="h-7 text-[10px] gap-1"
+                  className="h-7 text-xs gap-1"
                   onClick={() => setSubmitDialog(row)}
                 >
                   <Send className="h-3 w-3" />
@@ -386,7 +386,7 @@ export default function SalarySlipsPage() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-[10px] gap-1"
+                  className="h-7 text-xs gap-1"
                   onClick={() => setCancelDialog(row)}
                 >
                   <Undo2 className="h-3 w-3" />
@@ -397,7 +397,7 @@ export default function SalarySlipsPage() {
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-7 text-[10px] gap-1"
+                className="h-7 text-xs gap-1"
                 disabled={isPrinting}
                 onClick={() => handlePrintPDF(row)}
               >
@@ -521,7 +521,7 @@ export default function SalarySlipsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">الحالة</Label>
+                <Label className="text-xs">الحالة</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="h-8 text-xs w-28">
                     <SelectValue />
@@ -535,7 +535,7 @@ export default function SalarySlipsPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">من تاريخ</Label>
+                <Label className="text-xs">من تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -545,7 +545,7 @@ export default function SalarySlipsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">إلى تاريخ</Label>
+                <Label className="text-xs">إلى تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -581,9 +581,9 @@ export default function SalarySlipsPage() {
             >
               {f.label}
               <span
-                className={`tabular-nums text-[10px] rounded-md px-1.5 py-0.5 font-semibold ${
+                className={`tabular-nums text-xs rounded-md px-1.5 py-0.5 font-semibold ${
                   statusFilter === f.key
-                    ? 'bg-purple-500/10 text-purple-600'
+                    ? 'bg-chart-5/10 text-chart-5'
                     : 'bg-muted text-muted-foreground/70'
                 }`}
               >
@@ -716,7 +716,7 @@ export default function SalarySlipsPage() {
                     toast.error('فشل الحذف'),
                 })
               }
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف
@@ -744,7 +744,7 @@ export default function SalarySlipsPage() {
                 <span className="font-bold text-purple-600">{submittedCount}</span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">من تاريخ</Label>
                 <Input
@@ -767,8 +767,8 @@ export default function SalarySlipsPage() {
               </div>
             </div>
             {(bulkDateFrom || bulkDateTo) && (
-              <div className="rounded-lg border border-purple-200 bg-purple-50 dark:border-purple-900/30 dark:bg-purple-950/20 p-2.5">
-                <p className="text-[11px] text-purple-700 dark:text-purple-300">
+              <div className="rounded-lg border border-chart-5/20 bg-chart-5/5 p-2.5">
+                <p className="text-[11px] text-chart-5">
                   <strong>ملاحظة:</strong> سيتم طباعة القسائم المرّحلة فقط ضمن النطاق المحدد.
                 </p>
               </div>

@@ -412,7 +412,7 @@ export default function PosSessionsListPage() {
             <CollapsibleContent>
               <div className="flex flex-wrap items-end gap-3 pt-3 border-t mt-2">
                 <div className="space-y-1">
-                  <Label className="text-[10px]">حالة الجلسة</Label>
+                  <Label className="text-xs">حالة الجلسة</Label>
                   <Select dir="rtl" value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | 'open' | 'closed')}>
                     <SelectTrigger className="h-8 text-xs w-36">
                       <SelectValue />
@@ -425,7 +425,7 @@ export default function PosSessionsListPage() {
                   </Select>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-[10px]">ملف نقطة البيع</Label>
+                  <Label className="text-xs">ملف نقطة البيع</Label>
                   <Select dir="rtl" value={profileFilter} onValueChange={setProfileFilter}>
                     <SelectTrigger className="h-8 text-xs w-48">
                       <SelectValue placeholder="الكل" />
@@ -590,7 +590,7 @@ export default function PosSessionsListPage() {
                 </SelectContent>
               </Select>
               {!openCompany && company && (
-                <p className="text-[10px] text-muted-foreground">الشركة الافتراضية: {company}</p>
+                <p className="text-xs text-muted-foreground">الشركة الافتراضية: {company}</p>
               )}
             </div>
 
@@ -607,7 +607,7 @@ export default function PosSessionsListPage() {
                 onChange={(e) => setOpenBalance(e.target.value)}
                 placeholder="0.00"
               />
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 المبلغ المتوفر في الصندوق عند بدء الوردية. يمكن تركه صفراً.
               </p>
             </div>
@@ -735,7 +735,7 @@ export default function PosSessionsListPage() {
                   onChange={(e) => setCloseBalance(e.target.value)}
                   placeholder="0.00"
                 />
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   أدخل المبلغ الفعلي الموجود في الصندوق عند الإغلاق. الفرق يُسجّل كفرق تسوية.
                 </p>
               </div>

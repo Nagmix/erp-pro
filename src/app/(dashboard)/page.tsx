@@ -72,11 +72,11 @@ const DASH_WIDGET_LABELS: Record<string, string> = {
 };
 
 const QUICK_ACTIONS = [
-  { label: 'فاتورة مبيعات جديدة', href: '/sales/sales-invoices?new=1', icon: FileText, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
-  { label: 'فاتورة مشتريات جديدة', href: '/purchases/purchase-invoices?new=1', icon: Receipt, color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
-  { label: 'قيد يومي جديد', href: '/accounting/journal-entry?new=1', icon: BookOpen, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
-  { label: 'سند قبض', href: '/accounting/payment-entry?new=1&type=Receive', icon: HandCoins, color: 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400' },
-  { label: 'سند صرف', href: '/accounting/payment-entry?new=1&type=Pay', icon: CreditCard, color: 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400' },
+  { label: 'فاتورة مبيعات جديدة', href: '/sales/sales-invoices?new=1', icon: FileText, color: 'bg-primary/10 text-primary' },
+  { label: 'فاتورة مشتريات جديدة', href: '/purchases/purchase-invoices?new=1', icon: Receipt, color: 'bg-chart-2/10 text-chart-2' },
+  { label: 'قيد يومي جديد', href: '/accounting/journal-entry?new=1', icon: BookOpen, color: 'bg-chart-1/10 text-chart-1' },
+  { label: 'سند قبض', href: '/accounting/payment-entry?new=1&type=Receive', icon: HandCoins, color: 'bg-chart-3/10 text-chart-3' },
+  { label: 'سند صرف', href: '/accounting/payment-entry?new=1&type=Pay', icon: CreditCard, color: 'bg-destructive/10 text-destructive' },
 ];
 
 export default function DashboardPage() {
@@ -425,8 +425,8 @@ export default function DashboardPage() {
                         className="flex items-center justify-between p-2.5 rounded-lg hover:bg-accent/50 transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-chart-2/10">
+                            <Clock className="h-4 w-4 text-chart-2" />
                           </div>
                           <div>
                             <p className="text-xs font-medium">{item.description}</p>
@@ -474,8 +474,8 @@ export default function DashboardPage() {
                       return (
                         <div key={String(pe.name)} className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors">
                           <div className="flex items-center gap-2">
-                            <div className={`h-7 w-7 flex items-center justify-center rounded-md ${isReceive ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-rose-100 dark:bg-rose-900/30'}`}>
-                              {isReceive ? <ArrowUpLeft className="h-3.5 w-3.5 text-emerald-600" /> : <ArrowDownLeft className="h-3.5 w-3.5 text-rose-600" />}
+                            <div className={`h-7 w-7 flex items-center justify-center rounded-md ${isReceive ? 'bg-primary/10' : 'bg-destructive/10'}`}>
+                              {isReceive ? <ArrowUpLeft className="h-3.5 w-3.5 text-primary" /> : <ArrowDownLeft className="h-3.5 w-3.5 text-destructive" />}
                             </div>
                             <div>
                               <p className="text-[11px] font-medium">{String(pe.party_name ?? pe.name)}</p>
@@ -508,8 +508,8 @@ export default function DashboardPage() {
                     {recentPi.map((inv) => (
                       <div key={String(inv.name)} className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors">
                         <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 flex items-center justify-center rounded-md bg-amber-100 dark:bg-amber-900/30">
-                            <Receipt className="h-3.5 w-3.5 text-amber-600" />
+                          <div className="h-7 w-7 flex items-center justify-center rounded-md bg-chart-2/10">
+                            <Receipt className="h-3.5 w-3.5 text-chart-2" />
                           </div>
                           <div>
                             <p className="text-[11px] font-medium">{String(inv.supplier_name ?? inv.supplier ?? '—')}</p>

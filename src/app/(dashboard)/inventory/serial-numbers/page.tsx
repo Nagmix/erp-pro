@@ -232,7 +232,7 @@ export default function SerialNumbersPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">الحالة</Label>
+                <Label className="text-xs">الحالة</Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -264,7 +264,7 @@ export default function SerialNumbersPage() {
           });
         }}
       />
-      <p className="text-[10px] text-muted-foreground">للمسودات: من القائمة «تعديل» لترحيل السجل، أو «حذف» لإزالة المسودة.</p>
+      <p className="text-xs text-muted-foreground">للمسودات: من القائمة «تعديل» لترحيل السجل، أو «حذف» لإزالة المسودة.</p>
 
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
         <AlertDialogContent dir="rtl">

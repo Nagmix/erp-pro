@@ -86,7 +86,7 @@ function SubStatusBadge({ status }: { status: string }) {
 function PeriodBadge({ start, end }: { start?: string; end?: string }) {
   if (!start && !end) return <span className="text-xs text-muted-foreground">—</span>;
   return (
-    <span className="text-[11px] text-muted-foreground" dir="ltr">
+    <span className="text-xs text-muted-foreground" dir="ltr">
       {formatDate(start || '')} — {formatDate(end || '')}
     </span>
   );
@@ -203,7 +203,7 @@ function FilterBar({
             <span className="text-xs font-semibold">تصفية</span>
           </div>
           <div className="w-40">
-            <Label className="text-[11px] mb-1 block">الحالة</Label>
+            <Label className="text-xs mb-1 block">الحالة</Label>
             <select
               className="w-full h-8 rounded-md border border-border/40 bg-background px-2 text-xs"
               value={statusFilter}
@@ -215,7 +215,7 @@ function FilterBar({
             </select>
           </div>
           <div className="w-56">
-            <Label className="text-[11px] mb-1 block">العميل</Label>
+            <Label className="text-xs mb-1 block">العميل</Label>
             <ErpLinkCombobox
               doctype="Customer"
               value={customerFilter}
@@ -415,22 +415,22 @@ export default function CrmSubscriptionsPage() {
                 </DialogHeader>
                 <div className="space-y-4 py-2">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">اسم الباقة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">اسم الباقة <span className="text-destructive text-xs">*</span></Label>
                     <Input value={planName} onChange={(e) => setPlanName(e.target.value)} placeholder="مثال: باقة شهرية برو" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">السعر <span className="text-destructive text-xs">*</span></Label>
+                      <Label className="text-xs font-medium">السعر <span className="text-destructive text-xs">*</span></Label>
                       <Input type="number" dir="ltr" value={cost || ''} onChange={(e) => setCost(Number(e.target.value || 0))} placeholder="0.00" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">العملة</Label>
+                      <Label className="text-xs font-medium">العملة</Label>
                       <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="اختر العملة" />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">دورة الفوترة</Label>
+                      <Label className="text-xs font-medium">دورة الفوترة</Label>
                       <select
                         className="w-full h-10 rounded-md border border-border/40 bg-background px-3 text-sm"
                         value={billingInterval}
@@ -443,7 +443,7 @@ export default function CrmSubscriptionsPage() {
                       </select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">كل (عدد)</Label>
+                      <Label className="text-xs font-medium">كل (عدد)</Label>
                       <Input
                         type="number"
                         dir="ltr"
@@ -485,15 +485,15 @@ export default function CrmSubscriptionsPage() {
                 </DialogHeader>
                 <div className="space-y-4 py-2">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">العميل <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox doctype="Customer" value={subCustomer} onChange={setSubCustomer} displayKey="customer_name" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الباقة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">الباقة <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox doctype="Subscription Plan" value={subPlan} onChange={setSubPlan} displayKey="plan_name" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تاريخ البداية</Label>
+                    <Label className="text-xs font-medium">تاريخ البداية</Label>
                     <Input
                       type="date"
                       dir="ltr"
@@ -501,7 +501,7 @@ export default function CrmSubscriptionsPage() {
                       onChange={(e) => setSubStartDate(e.target.value)}
                     />
                     {!subStartDate && (
-                      <p className="text-[11px] text-muted-foreground">سيتم استخدام تاريخ اليوم إذا لم تحدد تاريخاً</p>
+                      <p className="text-xs text-muted-foreground">سيتم استخدام تاريخ اليوم إذا لم تحدد تاريخاً</p>
                     )}
                   </div>
                   <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">

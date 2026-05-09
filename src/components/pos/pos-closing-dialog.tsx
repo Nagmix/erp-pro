@@ -97,7 +97,7 @@ export function PosClosingDialog({
           {selectedPoe && !summaryLoading && summary && (
             <div className="space-y-3 rounded-[var(--radius-md-ui)] border border-border/50 bg-muted/15 p-3">
               <p className="text-xs font-medium">ملخص حتى اللحظة</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div>
                   <span className="text-muted-foreground">من </span>
                   <span className="tabular-nums">{summary.period_start_date}</span>

@@ -62,10 +62,10 @@ interface QuotationRow {
 
 const QUOTATION_STATUS_MAP: Record<string, { label: string; cls: string }> = {
   Draft: { label: 'مسودة', cls: 'bg-secondary text-secondary-foreground' },
-  Open: { label: 'مفتوح', cls: 'bg-amber-500/10 text-amber-700 dark:text-amber-300' },
+  Open: { label: 'مفتوح', cls: 'bg-chart-2/10 text-chart-2' },
   Submitted: { label: 'مُقدّم', cls: 'bg-primary/10 text-primary' },
-  Ordered: { label: 'مؤكد', cls: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' },
-  Cancelled: { label: 'ملغي', cls: 'bg-red-500/10 text-red-700 dark:text-red-300' },
+  Ordered: { label: 'مؤكد', cls: 'bg-primary/10 text-primary' },
+  Cancelled: { label: 'ملغي', cls: 'bg-destructive/10 text-destructive' },
   Expired: { label: 'منتهي', cls: 'bg-muted text-muted-foreground' },
   Lost: { label: 'مفقود', cls: 'bg-destructive/10 text-destructive' },
 };
@@ -211,7 +211,7 @@ export default function BookingsPage() {
           const statusInfo = QUOTATION_STATUS_MAP[String(v ?? '')];
           if (statusInfo) {
             return (
-              <Badge variant="outline" className={cn('text-[10px] border-0', statusInfo.cls)}>
+              <Badge variant="outline" className={cn('text-xs border-0', statusInfo.cls)}>
                 {statusInfo.label}
               </Badge>
             );
@@ -401,7 +401,7 @@ export default function BookingsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">من تاريخ</Label>
+                <Label className="text-xs">من تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -411,7 +411,7 @@ export default function BookingsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">إلى تاريخ</Label>
+                <Label className="text-xs">إلى تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -442,7 +442,7 @@ export default function BookingsPage() {
               {f.label}
               <span
                 className={cn(
-                  'tabular-nums text-[10px] rounded-md px-1.5 py-0.5 font-semibold',
+                  'tabular-nums text-xs rounded-md px-1.5 py-0.5 font-semibold',
                   statusFilter === f.key
                     ? 'bg-primary/10 text-primary'
                     : 'bg-muted text-muted-foreground/70'
@@ -528,13 +528,13 @@ export default function BookingsPage() {
                   displayKey="customer_name"
                 />
                 {createForm.formState.errors.customer && (
-                  <p className="text-[10px] text-destructive">
+                  <p className="text-xs text-destructive">
                     {createForm.formState.errors.customer.message}
                   </p>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">تاريخ الحجز *</Label>
                   <Input
@@ -543,7 +543,7 @@ export default function BookingsPage() {
                     {...createForm.register('transaction_date')}
                   />
                   {createForm.formState.errors.transaction_date && (
-                    <p className="text-[10px] text-destructive">
+                    <p className="text-xs text-destructive">
                       {createForm.formState.errors.transaction_date.message}
                     </p>
                   )}
@@ -556,14 +556,14 @@ export default function BookingsPage() {
                     {...createForm.register('valid_till')}
                   />
                   {createForm.formState.errors.valid_till && (
-                    <p className="text-[10px] text-destructive">
+                    <p className="text-xs text-destructive">
                       {createForm.formState.errors.valid_till.message}
                     </p>
                   )}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-medium">الوحدة</Label>
                   <ErpLinkCombobox
@@ -664,7 +664,7 @@ export default function BookingsPage() {
             <AlertDialogCancel>تراجع</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancel}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Ban className="h-3.5 w-3.5" />
               إلغاء الحجز
@@ -694,7 +694,7 @@ export default function BookingsPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف

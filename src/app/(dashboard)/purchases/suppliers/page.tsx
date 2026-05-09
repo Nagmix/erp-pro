@@ -126,7 +126,7 @@ const columns: Column<SupplierRow>[] = [
     header: 'العملة',
     width: 'w-20',
     render: (value) => (
-      <Badge variant="outline" className="text-[10px] font-medium border-0 bg-muted text-muted-foreground">
+      <Badge variant="outline" className="text-xs font-medium border-0 bg-muted text-muted-foreground">
         {String(value || '—')}
       </Badge>
     ),
@@ -145,12 +145,12 @@ const columns: Column<SupplierRow>[] = [
     render: (value) => {
       const isOnHold = Boolean(value) || Number(value) === 1;
       return isOnHold ? (
-        <Badge variant="outline" className="text-[10px] font-medium border-0 bg-destructive/12 text-destructive ring-1 ring-inset ring-destructive/25">
+        <Badge variant="outline" className="text-xs font-medium border-0 bg-destructive/12 text-destructive ring-1 ring-inset ring-destructive/25">
           <ToggleRight className="h-3 w-3 me-1" />
           معلّق
         </Badge>
       ) : (
-        <Badge variant="outline" className="text-[10px] font-medium border-0 bg-success/12 text-success ring-1 ring-inset ring-success/25">
+        <Badge variant="outline" className="text-xs font-medium border-0 bg-success/12 text-success ring-1 ring-inset ring-success/25">
           <ToggleLeft className="h-3 w-3 me-1" />
           نشط
         </Badge>
@@ -164,7 +164,7 @@ const columns: Column<SupplierRow>[] = [
     render: (value) => (
       <Badge
         variant="outline"
-        className={`text-[10px] font-medium px-2 py-0.5 border-0 ${
+        className={`text-xs font-medium px-2 py-0.5 border-0 ${
           String(value) === 'Company'
             ? 'bg-primary/10 text-primary'
             : 'bg-secondary text-secondary-foreground'
@@ -449,7 +449,7 @@ export default function PurchasesSuppliersPage() {
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               {/* فلتر مجموعة الموردين */}
               <div className="space-y-1">
-                <Label className="text-[10px]">المجموعة</Label>
+                <Label className="text-xs">المجموعة</Label>
                 <Select value={groupFilter} onValueChange={setGroupFilter}>
                   <SelectTrigger className="h-8 text-xs w-40">
                     <SelectValue />
@@ -467,7 +467,7 @@ export default function PurchasesSuppliersPage() {
 
               {/* فلتر التعليق */}
               <div className="space-y-1">
-                <Label className="text-[10px]">التعليق</Label>
+                <Label className="text-xs">التعليق</Label>
                 <Select value={onHoldFilter} onValueChange={setOnHoldFilter}>
                   <SelectTrigger className="h-8 text-xs w-32">
                     <SelectValue />
@@ -482,7 +482,7 @@ export default function PurchasesSuppliersPage() {
 
               {/* فلتر البلد */}
               <div className="space-y-1">
-                <Label className="text-[10px]">البلد</Label>
+                <Label className="text-xs">البلد</Label>
                 <Select value={countryFilter} onValueChange={setCountryFilter}>
                   <SelectTrigger className="h-8 text-xs w-36">
                     <SelectValue />
@@ -567,7 +567,7 @@ export default function PurchasesSuppliersPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">
+                  <Label className="text-xs font-medium">
                     اسم المورد <span className="text-destructive text-xs">*</span>
                   </Label>
                   <Input
@@ -582,9 +582,9 @@ export default function PurchasesSuppliersPage() {
                     className="h-10"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع المورد</Label>
+                    <Label className="text-xs font-medium">نوع المورد</Label>
                     <Select
                       dir="rtl"
                       value={formData.supplier_type}
@@ -605,7 +605,7 @@ export default function PurchasesSuppliersPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">مجموعة الموردين</Label>
+                    <Label className="text-xs font-medium">مجموعة الموردين</Label>
                     <ErpLinkCombobox
                       doctype="Supplier Group"
                       value={formData.supplier_group}
@@ -620,9 +620,9 @@ export default function PurchasesSuppliersPage() {
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">العملة الافتراضية</Label>
+                    <Label className="text-xs font-medium">العملة الافتراضية</Label>
                     <ErpLinkCombobox
                       doctype="Currency"
                       value={formData.default_currency}
@@ -637,7 +637,7 @@ export default function PurchasesSuppliersPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">شروط الدفع</Label>
+                    <Label className="text-xs font-medium">شروط الدفع</Label>
                     <ErpLinkCombobox
                       doctype="Payment Terms Template"
                       value={formData.payment_terms}
@@ -671,7 +671,7 @@ export default function PurchasesSuppliersPage() {
                     <ToggleRight className="h-4 w-4 text-destructive" />
                     تعليق المورد
                   </Label>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     (لن يمكن إصدار أوامر شراء للمورد المعلّق)
                   </span>
                 </div>
@@ -689,9 +689,9 @@ export default function PurchasesSuppliersPage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">البريد الإلكتروني</Label>
+                    <Label className="text-xs font-medium">البريد الإلكتروني</Label>
                     <Input
                       type="email"
                       placeholder="name@company.sa"
@@ -707,7 +707,7 @@ export default function PurchasesSuppliersPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">رقم الهاتف</Label>
+                    <Label className="text-xs font-medium">رقم الهاتف</Label>
                     <Input
                       placeholder="05XXXXXXXX"
                       dir="ltr"
@@ -736,9 +736,9 @@ export default function PurchasesSuppliersPage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">البلد</Label>
+                    <Label className="text-xs font-medium">البلد</Label>
                     <ErpLinkCombobox
                       doctype="Country"
                       value={formData.country}
@@ -753,7 +753,7 @@ export default function PurchasesSuppliersPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الرقم الضريبي</Label>
+                    <Label className="text-xs font-medium">الرقم الضريبي</Label>
                     <Input
                       placeholder="الرقم الضريبي"
                       dir="rtl"
@@ -806,7 +806,7 @@ export default function PurchasesSuppliersPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

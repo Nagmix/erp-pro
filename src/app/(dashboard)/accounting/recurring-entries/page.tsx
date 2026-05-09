@@ -334,7 +334,7 @@ export default function RecurringEntriesPage() {
                 <p className="text-[10px] text-destructive">{form.formState.errors.frequency.message}</p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">تاريخ البداية *</Label>
                 <Input type="date" dir="ltr" {...form.register('start_date')} />
@@ -347,7 +347,7 @@ export default function RecurringEntriesPage() {
                 <Input type="date" dir="ltr" {...form.register('end_date')} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">عدد التكرارات</Label>
                 <Input type="number" dir="ltr" placeholder="0 = غير محدود" {...form.register('repeat_count', { valueAsNumber: true })} />
@@ -389,7 +389,7 @@ export default function RecurringEntriesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5">
+            <AlertDialogAction onClick={handleDelete} variant="destructive" className="gap-1.5">
               <Trash2 className="h-3.5 w-3.5" />
               حذف
             </AlertDialogAction>

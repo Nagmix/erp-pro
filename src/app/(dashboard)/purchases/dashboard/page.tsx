@@ -33,10 +33,10 @@ import {
 /*  Quick Actions                                                      */
 /* ------------------------------------------------------------------ */
 const QUICK_ACTIONS = [
-  { label: 'أمر شراء جديد', href: '/purchases/purchase-orders?new=1', icon: ClipboardList, color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
-  { label: 'فاتورة مشتريات', href: '/purchases/purchase-invoices?new=1', icon: Receipt, color: 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400' },
-  { label: 'طلب عروض أسعار', href: '/purchases/request-for-quotation?new=1', icon: FileText, color: 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' },
-  { label: 'الموردون', href: '/purchases/suppliers', icon: Users, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  { label: 'أمر شراء جديد', href: '/purchases/purchase-orders?new=1', icon: ClipboardList, color: 'bg-chart-2/10 text-chart-2' },
+  { label: 'فاتورة مشتريات', href: '/purchases/purchase-invoices?new=1', icon: Receipt, color: 'bg-destructive/10 text-destructive' },
+  { label: 'طلب عروض أسعار', href: '/purchases/request-for-quotation?new=1', icon: FileText, color: 'bg-chart-1/10 text-chart-1' },
+  { label: 'الموردون', href: '/purchases/suppliers', icon: Users, color: 'bg-primary/10 text-primary' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -150,11 +150,11 @@ export default function PurchasesDashboardPage() {
     }
     const colorMap: Record<string, string> = {
       'Draft': 'bg-secondary text-secondary-foreground',
-      'To Receive and Bill': 'bg-amber-500',
-      'To Receive': 'bg-sky-500',
-      'To Bill': 'bg-emerald-500',
-      'Completed': 'bg-emerald-600',
-      'Cancelled': 'bg-rose-500',
+      'To Receive and Bill': 'bg-chart-2',
+      'To Receive': 'bg-chart-1',
+      'To Bill': 'bg-chart-3',
+      'Completed': 'bg-chart-3',
+      'Cancelled': 'bg-destructive',
     };
     const labelMap: Record<string, string> = {
       'Draft': 'مسودة',
@@ -325,7 +325,7 @@ export default function PurchasesDashboardPage() {
                   <div key={sup.id} className="space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-chart-2/10 text-[10px] font-bold text-chart-2">
                           {i + 1}
                         </span>
                         <span className="text-xs font-medium truncate max-w-[160px]">{sup.name}</span>
@@ -334,7 +334,7 @@ export default function PurchasesDashboardPage() {
                     </div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                        className="h-full rounded-full bg-chart-2 transition-all duration-500"
                         style={{ width: `${(sup.total / maxSupplierVal) * 100}%` }}
                       />
                     </div>
@@ -407,8 +407,8 @@ export default function PurchasesDashboardPage() {
                     className="flex items-center justify-between p-2.5 rounded-lg hover:bg-accent/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/30">
-                        <Truck className="h-4 w-4 text-amber-600" />
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-chart-2/10">
+                        <Truck className="h-4 w-4 text-chart-2" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-medium truncate">{tx.party}</p>
@@ -468,7 +468,7 @@ export default function PurchasesDashboardPage() {
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                    className="h-full rounded-full bg-chart-3 transition-all duration-500"
                     style={{ width: `${supplierPaymentSummary.paidRatio}%` }}
                   />
                 </div>

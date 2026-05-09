@@ -626,7 +626,7 @@ export default function ChequeWorkflowPage() {
           <div className="space-y-4 mt-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">نوع الطرف <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-xs font-medium">نوع الطرف <span className="text-destructive text-xs">*</span></Label>
                 <Select value={formPartyType} onValueChange={(v) => setFormPartyType(v as 'Customer' | 'Supplier')}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -636,7 +636,7 @@ export default function ChequeWorkflowPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">
+                <Label className="text-xs font-medium">
                   {formPartyType === 'Customer' ? 'العميل' : 'المورد'} <span className="text-destructive text-xs">*</span>
                 </Label>
                 <ErpLinkCombobox
@@ -651,18 +651,18 @@ export default function ChequeWorkflowPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">رقم الشيك <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-xs font-medium">رقم الشيك <span className="text-destructive text-xs">*</span></Label>
                 <Input value={formRefNo} onChange={(e) => setFormRefNo(e.target.value)} placeholder="رقم الشيك" />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">تاريخ الشيك <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-xs font-medium">تاريخ الشيك <span className="text-destructive text-xs">*</span></Label>
                 <Input type="date" dir="ltr" value={formRefDate} onChange={(e) => setFormRefDate(e.target.value)} />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">المبلغ <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-xs font-medium">المبلغ <span className="text-destructive text-xs">*</span></Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -674,7 +674,7 @@ export default function ChequeWorkflowPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">البنك <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-xs font-medium">البنك <span className="text-destructive text-xs">*</span></Label>
                 <ErpLinkCombobox
                   doctype="Bank"
                   value={formBank}
@@ -685,7 +685,7 @@ export default function ChequeWorkflowPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-[13px] font-semibold">تاريخ الاستحقاق</Label>
+              <Label className="text-xs font-medium">تاريخ الاستحقاق</Label>
               <Input type="date" dir="ltr" value={formDueDate} onChange={(e) => setFormDueDate(e.target.value)} />
             </div>
           </div>
@@ -719,7 +719,7 @@ export default function ChequeWorkflowPage() {
               <p>المبلغ: <span className="font-semibold">{formatCurrency(Number(depositTarget?.paid_amount || 0))}</span></p>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[13px] font-semibold">الحساب البنكي <span className="text-destructive text-xs">*</span></Label>
+              <Label className="text-xs font-medium">الحساب البنكي <span className="text-destructive text-xs">*</span></Label>
               <ErpLinkCombobox
                 doctype="Bank Account"
                 value={depositBankAccount}
@@ -729,7 +729,7 @@ export default function ChequeWorkflowPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[13px] font-semibold">تاريخ الإيداع <span className="text-destructive text-xs">*</span></Label>
+              <Label className="text-xs font-medium">تاريخ الإيداع <span className="text-destructive text-xs">*</span></Label>
               <Input type="date" dir="ltr" value={depositDate} onChange={(e) => setDepositDate(e.target.value)} />
             </div>
           </div>
@@ -761,11 +761,7 @@ export default function ChequeWorkflowPage() {
             <AlertDialogAction
               onClick={handleClearBounce}
               disabled={processing}
-              className={cn(
-                clearBounceTarget?.action === 'Cleared'
-                  ? 'bg-success text-success-foreground hover:bg-success/90'
-                  : 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-              )}
+              variant={clearBounceTarget?.action === 'Cleared' ? 'success' : 'destructive'}
             >
               {processing ? <Loader2 className="h-3.5 w-3.5 animate-spin me-1" /> : null}
               {clearBounceTarget?.action === 'Cleared' ? 'تأكيد المقاصة' : 'تأكيد الارتداد'}

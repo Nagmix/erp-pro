@@ -347,11 +347,11 @@ export default function CashFlowPage() {
           نطاق التقرير
         </div>
         <div className="space-y-1">
-          <Label className="text-[10px]">من تاريخ</Label>
+          <Label className="text-xs">من تاريخ</Label>
           <Input type="date" dir="ltr" className="h-8 w-40 text-xs" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
         </div>
         <div className="space-y-1">
-          <Label className="text-[10px]">إلى تاريخ</Label>
+          <Label className="text-xs">إلى تاريخ</Label>
           <Input type="date" dir="ltr" className="h-8 w-40 text-xs" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
         </div>
       </div>
@@ -367,9 +367,9 @@ export default function CashFlowPage() {
       {/* Three Sections */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Operating */}
-        <Card className="border-emerald-200 dark:border-emerald-800/40">
+        <Card className="border-primary/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-primary">
               <TrendingUp className="h-4 w-4" />
               التدفقات التشغيلية
             </CardTitle>
@@ -391,9 +391,9 @@ export default function CashFlowPage() {
         </Card>
 
         {/* Investing */}
-        <Card className="border-blue-200 dark:border-blue-800/40">
+        <Card className="border-chart-1/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-blue-700 dark:text-blue-400">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-chart-1">
               <Building2 className="h-4 w-4" />
               التدفقات الاستثمارية
             </CardTitle>
@@ -412,7 +412,7 @@ export default function CashFlowPage() {
               <span className={investingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{formatCurrency(investingNet)}</span>
             </div>
             {investingInflows === 0 && investingOutflows === 0 && (
-              <div className="flex items-start gap-1.5 rounded-md bg-muted/30 p-2 text-[10px] text-muted-foreground">
+              <div className="flex items-start gap-1.5 rounded-md bg-muted/30 p-2 text-xs text-muted-foreground">
                 <Info className="h-3 w-3 shrink-0 mt-0.5" />
                 <span>يُحسب من قيود اليومية ذات حسابات الأصول (غير النقدية)</span>
               </div>
@@ -421,9 +421,9 @@ export default function CashFlowPage() {
         </Card>
 
         {/* Financing */}
-        <Card className="border-purple-200 dark:border-purple-800/40">
+        <Card className="border-chart-5/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-purple-700 dark:text-purple-400">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-chart-5">
               <Landmark className="h-4 w-4" />
               التدفقات التمويلية
             </CardTitle>
@@ -442,7 +442,7 @@ export default function CashFlowPage() {
               <span className={financingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{formatCurrency(financingNet)}</span>
             </div>
             {financingInflows === 0 && financingOutflows === 0 && (
-              <div className="flex items-start gap-1.5 rounded-md bg-muted/30 p-2 text-[10px] text-muted-foreground">
+              <div className="flex items-start gap-1.5 rounded-md bg-muted/30 p-2 text-xs text-muted-foreground">
                 <Info className="h-3 w-3 shrink-0 mt-0.5" />
                 <span>يُحسب من قيود اليومية ذات حسابات الخصوم وحقوق الملكية</span>
               </div>
@@ -499,7 +499,7 @@ export default function CashFlowPage() {
               </tfoot>
             </table>
           </div>
-          <div className="mt-2 flex items-start gap-1.5 text-[10px] text-muted-foreground">
+          <div className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
             <Info className="h-3 w-3 shrink-0 mt-0.5" />
             <span>التدفقات الاستثمارية والتمويلية مبنية على تحليل حسابات قيود اليومية (أصول غير نقدية = استثمارية، خصوم/حقوق ملكية = تمويلية). رصيد الافتتاح يحتاج استعلام رصيد الحسابات البنكية/النقدية عند تاريخ البداية.</span>
           </div>

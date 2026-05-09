@@ -366,15 +366,15 @@ export default function ExpensesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={expenseStatusFilter} onValueChange={setExpenseStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -435,7 +435,7 @@ export default function ExpensesPage() {
                 <Upload className="h-3.5 w-3.5" />
                 استيراد بنود من Excel
               </Button>
-              <p className="text-[10px] text-muted-foreground mt-1">أعمدة مقترحة: تاريخ، نوع المصروف، المبلغ، وصف، مركز تكلفة (اختياري)</p>
+              <p className="text-xs text-muted-foreground mt-1">أعمدة مقترحة: تاريخ، نوع المصروف، المبلغ، وصف، مركز تكلفة (اختياري)</p>
             </div>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -449,7 +449,7 @@ export default function ExpensesPage() {
                     placeholder="اختر الموظف..."
                   />
                   {form.formState.errors.employee && (
-                    <p className="text-[10px] text-destructive">{form.formState.errors.employee.message}</p>
+                    <p className="text-xs text-destructive">{form.formState.errors.employee.message}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -653,7 +653,7 @@ export default function ExpensesPage() {
                 {importFileLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
                 اختيار ملف Excel
               </Button>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 أعمدة: تاريخ، نوع المصروف، المبلغ، وصف، مركز تكلفة
               </span>
             </div>
@@ -749,7 +749,7 @@ export default function ExpensesPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5">
+            <AlertDialogAction onClick={handleDelete} variant="destructive" className="gap-1.5">
               <Trash2 className="h-3.5 w-3.5" />
               حذف
             </AlertDialogAction>

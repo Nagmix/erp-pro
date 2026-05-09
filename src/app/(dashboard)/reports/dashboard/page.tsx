@@ -1046,9 +1046,9 @@ export default function ReportsDashboardPage() {
                     <p className="text-xl font-bold tabular-nums">{safeExpenses.length}</p>
                   </div>
                 </div>
-                <div className="rounded-lg border border-emerald-200/60 bg-emerald-50/50 p-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
-                  <p className="text-[10px] font-medium text-emerald-700 dark:text-emerald-400">هامش الربح</p>
-                  <p className="text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
+                <div className="rounded-lg border border-primary/20/60 bg-primary/5/50 p-3 dark:border-emerald-900/40 dark:bg-primary/5">
+                  <p className="text-[10px] font-medium text-primary">هامش الربح</p>
+                  <p className="text-2xl font-bold tabular-nums text-primary">
                     {financialKPIs.totalSales > 0
                       ? ((financialKPIs.netProfit / financialKPIs.totalSales) * 100).toFixed(1)
                       : 0}
@@ -1617,7 +1617,7 @@ export default function ReportsDashboardPage() {
                             >
                               <p className="font-semibold mb-1">{label}</p>
                               <div className="flex items-center gap-2">
-                                <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                                <span className="inline-block h-2.5 w-2.5 rounded-full bg-chart-3" />
                                 <span>معدل الحضور: {payload[0].value}%</span>
                               </div>
                             </div>

@@ -167,7 +167,7 @@ export default function AttendancePage() {
                 <Label className="text-xs font-medium">الموظف <span className="text-destructive">*</span></Label>
                 <ErpLinkCombobox doctype="Employee" value={formData.employee} onChange={(v) => setFormData((p) => ({ ...p, employee: v }))} displayKey="employee_name" placeholder="اختر الموظف..." />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2"><Label className="text-xs font-medium">التاريخ <span className="text-destructive">*</span></Label><Input type="date" dir="ltr" value={formData.attendance_date} onChange={(e) => setFormData((p) => ({ ...p, attendance_date: e.target.value }))} /></div>
                 <div className="space-y-2"><Label className="text-xs font-medium">الحالة</Label>
                   <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={formData.status} onChange={(e) => setFormData((p) => ({ ...p, status: e.target.value }))}>
@@ -179,7 +179,7 @@ export default function AttendancePage() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2"><Label className="text-xs font-medium">وقت الحضور</Label><Input type="time" dir="ltr" value={formData.in_time} onChange={(e) => setFormData((p) => ({ ...p, in_time: e.target.value }))} /></div>
                 <div className="space-y-2"><Label className="text-xs font-medium">وقت الانصراف</Label><Input type="time" dir="ltr" value={formData.out_time} onChange={(e) => setFormData((p) => ({ ...p, out_time: e.target.value }))} /></div>
               </div>
@@ -217,15 +217,15 @@ export default function AttendancePage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={attendanceStatusFilter} onValueChange={setAttendanceStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -271,7 +271,7 @@ export default function AttendancePage() {
         <Card>
           <CardContent className="p-4 space-y-3">
             <p className="text-sm font-semibold">تكامل جهاز الحضور</p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div><Label className="text-xs">المزوّد</Label><Input value={provider} onChange={(e) => setProvider(e.target.value)} /></div>
               <div><Label className="text-xs">رمز الدخول</Label><Input value={token} onChange={(e) => setToken(e.target.value)} dir="ltr" /></div>
             </div>

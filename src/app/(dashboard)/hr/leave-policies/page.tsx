@@ -190,7 +190,7 @@ export default function LeavePoliciesPage() {
         key: 'is_active',
         header: 'نشط',
         render: (v) => (
-          <span className={`inline-flex items-center gap-1 text-xs font-medium ${Number(v) === 1 ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+          <span className={`inline-flex items-center gap-1 text-xs font-medium ${Number(v) === 1 ? 'text-primary' : 'text-muted-foreground'}`}>
             {Number(v) === 1 ? <Check className="h-3 w-3" /> : null}
             {Number(v) === 1 ? 'نعم' : 'لا'}
           </span>
@@ -637,7 +637,7 @@ export default function LeavePoliciesPage() {
               <Label className="text-xs">نوع الإجازة <span className="text-destructive">*</span></Label>
               <ErpLinkCombobox doctype="Leave Type" value={allocLeaveType} onChange={setAllocLeaveType} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs">من <span className="text-destructive">*</span></Label>
                 <Input type="date" dir="ltr" value={allocFromDate} onChange={(e) => setAllocFromDate(e.target.value)} />
@@ -677,7 +677,7 @@ export default function LeavePoliciesPage() {
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
               onClick={handleDelete}
             >
               حذف

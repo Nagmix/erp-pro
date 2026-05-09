@@ -147,7 +147,7 @@ export default function SalesInvoicesPage() {
         render: (value) => {
           const amount = Number(value);
           return (
-            <span className={cn('font-semibold tabular-nums', amount > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400')}>
+            <span className={cn('font-semibold tabular-nums', amount > 0 ? 'text-chart-2' : 'text-primary')}>
               {formatCurrency(amount)}
             </span>
           );
@@ -162,7 +162,7 @@ export default function SalesInvoicesPage() {
             {(() => {
               const href = docDetailPath('Sales Invoice', row.name);
               return href ? (
-                <Button asChild size="sm" variant="outline" className="h-7 px-2 text-[10px]">
+                <Button asChild size="sm" variant="outline" className="h-7 px-2 text-xs">
                   <Link href={href}><Eye className="h-3 w-3 ms-1" />عرض</Link>
                 </Button>
               ) : null;
@@ -171,7 +171,7 @@ export default function SalesInvoicesPage() {
               <Button
                 type="button"
                 size="sm"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 disabled={submitMutation.isPending}
                 onClick={() =>
                   submitMutation.mutate(row.name, {
@@ -187,7 +187,7 @@ export default function SalesInvoicesPage() {
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-7 text-[10px] px-2"
+                className="h-7 text-xs px-2"
                 disabled={cancelMutation.isPending}
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
@@ -203,7 +203,7 @@ export default function SalesInvoicesPage() {
                 type="button"
                 size="sm"
                 variant="ghost"
-                className="h-7 text-[10px] text-destructive"
+                className="h-7 text-xs text-destructive"
                 onClick={() => { setSelectedInvoice(row); setDeleteDialogOpen(true); }}
               >
                 <Trash2 className="h-3 w-3" />
@@ -247,11 +247,11 @@ export default function SalesInvoicesPage() {
         </div>
         <div className="rounded-xl border border-border/40 bg-card p-4 space-y-1">
           <p className="text-[11px] font-medium text-muted-foreground">إجمالي المستحق</p>
-          <p className={cn('text-2xl font-bold tabular-nums', totalOutstanding > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400')}>{formatCurrency(totalOutstanding)}</p>
+          <p className={cn('text-2xl font-bold tabular-nums', totalOutstanding > 0 ? 'text-chart-2' : 'text-primary')}>{formatCurrency(totalOutstanding)}</p>
         </div>
         <div className="rounded-xl border border-border/40 bg-card p-4 space-y-1">
           <p className="text-[11px] font-medium text-muted-foreground">فواتير متأخرة</p>
-          <p className={cn('text-2xl font-bold tabular-nums', overdueCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600')}>{overdueCount}</p>
+          <p className={cn('text-2xl font-bold tabular-nums', overdueCount > 0 ? 'text-destructive' : 'text-emerald-600')}>{overdueCount}</p>
         </div>
       </div>
 
@@ -280,15 +280,15 @@ export default function SalesInvoicesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">من تاريخ</Label>
+                <Label className="text-xs">من تاريخ</Label>
                 <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">إلى تاريخ</Label>
+                <Label className="text-xs">إلى تاريخ</Label>
                 <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">الحالة</Label>
+                <Label className="text-xs">الحالة</Label>
                 <Select value={invoiceStatusFilter} onValueChange={setInvoiceStatusFilter}>
                   <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -327,7 +327,7 @@ export default function SalesInvoicesPage() {
           branchesEnabled ? (
             <div className="flex flex-wrap items-end gap-2">
               <div className="space-y-1 min-w-[200px]">
-                <Label className="text-[10px] text-muted-foreground">الفرع</Label>
+                <Label className="text-xs text-muted-foreground">الفرع</Label>
                 <ErpLinkCombobox doctype="Branch" value={branchFilter} onChange={setBranchFilter} placeholder="كل الفروع" />
               </div>
               {branchFilter ? (
@@ -382,7 +382,7 @@ export default function SalesInvoicesPage() {
                   setDeleteDialogOpen(false);
                 }
               }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف

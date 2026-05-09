@@ -76,7 +76,7 @@ const quickLinks = [
     description: 'إدارة تصنيفات وحدات الإيجار',
     href: '/operations/rentals/unit-types',
     icon: Layers,
-    accent: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
+    accent: 'bg-chart-1/10 text-chart-1 dark:text-sky-400',
     gradient: 'from-sky-500/5 to-transparent',
     statLabel: 'الأنواع',
     statDoctype: 'Item Group',
@@ -86,7 +86,7 @@ const quickLinks = [
     description: 'إدارة وحدات الإيجار المتاحة',
     href: '/operations/rentals/units',
     icon: Home,
-    accent: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    accent: 'bg-primary/10 text-primary dark:text-emerald-400',
     gradient: 'from-emerald-500/5 to-transparent',
     statLabel: 'الوحدات',
     statDoctype: 'Item',
@@ -96,7 +96,7 @@ const quickLinks = [
     description: 'إدارة حجوزات وحدات الإيجار',
     href: '/operations/rentals/bookings',
     icon: Calendar,
-    accent: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
+    accent: 'bg-chart-5/10 text-chart-5 dark:text-violet-400',
     gradient: 'from-violet-500/5 to-transparent',
     statLabel: 'الحجوزات',
     statDoctype: 'Quotation',
@@ -106,7 +106,7 @@ const quickLinks = [
     description: 'إدارة عقود الإيجار التفصيلية',
     href: '/operations/rentals/contracts',
     icon: FileText,
-    accent: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+    accent: 'bg-chart-2/10 text-chart-2 dark:text-amber-400',
     gradient: 'from-amber-500/5 to-transparent',
     statLabel: 'العقود',
     statDoctype: 'Contract',
@@ -452,7 +452,7 @@ export default function RentalsDashboardPage() {
                       <div className={cn(
                         'h-8 w-8 rounded-lg flex items-center justify-center shrink-0',
                         String(booking.status) === 'Open'
-                          ? 'bg-violet-500/10 text-violet-600'
+                          ? 'bg-chart-5/10 text-chart-5'
                           : 'bg-muted text-muted-foreground'
                       )}>
                         <Calendar className="h-4 w-4" />
@@ -533,7 +533,7 @@ export default function RentalsDashboardPage() {
                 className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-lg bg-violet-500/10 text-violet-600 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-chart-5/10 text-chart-5 flex items-center justify-center">
                     <Calendar className="h-4 w-4" />
                   </div>
                   <div>
@@ -548,7 +548,7 @@ export default function RentalsDashboardPage() {
                 className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-chart-2/10 text-chart-2 flex items-center justify-center">
                     <FileText className="h-4 w-4" />
                   </div>
                   <div>
@@ -563,7 +563,7 @@ export default function RentalsDashboardPage() {
                 className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                     <Home className="h-4 w-4" />
                   </div>
                   <div>
@@ -578,7 +578,7 @@ export default function RentalsDashboardPage() {
                 className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors group"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-lg bg-sky-500/10 text-sky-600 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-lg bg-chart-1/10 text-chart-1 flex items-center justify-center">
                     <Layers className="h-4 w-4" />
                   </div>
                   <div>
@@ -630,7 +630,7 @@ function BookingStatusBadge({ status }: { status?: string }) {
   let label = s || 'غير محدد';
 
   if (s === 'Open') {
-    color = 'bg-violet-500/10 text-violet-600';
+    color = 'bg-chart-5/10 text-chart-5';
     label = 'مفتوح';
   } else if (s === 'Draft') {
     color = 'bg-muted text-muted-foreground';

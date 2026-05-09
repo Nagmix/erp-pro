@@ -90,7 +90,7 @@ function ItemGroupTreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 text-[13px]"
+        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 text-xs"
         style={{ paddingRight: `${level * 1.25 + 1}rem` }}
       >
         {hasChildren ? (
@@ -117,12 +117,12 @@ function ItemGroupTreeItem({
         )}
         <div className="flex items-center gap-2 shrink-0">
           {isGroup && (
-            <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-amber-100/80 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">مجموعة</Badge>
+            <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-chart-2/10/80 text-amber-700 dark:bg-chart-2/10 dark:text-amber-300">مجموعة</Badge>
           )}
           {isDisabled && (
             <Badge variant="outline" className="text-[9px] px-1.5 py-0 text-muted-foreground">معطّلة</Badge>
           )}
-          <span className="text-muted-foreground text-[11px] max-w-[140px] truncate">{group.parent_item_group || '—'}</span>
+          <span className="text-muted-foreground text-xs max-w-[140px] truncate">{group.parent_item_group || '—'}</span>
           <button
             onClick={() => onDelete(group)}
             className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
@@ -241,7 +241,7 @@ export default function ItemGroupsPage() {
         header: 'النوع',
         render: (v) =>
           Number(v) === 1 || v === true ? (
-            <Badge variant="secondary" className="text-[9px] bg-amber-100/80 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">مجموعة رئيسية</Badge>
+            <Badge variant="secondary" className="text-[9px] bg-chart-2/10/80 text-amber-700 dark:bg-chart-2/10 dark:text-amber-300">مجموعة رئيسية</Badge>
           ) : (
             <Badge variant="outline" className="text-[9px]">فرعية</Badge>
           ),
@@ -366,7 +366,7 @@ export default function ItemGroupsPage() {
               <DialogContent dir="rtl" className="max-w-lg" size="md">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-3 text-lg font-bold">
-                    <div className="h-9 w-9 rounded-lg bg-amber-100/80 text-amber-700 flex items-center justify-center">
+                    <div className="h-9 w-9 rounded-lg bg-chart-2/10/80 text-amber-700 flex items-center justify-center">
                       <Package className="h-5 w-5" />
                     </div>
                     <div>
@@ -380,7 +380,7 @@ export default function ItemGroupsPage() {
                   <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
                     <div className="bg-gradient-to-l from-amber-500/[0.06] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
                       <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
-                        <span className="h-5 w-5 rounded-md bg-amber-100/80 flex items-center justify-center">
+                        <span className="h-5 w-5 rounded-md bg-chart-2/10/80 flex items-center justify-center">
                           <Tag className="h-3 w-3 text-amber-700" />
                         </span>
                         المعلومات الأساسية
@@ -388,11 +388,11 @@ export default function ItemGroupsPage() {
                     </div>
                     <div className="p-4 space-y-4 bg-card/50">
                       <div className="space-y-1.5">
-                        <Label className="text-[13px] font-semibold">اسم المجموعة <span className="text-destructive text-xs">*</span></Label>
+                        <Label className="text-xs font-medium">اسم المجموعة <span className="text-destructive text-xs">*</span></Label>
                         <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="مثال: منتجات غذائية، أدوات مكتبية" className="h-10" />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-[13px] font-semibold">المجموعة الأب</Label>
+                        <Label className="text-xs font-medium">المجموعة الأب</Label>
                         <ErpLinkCombobox
                           doctype="Item Group"
                           value={parentGroup}
@@ -412,14 +412,14 @@ export default function ItemGroupsPage() {
                       <Checkbox checked={isGroup} onCheckedChange={(checked) => setIsGroup(!!checked)} />
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-medium">مجموعة رئيسية</span>
-                        <span className="text-[11px] text-muted-foreground block">تحتوي على مجموعات فرعية — لا يُضاف إليها أصناف مباشرة</span>
+                        <span className="text-xs text-muted-foreground block">تحتوي على مجموعات فرعية — لا يُضاف إليها أصناف مباشرة</span>
                       </div>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer hover:bg-accent/30 rounded-lg px-2 py-1.5 transition-colors">
                       <Checkbox checked={isDisabled} onCheckedChange={(checked) => setIsDisabled(!!checked)} />
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-medium">معطّلة</span>
-                        <span className="text-[11px] text-muted-foreground block">لن تظهر عند إضافة أصناف جديدة</span>
+                        <span className="text-xs text-muted-foreground block">لن تظهر عند إضافة أصناف جديدة</span>
                       </div>
                     </label>
                   </div>
@@ -512,7 +512,7 @@ export default function ItemGroupsPage() {
           )}
 
           <div className="ms-auto">
-            <Badge variant="outline" className="text-[11px] h-7 px-2.5 rounded-lg border-border/40 bg-muted/30 text-muted-foreground">
+            <Badge variant="outline" className="text-xs h-7 px-2.5 rounded-lg border-border/40 bg-muted/30 text-muted-foreground">
               {filteredGroups.length} من {totalGroups}
             </Badge>
           </div>
@@ -522,7 +522,7 @@ export default function ItemGroupsPage() {
         {filtersOpen && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/30">
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground">المجموعة الأب</Label>
+              <Label className="text-xs font-medium text-muted-foreground">المجموعة الأب</Label>
               <Select value={filterParent} onValueChange={setFilterParent}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="جميع المجموعات" />
@@ -536,7 +536,7 @@ export default function ItemGroupsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground">النوع</Label>
+              <Label className="text-xs font-medium text-muted-foreground">النوع</Label>
               <Select value={filterIsGroup} onValueChange={setFilterIsGroup}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
@@ -549,7 +549,7 @@ export default function ItemGroupsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground">الحالة</Label>
+              <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
               <Select value={filterDisabled} onValueChange={setFilterDisabled}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
@@ -581,7 +581,7 @@ export default function ItemGroupsPage() {
         </PageShell>
       ) : (
         <PageShell padded={false}>
-          <div className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-4 py-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none">
+          <div className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-4 py-2 flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none">
             <span className="flex-1">المجموعة</span>
             <span className="w-20 text-center">الحالة</span>
             <span className="w-32 text-center">الأب</span>
@@ -632,7 +632,7 @@ export default function ItemGroupsPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => void handleDelete()}
-              className="bg-destructive text-destructive-foreground"
+              variant="destructive"
             >
               {deleteMutation.isPending ? (
                 <span className="flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" />جاري الحذف...</span>

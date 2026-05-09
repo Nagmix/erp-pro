@@ -305,7 +305,7 @@ export default function PricingRulesPage() {
                   type="button"
                   size="sm"
                   variant="secondary"
-                  className="h-7 text-[10px] px-2"
+                  className="h-7 text-xs px-2"
                   disabled={submitMutation.isPending}
                   onClick={() =>
                     submitMutation.mutate(row.name, {
@@ -326,7 +326,7 @@ export default function PricingRulesPage() {
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-[10px] px-2"
+                  className="h-7 text-xs px-2"
                   disabled={cancelMutation.isPending}
                   onClick={() =>
                     cancelMutation.mutate(row.name, {
@@ -436,7 +436,7 @@ export default function PricingRulesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-                <Label className="text-[10px]">الحالة</Label>
+                <Label className="text-xs">الحالة</Label>
                 <Select value={activeFilter} onValueChange={(v) => setActiveFilter(v as 'all' | 'active' | 'disabled')}>
                   <SelectTrigger className="h-8 text-xs w-32">
                     <SelectValue />
@@ -449,7 +449,7 @@ export default function PricingRulesPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-[10px]">النوع</Label>
+                <Label className="text-xs">النوع</Label>
                 <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as 'all' | 'selling' | 'buying')}>
                   <SelectTrigger className="h-8 text-xs w-32">
                     <SelectValue />
@@ -500,18 +500,18 @@ export default function PricingRulesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
                     <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="مثال: خصم الصيف 2025" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الشركة</Label>
+                    <Label className="text-xs font-medium">الشركة</Label>
                     <ErpLinkCombobox doctype="Company" value={formCompany} onChange={setFormCompany} placeholder={defaultCompany || 'اختر الشركة'} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">ينطبق على</Label>
+                    <Label className="text-xs font-medium">ينطبق على</Label>
                     <Select value={formApplyOn} onValueChange={setFormApplyOn}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -522,7 +522,7 @@ export default function PricingRulesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">النوع</Label>
+                    <Label className="text-xs font-medium">النوع</Label>
                     <Select value={formPriceOrDiscount} onValueChange={setFormPriceOrDiscount}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -535,7 +535,7 @@ export default function PricingRulesPage() {
 
                 {formPriceOrDiscount === 'Discount' && (
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نسبة الخصم <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">نسبة الخصم <span className="text-destructive text-xs">*</span></Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -549,19 +549,19 @@ export default function PricingRulesPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">صالح من</Label>
+                    <Label className="text-xs font-medium">صالح من</Label>
                     <Input type="date" dir="ltr" value={formValidFrom} onChange={(e) => setFormValidFrom(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">صالح إلى</Label>
+                    <Label className="text-xs font-medium">صالح إلى</Label>
                     <Input type="date" dir="ltr" value={formValidUpto} onChange={(e) => setFormValidUpto(e.target.value)} />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">قائمة الأسعار (اختياري)</Label>
+                  <Label className="text-xs font-medium">قائمة الأسعار (اختياري)</Label>
                   <ErpLinkCombobox doctype="Price List" value={formForPriceList} onChange={setFormForPriceList} placeholder="اختر قائمة أسعار" />
                 </div>
 
@@ -613,7 +613,7 @@ export default function PricingRulesPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

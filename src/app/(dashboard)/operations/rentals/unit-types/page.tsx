@@ -130,7 +130,7 @@ export default function UnitTypesPage() {
               className={cn(
                 'text-[10px] border-0',
                 isGroup
-                  ? 'bg-sky-500/10 text-sky-700 dark:text-sky-300'
+                  ? 'bg-chart-1/10 text-chart-1'
                   : 'bg-muted text-muted-foreground'
               )}
             >
@@ -459,7 +459,7 @@ export default function UnitTypesPage() {
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               حذف

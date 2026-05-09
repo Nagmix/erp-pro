@@ -287,7 +287,7 @@ export default function BankReconciliationPage() {
 
   // ── Payment Entry Columns ──
   const peCols: Column<PaymentEntryRow>[] = [
-    { key: 'name', header: 'الرقم', width: 'w-28', render: (v) => <span className="font-mono text-[10px] text-primary">{String(v)}</span> },
+    { key: 'name', header: 'الرقم', width: 'w-28', render: (v) => <span className="font-mono text-xs text-primary">{String(v)}</span> },
     { key: 'posting_date', header: 'تاريخ الترحيل', sortable: true, render: (v) => formatDate(String(v || '')) },
     { key: 'party_name', header: 'الطرف', render: (v) => String(v || '—') },
     { key: 'paid_amount', header: 'المبلغ', sortable: true, render: (v) => (
@@ -301,7 +301,7 @@ export default function BankReconciliationPage() {
     { key: 'bankTx', header: 'حركة الكشف', render: (_, row) => (
       <div className="space-y-0.5">
         <p className="text-[11px] font-medium">{row.bankTx.description}</p>
-        <p className="text-[10px] text-muted-foreground" dir="ltr">{formatDate(row.bankTx.date)} | {row.bankTx.reference_number || '—'}</p>
+        <p className="text-xs text-muted-foreground" dir="ltr">{formatDate(row.bankTx.date)} | {row.bankTx.reference_number || '—'}</p>
       </div>
     )},
     { key: 'amount', header: 'المبلغ', render: (_, row) => (
@@ -312,13 +312,13 @@ export default function BankReconciliationPage() {
     { key: 'paymentEntry', header: 'قيود النظام', render: (_, row) => (
       <div className="space-y-0.5">
         <p className="text-[11px] font-mono">{row.paymentEntry.name}</p>
-        <p className="text-[10px] text-muted-foreground">{row.paymentEntry.party_name || '—'}</p>
+        <p className="text-xs text-muted-foreground">{row.paymentEntry.party_name || '—'}</p>
       </div>
     )},
     { key: 'confidence', header: 'الثقة', render: (v) => v === 'high' ? (
-      <Badge className="text-[10px] bg-success/12 text-success border-0">عالية</Badge>
+      <Badge className="text-xs bg-success/12 text-success border-0">عالية</Badge>
     ) : (
-      <Badge className="text-[10px] bg-warning/15 text-warning-foreground/90 border-0">متوسطة</Badge>
+      <Badge className="text-xs bg-warning/15 text-warning-foreground/90 border-0">متوسطة</Badge>
     )},
   ];
 
@@ -372,7 +372,7 @@ export default function BankReconciliationPage() {
       <div className="space-y-3">
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1.5 min-w-[220px]">
-            <Label className="text-[10px]">الحساب البنكي</Label>
+            <Label className="text-xs">الحساب البنكي</Label>
             <ErpLinkCombobox
               doctype="Bank Account"
               value={bankAccount}
@@ -383,11 +383,11 @@ export default function BankReconciliationPage() {
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           {(bankAccount || dateFrom || dateTo) && (
@@ -421,8 +421,8 @@ export default function BankReconciliationPage() {
             <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-sm">حركات الكشف البنكي</CardTitle>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="text-[10px]">إيداعات: <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(totalDeposits)}</span></Badge>
-                <Badge variant="secondary" className="text-[10px]">سحوبات: <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(totalWithdrawals)}</span></Badge>
+                <Badge variant="secondary" className="text-xs">إيداعات: <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(totalDeposits)}</span></Badge>
+                <Badge variant="secondary" className="text-xs">سحوبات: <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(totalWithdrawals)}</span></Badge>
               </div>
             </CardHeader>
             <CardContent>
@@ -454,7 +454,7 @@ export default function BankReconciliationPage() {
           <Card>
             <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
               <CardTitle className="text-sm">قيود الدفع والقبض</CardTitle>
-              <Badge variant="secondary" className="text-[10px]">إجمالي: <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(systemPayments)}</span></Badge>
+              <Badge variant="secondary" className="text-xs">إجمالي: <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(systemPayments)}</span></Badge>
             </CardHeader>
             <CardContent>
               {!peLoad && filteredPayments.length === 0 ? (
@@ -486,7 +486,7 @@ export default function BankReconciliationPage() {
               <CardTitle className="text-sm flex items-center gap-2">
                 <Zap className="h-4 w-4 text-primary" />
                 مقترحات المطابقة
-                <span className="text-[10px] text-muted-foreground font-normal">
+                <span className="text-xs text-muted-foreground font-normal">
                   (مطابق: {matchedKeys.size / 2} | معلّق: {pendingCount})
                 </span>
               </CardTitle>
@@ -569,7 +569,7 @@ export default function BankReconciliationPage() {
                               {formatCurrency(Number(tx.deposit) || Number(tx.withdrawal) || 0)}
                             </span>
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{formatDate(tx.date)} | {tx.reference_number || '—'}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{formatDate(tx.date)} | {tx.reference_number || '—'}</p>
                         </button>
                       ))}
                       {filteredBankTx.filter(t => !matchedKeys.has(t.name)).length === 0 && (
@@ -595,10 +595,10 @@ export default function BankReconciliationPage() {
                           )}
                         >
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-mono text-[10px] text-primary">{pe.name}</span>
+                            <span className="font-mono text-xs text-primary">{pe.name}</span>
                             <span className="font-semibold tabular-nums shrink-0" dir="ltr">{formatCurrency(Number(pe.paid_amount) || 0)}</span>
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{pe.party_name || '—'} | {formatDate(pe.posting_date)}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{pe.party_name || '—'} | {formatDate(pe.posting_date)}</p>
                         </button>
                       ))}
                       {filteredPayments.filter(p => !matchedKeys.has(`pe-${p.name}`)).length === 0 && (
@@ -654,28 +654,28 @@ export default function BankReconciliationPage() {
                 placeholder="اختر الحساب البنكي..."
               />
               {form.formState.errors.bank_account && (
-                <p className="text-[10px] text-destructive">{form.formState.errors.bank_account.message}</p>
+                <p className="text-xs text-destructive">{form.formState.errors.bank_account.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium">التاريخ *</Label>
               <Input type="date" dir="ltr" {...form.register('date')} />
               {form.formState.errors.date && (
-                <p className="text-[10px] text-destructive">{form.formState.errors.date.message}</p>
+                <p className="text-xs text-destructive">{form.formState.errors.date.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium">الوصف *</Label>
               <Input placeholder="وصف الحركة البنكية..." {...form.register('description')} />
               {form.formState.errors.description && (
-                <p className="text-[10px] text-destructive">{form.formState.errors.description.message}</p>
+                <p className="text-xs text-destructive">{form.formState.errors.description.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium">رقم المرجع</Label>
               <Input placeholder="رقم مرجعي (اختياري)..." dir="ltr" {...form.register('reference_number')} />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-medium">الإيداع</Label>
                 <Input type="number" dir="ltr" placeholder="0.00" {...form.register('deposit', { valueAsNumber: true })} />

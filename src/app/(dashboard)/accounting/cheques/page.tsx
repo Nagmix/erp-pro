@@ -296,15 +296,15 @@ export default function ChequesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-28"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -317,7 +317,7 @@ export default function ChequesPage() {
           </div>
           {includeLifecycle && (
             <div className="space-y-1">
-              <Label className="text-[10px]">دورة الشيك</Label>
+              <Label className="text-xs">دورة الشيك</Label>
               <Select value={lifecycleFilter} onValueChange={setLifecycleFilter}>
                 <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -336,7 +336,7 @@ export default function ChequesPage() {
       </div>
 
       {lifecycleCheckDone && !includeLifecycle && (
-        <Alert className="border-amber-500/40 bg-amber-500/5">
+        <Alert className="border-amber-500/40 bg-chart-2/5">
           <AlertTitle>تفعيل مراحل الشيك</AlertTitle>
           <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
             <span className="text-sm">
@@ -366,43 +366,43 @@ export default function ChequesPage() {
               <CreditCard className="h-4.5 w-4.5" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground font-medium">إجمالي الشيكات</p>
+              <p className="text-xs text-muted-foreground font-medium">إجمالي الشيكات</p>
               <p className="text-lg font-bold tabular-nums">{kpis.total}</p>
             </div>
           </div>
           <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-chart-2/10 text-chart-2 flex items-center justify-center">
               <ArrowUpFromLine className="h-4.5 w-4.5" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground font-medium">إصدار</p>
+              <p className="text-xs text-muted-foreground font-medium">إصدار</p>
               <p className="text-lg font-bold tabular-nums">{kpis.issued}</p>
             </div>
           </div>
           <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-blue-500/10 text-blue-600 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-chart-1/10 text-chart-1 flex items-center justify-center">
               <ArrowDownToLine className="h-4.5 w-4.5" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground font-medium">إيداع</p>
+              <p className="text-xs text-muted-foreground font-medium">إيداع</p>
               <p className="text-lg font-bold tabular-nums">{kpis.deposited}</p>
             </div>
           </div>
           <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <CheckCircle2 className="h-4.5 w-4.5" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground font-medium">مقاصة</p>
+              <p className="text-xs text-muted-foreground font-medium">مقاصة</p>
               <p className="text-lg font-bold tabular-nums">{kpis.cleared}</p>
             </div>
           </div>
           <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-red-500/10 text-red-600 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center">
               <AlertTriangle className="h-4.5 w-4.5" />
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground font-medium">ارتداد</p>
+              <p className="text-xs text-muted-foreground font-medium">ارتداد</p>
               <p className="text-lg font-bold tabular-nums">{kpis.bounced}</p>
             </div>
           </div>
@@ -420,7 +420,7 @@ export default function ChequesPage() {
             >
               {f.label}
               <span
-                className={`tabular-nums text-[10px] rounded-md px-1.5 py-0.5 font-semibold ${typeFilter === f.key ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/70'}`}
+                className={`tabular-nums text-xs rounded-md px-1.5 py-0.5 font-semibold ${typeFilter === f.key ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/70'}`}
               >
                 {f.count}
               </span>

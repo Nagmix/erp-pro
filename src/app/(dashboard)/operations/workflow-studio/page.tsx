@@ -112,29 +112,29 @@ const STATE_COLOR_OPTIONS = [
 
 const colorClass: Record<string, { border: string; bg: string; text: string }> = {
   green: {
-    border: 'border-emerald-500',
-    bg: 'bg-emerald-50 dark:bg-emerald-950/30',
-    text: 'text-emerald-700 dark:text-emerald-300',
+    border: 'border-primary',
+    bg: 'bg-primary/5 dark:bg-primary/10',
+    text: 'text-primary',
   },
   blue: {
-    border: 'border-sky-500',
-    bg: 'bg-sky-50 dark:bg-sky-950/30',
-    text: 'text-sky-700 dark:text-sky-300',
+    border: 'border-chart-1',
+    bg: 'bg-chart-1/5 dark:bg-chart-1/10',
+    text: 'text-chart-1',
   },
   amber: {
-    border: 'border-amber-500',
-    bg: 'bg-amber-50 dark:bg-amber-950/30',
-    text: 'text-amber-700 dark:text-amber-300',
+    border: 'border-chart-2',
+    bg: 'bg-chart-2/5 dark:bg-chart-2/10',
+    text: 'text-chart-2',
   },
   red: {
-    border: 'border-rose-500',
-    bg: 'bg-rose-50 dark:bg-rose-950/30',
-    text: 'text-rose-700 dark:text-rose-300',
+    border: 'border-destructive',
+    bg: 'bg-destructive/5 dark:bg-destructive/10',
+    text: 'text-destructive',
   },
   purple: {
-    border: 'border-violet-500',
-    bg: 'bg-violet-50 dark:bg-violet-950/30',
-    text: 'text-violet-700 dark:text-violet-300',
+    border: 'border-chart-5',
+    bg: 'bg-chart-5/5 ',
+    text: 'text-chart-5',
   },
 };
 
@@ -191,10 +191,10 @@ function WorkflowDiagram({
               <Badge
                 variant="outline"
                 className={cn(
-                  'text-[10px] px-2 py-0.5',
-                  group[0].style === 'start' && 'border-emerald-400 text-emerald-600',
-                  group[0].style === 'middle' && 'border-sky-400 text-sky-600',
-                  group[0].style === 'end' && 'border-rose-400 text-rose-600'
+                  'text-xs px-2 py-0.5',
+                  group[0].style === 'start' && 'border-primary text-primary',
+                  group[0].style === 'middle' && 'border-chart-1 text-chart-1',
+                  group[0].style === 'end' && 'border-destructive text-destructive'
                 )}
               >
                 {group[0].style === 'start'
@@ -231,7 +231,7 @@ function WorkflowDiagram({
       {/* Transitions arrows section */}
       {transitions.length > 0 && (
         <div className="mt-4 border-t border-border/40 pt-4">
-          <p className="text-[10px] text-muted-foreground mb-2 text-center font-medium">
+          <p className="text-xs text-muted-foreground mb-2 text-center font-medium">
             التحولات
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
@@ -563,7 +563,7 @@ export default function WorkflowStudioPage() {
         render: (_v, row) => {
           const count = Array.isArray(row.states) ? row.states.length : 0;
           return (
-            <Badge variant="secondary" className="text-[10px] tabular-nums">
+            <Badge variant="secondary" className="text-xs tabular-nums">
               <span dir="ltr">{count}</span>
             </Badge>
           );
@@ -575,7 +575,7 @@ export default function WorkflowStudioPage() {
         render: (_v, row) => {
           const count = Array.isArray(row.transitions) ? row.transitions.length : 0;
           return (
-            <Badge variant="outline" className="text-[10px] tabular-nums">
+            <Badge variant="outline" className="text-xs tabular-nums">
               <span dir="ltr">{count}</span>
             </Badge>
           );
@@ -591,7 +591,7 @@ export default function WorkflowStudioPage() {
               disabled={updateMutation.isPending}
               onCheckedChange={(checked) => handleToggle(row, checked)}
             />
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {Number(v) === 1 ? 'نعم' : 'لا'}
             </span>
           </div>
@@ -668,7 +668,7 @@ export default function WorkflowStudioPage() {
                 className="grid gap-2 rounded-lg border border-border/30 bg-muted/10 p-2 items-end md:grid-cols-12"
               >
                 <div className="md:col-span-4 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     اسم الحالة *
                   </Label>
                   <ErpLinkCombobox
@@ -681,7 +681,7 @@ export default function WorkflowStudioPage() {
                   />
                 </div>
                 <div className="md:col-span-3 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     لون الحالة
                   </Label>
                   <Select
@@ -698,11 +698,11 @@ export default function WorkflowStudioPage() {
                             <span
                               className={cn(
                                 'inline-block h-2.5 w-2.5 rounded-full',
-                                c.value === 'green' && 'bg-emerald-500',
-                                c.value === 'blue' && 'bg-sky-500',
-                                c.value === 'amber' && 'bg-amber-500',
-                                c.value === 'red' && 'bg-rose-500',
-                                c.value === 'purple' && 'bg-violet-500'
+                                c.value === 'green' && 'bg-chart-3',
+                                c.value === 'blue' && 'bg-chart-1',
+                                c.value === 'amber' && 'bg-chart-2',
+                                c.value === 'red' && 'bg-destructive',
+                                c.value === 'purple' && 'bg-chart-5'
                               )}
                             />
                             {c.label}
@@ -713,7 +713,7 @@ export default function WorkflowStudioPage() {
                   </Select>
                 </div>
                 <div className="md:col-span-4 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     نمط الحالة
                   </Label>
                   <Select
@@ -783,7 +783,7 @@ export default function WorkflowStudioPage() {
                 className="grid gap-2 rounded-lg border border-border/30 bg-muted/10 p-2 items-end md:grid-cols-12"
               >
                 <div className="md:col-span-2 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     الحالة المصدر *
                   </Label>
                   <Select
@@ -803,7 +803,7 @@ export default function WorkflowStudioPage() {
                   </Select>
                 </div>
                 <div className="md:col-span-2 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     الحالة الهدف *
                   </Label>
                   <Select
@@ -823,7 +823,7 @@ export default function WorkflowStudioPage() {
                   </Select>
                 </div>
                 <div className="md:col-span-3 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     الإجراء *
                   </Label>
                   <ErpLinkCombobox
@@ -836,7 +836,7 @@ export default function WorkflowStudioPage() {
                   />
                 </div>
                 <div className="md:col-span-3 space-y-1">
-                  <Label className="text-[10px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     الدور المسموح
                   </Label>
                   <ErpLinkCombobox
@@ -1046,7 +1046,7 @@ export default function WorkflowStudioPage() {
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5"
+              variant="destructive" className="gap-1.5"
             >
               <Trash2 className="h-3.5 w-3.5" />
               {deleteMutation.isPending ? 'جاري الحذف...' : 'حذف'}

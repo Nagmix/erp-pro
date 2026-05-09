@@ -213,7 +213,7 @@ export function PurchaseInvoiceNewEditor() {
                 <p className="text-xs font-medium text-destructive">{form.formState.errors.supplier.message}</p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4" dir="rtl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" dir="rtl">
               <div className="space-y-2.5">
                 <Label className="text-xs font-semibold text-foreground/90">تاريخ الفاتورة</Label>
                 <Input
@@ -238,7 +238,7 @@ export function PurchaseInvoiceNewEditor() {
                 </p>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4" dir="rtl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" dir="rtl">
               <div className="space-y-2.5">
                 <Label className="text-xs font-semibold text-foreground/90">العملة</Label>
                 <ErpLinkCombobox

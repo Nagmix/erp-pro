@@ -42,10 +42,10 @@ const subscriptionCols: Column<GenericRow>[] = [
   { key: 'status', header: 'الحالة', filterable: true, render: (v) => {
     const s = String(v ?? '—');
     const colorMap: Record<string, string> = {
-      Active: 'text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-950/30',
-      Completed: 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/30',
+      Active: 'text-primary bg-primary/10',
+      Completed: 'text-chart-1 bg-chart-1/10',
       Cancelled: 'text-destructive bg-destructive/10',
-      Trialing: 'text-amber-600 bg-amber-50 dark:text-amber-400 dark:bg-amber-950/30',
+      Trialing: 'text-chart-2 bg-chart-2/10',
     };
     return <span className={`text-xs px-2 py-0.5 rounded-md ${colorMap[s] || 'bg-muted text-muted-foreground'}`}>{s}</span>;
   }},
@@ -461,11 +461,11 @@ export default function SalesIntegrationsPage() {
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="space-y-1.5">
-              <Label className="text-[13px] font-semibold">اسم القالب <span className="text-destructive text-xs">*</span></Label>
+              <Label className="text-xs font-medium">اسم القالب <span className="text-destructive text-xs">*</span></Label>
               <Input value={ptName} onChange={(e) => setPtName(e.target.value)} placeholder="مثال: دفع خلال 30 يوم" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[13px] font-semibold">عدد أيام السداد</Label>
+              <Label className="text-xs font-medium">عدد أيام السداد</Label>
               <Input type="number" dir="ltr" min={0} value={ptDueDate} onChange={(e) => setPtDueDate(e.target.value)} placeholder="مثال: 30" />
             </div>
           </div>
@@ -494,11 +494,11 @@ export default function SalesIntegrationsPage() {
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="space-y-1.5">
-              <Label className="text-[13px] font-semibold">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
+              <Label className="text-xs font-medium">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
               <Input value={srName} onChange={(e) => setSrName(e.target.value)} placeholder="مثال: شحن مجاني فوق 500" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[13px] font-semibold">النوع</Label>
+              <Label className="text-xs font-medium">النوع</Label>
               <Select value={srType} onValueChange={setSrType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>

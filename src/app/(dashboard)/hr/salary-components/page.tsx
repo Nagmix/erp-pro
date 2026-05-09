@@ -97,7 +97,7 @@ const initialForm: FormData = {
 function BoolBadge({ value, trueLabel, falseLabel }: { value: unknown; trueLabel: string; falseLabel: string }) {
   const on = Number(value) === 1 || value === true;
   return on ? (
-    <span className="text-xs font-medium text-emerald-700 bg-emerald-50 dark:text-emerald-300 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">
+    <span className="text-xs font-medium text-emerald-700 bg-primary/5 dark:text-emerald-300 dark:bg-primary/10 px-2 py-0.5 rounded-full">
       {trueLabel}
     </span>
   ) : (
@@ -213,14 +213,14 @@ export default function SalaryComponentsPage() {
         const v = String(value);
         if (v === 'Earning') {
           return (
-            <Badge variant="outline" className="border-0 text-xs font-semibold px-2 py-0.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/25">
+            <Badge variant="outline" className="border-0 text-xs font-semibold px-2 py-0.5 bg-primary/10 text-primary ring-1 ring-inset ring-primary/25">
               استحقاق
             </Badge>
           );
         }
         if (v === 'Deduction') {
           return (
-            <Badge variant="outline" className="border-0 text-xs font-semibold px-2 py-0.5 bg-rose-500/10 text-rose-700 dark:text-rose-300 ring-1 ring-inset ring-rose-500/25">
+            <Badge variant="outline" className="border-0 text-xs font-semibold px-2 py-0.5 bg-destructive/10 text-destructive ring-1 ring-inset ring-destructive/25">
               استقطاع
             </Badge>
           );
@@ -315,7 +315,7 @@ export default function SalaryComponentsPage() {
                 </div>
 
                 {/* النوع والاختصار */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium">النوع</Label>
                     <select
@@ -339,7 +339,7 @@ export default function SalaryComponentsPage() {
                 </div>
 
                 {/* Checkboxes */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="depends_on_lwp"
@@ -439,8 +439,8 @@ export default function SalaryComponentsPage() {
                   variant={typeFilter === opt.value ? 'default' : 'outline'}
                   className={cn(
                     'h-7 text-xs',
-                    typeFilter === opt.value && opt.value === 'Earning' && 'bg-emerald-600 hover:bg-emerald-700',
-                    typeFilter === opt.value && opt.value === 'Deduction' && 'bg-rose-600 hover:bg-rose-700',
+                    typeFilter === opt.value && opt.value === 'Earning' && 'bg-chart-3 hover:bg-chart-3',
+                    typeFilter === opt.value && opt.value === 'Deduction' && 'bg-destructive hover:bg-destructive',
                   )}
                   onClick={() => setTypeFilter(opt.value)}
                 >
@@ -478,7 +478,7 @@ export default function SalaryComponentsPage() {
             {/* Earnings breakdown */}
             <div className="rounded-xl border border-border/40 bg-card p-4 lg:p-5">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden />
+                <span className="h-2 w-2 rounded-full bg-chart-3" aria-hidden />
                 مكوّنات الاستحقاق ({earningCount})
               </h3>
               <div className="space-y-1.5 max-h-64 overflow-y-auto">
@@ -489,10 +489,10 @@ export default function SalaryComponentsPage() {
                       <span className="font-medium">{r.salary_component || r.name}</span>
                       <div className="flex items-center gap-1.5">
                         {Number(r.is_tax_applicable) === 1 && (
-                          <span className="text-[10px] bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 px-1.5 py-0.5 rounded">ضريبة</span>
+                          <span className="text-[10px] bg-chart-2/5 text-amber-700 dark:bg-chart-2/10 dark:text-amber-300 px-1.5 py-0.5 rounded">ضريبة</span>
                         )}
                         {Number(r.is_flexible_benefit) === 1 && (
-                          <span className="text-[10px] bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 px-1.5 py-0.5 rounded">مرن</span>
+                          <span className="text-[10px] bg-chart-1/5 text-sky-700 dark:bg-chart-1/10 dark:text-sky-300 px-1.5 py-0.5 rounded">مرن</span>
                         )}
                         <DocStatusBadge docstatus={Number(r.docstatus ?? 0) as 0 | 1 | 2} />
                       </div>
@@ -507,7 +507,7 @@ export default function SalaryComponentsPage() {
             {/* Deductions breakdown */}
             <div className="rounded-xl border border-border/40 bg-card p-4 lg:p-5">
               <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-rose-500" aria-hidden />
+                <span className="h-2 w-2 rounded-full bg-destructive" aria-hidden />
                 مكوّنات الاستقطاع ({deductionCount})
               </h3>
               <div className="space-y-1.5 max-h-64 overflow-y-auto">
@@ -518,7 +518,7 @@ export default function SalaryComponentsPage() {
                       <span className="font-medium">{r.salary_component || r.name}</span>
                       <div className="flex items-center gap-1.5">
                         {Number(r.is_tax_applicable) === 1 && (
-                          <span className="text-[10px] bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 px-1.5 py-0.5 rounded">ضريبة</span>
+                          <span className="text-[10px] bg-chart-2/5 text-amber-700 dark:bg-chart-2/10 dark:text-amber-300 px-1.5 py-0.5 rounded">ضريبة</span>
                         )}
                         <DocStatusBadge docstatus={Number(r.docstatus ?? 0) as 0 | 1 | 2} />
                       </div>

@@ -191,7 +191,7 @@ export default function SupplierGroupsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void handleDelete()} className="bg-destructive text-destructive-foreground">حذف</AlertDialogAction>
+            <AlertDialogAction onClick={() => void handleDelete()} variant="destructive">حذف</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

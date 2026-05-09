@@ -59,11 +59,11 @@ const API_ENDPOINTS = [
 ];
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
-  POST: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300',
-  PUT: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  DELETE: 'bg-rose-100 text-rose-800 dark:bg-rose-900/30 dark:text-rose-300',
-  PATCH: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
+  GET: 'bg-primary/10 text-emerald-800 dark:bg-chart-3/10 dark:text-emerald-300',
+  POST: 'bg-chart-1/10 text-sky-800 dark:bg-chart-1/10 dark:text-sky-300',
+  PUT: 'bg-chart-2/10 text-amber-800 dark:bg-chart-2/10 dark:text-amber-300',
+  DELETE: 'bg-destructive/10 text-rose-800 dark:bg-destructive/10 dark:text-rose-300',
+  PATCH: 'bg-chart-5/10 text-purple-800 dark:bg-chart-5/10 dark:text-purple-300',
 };
 
 /** تحديد نجاح حالة التسليم — يدعم القيم من المخزن المحلي (delivered/failed/queued) والقيم القديمة (Success/success) */
@@ -421,11 +421,11 @@ export default function DeveloperApiPage() {
             <CardContent className="space-y-3">
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">اسم المفتاح</Label>
+                  <Label className="text-xs font-medium">اسم المفتاح</Label>
                   <Input value={keyLabel} onChange={(e) => setKeyLabel(e.target.value)} placeholder="مفتاح تطبيق الجوال" className="h-10" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">النطاقات المسموحة (مفصولة بفاصلة)</Label>
+                  <Label className="text-xs font-medium">النطاقات المسموحة (مفصولة بفاصلة)</Label>
                   <Input value={scopes} onChange={(e) => setScopes(e.target.value)} placeholder="قراءة,كتابة,تقارير" className="h-10" />
                 </div>
               </div>
@@ -454,7 +454,7 @@ export default function DeveloperApiPage() {
                             {key.revokedAt ? (
                               <Badge variant="secondary" className="text-[10px]">ملغى</Badge>
                             ) : (
-                              <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-200">نشط</Badge>
+                              <Badge variant="outline" className="text-[10px] text-primary border-primary/20">نشط</Badge>
                             )}
                           </div>
                           <div className="flex items-center gap-1.5 mt-1">
@@ -496,16 +496,16 @@ export default function DeveloperApiPage() {
             <CardContent className="space-y-3">
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">اسم الحدث</Label>
+                  <Label className="text-xs font-medium">اسم الحدث</Label>
                   <Input value={event} onChange={(e) => setEvent(e.target.value)} placeholder="حدث الفاتورة" className="h-10" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">رابط الاستقبال</Label>
+                  <Label className="text-xs font-medium">رابط الاستقبال</Label>
                   <Input dir="ltr" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/hook" className="h-10" />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-[13px] font-semibold">بيانات الإرسال (JSON)</Label>
+                <Label className="text-xs font-medium">بيانات الإرسال (JSON)</Label>
                 <Textarea rows={3} value={payload} onChange={(e) => setPayload(e.target.value)} placeholder='{"key": "value"}' />
               </div>
               <div className="flex gap-2">
@@ -614,7 +614,7 @@ export default function DeveloperApiPage() {
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-[10px] font-mono">{hook.event}</Badge>
                             {hook.enabled ? (
-                              <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-200">مفعّل</Badge>
+                              <Badge variant="outline" className="text-[10px] text-primary border-primary/20">مفعّل</Badge>
                             ) : (
                               <Badge variant="secondary" className="text-[10px]">معطّل</Badge>
                             )}
@@ -850,8 +850,8 @@ console.log(data);`}
                             variant="outline"
                             className={`text-[10px] ${
                               success
-                                ? 'text-emerald-600 border-emerald-200'
-                                : 'text-rose-600 border-rose-200'
+                                ? 'text-primary border-primary/20'
+                                : 'text-destructive border-destructive/20'
                             }`}
                           >
                             {success ? 'نجاح' : 'فشل'}

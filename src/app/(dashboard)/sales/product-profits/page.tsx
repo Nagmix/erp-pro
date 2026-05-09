@@ -287,7 +287,7 @@ export default function ProductProfitsReportPage() {
       <Card className="border-border/40">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Filter className="h-4 w-4 text-amber-600" />
+            <Filter className="h-4 w-4 text-chart-2" />
             معايير التقرير
           </CardTitle>
         </CardHeader>
@@ -397,7 +397,7 @@ export default function ProductProfitsReportPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <Layers className="h-4 w-4 text-emerald-600" />
+                  <Layers className="h-4 w-4 text-primary" />
                   الربح حسب الفئة
                 </CardTitle>
               </CardHeader>
@@ -458,7 +458,7 @@ export default function ProductProfitsReportPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <PieChartIcon className="h-4 w-4 text-purple-600" />
+                  <PieChartIcon className="h-4 w-4 text-chart-5" />
                   توزيع هوامش الربح
                 </CardTitle>
               </CardHeader>
@@ -513,7 +513,7 @@ export default function ProductProfitsReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <ArrowRightLeft className="h-4 w-4 text-sky-600" />
+                <ArrowRightLeft className="h-4 w-4 text-chart-1" />
                 ملخص الأرباح حسب الفئة
               </CardTitle>
             </CardHeader>
@@ -537,7 +537,7 @@ export default function ProductProfitsReportPage() {
                           <TableCell className="font-medium">{cat.category}</TableCell>
                           <TableCell className="tabular-nums">{fmt(cat.revenue)} ر.ي</TableCell>
                           <TableCell className="tabular-nums">{fmt(cat.cost)} ر.ي</TableCell>
-                          <TableCell className={`tabular-nums font-medium ${cat.profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                          <TableCell className={`tabular-nums font-medium ${cat.profit >= 0 ? 'text-primary' : 'text-red-600'}`}>
                             {fmt(cat.profit)} ر.ي
                           </TableCell>
                           <TableCell>
@@ -583,7 +583,7 @@ export default function ProductProfitsReportPage() {
           <Card className="border-border/40">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
-                <Package className="h-4 w-4 text-amber-600" />
+                <Package className="h-4 w-4 text-chart-2" />
                 تفاصيل أرباح المنتجات
                 <Badge variant="outline" className="text-xs ms-2">
                   {filteredProducts.length} منتج
@@ -640,7 +640,7 @@ export default function ProductProfitsReportPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredProducts.map((product, idx) => (
-                      <TableRow key={product.code} className={product.margin < 0 ? 'bg-red-50/50 dark:bg-red-950/10' : ''}>
+                      <TableRow key={product.code} className={product.margin < 0 ? 'bg-destructive/5' : ''}>
                         <TableCell className="text-center text-muted-foreground">{idx + 1}</TableCell>
                         <TableCell>
                           <div>
@@ -654,7 +654,7 @@ export default function ProductProfitsReportPage() {
                         <TableCell className="tabular-nums">{product.qtySold.toFixed(2)}</TableCell>
                         <TableCell className="tabular-nums">{fmt(product.revenue)} ر.ي</TableCell>
                         <TableCell className="tabular-nums">{fmt(product.cost)} ر.ي</TableCell>
-                        <TableCell className={`tabular-nums font-medium ${product.profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        <TableCell className={`tabular-nums font-medium ${product.profit >= 0 ? 'text-primary' : 'text-red-600'}`}>
                           {fmt(product.profit)} ر.ي
                         </TableCell>
                         <TableCell>
@@ -684,7 +684,7 @@ export default function ProductProfitsReportPage() {
                         <TableCell className="tabular-nums">{totalsRow.qtySold.toFixed(2)}</TableCell>
                         <TableCell className="tabular-nums">{fmt(totalsRow.revenue)} ر.ي</TableCell>
                         <TableCell className="tabular-nums">{fmt(totalsRow.cost)} ر.ي</TableCell>
-                        <TableCell className={`tabular-nums ${totalsRow.profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        <TableCell className={`tabular-nums ${totalsRow.profit >= 0 ? 'text-primary' : 'text-red-600'}`}>
                           {fmt(totalsRow.profit)} ر.ي
                         </TableCell>
                         <TableCell>
@@ -709,7 +709,7 @@ export default function ProductProfitsReportPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <TrendingUp className="h-4 w-4 text-emerald-600" />
+                  <TrendingUp className="h-4 w-4 text-primary" />
                   أعلى المنتجات هامشاً
                 </CardTitle>
               </CardHeader>
@@ -727,7 +727,7 @@ export default function ProductProfitsReportPage() {
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-16 rounded-full bg-muted">
                             <div
-                              className="h-2 rounded-full bg-emerald-500"
+                              className="h-2 rounded-full bg-chart-3"
                               style={{ width: `${Math.min(p.margin, 100)}%` }}
                             />
                           </div>
@@ -766,7 +766,7 @@ export default function ProductProfitsReportPage() {
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-16 rounded-full bg-muted">
                             <div
-                              className={`h-2 rounded-full ${p.margin < 0 ? 'bg-red-500' : 'bg-amber-500'}`}
+                              className={`h-2 rounded-full ${p.margin < 0 ? 'bg-destructive' : 'bg-chart-2'}`}
                               style={{ width: `${Math.min(Math.abs(p.margin), 100)}%` }}
                             />
                           </div>
@@ -794,18 +794,18 @@ export default function ProductProfitsReportPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-lg border border-sky-200 bg-sky-50/50 p-4 dark:border-sky-900/40 dark:bg-sky-950/20">
-                  <p className="text-xs font-medium text-sky-700 dark:text-sky-400">إجمالي الإيرادات</p>
-                  <p className="mt-1 text-xl font-bold text-sky-800 dark:text-sky-300 tabular-nums">
+                <div className="rounded-lg border border-chart-1/20 bg-chart-1/5 p-4">
+                  <p className="text-xs font-medium text-chart-1">إجمالي الإيرادات</p>
+                  <p className="mt-1 text-xl font-bold text-chart-1 tabular-nums">
                     {fmt(summary?.totalRevenue || 0)} ر.ي
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     من {(summary?.productCount || 0)} منتج
                   </p>
                 </div>
-                <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 dark:border-amber-900/40 dark:bg-amber-950/20">
-                  <p className="text-xs font-medium text-amber-700 dark:text-amber-400">إجمالي التكلفة</p>
-                  <p className="mt-1 text-xl font-bold text-amber-800 dark:text-amber-300 tabular-nums">
+                <div className="rounded-lg border border-chart-2/20 bg-chart-2/5 p-4">
+                  <p className="text-xs font-medium text-chart-2">إجمالي التكلفة</p>
+                  <p className="mt-1 text-xl font-bold text-chart-2 tabular-nums">
                     {fmt(summary?.totalCost || 0)} ر.ي
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -814,20 +814,20 @@ export default function ProductProfitsReportPage() {
                 </div>
                 <div className={`rounded-lg border p-4 ${
                   (summary?.totalProfit || 0) >= 0
-                    ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-950/20'
-                    : 'border-red-200 bg-red-50/50 dark:border-red-900/40 dark:bg-red-950/20'
+                    ? 'border-primary/20 bg-primary/5'
+                    : 'border-destructive/20 bg-destructive/5'
                 }`}>
                   <p className={`text-xs font-medium ${
                     (summary?.totalProfit || 0) >= 0
-                      ? 'text-emerald-700 dark:text-emerald-400'
-                      : 'text-red-700 dark:text-red-400'
+                      ? 'text-primary'
+                      : 'text-destructive'
                   }`}>
                     صافي الربح
                   </p>
                   <p className={`mt-1 text-xl font-bold tabular-nums ${
                     (summary?.totalProfit || 0) >= 0
-                      ? 'text-emerald-800 dark:text-emerald-300'
-                      : 'text-red-800 dark:text-red-300'
+                      ? 'text-primary'
+                      : 'text-destructive'
                   }`}>
                     {fmt(summary?.totalProfit || 0)} ر.ي
                   </p>

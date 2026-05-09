@@ -37,10 +37,10 @@ import {
 /* ------------------------------------------------------------------ */
 const QUICK_ACTIONS = [
   { label: 'قيد يومي جديد', href: '/accounting/journal-entry?new=1', icon: BookOpen, color: 'bg-primary/10 text-primary' },
-  { label: 'سند دفع جديد', href: '/accounting/payment-entry?new=1', icon: HandCoins, color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' },
-  { label: 'القوائم المالية', href: '/accounting/financial-statements', icon: Landmark, color: 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' },
-  { label: 'التسوية البنكية', href: '/accounting/bank-reconciliation', icon: Building2, color: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400' },
-  { label: 'إقفال الفترة', href: '/accounting/period-closing', icon: CalendarClock, color: 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400' },
+  { label: 'سند دفع جديد', href: '/accounting/payment-entry?new=1', icon: HandCoins, color: 'bg-primary/10 text-primary' },
+  { label: 'القوائم المالية', href: '/accounting/financial-statements', icon: Landmark, color: 'bg-chart-1/10 text-chart-1' },
+  { label: 'التسوية البنكية', href: '/accounting/bank-reconciliation', icon: Building2, color: 'bg-chart-2/10 text-chart-2' },
+  { label: 'إقفال الفترة', href: '/accounting/period-closing', icon: CalendarClock, color: 'bg-destructive/10 text-destructive' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -100,10 +100,10 @@ function AgingSummary({ current, days30, days60, over60 }: {
   const total = current + days30 + days60 + over60;
   const safeTotal = Math.max(total, 1);
   const segments = [
-    { label: 'حالي', value: current, color: 'bg-emerald-500' },
-    { label: '١-٣٠ يوم', value: days30, color: 'bg-sky-500' },
-    { label: '٣١-٦٠ يوم', value: days60, color: 'bg-amber-500' },
-    { label: 'أكثر من ٦٠', value: over60, color: 'bg-rose-500' },
+    { label: 'حالي', value: current, color: 'bg-chart-3' },
+    { label: '١-٣٠ يوم', value: days30, color: 'bg-chart-1' },
+    { label: '٣١-٦٠ يوم', value: days60, color: 'bg-chart-2' },
+    { label: 'أكثر من ٦٠', value: over60, color: 'bg-destructive' },
   ];
   return (
     <div className="space-y-3">
@@ -431,7 +431,7 @@ export default function AccountingDashboardPage() {
                 <SimpleBarChart
                   data={monthlyData.map((m) => ({ label: m.label, value: m.revenue }))}
                   maxVal={maxChartVal}
-                  colorClass="bg-emerald-500/80"
+                  colorClass="bg-chart-3/80"
                 />
               </div>
               <div>
@@ -439,7 +439,7 @@ export default function AccountingDashboardPage() {
                 <SimpleBarChart
                   data={monthlyData.map((m) => ({ label: m.label, value: m.expenses }))}
                   maxVal={maxChartVal}
-                  colorClass="bg-amber-500/80"
+                  colorClass="bg-chart-2/80"
                 />
               </div>
             </div>
@@ -526,8 +526,8 @@ export default function AccountingDashboardPage() {
                       className="flex items-center justify-between p-2 rounded-lg hover:bg-accent/50 transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`h-7 w-7 flex items-center justify-center rounded-md ${isUrgent ? 'bg-rose-100 dark:bg-rose-900/30' : 'bg-amber-100 dark:bg-amber-900/30'}`}>
-                          <CalendarClock className={`h-3.5 w-3.5 ${isUrgent ? 'text-rose-600' : 'text-amber-600'}`} />
+                        <div className={`h-7 w-7 flex items-center justify-center rounded-md ${isUrgent ? 'bg-destructive/10' : 'bg-chart-2/10'}`}>
+                          <CalendarClock className={`h-3.5 w-3.5 ${isUrgent ? 'text-destructive' : 'text-chart-2'}`} />
                         </div>
                         <div className="min-w-0">
                           <p className="text-[11px] font-medium truncate">{String(inv.supplier_name ?? inv.supplier ?? '—')}</p>

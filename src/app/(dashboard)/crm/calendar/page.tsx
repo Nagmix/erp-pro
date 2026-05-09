@@ -64,15 +64,15 @@ const STATUS_AR: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  Open: 'bg-sky-500 text-white',
+  Open: 'bg-chart-1 text-white',
   Closed: 'bg-muted text-muted-foreground',
-  Cancelled: 'bg-rose-500 text-white',
+  Cancelled: 'bg-destructive text-white',
 };
 
 const STATUS_BORDER: Record<string, string> = {
-  Open: 'border-sky-400',
+  Open: 'border-chart-1',
   Closed: 'border-muted',
-  Cancelled: 'border-rose-400',
+  Cancelled: 'border-destructive',
 };
 
 type ViewMode = 'month' | 'week' | 'day';
@@ -495,8 +495,8 @@ export default function CalendarPage() {
                             key={ev.name}
                             className={cn(
                               'text-[10px] px-1.5 py-0.5 rounded truncate cursor-pointer border-s-2',
-                              STATUS_BORDER[ev.status || 'Open'] || 'border-sky-400',
-                              STATUS_COLORS[ev.status || 'Open'] || 'bg-sky-500 text-white',
+                              STATUS_BORDER[ev.status || 'Open'] || 'border-chart-1',
+                              STATUS_COLORS[ev.status || 'Open'] || 'bg-chart-1 text-white',
                             )}
                             onClick={(e) => { e.stopPropagation(); openEventDetail(ev); }}
                           >
@@ -550,9 +550,9 @@ export default function CalendarPage() {
                           key={ev.name}
                           className={cn(
                             'text-[10px] px-2 py-1.5 rounded cursor-pointer border-s-2',
-                            STATUS_BORDER[ev.status || 'Open'] || 'border-sky-400',
-                            ev.status === 'Open' ? 'bg-sky-50 text-sky-800 dark:bg-sky-950/30 dark:text-sky-300' :
-                            ev.status === 'Cancelled' ? 'bg-rose-50 text-rose-800 dark:bg-rose-950/30 dark:text-rose-300' :
+                            STATUS_BORDER[ev.status || 'Open'] || 'border-chart-1',
+                            ev.status === 'Open' ? 'bg-chart-1/10 text-chart-1' :
+                            ev.status === 'Cancelled' ? 'bg-destructive/10 text-destructive' :
                             'bg-muted/30 text-muted-foreground',
                           )}
                           onClick={() => openEventDetail(ev)}
@@ -589,7 +589,7 @@ export default function CalendarPage() {
                   </div>
                 ) : (
                   dayViewEvents.map(ev => (
-                    <Card key={ev.name} className={cn('rounded-xl border shadow-none', STATUS_BORDER[ev.status || 'Open'] || 'border-sky-400', 'border-s-2')}>
+                    <Card key={ev.name} className={cn('rounded-xl border shadow-none', STATUS_BORDER[ev.status || 'Open'] || 'border-chart-1', 'border-s-2')}>
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1.5 min-w-0">
@@ -642,7 +642,7 @@ export default function CalendarPage() {
                 key={ev.name}
                 className={cn(
                   'rounded-lg border p-3 cursor-pointer transition-colors hover:bg-muted/20 border-s-2',
-                  STATUS_BORDER[ev.status || 'Open'] || 'border-sky-400',
+                  STATUS_BORDER[ev.status || 'Open'] || 'border-chart-1',
                 )}
                 onClick={() => openEventDetail(ev)}
               >
@@ -746,26 +746,26 @@ export default function CalendarPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">الموضوع <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">الموضوع <span className="text-destructive text-xs">*</span></Label>
                   <Input placeholder="موضوع الموعد" value={form.subject} onChange={(e) => setForm(prev => ({ ...prev, subject: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">التاريخ <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">التاريخ <span className="text-destructive text-xs">*</span></Label>
                   <Input type="date" dir="ltr" value={createDate} onChange={(e) => setCreateDate(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">من</Label>
+                    <Label className="text-xs font-medium">من</Label>
                     <Input type="time" dir="ltr" value={form.timeStart} onChange={(e) => setForm(prev => ({ ...prev, timeStart: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">إلى</Label>
+                    <Label className="text-xs font-medium">إلى</Label>
                     <Input type="time" dir="ltr" value={form.timeEnd} onChange={(e) => setForm(prev => ({ ...prev, timeEnd: e.target.value }))} />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع الحدث</Label>
+                    <Label className="text-xs font-medium">نوع الحدث</Label>
                     <Select dir="rtl" value={form.eventType} onValueChange={(val) => setForm(prev => ({ ...prev, eventType: val as 'Private' | 'Public' }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -775,7 +775,7 @@ export default function CalendarPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">التكرار</Label>
+                    <Label className="text-xs font-medium">التكرار</Label>
                     <Select dir="rtl" value={form.repeat} onValueChange={(val) => setForm(prev => ({ ...prev, repeat: val as typeof form.repeat }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -788,7 +788,7 @@ export default function CalendarPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">الوصف</Label>
+                  <Label className="text-xs font-medium">الوصف</Label>
                   <Textarea placeholder="وصف الموعد..." value={form.desc} onChange={(e) => setForm(prev => ({ ...prev, desc: e.target.value }))} rows={2} />
                 </div>
               </div>
@@ -803,12 +803,12 @@ export default function CalendarPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">تعيين لموظف</Label>
+                  <Label className="text-xs font-medium">تعيين لموظف</Label>
                   <ErpLinkCombobox doctype="User" value={form.assignee} onChange={(v) => setForm(prev => ({ ...prev, assignee: v }))} displayKey="full_name" className="h-9" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">نوع المرجع</Label>
+                    <Label className="text-xs font-medium">نوع المرجع</Label>
                     <Select dir="rtl" value={form.refType} onValueChange={(val) => setForm(prev => ({ ...prev, refType: val, refName: '' }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر..." /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -821,7 +821,7 @@ export default function CalendarPage() {
                   </div>
                   {form.refType && (
                     <div className="space-y-1.5">
-                      <Label className="text-[13px] font-semibold">اسم المرجع</Label>
+                      <Label className="text-xs font-medium">اسم المرجع</Label>
                       <ErpLinkCombobox
                         doctype={form.refType}
                         value={form.refName}

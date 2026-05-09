@@ -216,7 +216,7 @@ export function AppHeader() {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-[320px] p-0 overflow-hidden">
+            <PopoverContent align="end" className="w-[calc(100vw-2rem)] sm:w-[320px] p-0 overflow-hidden">
               <div className="flex items-center justify-between border-b border-border/40 px-3 py-2.5 bg-muted/30">
                 <div className="flex items-center gap-2">
                   <ModernIcon iconify="solar:bell-bing-bold-duotone" className="h-4 w-4 text-primary" />

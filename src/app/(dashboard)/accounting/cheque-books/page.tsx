@@ -275,7 +275,7 @@ export default function ChequeBooksPage() {
               <Label className="text-xs">الحساب البنكي *</Label>
               <ErpLinkCombobox doctype="Bank Account" value={bankAccount} onChange={setBankAccount} />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label className="text-xs">من رقم</Label>
                 <Input dir="ltr" value={fromNo} onChange={(e) => setFromNo(e.target.value)} />

@@ -89,18 +89,18 @@ function daysBetween(dateStr: string): number {
 }
 
 function getStatusInfo(daysOverdue: number): { label: string; color: string } {
-  if (daysOverdue <= 0) return { label: 'في الموعد', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300' };
-  if (daysOverdue <= 30) return { label: 'متأخر قليلاً', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300' };
-  if (daysOverdue <= 90) return { label: 'متأخر', color: 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300' };
-  return { label: 'متأخر جداً', color: 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300' };
+  if (daysOverdue <= 0) return { label: 'في الموعد', color: 'bg-primary/10 text-emerald-700 dark:bg-primary/10 dark:text-emerald-300' };
+  if (daysOverdue <= 30) return { label: 'متأخر قليلاً', color: 'bg-chart-2/10 text-amber-700 dark:bg-chart-2/10 dark:text-amber-300' };
+  if (daysOverdue <= 90) return { label: 'متأخر', color: 'bg-chart-4/10 text-orange-700 dark:bg-chart-4/10 dark:text-orange-300' };
+  return { label: 'متأخر جداً', color: 'bg-destructive/10 text-rose-700 dark:bg-destructive/10 dark:text-rose-300' };
 }
 
 function getScheduleStatus(dueDate: string): { label: string; color: string; icon: 'green' | 'yellow' | 'red' } {
   if (!dueDate) return { label: '—', color: 'bg-muted text-muted-foreground', icon: 'green' };
   const days = daysBetween(dueDate);
-  if (days <= 0) return { label: 'في الموعد', color: 'bg-emerald-100 text-emerald-700', icon: 'green' };
-  if (days <= 7) return { label: 'مستحق قريباً', color: 'bg-amber-100 text-amber-700', icon: 'yellow' };
-  return { label: 'متأخر', color: 'bg-rose-100 text-rose-700', icon: 'red' };
+  if (days <= 0) return { label: 'في الموعد', color: 'bg-primary/10 text-emerald-700', icon: 'green' };
+  if (days <= 7) return { label: 'مستحق قريباً', color: 'bg-chart-2/10 text-amber-700', icon: 'yellow' };
+  return { label: 'متأخر', color: 'bg-destructive/10 text-rose-700', icon: 'red' };
 }
 
 /* ──────────────── Main Component ──────────────── */
@@ -368,7 +368,7 @@ export default function DebtReschedulePage() {
       render: (v) => {
         const days = Number(v) || 0;
         return (
-          <span className={cn('text-xs font-semibold', days > 30 ? 'text-rose-600' : days > 0 ? 'text-amber-600' : 'text-emerald-600')}>
+          <span className={cn('text-xs font-semibold', days > 30 ? 'text-destructive' : days > 0 ? 'text-chart-2' : 'text-primary')}>
             {days > 0 ? `${days} يوم` : '—'}
           </span>
         );
@@ -518,7 +518,7 @@ export default function DebtReschedulePage() {
                         </div>
                         <div className="text-start shrink-0 space-y-1">
                           <p className="text-xs text-muted-foreground">{item.postingDate ? formatDate(item.postingDate) : '—'}</p>
-                          <Badge variant="outline" className={cn('text-[10px] border-0', item.status === 'مُقدّم' ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground')}>
+                          <Badge variant="outline" className={cn('text-[10px] border-0', item.status === 'مُقدّم' ? 'bg-primary/10 text-emerald-700' : 'bg-muted text-muted-foreground')}>
                             {item.status}
                           </Badge>
                         </div>
@@ -644,9 +644,9 @@ export default function DebtReschedulePage() {
                 </h4>
               </div>
               <div className="p-4 space-y-4 bg-card/50">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">عدد الأقساط</Label>
+                    <Label className="text-xs font-medium">عدد الأقساط</Label>
                     <Input
                       type="number"
                       min={1}
@@ -667,7 +667,7 @@ export default function DebtReschedulePage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تاريخ البدء <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-xs font-medium">تاريخ البدء <span className="text-destructive text-xs">*</span></Label>
                     <Input
                       type="date"
                       dir="ltr"
@@ -677,7 +677,7 @@ export default function DebtReschedulePage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">مبلغ القسط</Label>
+                  <Label className="text-xs font-medium">مبلغ القسط</Label>
                   <Input
                     type="number"
                     min={0}
@@ -689,7 +689,7 @@ export default function DebtReschedulePage() {
                   </p>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">سبب إعادة الجدولة</Label>
+                  <Label className="text-xs font-medium">سبب إعادة الجدولة</Label>
                   <Textarea
                     placeholder="أدخل سبب إعادة الجدولة..."
                     value={rescheduleForm.reason}

@@ -34,11 +34,11 @@ interface AuditEntry {
 }
 
 const actionConfig: Record<ActionType, { label: string; color: string; bg: string; icon: React.ComponentType<{ className?: string }> }> = {
-  create: { label: 'إنشاء', color: 'text-green-600', bg: 'bg-green-500/10', icon: Plus },
-  edit: { label: 'تعديل', color: 'text-blue-600', bg: 'bg-blue-500/10', icon: Pencil },
-  delete: { label: 'حذف', color: 'text-red-600', bg: 'bg-red-500/10', icon: Trash2 },
-  submit: { label: 'ترحيل', color: 'text-purple-600', bg: 'bg-purple-500/10', icon: Send },
-  cancel: { label: 'إلغاء', color: 'text-orange-600', bg: 'bg-orange-500/10', icon: XCircle },
+  create: { label: 'إنشاء', color: 'text-primary', bg: 'bg-primary/10', icon: Plus },
+  edit: { label: 'تعديل', color: 'text-chart-1', bg: 'bg-chart-1/10', icon: Pencil },
+  delete: { label: 'حذف', color: 'text-destructive', bg: 'bg-destructive/10', icon: Trash2 },
+  submit: { label: 'ترحيل', color: 'text-chart-5', bg: 'bg-chart-5/10', icon: Send },
+  cancel: { label: 'إلغاء', color: 'text-chart-4', bg: 'bg-chart-4/10', icon: XCircle },
   login: { label: 'تسجيل دخول', color: 'text-gray-600', bg: 'bg-gray-500/10', icon: LogIn },
 };
 
@@ -67,7 +67,7 @@ const columns: Column<AuditEntry>[] = [
       const config = actionConfig[type] ?? actionConfig.create;
       const Icon = config.icon;
       return (
-        <Badge variant="outline" className={`gap-1 text-[10px] ${config.color} border-current/20`}>
+        <Badge variant="outline" className={`gap-1 text-xs ${config.color} border-current/20`}>
           <Icon className="h-3 w-3" />
           {config.label}
         </Badge>
@@ -222,7 +222,7 @@ export default function AuditLogPage() {
               تصفية
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">المستخدم</Label>
+              <Label className="text-xs">المستخدم</Label>
               <Select value={userFilter} onValueChange={setUserFilter}>
                 <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -232,7 +232,7 @@ export default function AuditLogPage() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">نوع الإجراء</Label>
+              <Label className="text-xs">نوع الإجراء</Label>
               <Select value={actionFilter} onValueChange={setActionFilter}>
                 <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -246,7 +246,7 @@ export default function AuditLogPage() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">نوع المستند</Label>
+              <Label className="text-xs">نوع المستند</Label>
               <Select value={doctypeFilter} onValueChange={setDoctypeFilter}>
                 <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -256,11 +256,11 @@ export default function AuditLogPage() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">من تاريخ</Label>
+              <Label className="text-xs">من تاريخ</Label>
               <Input type="date" dir="ltr" className="h-8 w-36 text-xs" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
             </div>
             <div className="space-y-1">
-              <Label className="text-[10px]">إلى تاريخ</Label>
+              <Label className="text-xs">إلى تاريخ</Label>
               <Input type="date" dir="ltr" className="h-8 w-36 text-xs" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
             </div>
             <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={clearFilters}>

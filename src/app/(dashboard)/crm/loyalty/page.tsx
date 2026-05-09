@@ -344,7 +344,7 @@ export default function CrmLoyaltyPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">اسم البرنامج <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">اسم البرنامج <span className="text-destructive text-xs">*</span></Label>
                   <Input
                     placeholder="مثال: ولاء عملاء التجزئة"
                     value={formData.loyalty_program_name}
@@ -353,7 +353,7 @@ export default function CrmLoyaltyPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تاريخ البدء</Label>
+                    <Label className="text-xs font-medium">تاريخ البدء</Label>
                     <Input
                       type="date"
                       dir="ltr"
@@ -362,7 +362,7 @@ export default function CrmLoyaltyPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تحسين تلقائي</Label>
+                    <Label className="text-xs font-medium">تحسين تلقائي</Label>
                     <Select
                       dir="rtl"
                       value={formData.auto_optimize ? '1' : '0'}
@@ -389,7 +389,7 @@ export default function CrmLoyaltyPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">اسم المستوى</Label>
+                    <Label className="text-xs font-medium">اسم المستوى</Label>
                     <Input
                       placeholder="أساسي"
                       value={formData.tier_name}
@@ -397,7 +397,7 @@ export default function CrmLoyaltyPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الحد الأدنى للمبلغ</Label>
+                    <Label className="text-xs font-medium">الحد الأدنى للمبلغ</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -407,7 +407,7 @@ export default function CrmLoyaltyPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">معامل التجميع</Label>
+                    <Label className="text-xs font-medium">معامل التجميع</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -460,11 +460,11 @@ export default function CrmLoyaltyPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">كود البرنامج</Label>
+                  <Label className="text-xs font-medium">كود البرنامج</Label>
                   <Input value={selected?.name || ''} disabled className="bg-muted text-muted-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-[13px] font-semibold">اسم البرنامج <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-xs font-medium">اسم البرنامج <span className="text-destructive text-xs">*</span></Label>
                   <Input
                     placeholder="اسم البرنامج"
                     value={editFormData.loyalty_program_name}
@@ -473,7 +473,7 @@ export default function CrmLoyaltyPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تاريخ البدء</Label>
+                    <Label className="text-xs font-medium">تاريخ البدء</Label>
                     <Input
                       type="date"
                       dir="ltr"
@@ -482,7 +482,7 @@ export default function CrmLoyaltyPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">تحسين تلقائي</Label>
+                    <Label className="text-xs font-medium">تحسين تلقائي</Label>
                     <Select
                       dir="rtl"
                       value={editFormData.auto_optimize ? '1' : '0'}
@@ -509,14 +509,14 @@ export default function CrmLoyaltyPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">اسم المستوى</Label>
+                    <Label className="text-xs font-medium">اسم المستوى</Label>
                     <Input
                       value={editFormData.tier_name}
                       onChange={(e) => setEditFormData(prev => ({ ...prev, tier_name: e.target.value }))}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">الحد الأدنى للمبلغ</Label>
+                    <Label className="text-xs font-medium">الحد الأدنى للمبلغ</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -525,7 +525,7 @@ export default function CrmLoyaltyPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[13px] font-semibold">معامل التجميع</Label>
+                    <Label className="text-xs font-medium">معامل التجميع</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -561,7 +561,7 @@ export default function CrmLoyaltyPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} variant="destructive">حذف</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

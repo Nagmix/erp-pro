@@ -49,10 +49,10 @@ function defaultReportDate() {
 /** Aging bucket colors */
 function agingCellColor(range1to30: number, range31to60: number, range61to90: number, rangeAbove90: number) {
   const max = Math.max(range1to30, range31to60, range61to90, rangeAbove90, 1);
-  if (rangeAbove90 / max > 0.5) return 'bg-red-100/80 dark:bg-red-950/30 text-red-800 dark:text-red-200';
-  if (range61to90 / max > 0.5) return 'bg-orange-100/80 dark:bg-orange-950/30 text-orange-800 dark:text-orange-200';
-  if (range31to60 / max > 0.5) return 'bg-amber-100/80 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200';
-  return 'bg-emerald-100/80 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200';
+  if (rangeAbove90 / max > 0.5) return 'bg-destructive/10/80 dark:bg-destructive/10 text-red-800 dark:text-red-200';
+  if (range61to90 / max > 0.5) return 'bg-chart-4/10 text-chart-4';
+  if (range31to60 / max > 0.5) return 'bg-chart-2/10/80 dark:bg-chart-2/10 text-amber-800 dark:text-amber-200';
+  return 'bg-primary/10/80 dark:bg-primary/10 text-emerald-800 dark:text-emerald-200';
 }
 
 /** Parse aging data from ERPNext report rows */
@@ -339,11 +339,11 @@ export default function AgingReportPage() {
                     const t = kpis.totalOutstanding;
                     if (t === 0) return null;
                     const segments = [
-                      { value: kpis.totalRange0, color: 'bg-emerald-500/80', label: 'حالي' },
-                      { value: kpis.totalRange1, color: 'bg-sky-500/80', label: '1-30 يوم' },
-                      { value: kpis.totalRange2, color: 'bg-amber-500/80', label: '31-60 يوم' },
-                      { value: kpis.totalRange3, color: 'bg-orange-500/80', label: '61-90 يوم' },
-                      { value: kpis.totalRange4, color: 'bg-red-500/80', label: '+90 يوم' },
+                      { value: kpis.totalRange0, color: 'bg-chart-3/80', label: 'حالي' },
+                      { value: kpis.totalRange1, color: 'bg-chart-1/80', label: '1-30 يوم' },
+                      { value: kpis.totalRange2, color: 'bg-chart-2/80', label: '31-60 يوم' },
+                      { value: kpis.totalRange3, color: 'bg-chart-4/80', label: '61-90 يوم' },
+                      { value: kpis.totalRange4, color: 'bg-destructive/80', label: '+90 يوم' },
                     ];
                     return segments.map((seg) => {
                       const pct = (seg.value / t) * 100;
@@ -363,11 +363,11 @@ export default function AgingReportPage() {
                 </div>
                 {/* Legend */}
                 <div className="flex flex-wrap items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500/80" /> حالي</span>
-                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-sky-500/80" /> 1-30 يوم</span>
-                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-amber-500/80" /> 31-60 يوم</span>
-                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-orange-500/80" /> 61-90 يوم</span>
-                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-red-500/80" /> +90 يوم</span>
+                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-chart-3/80" /> حالي</span>
+                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-chart-1/80" /> 1-30 يوم</span>
+                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-chart-2/80" /> 31-60 يوم</span>
+                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-chart-4/80" /> 61-90 يوم</span>
+                  <span className="flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-destructive/80" /> +90 يوم</span>
                 </div>
               </CardContent>
             </Card>
@@ -418,27 +418,27 @@ export default function AgingReportPage() {
                             {formatCurrency(row.total, 'YER')}
                           </TableCell>
                           <TableCell className="text-xs py-2 tabular-nums" dir="ltr">
-                            <span className="rounded px-1.5 py-0.5 bg-emerald-100/80 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200">
+                            <span className="rounded px-1.5 py-0.5 bg-primary/10/80 dark:bg-primary/10 text-emerald-800 dark:text-emerald-200">
                               {row.range0 > 0 ? formatCurrency(row.range0, 'YER') : '—'}
                             </span>
                           </TableCell>
                           <TableCell className="text-xs py-2 tabular-nums" dir="ltr">
-                            <span className="rounded px-1.5 py-0.5 bg-sky-100/80 dark:bg-sky-950/30 text-sky-800 dark:text-sky-200">
+                            <span className="rounded px-1.5 py-0.5 bg-chart-1/10/80 dark:bg-chart-1/10 text-sky-800 dark:text-sky-200">
                               {row.range1 > 0 ? formatCurrency(row.range1, 'YER') : '—'}
                             </span>
                           </TableCell>
                           <TableCell className="text-xs py-2 tabular-nums" dir="ltr">
-                            <span className={cn('rounded px-1.5 py-0.5', row.range2 > 0 ? 'bg-amber-100/80 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200' : '')}>
+                            <span className={cn('rounded px-1.5 py-0.5', row.range2 > 0 ? 'bg-chart-2/10/80 dark:bg-chart-2/10 text-amber-800 dark:text-amber-200' : '')}>
                               {row.range2 > 0 ? formatCurrency(row.range2, 'YER') : '—'}
                             </span>
                           </TableCell>
                           <TableCell className="text-xs py-2 tabular-nums" dir="ltr">
-                            <span className={cn('rounded px-1.5 py-0.5', row.range3 > 0 ? 'bg-orange-100/80 dark:bg-orange-950/30 text-orange-800 dark:text-orange-200' : '')}>
+                            <span className={cn('rounded px-1.5 py-0.5', row.range3 > 0 ? 'bg-chart-4/10 text-chart-4' : '')}>
                               {row.range3 > 0 ? formatCurrency(row.range3, 'YER') : '—'}
                             </span>
                           </TableCell>
                           <TableCell className="text-xs py-2 tabular-nums" dir="ltr">
-                            <span className={cn('rounded px-1.5 py-0.5', row.range4 > 0 ? 'bg-red-100/80 dark:bg-red-950/30 text-red-800 dark:text-red-200' : '')}>
+                            <span className={cn('rounded px-1.5 py-0.5', row.range4 > 0 ? 'bg-destructive/10/80 dark:bg-destructive/10 text-red-800 dark:text-red-200' : '')}>
                               {row.range4 > 0 ? formatCurrency(row.range4, 'YER') : '—'}
                             </span>
                           </TableCell>

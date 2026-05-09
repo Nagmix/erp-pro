@@ -525,7 +525,7 @@ export default function LandedCostVoucherPage() {
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              variant="destructive"
               onClick={() => {
                 if (!deleteName) return;
                 deleteMutation.mutate(deleteName, {

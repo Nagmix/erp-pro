@@ -91,19 +91,19 @@ function StockStatusBadge({ qty }: { qty: number }) {
   switch (status) {
     case 'out_of_stock':
       return (
-        <Badge variant="outline" className="border-0 text-[10px] font-semibold px-1.5 py-0 bg-destructive/12 text-destructive ring-1 ring-inset ring-destructive/25">
+        <Badge variant="outline" className="border-0 text-xs font-medium px-1.5 py-0 bg-destructive/12 text-destructive ring-1 ring-inset ring-destructive/25">
           نفذ
         </Badge>
       );
     case 'low_stock':
       return (
-        <Badge variant="outline" className="border-0 text-[10px] font-semibold px-1.5 py-0 bg-amber-500/10 text-amber-700 dark:text-amber-300 ring-1 ring-inset ring-amber-500/25">
+        <Badge variant="outline" className="border-0 text-xs font-medium px-1.5 py-0 bg-chart-2/10 text-chart-2 ring-1 ring-inset ring-chart-2/25">
           منخفض
         </Badge>
       );
     case 'in_stock':
       return (
-        <Badge variant="outline" className="border-0 text-[10px] font-semibold px-1.5 py-0 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 ring-1 ring-inset ring-emerald-500/25">
+        <Badge variant="outline" className="border-0 text-xs font-medium px-1.5 py-0 bg-primary/10 text-primary ring-1 ring-inset ring-primary/25">
           متوفر
         </Badge>
       );
@@ -474,7 +474,7 @@ export default function StockLevelsPage() {
               size="sm"
               className={cn(
                 'h-8 text-xs gap-1',
-                stockStatusFilter === 'in_stock' && 'bg-emerald-600 hover:bg-emerald-700',
+                stockStatusFilter === 'in_stock' && 'bg-chart-3 hover:bg-chart-3',
               )}
               onClick={() => setStockStatusFilter('in_stock')}
             >
@@ -487,7 +487,7 @@ export default function StockLevelsPage() {
               size="sm"
               className={cn(
                 'h-8 text-xs gap-1',
-                stockStatusFilter === 'low_stock' && 'bg-amber-600 hover:bg-amber-700',
+                stockStatusFilter === 'low_stock' && 'bg-chart-2 hover:bg-chart-2',
               )}
               onClick={() => setStockStatusFilter('low_stock')}
             >
@@ -526,7 +526,7 @@ export default function StockLevelsPage() {
                 مسح الفلاتر
               </Button>
             )}
-            <span className="ms-auto text-[10px]">
+            <span className="ms-auto text-xs">
               عرض {formatNumber(filteredRows.length)} من {formatNumber(enrichedRows.length)} سجل
             </span>
           </div>
@@ -534,7 +534,7 @@ export default function StockLevelsPage() {
             <div className="flex flex-wrap items-end gap-3 pt-3 border-t mt-1">
               {/* فلتر المستودع */}
               <div className="space-y-1">
-                <Label className="text-[10px]">المستودع</Label>
+                <Label className="text-xs">المستودع</Label>
                 <Select dir="rtl" value={whFilter || 'all'} onValueChange={setWhFilter}>
                   <SelectTrigger className="h-8 text-xs w-48">
                     <SelectValue placeholder="كل المستودعات" />
@@ -550,7 +550,7 @@ export default function StockLevelsPage() {
 
               {/* فلتر مجموعة الصنف */}
               <div className="space-y-1">
-                <Label className="text-[10px]">مجموعة الصنف</Label>
+                <Label className="text-xs">مجموعة الصنف</Label>
                 <Select dir="rtl" value={itemGroupFilter || 'all'} onValueChange={setItemGroupFilter}>
                   <SelectTrigger className="h-8 text-xs w-44">
                     <SelectValue placeholder="كل المجموعات" />
@@ -566,7 +566,7 @@ export default function StockLevelsPage() {
 
               {/* فلتر حالة المخزون */}
               <div className="space-y-1">
-                <Label className="text-[10px]">حالة المخزون</Label>
+                <Label className="text-xs">حالة المخزون</Label>
                 <Select dir="rtl" value={stockStatusFilter} onValueChange={(v) => setStockStatusFilter(v as StockStatus)}>
                   <SelectTrigger className="h-8 text-xs w-36">
                     <SelectValue />
@@ -583,7 +583,7 @@ export default function StockLevelsPage() {
               {/* عرض معلومات الشركة */}
               {company && (
                 <div className="flex items-end">
-                  <p className="text-[10px] text-muted-foreground pb-1">الشركة: {company}</p>
+                  <p className="text-xs text-muted-foreground pb-1">الشركة: {company}</p>
                 </div>
               )}
             </div>
@@ -615,19 +615,19 @@ export default function StockLevelsPage() {
       {filteredRows.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="rounded-lg border border-border/50 bg-card px-4 py-3">
-            <p className="text-[10px] text-muted-foreground mb-1">إجمالي الكمية الفعلية</p>
+            <p className="text-xs text-muted-foreground mb-1">إجمالي الكمية الفعلية</p>
             <p className="text-lg font-semibold tabular-nums">
               {formatNumber(filteredRows.reduce((sum, r) => sum + Number(r.actual_qty ?? 0), 0))}
             </p>
           </div>
           <div className="rounded-lg border border-border/50 bg-card px-4 py-3">
-            <p className="text-[10px] text-muted-foreground mb-1">إجمالي الكمية المحجوزة</p>
+            <p className="text-xs text-muted-foreground mb-1">إجمالي الكمية المحجوزة</p>
             <p className="text-lg font-semibold tabular-nums text-amber-600 dark:text-amber-400">
               {formatNumber(filteredRows.reduce((sum, r) => sum + Number(r.reserved_qty ?? 0), 0))}
             </p>
           </div>
           <div className="rounded-lg border border-border/50 bg-card px-4 py-3">
-            <p className="text-[10px] text-muted-foreground mb-1">إجمالي قيمة المخزون المعروض</p>
+            <p className="text-xs text-muted-foreground mb-1">إجمالي قيمة المخزون المعروض</p>
             <p className="text-lg font-semibold tabular-nums">
               {formatCurrency(filteredRows.reduce((sum, r) => sum + Number(r.stock_value ?? 0), 0))}
             </p>

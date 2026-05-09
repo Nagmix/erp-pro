@@ -944,7 +944,7 @@ export default function PeriodClosingV2Page() {
                       className={`
                         relative min-h-[48px] sm:min-h-[64px] p-1 transition-colors
                         ${day.isCurrentMonth ? 'bg-card' : 'bg-muted/30'}
-                        ${day.isClosed && day.isCurrentMonth ? 'bg-rose-50 dark:bg-rose-950/20' : ''}
+                        ${day.isClosed && day.isCurrentMonth ? 'bg-destructive/5' : ''}
                         ${day.isToday ? 'ring-2 ring-primary ring-inset' : ''}
                         ${isWeekend && day.isCurrentMonth ? 'bg-muted/20' : ''}
                         hover:bg-muted/40
@@ -980,7 +980,7 @@ export default function PeriodClosingV2Page() {
                   <span>مفتوحة</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="h-3 w-3 rounded-sm bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800" />
+                  <div className="h-3 w-3 rounded-sm bg-destructive/5 border border-destructive/20" />
                   <span>مقفلة</span>
                 </div>
                 <div className="flex items-center gap-1.5">

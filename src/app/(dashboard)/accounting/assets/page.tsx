@@ -116,11 +116,11 @@ type AssetFormOutput = z.output<typeof assetSchema>;
 // ============================================================
 
 const catColors: Record<string, string> = {
-  'مباني': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  'معدات': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  'مركبات': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  'تقنية معلومات': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  'أثاث': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'};
+  'مباني': 'bg-chart-1/10 text-blue-700 dark:bg-chart-1/10 dark:text-blue-400',
+  'معدات': 'bg-chart-4/10 text-orange-700 dark:bg-chart-4/10 dark:text-orange-400',
+  'مركبات': 'bg-primary/10 text-green-700 dark:bg-primary/10 dark:text-green-400',
+  'تقنية معلومات': 'bg-chart-5/10 text-purple-700 dark:bg-chart-5/10 dark:text-purple-400',
+  'أثاث': 'bg-chart-2/10 text-amber-700 dark:bg-chart-2/10 dark:text-amber-400'};
 
 const columns: Column<AssetRow>[] = [
   { key: 'name', header: 'الرقم', sortable: true, width: 'w-24', render: (value) => <span className="font-medium text-primary">{String(value)}</span> },
@@ -405,9 +405,9 @@ export default function AssetsPage() {
       <div className="space-y-2">
         <Label className="text-xs font-medium">اسم الأصل *</Label>
         <Input placeholder="اسم الأصل" {...form.register('asset_name')} />
-        {form.formState.errors.asset_name && <p className="text-[10px] text-destructive">{form.formState.errors.asset_name.message}</p>}
+        {form.formState.errors.asset_name && <p className="text-xs text-destructive">{form.formState.errors.asset_name.message}</p>}
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-medium">فئة الأصل *</Label>
           <ErpLinkCombobox
@@ -417,7 +417,7 @@ export default function AssetsPage() {
             placeholder="اختر فئة الأصل..."
           />
           {form.formState.errors.category && (
-            <p className="text-[10px] text-destructive">{form.formState.errors.category.message}</p>
+            <p className="text-xs text-destructive">{form.formState.errors.category.message}</p>
           )}
         </div>
         <div className="space-y-2">
@@ -437,11 +437,11 @@ export default function AssetsPage() {
         <Label className="text-xs font-medium">الشركة (افتراضية)</Label>
         <p className="text-sm font-semibold">{form.watch('company') || defaultCo || '—'}</p>
         {!defaultCo && (
-          <p className="text-[10px] text-destructive">اضبط الشركة الافتراضية من الإعدادات</p>
+          <p className="text-xs text-destructive">اضبط الشركة الافتراضية من الإعدادات</p>
         )}
         <input type="hidden" {...form.register('company')} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-medium">تاريخ الشراء *</Label>
           <Input type="date" dir="ltr" {...form.register('purchase_date')} />
@@ -449,10 +449,10 @@ export default function AssetsPage() {
         <div className="space-y-2">
           <Label className="text-xs font-medium">قيمة الشراء *</Label>
           <Input type="number" dir="ltr" placeholder="0.00" {...form.register('purchase_amount', { valueAsNumber: true })} />
-          {form.formState.errors.purchase_amount && <p className="text-[10px] text-destructive">{form.formState.errors.purchase_amount.message}</p>}
+          {form.formState.errors.purchase_amount && <p className="text-xs text-destructive">{form.formState.errors.purchase_amount.message}</p>}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-medium">طريقة الإهلاك</Label>
           <Select value={form.watch('depreciation_method')} onValueChange={v => form.setValue('depreciation_method', v)}>
@@ -473,7 +473,7 @@ export default function AssetsPage() {
       {Number(form.watch('useful_life')) > 0 && (
         <div className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-3">
           <p className="text-xs font-semibold text-foreground">الحسابات المحاسبية (فئة الأصل — الشركة)</p>
-          <p className="text-[10px] text-muted-foreground leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             تُخزَّن هذه الحقول في «فئة الأصل» لكل شركة (لا على مستند الأصل مباشرة). تُحدَّث تلقائياً عند
             الحفظ لتفعيل جدولة الإهلاك وترحيل القيود.
           </p>
@@ -488,7 +488,7 @@ export default function AssetsPage() {
                 className="h-9 text-sm"
               />
               {form.formState.errors.fixed_asset_account && (
-                <p className="text-[10px] text-destructive">{form.formState.errors.fixed_asset_account.message}</p>
+                <p className="text-xs text-destructive">{form.formState.errors.fixed_asset_account.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -501,7 +501,7 @@ export default function AssetsPage() {
                 className="h-9 text-sm"
               />
               {form.formState.errors.accumulated_depreciation_account && (
-                <p className="text-[10px] text-destructive">
+                <p className="text-xs text-destructive">
                   {form.formState.errors.accumulated_depreciation_account.message}
                 </p>
               )}
@@ -516,7 +516,7 @@ export default function AssetsPage() {
                 className="h-9 text-sm"
               />
               {form.formState.errors.depreciation_expense_account && (
-                <p className="text-[10px] text-destructive">
+                <p className="text-xs text-destructive">
                   {form.formState.errors.depreciation_expense_account.message}
                 </p>
               )}
@@ -524,7 +524,7 @@ export default function AssetsPage() {
           </div>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-xs font-medium">الموقع</Label>
           <ErpLinkCombobox doctype="Location" value={form.watch('location') || ''} onChange={(v) => form.setValue('location', v)} placeholder="موقع الأصل" />
@@ -603,15 +603,15 @@ export default function AssetsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">من تاريخ</Label>
+            <Label className="text-xs">من تاريخ</Label>
             <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">إلى تاريخ</Label>
+            <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
-            <Label className="text-[10px]">الحالة</Label>
+            <Label className="text-xs">الحالة</Label>
             <Select value={assetStatusFilter} onValueChange={setAssetStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -638,7 +638,7 @@ export default function AssetsPage() {
           ] as const).map(f => (
             <button key={f.key} onClick={() => setStatusFilter(f.key)} className={`flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold transition-all whitespace-nowrap ${statusFilter === f.key ? 'bg-background text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-border/30' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}`}>
               {f.label}
-              <span className={`tabular-nums text-[10px] rounded-md px-1.5 py-0.5 font-semibold ${statusFilter === f.key ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/70'}`}>{f.count}</span>
+              <span className={`tabular-nums text-xs rounded-md px-1.5 py-0.5 font-semibold ${statusFilter === f.key ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/70'}`}>{f.count}</span>
             </button>
           ))}
         </div>
@@ -677,7 +677,7 @@ export default function AssetsPage() {
               header: 'مبلغ الإهلاك',
               sortable: true,
               render: (v) => <span className="tabular-nums font-medium">{formatCurrency(Number(v) || 0)}</span>},
-            { key: 'journal_entry', header: 'قيد يومية', render: (v) => (v ? <span className="font-mono text-[10px]">{String(v)}</span> : '—') },
+            { key: 'journal_entry', header: 'قيد يومية', render: (v) => (v ? <span className="font-mono text-xs">{String(v)}</span> : '—') },
           ]}
         />
         <p className="text-xs text-muted-foreground flex items-start gap-2">
@@ -733,7 +733,7 @@ export default function AssetsPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-1.5">
+            <AlertDialogAction onClick={handleDelete} variant="destructive" className="gap-1.5">
               <Trash2 className="h-3.5 w-3.5" />
               حذف
             </AlertDialogAction>

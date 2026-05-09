@@ -146,7 +146,7 @@ export default function ItemsPage() {
         header: 'مخزني',
         render: (v) =>
           isStockFlag(v) ? (
-            <Badge className="text-[9px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0">نعم</Badge>
+            <Badge className="text-[9px] bg-primary/10 text-primary border-0">نعم</Badge>
           ) : (
             <Badge variant="outline" className="text-[9px]">لا</Badge>
           )},
@@ -158,7 +158,7 @@ export default function ItemsPage() {
         header: 'مؤجل',
         render: (_v, row) =>
           isStockFlag(row.enable_deferred_revenue) ? (
-            <Badge className="text-[9px] border-0 bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200">إيراد</Badge>
+            <Badge className="text-[9px] border-0 bg-chart-5/10 text-chart-5">إيراد</Badge>
           ) : (
             '—'
           )},
@@ -331,7 +331,7 @@ export default function ItemsPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-[10px]">النوع</Label>
+            <Label className="text-xs">النوع</Label>
             <Select value={stockFilter} onValueChange={setStockFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>

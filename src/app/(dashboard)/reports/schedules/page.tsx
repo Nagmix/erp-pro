@@ -320,7 +320,7 @@ export default function ReportSchedulesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="border-border/40 hover:border-border/60 transition-colors">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-5/5 text-purple-600 dark:bg-chart-5/10 dark:text-purple-400">
               <CalendarClock className="h-5 w-5" />
             </div>
             <div>
@@ -331,7 +331,7 @@ export default function ReportSchedulesPage() {
         </Card>
         <Card className="border-border/40 hover:border-border/60 transition-colors">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-emerald-600 dark:bg-primary/10 dark:text-emerald-400">
               <ToggleLeft className="h-5 w-5" />
             </div>
             <div>
@@ -342,7 +342,7 @@ export default function ReportSchedulesPage() {
         </Card>
         <Card className="border-border/40 hover:border-border/60 transition-colors">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-2/5 text-amber-600 dark:bg-chart-2/10 dark:text-amber-400">
               <Clock className="h-5 w-5" />
             </div>
             <div>

@@ -384,7 +384,7 @@ export default function MobileExpensesPage() {
         key: 'expense_type',
         header: 'نوع المصروف',
         render: (v) => (
-          <Badge variant="outline" className="text-[11px]">
+          <Badge variant="outline" className="text-xs">
             {String(v || '—')}
           </Badge>
         ),
@@ -497,7 +497,7 @@ export default function MobileExpensesPage() {
           فلاتر:
         </div>
         <div className="w-52">
-          <Label className="text-[11px] text-muted-foreground mb-1">الموظف</Label>
+          <Label className="text-xs text-muted-foreground mb-1">الموظف</Label>
           <Select value={filterEmployee} onValueChange={setFilterEmployee}>
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="الكل" />
@@ -513,7 +513,7 @@ export default function MobileExpensesPage() {
           </Select>
         </div>
         <div className="w-40">
-          <Label className="text-[11px] text-muted-foreground mb-1">الحالة</Label>
+          <Label className="text-xs text-muted-foreground mb-1">الحالة</Label>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger className="h-8 text-xs">
               <SelectValue placeholder="الكل" />
@@ -528,7 +528,7 @@ export default function MobileExpensesPage() {
           </Select>
         </div>
         <div className="w-40">
-          <Label className="text-[11px] text-muted-foreground mb-1">من تاريخ</Label>
+          <Label className="text-xs text-muted-foreground mb-1">من تاريخ</Label>
           <Input
             type="date"
             dir="ltr"
@@ -538,7 +538,7 @@ export default function MobileExpensesPage() {
           />
         </div>
         <div className="w-40">
-          <Label className="text-[11px] text-muted-foreground mb-1">إلى تاريخ</Label>
+          <Label className="text-xs text-muted-foreground mb-1">إلى تاريخ</Label>
           <Input
             type="date"
             dir="ltr"
@@ -706,7 +706,7 @@ export default function MobileExpensesPage() {
                 </label>
               </div>
               <div className="mt-1">
-                <Label className="text-[10px] text-muted-foreground">أو أدخل رابط الإيصال يدوياً</Label>
+                <Label className="text-xs text-muted-foreground">أو أدخل رابط الإيصال يدوياً</Label>
                 <Input
                   value={receiptUrl.startsWith('blob:') ? '' : receiptUrl}
                   onChange={(e) => {
@@ -728,10 +728,10 @@ export default function MobileExpensesPage() {
                     <ScanLine className="h-4 w-4 text-primary" />
                     <span className="text-xs font-semibold">البيانات المستخرجة من الإيصال</span>
                   </div>
-                  <Badge variant="outline" className="text-[10px]">يرجى المراجعة</Badge>
+                  <Badge variant="outline" className="text-xs">يرجى المراجعة</Badge>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {([
                     { key: 'amount', label: 'المبلغ' },
                     { key: 'currency', label: 'العملة' },
@@ -747,7 +747,7 @@ export default function MobileExpensesPage() {
                     return (
                       <div key={key} className="rounded-lg border border-border/30 bg-background p-2 space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-[10px] text-muted-foreground">{label}</span>
+                          <span className="text-xs text-muted-foreground">{label}</span>
                           <div className="flex items-center gap-1">
                             <ConfIcon className={`h-3 w-3 ${conf.color}`} />
                             <span className={`text-[9px] ${conf.color}`}>{conf.label}</span>
@@ -772,9 +772,9 @@ export default function MobileExpensesPage() {
             )}
 
             {ocrConfirmed && ocrResult && (
-              <div className="rounded-lg border border-emerald-200/40 bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 flex items-center gap-2">
+              <div className="rounded-lg border border-primary/20/40 bg-primary/5/50 dark:bg-primary/5 p-2.5 flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-emerald-600" />
-                <span className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                <span className="text-xs text-primary">
                   تم تأكيد البيانات المستخرجة — يمكنك تعديل الحقول أعلاه قبل الحفظ
                 </span>
               </div>
@@ -814,7 +814,7 @@ export default function MobileExpensesPage() {
                 <Label htmlFor="save-as-draft" className="text-xs font-medium cursor-pointer">
                   حفظ كمسودة
                 </Label>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   عند إيقاف هذا الخيار سيتم ترحيل المطالبة مباشرة
                 </p>
               </div>

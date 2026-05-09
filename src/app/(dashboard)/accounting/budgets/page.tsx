@@ -113,15 +113,15 @@ const BUDGET_STATUS_MAP: Record<string, string> = {
 
 /* ─── Progress Color Helper ─── */
 function getProgressColor(pct: number): string {
-  if (pct > 100) return 'bg-rose-500';
-  if (pct > 80) return 'bg-amber-500';
-  return 'bg-emerald-500';
+  if (pct > 100) return 'bg-destructive';
+  if (pct > 80) return 'bg-chart-2';
+  return 'bg-chart-3';
 }
 
 function getProgressTrackColor(pct: number): string {
-  if (pct > 100) return 'bg-rose-100 dark:bg-rose-950/40';
-  if (pct > 80) return 'bg-amber-100 dark:bg-amber-950/40';
-  return 'bg-emerald-100 dark:bg-emerald-950/40';
+  if (pct > 100) return 'bg-destructive/10 dark:bg-destructive/10';
+  if (pct > 80) return 'bg-chart-2/10 dark:bg-chart-2/10';
+  return 'bg-primary/10 dark:bg-primary/10';
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -439,8 +439,8 @@ export default function BudgetsPage() {
               className={cn(
                 'text-xs font-semibold tabular-nums',
                 rem < 0
-                  ? 'text-rose-600 dark:text-rose-400'
-                  : 'text-emerald-700 dark:text-emerald-400'
+                  ? 'text-destructive dark:text-rose-400'
+                  : 'text-primary'
               )}
             >
               {formatCurrency(rem)}
@@ -465,10 +465,10 @@ export default function BudgetsPage() {
                 className={cn(
                   'text-[11px] font-semibold tabular-nums w-10 text-end',
                   pct > 100
-                    ? 'text-rose-600 dark:text-rose-400'
+                    ? 'text-destructive dark:text-rose-400'
                     : pct > 80
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-emerald-600 dark:text-emerald-400'
+                      ? 'text-chart-2 dark:text-amber-400'
+                      : 'text-primary dark:text-emerald-400'
                 )}
               >
                 {pct}%
@@ -624,10 +624,10 @@ export default function BudgetsPage() {
                           className={cn(
                             'h-9 w-9 rounded-lg flex items-center justify-center',
                             item.percentage > 100
-                              ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400'
+                              ? 'bg-destructive/10 text-rose-700 dark:bg-destructive/10 dark:text-rose-400'
                               : item.percentage > 80
-                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
-                                : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                                ? 'bg-chart-2/10 text-amber-700 dark:bg-chart-2/10 dark:text-amber-400'
+                                : 'bg-primary/10 text-emerald-700 dark:bg-primary/10 dark:text-emerald-400'
                           )}
                         >
                           {item.percentage > 100 ? (
@@ -647,10 +647,10 @@ export default function BudgetsPage() {
                         className={cn(
                           'text-lg font-bold tabular-nums',
                           item.percentage > 100
-                            ? 'text-rose-600 dark:text-rose-400'
+                            ? 'text-destructive dark:text-rose-400'
                             : item.percentage > 80
-                              ? 'text-amber-600 dark:text-amber-400'
-                              : 'text-emerald-600 dark:text-emerald-400'
+                              ? 'text-chart-2 dark:text-amber-400'
+                              : 'text-primary dark:text-emerald-400'
                         )}
                       >
                         {item.percentage}%
@@ -681,8 +681,8 @@ export default function BudgetsPage() {
                         className={cn(
                           'rounded-lg p-2.5 text-center',
                           item.variance < 0
-                            ? 'bg-rose-50 dark:bg-rose-950/30'
-                            : 'bg-emerald-50 dark:bg-emerald-950/30'
+                            ? 'bg-destructive/5 dark:bg-destructive/10'
+                            : 'bg-primary/5 dark:bg-primary/10'
                         )}
                       >
                         <p className="text-muted-foreground mb-0.5">الفرق</p>
@@ -690,8 +690,8 @@ export default function BudgetsPage() {
                           className={cn(
                             'font-semibold tabular-nums',
                             item.variance < 0
-                              ? 'text-rose-600 dark:text-rose-400'
-                              : 'text-emerald-600 dark:text-emerald-400'
+                              ? 'text-destructive dark:text-rose-400'
+                              : 'text-primary dark:text-emerald-400'
                           )}
                         >
                           {formatCurrency(item.variance)}
@@ -783,10 +783,10 @@ export default function BudgetsPage() {
                                   <span
                                     className={cn(
                                       spentPct > 100
-                                        ? 'text-rose-600'
+                                        ? 'text-destructive'
                                         : spentPct > 80
-                                          ? 'text-amber-600'
-                                          : 'text-emerald-600'
+                                          ? 'text-chart-2'
+                                          : 'text-primary'
                                     )}
                                   >
                                     {spentPct}% مستخدم
@@ -1007,12 +1007,12 @@ export default function BudgetsPage() {
                 <span
                   className={cn(
                     'font-bold tabular-nums',
-                    distTotal > form.allocatedAmount && 'text-rose-600'
+                    distTotal > form.allocatedAmount && 'text-destructive'
                   )}
                 >
                   {formatCurrency(distTotal)}
                   {distTotal > form.allocatedAmount && (
-                    <span className="ms-1 text-[10px] text-rose-500">(يتجاوز المخصص!)</span>
+                    <span className="ms-1 text-[10px] text-destructive">(يتجاوز المخصص!)</span>
                   )}
                 </span>
               </div>
@@ -1056,7 +1056,7 @@ export default function BudgetsPage() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>إلغاء</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground"
+              variant="destructive"
               onClick={confirmDelete}
               disabled={deleting}
             >
