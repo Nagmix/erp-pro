@@ -15,6 +15,7 @@ import {
   Shield,
   HardDrive,
   Printer,
+  Hash,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SYSTEM_MODULES } from '@/lib/core/helpers';
@@ -445,6 +446,14 @@ export function AppSidebar() {
                         >
                           <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
                           إعدادات الوحدات
+                        </Link>
+                        <Link href="/settings/naming-series" className="erp-nav-sub" data-active={pathname === '/settings/naming-series' ? 'true' : 'false'}>
+                          <Hash className="me-2 h-3 w-3 opacity-80" />
+                          الترقيم المتسلسل
+                        </Link>
+                        <Link href="/settings/account-routing" className="erp-nav-sub" data-active={pathname === '/settings/account-routing' ? 'true' : 'false'}>
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
+                          توجيه الحسابات
                         </Link>
                         <Link href="/settings/erp-backend" className="erp-nav-sub" data-active={pathname === '/settings/erp-backend' ? 'true' : 'false'}>
                           <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />

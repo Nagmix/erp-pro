@@ -50,6 +50,7 @@ import { buildSalesInvoice } from '@/lib/erp/erpnext-payloads';
 import { syncItemDeferredRevenueFromInvoiceLine } from '@/lib/erp/deferred-revenue-sync';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { DEFAULT_SALES_INVOICE_NAMING_SERIES } from '@/lib/erp/doc-defaults';
+import { NamingSeriesSelect } from '@/components/erp/naming-series-select';
 import { cn } from '@/lib/utils';
 import { parseSalesInvoiceImportXlsx } from '@/lib/erp/parse-sales-invoice-import-xlsx';
 
@@ -122,6 +123,7 @@ export function SalesInvoiceNewEditor() {
   const importLinesRef = useRef<HTMLInputElement>(null);
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
+  const [namingSeries, setNamingSeries] = useState(DEFAULT_SALES_INVOICE_NAMING_SERIES);
   const today = new Date().toISOString().split('T')[0]!;
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema),
@@ -263,7 +265,7 @@ export function SalesInvoiceNewEditor() {
         due_date: fd.due_date,
         cost_center: fd.cost_center,
         terms: fd.terms_and_conditions,
-        naming_series: DEFAULT_SALES_INVOICE_NAMING_SERIES,
+        naming_series: namingSeries,
         taxes_and_charges: fd.taxes_and_charges?.trim() || undefined,
         items: items.map((i) => ({
           item_code: i.item_code,
@@ -877,10 +879,12 @@ export function SalesInvoiceNewEditor() {
               <span className="truncate">{defaultCompany}</span>
             </span>
           ) : null}
-          <Badge variant="outline" className="h-8 gap-1.5 border-primary/30 px-3 font-mono text-[11px]" dir="ltr">
-            <Hash className="h-3.5 w-3.5" />
-            {DEFAULT_SALES_INVOICE_NAMING_SERIES}
-          </Badge>
+          <NamingSeriesSelect
+            doctype="Sales Invoice"
+            value={namingSeries}
+            onChange={setNamingSeries}
+            defaultSeries={DEFAULT_SALES_INVOICE_NAMING_SERIES}
+          />
           <Separator orientation="vertical" className="h-8" />
           <Button
             type="button"

@@ -70,6 +70,7 @@ function SortableJournalLine({ id, children }: { id: string; children: ReactNode
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { DEFAULT_JOURNAL_NAMING_SERIES } from '@/lib/erp/doc-defaults';
+import { NamingSeriesSelect } from '@/components/erp/naming-series-select';
 
 const journalSchema = z.object({
   posting_date: z.string().min(1, 'تاريخ القيد مطلوب'),
@@ -225,6 +226,7 @@ export function JournalEntryNewEditor() {
   const queryClient = useQueryClient();
   const importFileRef = useRef<HTMLInputElement>(null);
   const [lines, setLines] = useState<JournalLineInput[]>([emptyLine(), emptyLine()]);
+  const [namingSeries, setNamingSeries] = useState(DEFAULT_JOURNAL_NAMING_SERIES);
   const { company: defaultCompany, isLoading: compLoading } = useDefaultCompanyName();
   const form = useForm<JournalFormData>({
     resolver: zodResolver(journalSchema),
@@ -331,6 +333,7 @@ export function JournalEntryNewEditor() {
       voucher_type: formData.voucher_type,
       title: formData.title,
       user_remark: formData.user_remark,
+      naming_series: namingSeries,
       lines,
     });
     createMutation.mutate(payload, {
@@ -384,9 +387,12 @@ export function JournalEntryNewEditor() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="font-mono text-[10px]" dir="ltr">
-            {DEFAULT_JOURNAL_NAMING_SERIES}
-          </Badge>
+          <NamingSeriesSelect
+            doctype="Journal Entry"
+            value={namingSeries}
+            onChange={setNamingSeries}
+            defaultSeries={DEFAULT_JOURNAL_NAMING_SERIES}
+          />
           <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => importFileRef.current?.click()}>
             <Upload className="h-3.5 w-3.5" />
             استيراد CSV / Excel

@@ -19,12 +19,14 @@ import {
   Bell,
   Mail,
   ClipboardList,
+  Hash,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const tiles = [
   { href: '/settings/erp-backend', label: 'إعداد الخادم', desc: 'عنوان الخادم ومفاتيح الواجهة البرمجية', icon: Server, color: 'bg-slate-500/10 text-slate-800 dark:text-slate-200' },
   { href: '/settings/module-settings', label: 'إعدادات الوحدات', desc: 'بيع / شراء / مخزون / محاسبة', icon: LayoutDashboard, color: 'bg-sky-500/10 text-sky-800 dark:text-sky-200' },
+  { href: '/settings/naming-series', label: 'الترقيم المتسلسل', desc: 'بادئات وأرقام المستندات', icon: Hash, color: 'bg-purple-500/10 text-purple-800 dark:text-purple-200' },
   { href: '/settings/account-routing', label: 'توجيه الحسابات', desc: 'الحسابات الافتراضية للشركة', icon: Route, color: 'bg-teal-500/10 text-teal-800 dark:text-teal-200' },
   { href: '/settings/branches', label: 'الفروع', desc: 'إدارة الفروع', icon: Building2, color: 'bg-blue-500/10 text-blue-700 dark:text-blue-300' },
   { href: '/settings/print-templates', label: 'قوالب الطباعة', desc: 'تنسيقات الطباعة', icon: Printer, color: 'bg-violet-500/10 text-violet-700 dark:text-violet-300' },

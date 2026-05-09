@@ -88,6 +88,8 @@ export function buildJournalEntry(input: {
   voucher_type: string;
   title: string;
   user_remark: string;
+  /** تسلسل تسمية القيد (اختياري؛ إن وُجد يُمرَّر للخادم) */
+  naming_series?: string;
   lines: JournalLineInput[];
 }): Record<string, unknown> {
   let multiCurrency = false;
@@ -123,6 +125,9 @@ export function buildJournalEntry(input: {
     user_remark: input.user_remark || '',
     accounts,
   };
+  if (input.naming_series?.trim()) {
+    doc.naming_series = input.naming_series.trim();
+  }
   if (multiCurrency) doc.multi_currency = 1;
   return doc;
 }

@@ -36,6 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { buildPurchaseInvoice } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { DEFAULT_PURCHASE_INVOICE_NAMING_SERIES } from '@/lib/erp/doc-defaults';
+import { NamingSeriesSelect } from '@/components/erp/naming-series-select';
 import { cn } from '@/lib/utils';
 
 interface InvoiceItem {
@@ -84,6 +85,7 @@ export function PurchaseInvoiceNewEditor() {
   const { toast } = useToast();
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
   const [items, setItems] = useState<InvoiceItem[]>([emptyItem()]);
+  const [namingSeries, setNamingSeries] = useState(DEFAULT_PURCHASE_INVOICE_NAMING_SERIES);
   const today = new Date().toISOString().split('T')[0]!;
   const form = useForm<InvoiceFormData>({
     resolver: zodResolver(invoiceSchema),
@@ -146,7 +148,7 @@ export function PurchaseInvoiceNewEditor() {
         due_date: fd.due_date,
         cost_center: fd.cost_center,
         terms: fd.terms_and_conditions,
-        naming_series: DEFAULT_PURCHASE_INVOICE_NAMING_SERIES,
+        naming_series: namingSeries,
         taxes_and_charges: fd.taxes_and_charges?.trim() || undefined,
         bill_no: fd.supplier_reference?.trim() || undefined,
         items: items.map((i) => ({ ...i })),
@@ -621,10 +623,12 @@ export function PurchaseInvoiceNewEditor() {
               <span className="truncate">{defaultCompany}</span>
             </span>
           ) : null}
-          <Badge variant="outline" className="h-8 gap-1.5 border-primary/30 px-3 font-mono text-[11px]" dir="ltr">
-            <Hash className="h-3.5 w-3.5" />
-            {DEFAULT_PURCHASE_INVOICE_NAMING_SERIES}
-          </Badge>
+          <NamingSeriesSelect
+            doctype="Purchase Invoice"
+            value={namingSeries}
+            onChange={setNamingSeries}
+            defaultSeries={DEFAULT_PURCHASE_INVOICE_NAMING_SERIES}
+          />
           <Separator orientation="vertical" className="h-8" />
           <Button
             type="button"
