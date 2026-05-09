@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { apiGetList } from '@/lib/client/api';
 import {
   Mail,
   Eye,
@@ -73,22 +74,47 @@ const VARIABLES_BY_DOCTYPE: Record<string, string[]> = {
   'Delivery Note': ['doc.name', 'doc.customer_name', 'doc.posting_date'],
 };
 
-const SAMPLE_DATA: Record<string, Record<string, string>> = {
-  'Sales Invoice': { name: 'SINV-001', customer_name: 'شركة النور التجارية', grand_total: '15,000', due_date: '2025-02-15', posting_date: '2025-01-15', outstanding_amount: '15,000', currency: 'YER' },
-  'Purchase Invoice': { name: 'PINV-001', supplier_name: 'مؤسسة الأمل', grand_total: '8,500', due_date: '2025-02-20', posting_date: '2025-01-20', currency: 'YER' },
-  'Payment Entry': { name: 'PE-001', party_name: 'شركة النور التجارية', paid_amount: '5,000', posting_date: '2025-01-25', reference_no: 'REF-123', mode_of_payment: 'تحويل بنكي' },
-  'Quotation': { name: 'QTN-001', customer_name: 'شركة الأمل', grand_total: '25,000', valid_till: '2025-03-01', posting_date: '2025-01-15' },
-  'Sales Order': { name: 'SO-001', customer_name: 'مؤسسة الفجر', grand_total: '18,000', delivery_date: '2025-02-10', posting_date: '2025-01-15' },
-  'Delivery Note': { name: 'DN-001', customer_name: 'شركة النور', posting_date: '2025-01-20' },
+/* ── حقول الجلب لكل نوع مستند ── */
+const FETCH_FIELDS_BY_DOCTYPE: Record<string, string[]> = {
+  'Sales Invoice': ['name', 'customer_name', 'grand_total', 'due_date', 'posting_date', 'outstanding_amount', 'currency'],
+  'Purchase Invoice': ['name', 'supplier_name', 'grand_total', 'due_date', 'posting_date', 'currency'],
+  'Payment Entry': ['name', 'party_name', 'paid_amount', 'posting_date', 'reference_no', 'mode_of_payment'],
+  'Quotation': ['name', 'customer_name', 'grand_total', 'valid_till', 'posting_date'],
+  'Sales Order': ['name', 'customer_name', 'grand_total', 'delivery_date', 'posting_date'],
+  'Delivery Note': ['name', 'customer_name', 'posting_date'],
 };
 
-function renderPreview(html: string, doctype: string): string {
-  const sample = SAMPLE_DATA[doctype] ?? {};
-  let rendered = html;
-  for (const [key, value] of Object.entries(sample)) {
-    rendered = rendered.replaceAll(`{{doc.${key}}}`, value);
+/* ─ـ بيانات نموذجية بسيطة ── */
+const MINIMAL_PLACEHOLDER: Record<string, Record<string, string>> = {
+  'Sales Invoice': { name: '—', customer_name: '—', grand_total: '0', due_date: '—', posting_date: '—', outstanding_amount: '0', currency: 'YER' },
+  'Purchase Invoice': { name: '—', supplier_name: '—', grand_total: '0', due_date: '—', posting_date: '—', currency: 'YER' },
+  'Payment Entry': { name: '—', party_name: '—', paid_amount: '0', posting_date: '—', reference_no: '—', mode_of_payment: '—' },
+  'Quotation': { name: '—', customer_name: '—', grand_total: '0', valid_till: '—', posting_date: '—' },
+  'Sales Order': { name: '—', customer_name: '—', grand_total: '0', delivery_date: '—', posting_date: '—' },
+  'Delivery Note': { name: '—', customer_name: '—', posting_date: '—' },
+};
+
+/** يجلب أحدث مستند من ERPNext لنوع معين ويعيد بياناته كخريطة */
+async function fetchLatestDocForDoctype(doctype: string): Promise<Record<string, string> | null> {
+  try {
+    const fields = FETCH_FIELDS_BY_DOCTYPE[doctype];
+    if (!fields) return null;
+    const rows = await apiGetList<Record<string, unknown>>(doctype, {
+      fields,
+      limit: 1,
+      order_by: 'creation desc',
+    });
+    if (rows.length === 0) return null;
+    const doc = rows[0]!;
+    // تحويل القيم إلى نصوص
+    const result: Record<string, string> = {};
+    for (const [key, value] of Object.entries(doc)) {
+      if (value != null) result[key] = String(value);
+    }
+    return result;
+  } catch {
+    return null;
   }
-  return rendered;
 }
 
 export default function EmailTemplatesPage() {
@@ -106,6 +132,11 @@ export default function EmailTemplatesPage() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewHtml, setPreviewHtml] = useState('');
+  const [previewUsingPlaceholder, setPreviewUsingPlaceholder] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  // ── مخبأ بيانات المعاينة ──
+  const [previewDataCache, setPreviewDataCache] = useState<Record<string, Record<string, string>>>({});
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<EmailTemplate | null>(null);
@@ -205,16 +236,50 @@ export default function EmailTemplatesPage() {
     });
   };
 
+  /** معاينة القالب مع جلب بيانات حقيقية */
+  const renderWithRealData = useCallback(async (html: string, doctype: string) => {
+    setPreviewLoading(true);
+    setPreviewOpen(true);
+    setPreviewUsingPlaceholder(false);
+
+    let data = previewDataCache[doctype];
+    let usingPlaceholder = false;
+
+    if (!data) {
+      // محاولة جلب أحدث مستند حقيقي
+      const realData = await fetchLatestDocForDoctype(doctype);
+      if (realData) {
+        data = realData;
+        // تحديث المخبأ
+        setPreviewDataCache((prev) => ({ ...prev, [doctype]: realData }));
+      } else {
+        // لا يوجد مستندات — استخدام بيانات نموذجية
+        data = MINIMAL_PLACEHOLDER[doctype] ?? {};
+        usingPlaceholder = true;
+      }
+    }
+
+    // استبدال المتغيرات في القالب
+    let rendered = html;
+    for (const [key, value] of Object.entries(data)) {
+      rendered = rendered.replaceAll(`{{doc.${key}}}`, value);
+    }
+    // تنظيف المتغيرات غير المستبدلة
+    rendered = rendered.replace(/\{\{doc\.[^}]+\}\}/g, '—');
+
+    setPreviewHtml(rendered);
+    setPreviewUsingPlaceholder(usingPlaceholder);
+    setPreviewLoading(false);
+  }, [previewDataCache]);
+
   const openPreview = (row: EmailTemplate) => {
     const doctype = row.reference_doctype || 'Sales Invoice';
-    setPreviewHtml(renderPreview(row.response || '', doctype));
-    setPreviewOpen(true);
+    renderWithRealData(row.response || '', doctype);
   };
 
   const previewCurrentForm = () => {
     const doctype = formRefDoctype || 'Sales Invoice';
-    setPreviewHtml(renderPreview(formResponse, doctype));
-    setPreviewOpen(true);
+    renderWithRealData(formResponse, doctype);
   };
 
   const isSaving = createMut.isPending || updateMut.isPending;
@@ -491,8 +556,23 @@ export default function EmailTemplatesPage() {
               معاينة القالب
             </DialogTitle>
           </DialogHeader>
+
+          {previewUsingPlaceholder && (
+            <div className="rounded-lg border border-amber-200/40 bg-amber-50/50 dark:bg-amber-950/20 p-2.5 flex items-center gap-2">
+              <Info className="h-4 w-4 text-amber-600 shrink-0" />
+              <span className="text-[11px] text-amber-700 dark:text-amber-400">
+                لا توجد مستندات — سيتم عرض بيانات نموذجية
+              </span>
+            </div>
+          )}
+
           <div className="rounded-lg border border-border/40 bg-white p-4">
-            {previewHtml ? (
+            {previewLoading ? (
+              <div className="flex items-center justify-center py-8 gap-2">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">جارٍ تحميل بيانات المعاينة...</span>
+              </div>
+            ) : previewHtml ? (
               <div
                 className="prose prose-sm max-w-none text-foreground"
                 dangerouslySetInnerHTML={{ __html: previewHtml }}

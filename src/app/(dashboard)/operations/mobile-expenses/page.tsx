@@ -22,6 +22,7 @@ import {
   useSubmitDoc,
   useCancelDoc,
 } from '@/lib/client/hooks';
+import { apiUploadFile } from '@/lib/client/api';
 import { buildExpenseClaimCreate } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/core/helpers';
@@ -40,6 +41,11 @@ import {
   Send,
   XCircle,
   FileText,
+  Loader2,
+  Upload,
+  CheckCircle,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 
 type ExpenseRow = {
@@ -54,6 +60,28 @@ type ExpenseRow = {
   company?: string;
   remark?: string;
   expense_type?: string;
+};
+
+// ── OCR Extracted Data Types ──
+type OcrFieldResult = {
+  value: string;
+  confidence: 'high' | 'medium' | 'low';
+};
+
+type OcrExtractionResult = {
+  amount: OcrFieldResult;
+  currency: OcrFieldResult;
+  vendor_name: OcrFieldResult;
+  date: OcrFieldResult;
+  description: OcrFieldResult;
+  tax_amount: OcrFieldResult;
+  raw_text: string;
+};
+
+const CONFIDITY_STYLES: Record<string, { color: string; icon: typeof CheckCircle; label: string }> = {
+  high: { color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle, label: 'مرتفعة' },
+  medium: { color: 'text-amber-600 dark:text-amber-400', icon: AlertTriangle, label: 'متوسطة' },
+  low: { color: 'text-red-500 dark:text-red-400', icon: AlertCircle, label: 'منخفضة' },
 };
 
 const EXPENSE_STATUS_AR: Record<string, string> = {
@@ -84,6 +112,12 @@ export default function MobileExpensesPage() {
   const [ocrText, setOcrText] = useState('');
   const [company, setCompany] = useState('');
   const [isDraft, setIsDraft] = useState(true);
+
+  // ── OCR state ──
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrResult, setOcrResult] = useState<OcrExtractionResult | null>(null);
+  const [ocrConfirmed, setOcrConfirmed] = useState(false);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   // ── فلاتر ──
   const [filterEmployee, setFilterEmployee] = useState<string>('all');
@@ -177,11 +211,85 @@ export default function MobileExpensesPage() {
     [allRows]
   );
 
-  // ── OCR محاكاة ──
-  const runMockOcr = () => {
-    if (!receiptUrl) return toast.error('أضف رابط الإيصال أولاً');
-    setOcrText(`تم تحليل بيانات الإيصال من الرابط: ${receiptUrl.slice(0, 28)}...`);
-    toast.success('تم استخراج النص من الإيصال');
+  // ── OCR حقيقي ──
+  const runOcr = async () => {
+    // Need either a file to upload or an existing URL
+    if (!receiptFile && !receiptUrl.trim()) {
+      return toast.error('أضف صورة الإيصال أو رابطه أولاً');
+    }
+
+    setOcrLoading(true);
+    setOcrResult(null);
+    setOcrConfirmed(false);
+
+    try {
+      let fileUrl = receiptUrl.trim();
+
+      // Step 1: Upload file if a local file was selected
+      if (receiptFile) {
+        try {
+          const uploadResult = await apiUploadFile(receiptFile);
+          if (uploadResult?.file_url) {
+            fileUrl = uploadResult.file_url;
+            setReceiptUrl(fileUrl);
+          }
+        } catch (uploadErr) {
+          console.error('[OCR Upload Error]', uploadErr);
+          // If upload fails and we don't have a URL, abort
+          if (!fileUrl) {
+            toast.error('فشل رفع صورة الإيصال — تحقق من الاتصال');
+            setOcrLoading(false);
+            return;
+          }
+        }
+      }
+
+      if (!fileUrl) {
+        toast.error('لا يوجد رابط للإيصال');
+        setOcrLoading(false);
+        return;
+      }
+
+      // Step 2: Call the OCR extraction API
+      const res = await fetch('/api/ocr/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_url: fileUrl }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success || !data.data) {
+        throw new Error(data.error || 'فشل تحليل الإيصال');
+      }
+
+      const ocrData = data.data as OcrExtractionResult;
+      setOcrResult(ocrData);
+
+      // Populate form fields from extracted data
+      if (ocrData.amount?.value) setAmount(ocrData.amount.value);
+      if (ocrData.currency?.value) setCurrency(ocrData.currency.value);
+      if (ocrData.date?.value) setPostingDate(ocrData.date.value);
+      if (ocrData.description?.value) {
+        setNotes(ocrData.description.value);
+      }
+      if (ocrData.vendor_name?.value) {
+        setOcrText(`البائع: ${ocrData.vendor_name.value}${ocrData.tax_amount?.value ? ` | الضريبة: ${ocrData.tax_amount.value}` : ''}`);
+      }
+
+      toast.success('تم استخراج بيانات الإيصال بنجاح');
+    } catch (err) {
+      console.error('[OCR Error]', err);
+      toast.error(err instanceof Error ? err.message : 'فشل تحليل الإيصال');
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
+  /** تأكيد البيانات المستخرجة وملء النموذج */
+  const confirmOcrData = () => {
+    setOcrConfirmed(true);
+    toast.success('تم تأكيد البيانات المستخرجة');
   };
 
   // ── إنشاء مصروف ──
@@ -223,6 +331,9 @@ export default function MobileExpensesPage() {
         setNotes('');
         setReceiptUrl('');
         setOcrText('');
+        setOcrResult(null);
+        setOcrConfirmed(false);
+        setReceiptFile(null);
         void expenses.refetch();
       },
       onError: () => toast.error('تعذر حفظ المصروف'),
@@ -571,16 +682,103 @@ export default function MobileExpensesPage() {
               </div>
             </div>
 
-            {/* رابط الإيصال */}
-            <div>
-              <Label className="text-xs font-medium">رابط الإيصال</Label>
-              <Input
-                value={receiptUrl}
-                onChange={(e) => setReceiptUrl(e.target.value)}
-                placeholder="https://example.com/receipt"
-                dir="ltr"
-              />
+            {/* رابط الإيصال أو رفع صورة */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">صورة الإيصال</Label>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 bg-muted/30 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors text-xs">
+                  <Upload className="h-4 w-4" />
+                  <span>{receiptFile ? receiptFile.name : 'اختر صورة'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        setReceiptFile(f);
+                        // Create a local preview URL
+                        const preview = URL.createObjectURL(f);
+                        setReceiptUrl(preview);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              <div className="mt-1">
+                <Label className="text-[10px] text-muted-foreground">أو أدخل رابط الإيصال يدوياً</Label>
+                <Input
+                  value={receiptUrl.startsWith('blob:') ? '' : receiptUrl}
+                  onChange={(e) => {
+                    setReceiptUrl(e.target.value);
+                    setReceiptFile(null);
+                  }}
+                  placeholder="https://example.com/receipt.jpg"
+                  dir="ltr"
+                  className="h-8 text-xs"
+                />
+              </div>
             </div>
+
+            {/* نتيجة استخراج البيانات من الإيصال */}
+            {ocrResult && !ocrConfirmed && (
+              <div className="rounded-xl border border-border/50 bg-muted/20 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ScanLine className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-semibold">البيانات المستخرجة من الإيصال</span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px]">يرجى المراجعة</Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { key: 'amount', label: 'المبلغ' },
+                    { key: 'currency', label: 'العملة' },
+                    { key: 'vendor_name', label: 'البائع' },
+                    { key: 'date', label: 'التاريخ' },
+                    { key: 'description', label: 'الوصف' },
+                    { key: 'tax_amount', label: 'الضريبة' },
+                  ] as const).map(({ key, label }) => {
+                    const field = ocrResult[key];
+                    if (!field) return null;
+                    const conf = CONFIDITY_STYLES[field.confidence] ?? CONFIDITY_STYLES.low!;
+                    const ConfIcon = conf.icon;
+                    return (
+                      <div key={key} className="rounded-lg border border-border/30 bg-background p-2 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] text-muted-foreground">{label}</span>
+                          <div className="flex items-center gap-1">
+                            <ConfIcon className={`h-3 w-3 ${conf.color}`} />
+                            <span className={`text-[9px] ${conf.color}`}>{conf.label}</span>
+                          </div>
+                        </div>
+                        <p className="text-xs font-medium truncate">{field.value || '—'}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <Button size="sm" type="button" onClick={confirmOcrData} className="gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    تأكيد البيانات
+                  </Button>
+                  <Button size="sm" type="button" variant="ghost" onClick={() => setOcrResult(null)}>
+                    إعادة الاستخراج
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {ocrConfirmed && ocrResult && (
+              <div className="rounded-lg border border-emerald-200/40 bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-emerald-600" />
+                <span className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                  تم تأكيد البيانات المستخرجة — يمكنك تعديل الحقول أعلاه قبل الحفظ
+                </span>
+              </div>
+            )}
 
             {/* ملاحظات */}
             <div>
@@ -590,17 +788,18 @@ export default function MobileExpensesPage() {
 
             {/* نتيجة القراءة */}
             <div>
-              <Label className="text-xs font-medium">نتيجة القراءة النصية</Label>
-              <Textarea rows={2} value={ocrText} onChange={(e) => setOcrText(e.target.value)} />
+              <Label className="text-xs font-medium">ملاحظات إضافية من القراءة</Label>
+              <Textarea rows={2} value={ocrText} onChange={(e) => setOcrText(e.target.value)} placeholder="سيتم ملؤها تلقائياً من الإيصال..." />
             </div>
 
-            {/* أزرر الإجراءات */}
+            {/* أزرار الإجراءات */}
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" type="button" onClick={() => toast.message('التقاط مباشر من الكاميرا يُفعّل في تطبيق الجوال')}>
                 <Camera className="h-4 w-4" /> الكاميرا
               </Button>
-              <Button size="sm" variant="outline" type="button" onClick={runMockOcr}>
-                <ScanLine className="h-4 w-4" /> استخراج النص
+              <Button size="sm" variant="outline" type="button" onClick={runOcr} disabled={ocrLoading}>
+                {ocrLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ScanLine className="h-4 w-4" />}
+                {ocrLoading ? 'جارٍ التحليل...' : 'استخراج البيانات'}
               </Button>
             </div>
 

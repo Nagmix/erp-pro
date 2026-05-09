@@ -460,7 +460,19 @@ export function AppSidebar() {
                         </Link>
                         <Link href="/settings/tax-rules" className="erp-nav-sub" data-active={pathname.startsWith('/settings/tax-') ? 'true' : 'false'}>
                           <Percent className="me-2 h-3 w-3 opacity-80" />
-                          الضرائب والقواعد
+                          قواعد الضرائب
+                        </Link>
+                        <Link href="/settings/sms-templates" className="erp-nav-sub" data-active={pathname === '/settings/sms-templates' ? 'true' : 'false'}>
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
+                          قوالب الرسائل
+                        </Link>
+                        <Link href="/settings/sms-rules" className="erp-nav-sub" data-active={pathname === '/settings/sms-rules' ? 'true' : 'false'}>
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
+                          قواعد SMS الآلية
+                        </Link>
+                        <Link href="/settings/email-rules" className="erp-nav-sub" data-active={pathname === '/settings/email-rules' ? 'true' : 'false'}>
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
+                          قواعد البريد الآلي
                         </Link>
                         <Link href="/settings/integrations" className="erp-nav-sub" data-active={pathname === '/settings/integrations' ? 'true' : 'false'}>
                           <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />

@@ -34,6 +34,9 @@ export const SYSTEM_MODULES: SystemModule[] = [
       { id: 'tax-report', name: 'Tax Report', nameAr: 'التقرير الضريبي', path: '/accounting/tax-report' },
       { id: 'budgets', name: 'Budgets', nameAr: 'إدارة الميزانيات', path: '/accounting/budgets', doctype: 'Budget' },
       { id: 'multi-currency', name: 'Multi Currency', nameAr: 'متعدد العملات', path: '/accounting/multi-currency' },
+      { id: 'opening-balances', name: 'Opening Balances', nameAr: 'الأرصدة الافتتاحية', path: '/accounting/opening-balances' },
+      { id: 'period-closing-v2', name: 'Period Closing V2', nameAr: 'إقفال الفترات', path: '/accounting/period-closing-v2' },
+      { id: 'expenses-by-period', name: 'Expenses By Period', nameAr: 'المصروفات بالمدة الزمنية', path: '/accounting/expenses-by-period' },
     ],
     settingsGroups: [
       {
@@ -83,6 +86,12 @@ export const SYSTEM_MODULES: SystemModule[] = [
       { id: 'sales-orders', name: 'Sales Orders', nameAr: 'أوامر البيع', path: '/sales/sales-orders', doctype: 'Sales Order' },
       { id: 'delivery-notes', name: 'Delivery Notes', nameAr: 'إشعارات التسليم', path: '/sales/delivery-notes', doctype: 'Delivery Note' },
       { id: 'sales-reports', name: 'Sales Reports', nameAr: 'تقارير المبيعات', path: '/sales/reports', doctype: 'Sales Invoice' },
+      { id: 'shipping', name: 'Shipping', nameAr: 'الشحن والتوصيل', path: '/sales/shipping' },
+      { id: 'recurring-invoices', name: 'Recurring Invoices', nameAr: 'الفواتير الدورية', path: '/sales/recurring-invoices' },
+      { id: 'commissions', name: 'Commissions', nameAr: 'عمولات المبيعات', path: '/sales/commissions' },
+      { id: 'daily-sales', name: 'Daily Sales', nameAr: 'تقرير المبيعات اليومي', path: '/sales/daily-sales' },
+      { id: 'monthly-sales', name: 'Monthly Sales', nameAr: 'تقرير المبيعات الشهري', path: '/sales/monthly-sales' },
+      { id: 'product-profits', name: 'Product Profits', nameAr: 'أرباح مبيعات الأصناف', path: '/sales/product-profits' },
     ],
     settingsGroups: [
       {
@@ -160,6 +169,7 @@ export const SYSTEM_MODULES: SystemModule[] = [
       { id: 'supplier-quotations', name: 'Supplier Quotations', nameAr: 'عروض أسعار الموردين', path: '/purchases/supplier-quotations', doctype: 'Supplier Quotation' },
       { id: 'purchase-requests', name: 'Purchase Requests', nameAr: 'طلبات الشراء', path: '/purchases/purchase-requests', doctype: 'Material Request' },
       { id: 'purchase-reports', name: 'Purchase Reports', nameAr: 'تقارير المشتريات', path: '/purchases/reports', doctype: 'Purchase Invoice' },
+      { id: 'supplier-statements', name: 'Supplier Statements', nameAr: 'كشف حساب المورد', path: '/purchases/supplier-statements' },
     ],
     settingsGroups: [
       {
@@ -190,6 +200,8 @@ export const SYSTEM_MODULES: SystemModule[] = [
       { id: 'serial-numbers', name: 'Serial Numbers', nameAr: 'الأرقام التسلسلية', path: '/inventory/serial-numbers', doctype: 'Serial No' },
       { id: 'batches', name: 'Batches', nameAr: 'الدفعات', path: '/inventory/batches', doctype: 'Batch' },
       { id: 'inventory-reports', name: 'Inventory Reports', nameAr: 'تقارير المخزون', path: '/inventory/reports', doctype: 'Stock Ledger' },
+      { id: 'permits', name: 'Permits', nameAr: 'الأذون المخزنية', path: '/inventory/permits' },
+      { id: 'item-variants', name: 'Item Variants', nameAr: 'متغيرات المنتج', path: '/inventory/item-variants' },
     ],
     settingsGroups: [
       {
@@ -219,6 +231,7 @@ export const SYSTEM_MODULES: SystemModule[] = [
       { id: 'salary-slips', name: 'Salary Slips', nameAr: 'كشوف الرواتب', path: '/hr/salary-slips', doctype: 'Salary Slip' },
       { id: 'payroll-entry', name: 'Payroll Entry', nameAr: 'مسير الرواتب', path: '/hr/payroll-entry', doctype: 'Payroll Entry' },
       { id: 'hr-reports', name: 'HR Reports', nameAr: 'تقارير الموارد البشرية', path: '/hr/reports', doctype: 'Employee' },
+      { id: 'attendance-summary', name: 'Attendance Summary', nameAr: 'ملخص الحضور', path: '/hr/attendance-summary' },
     ],
     settingsGroups: [
       {
@@ -289,6 +302,7 @@ export const SYSTEM_MODULES: SystemModule[] = [
       { id: 'projects', name: 'Projects', nameAr: 'إدارة المشاريع', path: '/operations/projects', doctype: 'Project' },
       { id: 'fleet', name: 'Fleet', nameAr: 'إدارة الأسطول', path: '/operations/fleet' },
       { id: 'approvals', name: 'Approvals', nameAr: 'سير الموافقات', path: '/operations/approvals' },
+      { id: 'work-orders-ops', name: 'Work Orders', nameAr: 'أوامر الشغل', path: '/operations/work-orders-ops' },
     ],
     settingsGroups: [
       {
@@ -346,6 +360,7 @@ export const SYSTEM_MODULES: SystemModule[] = [
       { id: 'opportunities', name: 'Opportunities', nameAr: 'الفرص', path: '/crm/opportunities', doctype: 'Opportunity' },
       { id: 'activities', name: 'Activities', nameAr: 'الأنشطة', path: '/crm/activities', doctype: 'Communication' },
       { id: 'crm-messages', name: 'Messages', nameAr: 'الرسائل', path: '/crm/messages', doctype: 'Notification Log' },
+      { id: 'account-statements', name: 'Account Statements', nameAr: 'كشف حساب العميل', path: '/crm/account-statements' },
     ],
     settingsGroups: [
       {
