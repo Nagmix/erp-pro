@@ -1,4 +1,4 @@
-# ============================================================
+٩# ============================================================
 # ERP Pro - ERPNext Backend Dockerfile for Railway
 # ============================================================
 # هذا الملف يشغّل جميع خدمات ERPNext في حاوية واحدة:
@@ -37,7 +37,5 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 # المنافذ
 EXPOSE 8000 9000
 
-# مجلد البيانات الدائم
-VOLUME ["/home/frappe/frappe-bench/sites"]
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
