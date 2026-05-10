@@ -60,6 +60,37 @@ fi
 log "Directories and symlinks verified."
 
 # ----------------------------------------------------------
+# 1.5 ★ الحل الأساسي: symlink باسم نطاق Railway → الموقع
+# ERPNext يطابق Host header مع مجلدات في sites/
+# لو ما لقى مجلد باسم النطاق = 404 "does not exist"
+# الحل: نربط النطاق بالموقع عبر symlink
+# ----------------------------------------------------------
+RAILWAY_PUB_DOMAIN="${RAILWAY_PUBLIC_DOMAIN:-}"
+RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN#https://}"
+RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN#http://}"
+RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN%/}"
+
+if [ -n "$RAILWAY_PUB_DOMAIN" ] && [ -n "$SITE_NAME" ]; then
+    SYMLINK_PATH="${SITES_DIR}/${RAILWAY_PUB_DOMAIN}"
+    SITE_PATH="${SITES_DIR}/${SITE_NAME}"
+
+    # إنشاء مجلد الموقع لو ما موجود
+    mkdir -p "$SITE_PATH"
+
+    # إنشاء symlink (لو ما موجود أو يشير لمكان غلط)
+    if [ ! -L "$SYMLINK_PATH" ] || [ "$(readlink -f "$SYMLINK_PATH")" != "$(readlink -f "$SITE_PATH")" ]; then
+        rm -f "$SYMLINK_PATH" 2>/dev/null || true
+        ln -sf "$SITE_PATH" "$SYMLINK_PATH"
+        log "★ Created symlink: ${RAILWAY_PUB_DOMAIN} → ${SITE_NAME}"
+    else
+        log "★ Symlink already exists: ${RAILWAY_PUB_DOMAIN} → ${SITE_NAME}"
+    fi
+    chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
+else
+    log "WARNING: RAILWAY_PUBLIC_DOMAIN or SITE_NAME not set — skipping domain symlink"
+fi
+
+# ----------------------------------------------------------
 # 2. كتابة سكربت التحقق من MariaDB في ملف منفصل
 #    هذا يتجنب مشاكل quoting في python3 -c "..."
 # ----------------------------------------------------------
