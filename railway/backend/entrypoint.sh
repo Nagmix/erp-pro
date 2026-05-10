@@ -2,8 +2,10 @@
 # ============================================================
 # ERP Pro — ERPNext Backend Entrypoint for Railway
 # ============================================================
-# استراتيجية: نكتب الإعدادات ونبدأ supervisor فوراً
-# بدون أي انتظار — كل شيء آخر في الخلفية
+# استراتيجية:
+#   1. نكتب common_site_config.json مباشرة بـ Python (موثوق 100%)
+#   2. نبدأ supervisor فوراً
+#   3. إنشاء الموقع في الخلفية
 # ============================================================
 
 set -e
@@ -20,19 +22,20 @@ COMMON_CONFIG="${SITES_DIR}/common_site_config.json"
 log "============================================"
 log "ERP Pro — ERPNext Backend (Railway)"
 log "============================================"
-log "Site Name      : ${SITE_NAME}"
-log "DB Host        : ${DB_HOST:-<not set>}"
-log "DB Port        : ${DB_PORT:-3306}"
-log "PORT (Railway) : ${PORT:-8000}"
-log "Redis Cache    : ${REDIS_CACHE:-<not set>}"
-log "Redis Queue    : ${REDIS_QUEUE:-<not set>}"
-log "Redis Socketio : ${REDIS_SOCKETIO:-<not set>}"
+log "SITE_NAME       : ${SITE_NAME}"
+log "DB_HOST         : ${DB_HOST:-<not set>}"
+log "DB_PORT         : ${DB_PORT:-3306}"
+log "PORT (Railway)  : ${PORT:-8000}"
+log "REDIS_URL       : ${REDIS_URL:-<not set>}"
+log "REDIS_HOST      : ${REDIS_HOST:-<not set>}"
+log "REDIS_CACHE     : ${REDIS_CACHE:-<not set>}"
+log "REDIS_QUEUE     : ${REDIS_QUEUE:-<not set>}"
+log "REDIS_SOCKETIO  : ${REDIS_SOCKETIO:-<not set>}"
 log "============================================"
 
 # ----------------------------------------------------------
-# 1. ضمان وجود المجلدات (مهم بعد إعادة تشغيل الحاوية)
+# 1. ضمان وجود المجلدات
 # ----------------------------------------------------------
-
 mkdir -p "$LOGS_DIR"
 mkdir -p "${BENCH_DIR}/logs"
 mkdir -p "$SITES_DIR"
@@ -45,76 +48,219 @@ chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
 if [ ! -L "/home/frappe/frappe-bench/env/bin/bench" ] && [ ! -f "/home/frappe/frappe-bench/env/bin/bench" ]; then
     BENCH_REAL=$(which bench 2>/dev/null || echo "/usr/local/bin/bench")
     ln -sf "${BENCH_REAL}" /home/frappe/frappe-bench/env/bin/bench 2>/dev/null || true
-    log "Created bench symlink → ${BENCH_REAL}"
+    log "Created bench symlink -> ${BENCH_REAL}"
 fi
 if [ ! -L "/home/frappe/frappe-bench/env/bin/node" ] && [ ! -f "/home/frappe/frappe-bench/env/bin/node" ]; then
     NODE_REAL=$(which node 2>/dev/null || echo "/usr/local/bin/node")
     ln -sf "${NODE_REAL}" /home/frappe/frappe-bench/env/bin/node 2>/dev/null || true
-    log "Created node symlink → ${NODE_REAL}"
+    log "Created node symlink -> ${NODE_REAL}"
 fi
 
 log "Directories and symlinks verified."
 
 # ----------------------------------------------------------
-# 2. إعداد common_site_config.json
+# 2. كتابة common_site_config.json مباشرة بـ Python
+#    هذا هو الإصلاح الرئيسي — بدل bench set-config
+#    اللي يفشل بصمت لأن الموقع ما أنشئ بعد
 # ----------------------------------------------------------
 
-log "Configuring common_site_config.json ..."
+log "Writing common_site_config.json directly with Python (reliable method)..."
 
 cd "$BENCH_DIR"
 
-if [ ! -f "$COMMON_CONFIG" ]; then
-    echo '{}' > "$COMMON_CONFIG"
-fi
+python3 << 'PYTHON_SCRIPT'
+import json
+import os
+import re
+import sys
 
-if [ -n "$DB_HOST" ]; then
-    bench set-config -g db_host "$DB_HOST" 2>/dev/null || true
-fi
-if [ -n "$DB_PORT" ]; then
-    bench set-config -g db_port "$(printf '%d' "$DB_PORT")" 2>/dev/null || true
-fi
-if [ -n "$REDIS_CACHE" ]; then
-    bench set-config -g redis_cache "$REDIS_CACHE" 2>/dev/null || true
-fi
-if [ -n "$REDIS_QUEUE" ]; then
-    bench set-config -g redis_queue "$REDIS_QUEUE" 2>/dev/null || true
-fi
-if [ -n "$REDIS_SOCKETIO" ]; then
-    bench set-config -g redis_socketio "$REDIS_SOCKETIO" 2>/dev/null || true
-fi
+config = {}
+config_path = os.environ.get('COMMON_CONFIG', '/home/frappe/frappe-bench/sites/common_site_config.json')
 
-bench set-config -g socketio_port "${SOCKETIO_PORT:-9000}" 2>/dev/null || true
+# قراءة الإعدادات الموجودة إن وجدت
+if os.path.exists(config_path):
+    try:
+        with open(config_path) as f:
+            config = json.load(f)
+        print(f"[CONFIG] Read existing config: {json.dumps(config, indent=2)}")
+    except Exception as e:
+        print(f"[CONFIG] Could not read existing config: {e}")
+        config = {}
 
-log "common_site_config.json updated."
+# ----------------------------------------------------------
+# إعدادات قاعدة البيانات
+# ----------------------------------------------------------
+db_host = os.environ.get('DB_HOST', '')
+db_port = os.environ.get('DB_PORT', '')
+
+if db_host:
+    config['db_host'] = db_host
+    print(f"[CONFIG] Set db_host = {db_host}")
+if db_port:
+    config['db_port'] = int(db_port)
+    print(f"[CONFIG] Set db_port = {db_port}")
+
+# ----------------------------------------------------------
+# إعدادات Redis — الأولوية:
+#   1. REDIS_URL (من Railway Redis Service)
+#   2. REDIS_HOST + REDIS_PORT + REDIS_PASSWORD
+#   3. REDIS_CACHE + REDIS_QUEUE + REDIS_SOCKETIO (فردية)
+# ----------------------------------------------------------
+redis_url = os.environ.get('REDIS_URL', '')
+redis_host = os.environ.get('REDIS_HOST', '')
+redis_port = os.environ.get('REDIS_PORT', '6379')
+redis_password = os.environ.get('REDIS_PASSWORD', '')
+
+redis_cache = os.environ.get('REDIS_CACHE', '')
+redis_queue = os.environ.get('REDIS_QUEUE', '')
+redis_socketio = os.environ.get('REDIS_SOCKETIO', '')
+
+if redis_url:
+    # REDIS_URL من Railway: redis://default:PASSWORD@HOST:PORT
+    # نزيل أي رقم قاعدة بيانات في النهاية ثم نضيف أرقام مختلفة
+    # redis_cache   -> DB 0
+    # redis_queue   -> DB 1
+    # redis_socketio -> DB 2
+    base_url = re.sub(r'/\d+$', '', redis_url)
+
+    config['redis_cache'] = base_url + '/0'
+    config['redis_queue'] = base_url + '/1'
+    config['redis_socketio'] = base_url + '/2'
+
+    print(f"[CONFIG] Built Redis URLs from REDIS_URL:")
+    print(f"  redis_cache    = {config['redis_cache']}")
+    print(f"  redis_queue    = {config['redis_queue']}")
+    print(f"  redis_socketio = {config['redis_socketio']}")
+
+elif redis_host:
+    # بناء من REDIS_HOST + REDIS_PORT + REDIS_PASSWORD
+    if redis_password:
+        auth = f':{redis_password}@'
+    else:
+        auth = ''
+
+    base = f'redis://{auth}{redis_host}:{redis_port}'
+
+    config['redis_cache'] = base + '/0'
+    config['redis_queue'] = base + '/1'
+    config['redis_socketio'] = base + '/2'
+
+    print(f"[CONFIG] Built Redis URLs from REDIS_HOST/PORT:")
+    print(f"  redis_cache    = {config['redis_cache']}")
+    print(f"  redis_queue    = {config['redis_queue']}")
+    print(f"  redis_socketio = {config['redis_socketio']}")
+
+else:
+    # استخدام الروابط الفردية إن وُجدت
+    if redis_cache:
+        config['redis_cache'] = redis_cache
+        print(f"[CONFIG] Set redis_cache = {redis_cache}")
+    if redis_queue:
+        config['redis_queue'] = redis_queue
+        print(f"[CONFIG] Set redis_queue = {redis_queue}")
+    if redis_socketio:
+        config['redis_socketio'] = redis_socketio
+        print(f"[CONFIG] Set redis_socketio = {redis_socketio}")
+
+# ----------------------------------------------------------
+# إعدادات إضافية
+# ----------------------------------------------------------
+socketio_port = os.environ.get('SOCKETIO_PORT', '9000')
+config['socketio_port'] = int(socketio_port)
+
+# ----------------------------------------------------------
+# كتابة الملف
+# ----------------------------------------------------------
+with open(config_path, 'w') as f:
+    json.dump(config, f, indent=2)
+    f.write('\n')
+
+print(f"[CONFIG] Written to {config_path}:")
+print(json.dumps(config, indent=2))
+PYTHON_SCRIPT
+
+log "common_site_config.json written successfully."
+
+# التحقق من محتوى الملف
+log "=== Verifying common_site_config.json ==="
+cat "$COMMON_CONFIG" || true
+log "=== End of config ==="
 
 # ----------------------------------------------------------
 # 3. تعيين الموقع كافتراضي
 # ----------------------------------------------------------
-
 DEFAULT_SITE_FILE="${SITES_DIR}/currentsite.txt"
 echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
 log "Default site set to '${SITE_NAME}'."
 
 # ----------------------------------------------------------
-# 4. إنشاء الموقع في الخلفية
+# 4. إنشاء site_config.json للموقع
 # ----------------------------------------------------------
-
 SITE_DIR="${SITES_DIR}/${SITE_NAME}"
+SITE_CONFIG="${SITE_DIR}/site_config.json"
 
 if [ ! -d "$SITE_DIR" ]; then
-    log "Site '${SITE_NAME}' does not exist — creating in background ..."
+    mkdir -p "$SITE_DIR"
+fi
+
+# كتابة إعدادات الموقع الأساسية
+if [ ! -f "$SITE_CONFIG" ]; then
+    python3 << PYTHON_SITE_CONFIG
+import json, os
+
+site_config = {
+    "db_name": os.environ.get('DB_NAME', '${SITE_NAME}'),
+    "db_password": os.environ.get('DB_PASSWORD', ''),
+    "db_host": os.environ.get('DB_HOST', ''),
+    "db_port": int(os.environ.get('DB_PORT', '3306')),
+}
+if os.environ.get('DB_USER'):
+    site_config['db_user'] = os.environ.get('DB_USER')
+
+config_path = '${SITE_CONFIG}'
+with open(config_path, 'w') as f:
+    json.dump(site_config, f, indent=2)
+    f.write('\n')
+print(f"[SITE_CONFIG] Written: {json.dumps(site_config, indent=2)}")
+PYTHON_SITE_CONFIG
+    chown -R frappe:frappe "$SITE_DIR" 2>/dev/null || true
+    log "site_config.json created for '${SITE_NAME}'."
+else
+    log "site_config.json already exists for '${SITE_NAME}'."
+fi
+
+# ----------------------------------------------------------
+# 5. إنشاء الموقع في الخلفية
+# ----------------------------------------------------------
+
+if [ ! -f "${SITE_DIR}/site_config.json" ] || [ ! -d "${SITE_DIR}/private" ]; then
+    log "Site '${SITE_NAME}' needs initialization — creating in background ..."
     (
         log "[BG] Waiting for MariaDB ..."
         for i in $(seq 1 60); do
-            if mysqladmin ping -h "$DB_HOST" -P "${DB_PORT:-3306}" -u "$DB_USER" -p"$DB_PASSWORD" --silent 2>/dev/null; then
+            if python3 -c "
+import socket, sys
+host='${DB_HOST}'
+port=int('${DB_PORT:-3306}')
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(3)
+    s.connect((host, port))
+    s.close()
+    sys.exit(0)
+except:
+    sys.exit(1)
+" 2>/dev/null; then
                 log "[BG] MariaDB is ready!"
                 break
             fi
-            [ $i -eq 60 ] && { log "[BG] MariaDB timeout"; exit 1; }
+            [ $i -eq 60 ] && { log "[BG] MariaDB timeout — will retry on next restart"; exit 1; }
             sleep 5
         done
 
         log "[BG] Creating site '${SITE_NAME}' ..."
+        cd /home/frappe/frappe-bench
+
         bench new-site "$SITE_NAME" \
             --db-host "$DB_HOST" \
             --db-port "${DB_PORT:-3306}" \
@@ -127,17 +273,17 @@ if [ ! -d "$SITE_DIR" ]; then
             --set-default \
             --verbose 2>&1 || log "[BG] Site creation had errors (DB may already exist)"
 
-        echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
+        echo "$SITE_NAME" > "${SITES_DIR}/currentsite.txt"
         chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
         log "[BG] Site setup completed!"
     ) &
     log "Site creation running in background (PID: $!)"
 else
-    log "Site '${SITE_NAME}' already exists."
+    log "Site '${SITE_NAME}' already exists and is initialized."
 fi
 
 # ----------------------------------------------------------
-# 5. Migrate في الخلفية إذا طُلب
+# 6. Migrate في الخلفية إذا طُلب
 # ----------------------------------------------------------
 
 if [ "${FORCE_SITE_MIGRATE}" = "true" ] && [ -d "$SITE_DIR" ]; then
@@ -148,9 +294,8 @@ if [ "${FORCE_SITE_MIGRATE}" = "true" ] && [ -d "$SITE_DIR" ]; then
 fi
 
 # ----------------------------------------------------------
-# 6. تنظيم الصلاحيات
+# 7. تنظيم الصلاحيات
 # ----------------------------------------------------------
-
 chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
 chown -R frappe:frappe "${BENCH_DIR}/logs" 2>/dev/null || true
 chown -R frappe:frappe "$LOGS_DIR" 2>/dev/null || true
