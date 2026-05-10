@@ -5,6 +5,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getList } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const doctype = searchParams.get('doctype');

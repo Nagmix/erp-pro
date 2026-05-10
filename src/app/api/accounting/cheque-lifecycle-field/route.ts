@@ -3,6 +3,10 @@ import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 import { verifyErpSessionToken } from '@/lib/server/jwt-session';
 import { chequeLifecycleFieldExists, ensureChequeLifecycleField } from '@/lib/server/cheque-lifecycle-field';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 function auth(request: NextRequest) {
   const token = request.cookies.get('erp_session')?.value;
   const authHeader = request.headers.get('authorization');

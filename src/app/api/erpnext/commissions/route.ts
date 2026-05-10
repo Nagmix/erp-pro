@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getList, createDoc } from '@/lib/server/backend';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const sp = req.nextUrl.searchParams;

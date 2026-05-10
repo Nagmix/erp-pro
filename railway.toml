@@ -1,0 +1,5 @@
+# Railway configuration — use the Dockerfile for builds
+# This ensures prisma generate runs before next build
+
+[build]
+builder = "dockerfile"

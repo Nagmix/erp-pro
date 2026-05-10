@@ -9,6 +9,9 @@ import {
   loadDeveloperPortalStoreResolved,
 } from '@/lib/server/developer-portal-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
 type IntegrationStatusResult = {
   key: string;
   status: 'connected' | 'disconnected' | 'error';

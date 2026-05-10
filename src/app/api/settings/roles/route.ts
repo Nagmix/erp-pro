@@ -5,6 +5,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getList, getCount, getDoc, updateDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 type RoleRow = {
   name: string;
   desk_access: number;

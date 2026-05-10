@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getList, createDoc, updateDoc, deleteDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 const DOCTYPE = 'Tax Declaration';
 
 // GET /api/accounting/tax-declarations — list all

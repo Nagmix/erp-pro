@@ -3,6 +3,10 @@ import { verifyErpSessionToken, frappeSidFromPayload } from '@/lib/server/jwt-se
 import { logoutErpSession } from '@/lib/server/backend';
 import { CSRF_COOKIE } from '@/lib/auth/csrf-constants';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function POST(request: NextRequest) {
   const raw = request.cookies.get('erp_session')?.value?.trim();
   if (raw) {

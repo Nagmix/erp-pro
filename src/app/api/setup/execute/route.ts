@@ -17,6 +17,10 @@ import { randomBytes } from 'crypto';
 import { jwtVerify } from 'jose';
 import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 /** ملف علامة اكتمال الإعداد */
 function setupFlagPath(): string {
   const dir = process.env.ERP_PRO_DATA_DIR || path.join(process.cwd(), 'data');

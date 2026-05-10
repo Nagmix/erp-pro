@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePosRequest } from '@/lib/server/pos-api-auth';
 import { posApplyMinimalSetup, posCheckReadiness } from '@/lib/server/pos-service';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 /**
  * تهيئة خفيفة + تقرير جاهزية — لا يُنشئ شركة أو مخطط حسابات كاملاً.
  * الخيارات: POS Settings، ربط Cash بحساب الشركة، إنشاء ملف POS أدنى عند توفر الشروط.

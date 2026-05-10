@@ -13,6 +13,10 @@ import {
 } from '@/lib/server/app-settings-store';
 import { appendAppAuditLog } from '@/lib/server/app-audit-log';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET() {
   try {
     const result = await loadAppSettingsFromErp();

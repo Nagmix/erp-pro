@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getList, getDoc, createDoc, updateDoc, deleteDoc } from '@/lib/server/backend';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
 const DOCTYPE = 'Auto Repeat';
 
 export async function GET(req: NextRequest) {

@@ -6,6 +6,10 @@ import {
   saveDeveloperPortalStore,
 } from '@/lib/server/developer-portal-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 function generateToken() {
   return `erp_${randomUUID().replace(/-/g, '').slice(0, 20)}`;
 }

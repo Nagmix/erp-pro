@@ -3,6 +3,10 @@ import { setupTaxPackage } from '@/lib/server/tax-setup';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 import { verifyErpSessionToken } from '@/lib/server/jwt-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 function parseBody(raw: unknown): { company?: string; title?: string; rate?: number } {
   if (!raw || typeof raw !== 'object') return {};
   const o = raw as Record<string, unknown>;

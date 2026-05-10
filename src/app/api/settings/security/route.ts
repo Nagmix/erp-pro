@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadSecurityUiSettings, saveSecurityUiSettings, type SecurityUiSettings } from '@/lib/server/security-settings-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET() {
   return NextResponse.json({ success: true, data: loadSecurityUiSettings() });
 }

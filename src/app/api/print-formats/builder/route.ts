@@ -5,6 +5,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDoc, updateDoc, callMethod } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 // GET — Get print format builder data (format + DocType fields)
 export async function GET(request: NextRequest) {
   try {

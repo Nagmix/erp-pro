@@ -4,6 +4,10 @@ import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 import { getReportDef } from '@/lib/reports/catalog';
 import ExcelJS from 'exceljs';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as {

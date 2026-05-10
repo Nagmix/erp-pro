@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyErpSessionToken } from '@/lib/server/jwt-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 function legacyPayload(token: string): {
   userId: string;
   fullName: string;

@@ -5,6 +5,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDashboardKPIs } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET(request: NextRequest) {
   try {
     const userSession = getFrappeSidFromRequest(request);

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { ProductExtensionsSettings } from '@/lib/product-extensions-settings.shared';
 import { loadProductExtensionsSettings, saveProductExtensionsSettings } from '@/lib/server/product-extensions-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET() {
   return NextResponse.json({ success: true, data: await loadProductExtensionsSettings() });
 }

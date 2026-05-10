@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { signErpSessionToken, verifyErpSessionToken } from '@/lib/server/jwt-session';
 import { applyCsrfCookie, generateCsrfToken } from '@/lib/auth/csrf';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 function ttlSecFromPayload(sk?: 's' | 'l'): number {
   const longDays = Math.min(90, Math.max(7, parseInt(process.env.AUTH_REMEMBER_ME_DAYS || '30', 10)));
   const shortHours = Math.min(72, Math.max(1, parseInt(process.env.AUTH_SESSION_HOURS || '12', 10)));

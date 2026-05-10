@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requestPasswordResetFromErp } from '@/lib/server/backend';
 import { isForgotPasswordRateLimited } from '@/lib/server/forgot-password-rate-limit';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 function clientIp(request: NextRequest): string {
   const xff = request.headers.get('x-forwarded-for');
   if (xff) return xff.split(',')[0]?.trim() || 'unknown';

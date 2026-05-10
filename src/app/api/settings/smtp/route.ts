@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { appendAppAuditLog } from '@/lib/server/app-audit-log';
 import { loadSmtpConfig, saveSmtpConfig, type SmtpConfigPersisted } from '@/lib/server/smtp-config-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET() {
   const cfg = await loadSmtpConfig();
   if (!cfg) {

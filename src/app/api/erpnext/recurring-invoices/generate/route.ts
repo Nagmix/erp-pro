@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callMethod } from '@/lib/server/backend';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

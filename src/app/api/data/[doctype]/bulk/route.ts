@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ doctype: string }> }

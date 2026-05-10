@@ -1,0 +1,20 @@
+# Nixpacks configuration for Railway deployment
+# Ensures prisma generate runs before the Next.js build
+
+[phases.setup]
+
+[phases.install]
+cmds = ["npm install --no-audit --no-fund"]
+
+[phases.generate]
+name = "Generate Prisma Client"
+cmds = ["DATABASE_URL=\"file:./dev.db\" npx prisma generate"]
+depends_on = ["install"]
+
+[phases.build]
+name = "Build Next.js"
+cmds = ["DATABASE_URL=\"file:./dev.db\" npm run build"]
+depends_on = ["generate"]
+
+[start]
+cmd = "node server.js"

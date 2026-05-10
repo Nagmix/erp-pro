@@ -7,6 +7,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callMethod, getList, getDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
 /**
  * Document types that support naming_series in ERPNext.
  * Each entry maps to a DocType and its default prefix pattern.

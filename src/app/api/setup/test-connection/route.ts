@@ -4,6 +4,10 @@ import {
   clearFrappeConnectionCache,
 } from '@/lib/server/frappe-connection-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 /**
  * POST /api/setup/test-connection
  * اختبار الاتصال بخادم ERPNext — يُستخدم في معالج الإعداد الأولي فقط

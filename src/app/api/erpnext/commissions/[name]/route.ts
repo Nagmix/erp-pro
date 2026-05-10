@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDoc, updateDoc, deleteDoc } from '@/lib/server/backend';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ name: string }> }) {
   try {
     const { name } = await params;

@@ -7,6 +7,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDoc, updateDoc, deleteDoc, submitDoc, cancelDoc, amendDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 // GET - Single document
 export async function GET(
   request: NextRequest,

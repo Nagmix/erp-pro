@@ -3,6 +3,10 @@ import { appendAppAuditLog } from '@/lib/server/app-audit-log';
 import { getList, getDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 type Body = {
   shopify?: string;
   salla?: string;

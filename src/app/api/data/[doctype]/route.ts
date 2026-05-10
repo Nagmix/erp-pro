@@ -6,6 +6,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getList, createDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 // DocTypes that may not exist in all ERPNext installations — return empty list gracefully
 const GRACEFUL_404_DOTYPES = new Set([
   'Cheque Book',

@@ -6,6 +6,10 @@ import {
   saveDeveloperPortalStore,
 } from '@/lib/server/developer-portal-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 async function deliverWebhook(row: DeliveryRow, hookUrl: string) {
   const maxAttempts = 3;
   while (row.attempts < maxAttempts) {

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ZAI from 'z-ai-web-dev-sdk';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
 // ── Types ──
 type OcrFieldResult = {
   value: string;

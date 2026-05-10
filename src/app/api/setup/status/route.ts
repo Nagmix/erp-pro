@@ -3,6 +3,10 @@ import { getCount, isBackendAvailable } from '@/lib/server/backend';
 import fs from 'fs';
 import path from 'path';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 /** ملف علامة اكتمال الإعداد */
 function setupFlagPath(): string {
   const dir = process.env.ERP_PRO_DATA_DIR || path.join(process.cwd(), 'data');

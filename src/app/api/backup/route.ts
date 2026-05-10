@@ -4,6 +4,10 @@ import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 import { writeFile, readFile, mkdir, unlink, readdir, stat } from 'fs/promises';
 import { join } from 'path';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 // ============================================================
 // Types
 // ============================================================

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { loadSmtpConfig } from '@/lib/server/smtp-config-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as { to?: string };
   const to = typeof body.to === 'string' ? body.to.trim() : '';

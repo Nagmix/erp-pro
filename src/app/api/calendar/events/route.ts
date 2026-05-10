@@ -5,6 +5,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getList, getDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 type CalendarEvent = {
   id: string;
   title: string;

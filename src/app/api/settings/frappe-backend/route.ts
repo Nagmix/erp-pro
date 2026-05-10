@@ -9,6 +9,10 @@ import {
   usesFrappeTokenAuth,
 } from '@/lib/server/frappe-connection-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 function parseKeysFromMessage(msg: unknown): { key: string; secret: string } | null {
   if (msg == null) return null;
   if (Array.isArray(msg) && msg.length >= 2) {

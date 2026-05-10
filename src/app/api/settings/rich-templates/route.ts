@@ -7,6 +7,10 @@ import {
   type RichTemplate,
 } from '@/lib/server/rich-templates-list-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET() {
   const templates = loadRichTemplatesList();
   return NextResponse.json({ success: true, data: templates });

@@ -8,6 +8,10 @@ import {
   type PlatformId,
 } from '@/lib/server/ecommerce-platform-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET() {
   const data = await loadEcommercePlatformSettingsResolved();
   return NextResponse.json({ success: true, data });

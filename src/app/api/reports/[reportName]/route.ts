@@ -10,6 +10,10 @@ import { verifyErpSessionToken } from '@/lib/server/jwt-session';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 import { getReportDef } from '@/lib/reports/catalog';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ reportName: string }> }

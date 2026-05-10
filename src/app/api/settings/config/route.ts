@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
 import path from 'path';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 const DATA_DIR = path.join(process.cwd(), 'data');
 const CONFIG_PATH = path.join(DATA_DIR, 'app-config.json');
 

@@ -1,18 +1,11 @@
 /**
  * سجل أحداث محلي (إعدادات SMTP، إلخ) — يفشل صامتاً إذا لم يُمهَّأ SQLite.
  *
- * Uses lazy import to avoid Prisma initialization errors during `next build`.
+ * Uses lazy import via getPrisma() to avoid Prisma initialization errors
+ * during `next build`.
  */
 
-let _prisma: typeof import('./prisma').prisma | null = null;
-
-async function getPrisma() {
-  if (!_prisma) {
-    const mod = await import('./prisma');
-    _prisma = mod.prisma;
-  }
-  return _prisma;
-}
+import { getPrisma } from './prisma';
 
 export async function appendAppAuditLog(action: string, subject?: string, payload?: unknown): Promise<void> {
   try {
@@ -21,7 +14,7 @@ export async function appendAppAuditLog(action: string, subject?: string, payloa
       const s = JSON.stringify(payload);
       payloadStr = s.length > 12000 ? `${s.slice(0, 12000)}…` : s;
     }
-    const p = await getPrisma();
+    const p = getPrisma();
     await p.appAuditLog.create({
       data: {
         action,

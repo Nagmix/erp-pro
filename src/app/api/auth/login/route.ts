@@ -7,6 +7,10 @@ import { signErpSessionToken } from '@/lib/server/jwt-session';
 import { isLoginRateLimited } from '@/lib/server/login-rate-limit';
 import { applyCsrfCookie, generateCsrfToken } from '@/lib/auth/csrf';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 /* ------------------------------------------------------------------
  * Demo accounts — ONLY available when DEMO_MODE is explicitly enabled
  * or when no ERPNext backend is configured (ERPNEXT_TRY_LOGIN not set).

@@ -7,6 +7,10 @@ import {
   type AccountRoutingRule,
 } from '@/lib/server/account-routing-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET() {
   const rules = loadAccountRoutingRules();
   return NextResponse.json({ success: true, data: rules });

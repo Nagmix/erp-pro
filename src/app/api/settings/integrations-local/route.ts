@@ -6,6 +6,10 @@ import {
   type IntegrationsLocalSettings,
 } from '@/lib/server/integrations-settings-store';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 export async function GET() {
   const data = await loadIntegrationsLocalResolved();
   return NextResponse.json({ success: true, data });

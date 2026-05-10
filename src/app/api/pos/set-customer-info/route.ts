@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { authenticatePosRequest } from '@/lib/server/pos-api-auth';
 import { posSetCustomerInfo } from '@/lib/server/pos-service';
 
+// Prevent static analysis during build
+export const dynamic = 'force-dynamic';
+
+
 /**
  * تحديث حقل عميل من الواجهة — يمر عبر `set_customer_info` في الخلفية.
  */
