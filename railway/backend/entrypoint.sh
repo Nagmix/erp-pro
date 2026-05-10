@@ -4,8 +4,9 @@
 # ============================================================
 # استراتيجية:
 #   1. نكتب common_site_config.json مباشرة بـ Python (موثوق 100%)
-#   2. نتحقق من MariaDB و Redis قبل بدء supervisor
-#   3. إنشاء الموقع في الخلفية (لا نوقف البدء)
+#   2. نكتب سكربت Python منفصل للتحقق من MariaDB (بدون مشاكل quoting)
+#   3. نبدأ supervisor فوراً
+#   4. إنشاء الموقع في الخلفية
 # ============================================================
 
 set -e
@@ -57,60 +58,79 @@ fi
 log "Directories and symlinks verified."
 
 # ----------------------------------------------------------
-# 2. تشخيص شبكة MariaDB — قبل كل شيء
+# 2. كتابة سكربت التحقق من MariaDB في ملف منفصل
+#    هذا يتجنب مشاكل quoting في python3 -c "..."
 # ----------------------------------------------------------
-log "=== MariaDB Network Diagnostics ==="
-if [ -n "$DB_HOST" ]; then
-    log "DB_HOST is set to: '${DB_HOST}'"
-    # محاولة حل DNS
-    python3 -c "
+cat > /tmp/wait_for_mariadb.py << 'PYEOF'
+#!/usr/bin/env python3
+"""Wait for MariaDB to be reachable via TCP socket."""
 import socket
-host = '${DB_HOST}'
-print(f'[DNS] Resolving: {host}')
-try:
-    results = socket.getaddrinfo(host, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
-    for r in results:
-        print(f'[DNS]   -> {r[0].name}: {r[4][0]}')
-except Exception as e:
-    print(f'[DNS] FAILED to resolve: {e}')
-" 2>&1 || log "[DNS] Resolution failed"
+import sys
+import os
 
-    # محاولة اتصال TCP
-    python3 -c "
-import socket
-host = '${DB_HOST}'
-port = int('${DB_PORT:-3306}')
-print(f'[TCP] Connecting to {host}:{port} ...')
+host = os.environ.get('DB_HOST', '')
+port = int(os.environ.get('DB_PORT', '3306'))
+
+if not host:
+    print("[MARIADB-CHECK] ERROR: DB_HOST is not set!")
+    sys.exit(1)
+
+print(f"[MARIADB-CHECK] Checking {host}:{port} ...")
+
+# Method 1: Use getaddrinfo (handles both IPv4 and IPv6)
 try:
-    # Try IPv6 first (Railway private domains often use IPv6)
-    for family in [socket.AF_INET6, socket.AF_INET]:
+    results = socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM)
+    print(f"[MARIADB-CHECK] DNS resolved {len(results)} addresses")
+    for af, socktype, proto, canonname, sa in results:
+        family_name = {2: 'IPv4', 10: 'IPv6', 30: 'IPv6'}.get(af, f'AF_{af}')
         try:
-            s = socket.socket(family, socket.SOCK_STREAM)
-            s.settimeout(5)
-            s.connect((host, port))
+            s = socket.socket(af, socktype, proto)
+            s.settimeout(3)
+            s.connect(sa)
             s.close()
-            print(f'[TCP] SUCCESS via {family.name}!')
-            break
+            print(f"[MARIADB-CHECK] SUCCESS via {family_name} ({sa[0]})")
+            sys.exit(0)
         except Exception as e:
-            print(f'[TCP] {family.name} failed: {e}')
-    else:
-        # Try using getaddrinfo
-        results = socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM)
-        for af, socktype, proto, canonname, sa in results:
-            try:
-                s = socket.socket(af, socktype, proto)
-                s.settimeout(5)
-                s.connect(sa)
-                s.close()
-                print(f'[TCP] SUCCESS via getaddrinfo ({af})!')
-                break
-            except Exception as e:
-                print(f'[TCP] getaddrinfo {af} failed: {e}')
+            print(f"[MARIADB-CHECK] {family_name} ({sa[0]}) failed: {e}")
 except Exception as e:
-    print(f'[TCP] All connection methods failed: {e}')
-" 2>&1 || log "[TCP] Connection test failed"
-else
-    log "WARNING: DB_HOST is not set! MariaDB will not be reachable."
+    print(f"[MARIADB-CHECK] getaddrinfo failed: {e}")
+
+# Method 2: Try direct IPv6
+try:
+    s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+    s.settimeout(3)
+    s.connect((host, port))
+    s.close()
+    print("[MARIADB-CHECK] SUCCESS via direct IPv6")
+    sys.exit(0)
+except Exception as e:
+    print(f"[MARIADB-CHECK] Direct IPv6 failed: {e}")
+
+# Method 3: Try direct IPv4
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(3)
+    s.connect((host, port))
+    s.close()
+    print("[MARIADB-CHECK] SUCCESS via direct IPv4")
+    sys.exit(0)
+except Exception as e:
+    print(f"[MARIADB-CHECK] Direct IPv4 failed: {e}")
+
+print("[MARIADB-CHECK] FAILED - all methods failed")
+sys.exit(1)
+PYEOF
+
+chmod +x /tmp/wait_for_mariadb.py
+
+# تشغيل تشخيص سريع
+log "=== MariaDB Network Diagnostics ==="
+python3 /tmp/wait_for_mariadb.py || log "MariaDB not reachable yet (may still be starting)"
+
+# محاولة mysqladmin ping (أدق طريقة للتحقق من MariaDB)
+if command -v mysqladmin &>/dev/null; then
+    log "Trying mysqladmin ping..."
+    mysqladmin ping -h "${DB_HOST}" -P "${DB_PORT:-3306}" -u "${DB_USER}" -p"${DB_PASSWORD}" 2>&1 || log "mysqladmin ping failed (MariaDB may still be initializing)"
 fi
 log "=== End of Network Diagnostics ==="
 
@@ -306,13 +326,12 @@ else
 fi
 
 # ----------------------------------------------------------
-# 6. إنشاء الموقع في الخلفية مع تشخيص أفضل
+# 6. إنشاء الموقع في الخلفية — باستخدام سكربت Python منفصل
 # ----------------------------------------------------------
 
-# نتحقق هل الموقع فعلاً أنشئ (يوجد مجلد private وملفات)
+# نتحقق هل الموقع فعلاً أنشئ
 SITE_INITIALIZED=false
 if [ -d "${SITE_DIR}/private" ] && [ -f "${SITE_DIR}/site_config.json" ]; then
-    # نتحقق إن الموقع فعلاً يعمل في قاعدة البيانات
     SITE_INITIALIZED=true
     log "Site '${SITE_NAME}' appears to be already initialized."
 fi
@@ -322,45 +341,23 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
     (
         log "[BG] Waiting for MariaDB at ${DB_HOST}:${DB_PORT:-3306} ..."
 
-        # انتظار MariaDB مع دعم IPv4 و IPv6
+        # انتظار MariaDB باستخدام عدة طرق
         MARIADB_READY=false
         for i in $(seq 1 120); do
-            if python3 -c "
-import socket, sys
-host='${DB_HOST}'
-port=int('${DB_PORT:-3306}')
-
-# Try all address families (IPv4 + IPv6)
-try:
-    results = socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM)
-    for af, socktype, proto, canonname, sa in results:
-        try:
-            s = socket.socket(af, socktype, proto)
-            s.settimeout(3)
-            s.connect(sa)
-            s.close()
-            sys.exit(0)
-        except:
-            continue
-except:
-    pass
-
-# Fallback: try direct connection
-for family in [socket.AF_INET6, socket.AF_INET]:
-    try:
-        s = socket.socket(family, socket.SOCK_STREAM)
-        s.settimeout(3)
-        s.connect((host, port))
-        s.close()
-        sys.exit(0)
-    except:
-        continue
-
-sys.exit(1)
-" 2>/dev/null; then
-                log "[BG] MariaDB is ready! (attempt $i)"
+            # الطريقة 1: Python socket check
+            if python3 /tmp/wait_for_mariadb.py; then
+                log "[BG] MariaDB TCP is ready! (attempt $i)"
                 MARIADB_READY=true
                 break
+            fi
+
+            # الطريقة 2: mysqladmin ping (أدق — يتحقق من بروتوكول MySQL)
+            if command -v mysqladmin &>/dev/null; then
+                if mysqladmin ping -h "${DB_HOST}" -P "${DB_PORT:-3306}" -u "${DB_USER}" -p"${DB_PASSWORD}" 2>/dev/null; then
+                    log "[BG] MariaDB is ready (mysqladmin ping)! (attempt $i)"
+                    MARIADB_READY=true
+                    break
+                fi
             fi
 
             if [ $((i % 10)) -eq 0 ]; then

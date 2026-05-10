@@ -14,7 +14,6 @@ USER root
 
 # ------------------------------------------------------------------
 # اكتشاف المسارات الحقيقية + إنشاء symlinks
-# هذا يضمن إن supervisord.conf يشتغل بالمسارات المتوقعة
 # ------------------------------------------------------------------
 RUN BENCH_REAL=$(which bench 2>/dev/null || echo "/usr/local/bin/bench") \
     && NODE_REAL=$(which node 2>/dev/null || echo "/usr/local/bin/node") \
@@ -25,20 +24,21 @@ RUN BENCH_REAL=$(which bench 2>/dev/null || echo "/usr/local/bin/bench") \
     && echo "Symlinks created!"
 
 # ------------------------------------------------------------------
-# تثبيت supervisor + أدوات تشخيص الشبكة
+# تثبيت supervisor + أدوات تشخيص الشبكة + mariadb-client
+# mariadb-client مهم لـ mysqladmin ping (أدق طريقة للتحقق من MariaDB)
 # ------------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
     curl \
     dnsutils \
     iputils-ping \
+    mariadb-client \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/log/supervisor \
     && mkdir -p /var/run/supervisor
 
 # ------------------------------------------------------------------
 # إنشاء مجلدات ضرورية لتشغيل Frappe
-# /home/frappe/logs/ مطلوب لـ RotatingFileHandler في frappe logger
 # ------------------------------------------------------------------
 RUN mkdir -p /home/frappe/logs \
     && mkdir -p /home/frappe/frappe-bench/logs \
@@ -67,8 +67,6 @@ EXPOSE 8000 9000
 
 # ------------------------------------------------------------------
 # فحص الصحة
-# ملاحظة: start-period 300 ثانية = 5 دقائق
-# لأن إنشاء الموقع يأخذ وقت
 # ------------------------------------------------------------------
 HEALTHCHECK --interval=15s --timeout=10s --start-period=300s --retries=10 \
     CMD /usr/local/bin/healthcheck.sh
