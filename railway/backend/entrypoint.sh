@@ -434,6 +434,7 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
                 log "[BG] Creating new site '${SITE_NAME}'..."
 
                 # إنشاء الموقع كمستخدم frappe (مو root!)
+                # --force مطلوب لأننا سوينا مجلد الموقع و site_config.json مسبقاً
                 su - frappe -c "cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
                     --db-host ${DB_HOST} \
                     --db-port ${DB_PORT:-3306} \
@@ -444,6 +445,7 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
                     --install-app erpnext \
                     --install-app frappe \
                     --set-default \
+                    --force \
                     --verbose" 2>&1
 
                 SITE_RESULT=$?
