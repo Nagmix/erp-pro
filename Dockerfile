@@ -9,14 +9,17 @@ FROM base AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install deps in this stage so .bin symlinks are valid (copying node_modules between stages can break `next` on Windows Docker).
-# Use npm install (not ci) so a slightly out-of-sync lockfile still builds; refresh the lock locally when you can.
+# Copy prisma schema FIRST so postinstall can find it during npm install
+COPY prisma ./prisma
+
+# Install deps — postinstall may try prisma generate; schema is now available
 COPY package.json package-lock.json ./
 RUN npm install --no-audit --no-fund
 
+# Copy the rest of the source code
 COPY . .
 
-# Generate Prisma client before build
+# Generate Prisma client (guaranteed to work — schema is present)
 RUN npx prisma generate
 
 # Build arguments for environment variables
