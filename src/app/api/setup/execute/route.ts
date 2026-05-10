@@ -175,16 +175,16 @@ export async function POST(request: NextRequest) {
     const serverAdminPassword = String(body.server_admin_password || '').trim();
 
     if (backendHost) {
-      // حفظ عنوان الخادم في ملف الاتصال
-      saveFrappeConnectionFile({ backendHost });
-      clearFrappeConnectionCache();
-
-      // حفظ بيانات الدخول في ملف الاتصال بدلاً من process.env (أمان)
+      // حفظ عنوان الخادم وبيانات الدخول واسم الموقع في ملف الاتصال
+      // ★ مهم: نحدد backendSiteName حتى يرسل Next.js ترويسة X-Frappe-Site-Name
+      // هذا ضروري لكي يتواصل مع ERPNext عبر wsgi_wrapper
       saveFrappeConnectionFile({
         backendHost,
         adminUser: serverAdminUser,
         adminPassword: serverAdminPassword,
+        backendSiteName: 'erppro',
       });
+      clearFrappeConnectionCache();
     }
 
     // التحقق من توفر الخادم
@@ -701,7 +701,12 @@ export async function POST(request: NextRequest) {
       data: { results },
     });
   } catch (error) {
+    console.error('[Setup Execute] Error:', error);
     const msg = error instanceof Error ? error.message : 'فشل تنفيذ الإعداد';
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: msg,
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined,
+    }, { status: 500 });
   }
 }

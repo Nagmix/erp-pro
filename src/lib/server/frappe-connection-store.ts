@@ -17,6 +17,8 @@ type FileShape = {
   /** Admin credentials for system session — stored locally, never in process.env */
   adminUser?: string;
   adminPassword?: string;
+  /** Frappe site name — used for X-Frappe-Site-Name header (e.g. 'erppro') */
+  backendSiteName?: string;
   updatedAt?: string;
 };
 
@@ -107,6 +109,7 @@ export function saveFrappeConnectionFile(partial: {
   backendVersion?: string;
   adminUser?: string;
   adminPassword?: string;
+  backendSiteName?: string;
 }): void {
   const fp = filePath();
   const dir = path.dirname(fp);

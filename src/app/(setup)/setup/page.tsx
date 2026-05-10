@@ -35,6 +35,14 @@ import {
   ArrowRight,
   Info,
   RefreshCw,
+  Landmark,
+  TrendingUp,
+  ShoppingCart,
+  Package,
+  Users,
+  Handshake,
+  Factory,
+  Kanban,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,7 +85,7 @@ interface ModuleEntry {
   id: string;
   label: string;
   description: string;
-  icon: string;
+  icon: React.ElementType;
   enabled: boolean;
 }
 
@@ -160,14 +168,14 @@ const COUNTRY_CURRENCY_MAP: Record<string, { currency: string; taxRate: number; 
 };
 
 const DEFAULT_MODULES: ModuleEntry[] = [
-  { id: 'accounting', label: 'المحاسبة والمالية', description: 'الفواتير، القيود، التقارير المالية، المدفوعات', icon: '💰', enabled: true },
-  { id: 'sales', label: 'المبيعات', description: 'عروض الأسعار، أوامر البيع، فواتير المبيعات', icon: '📈', enabled: true },
-  { id: 'purchases', label: 'المشتريات', description: 'طلبات الشراء، فواتير المشتريات، الموردون', icon: '🛒', enabled: true },
-  { id: 'inventory', label: 'المخزون', description: 'إدارة المخزون، حركات المخزون، الجرد', icon: '📦', enabled: true },
-  { id: 'hr', label: 'الموارد البشرية', description: 'الموظفون، الإجازات، الرواتب، الحضور', icon: '👥', enabled: true },
-  { id: 'crm', label: 'إدارة العملاء', description: 'العملاء المحتملون، الفرص، الاتصالات', icon: '🤝', enabled: true },
-  { id: 'manufacturing', label: 'التصنيع', description: 'أوامر العمل، قوائم المواد، محطات العمل', icon: '🏭', enabled: false },
-  { id: 'projects', label: 'المشاريع', description: 'إدارة المشاريع، المهام، الجداول الزمنية', icon: '📋', enabled: false },
+  { id: 'accounting', label: 'المحاسبة والمالية', description: 'الفواتير، القيود، التقارير المالية، المدفوعات', icon: Landmark, enabled: true },
+  { id: 'sales', label: 'المبيعات', description: 'عروض الأسعار، أوامر البيع، فواتير المبيعات', icon: TrendingUp, enabled: true },
+  { id: 'purchases', label: 'المشتريات', description: 'طلبات الشراء، فواتير المشتريات، الموردون', icon: ShoppingCart, enabled: true },
+  { id: 'inventory', label: 'المخزون', description: 'إدارة المخزون، حركات المخزون، الجرد', icon: Package, enabled: true },
+  { id: 'hr', label: 'الموارد البشرية', description: 'الموظفون، الإجازات، الرواتب، الحضور', icon: Users, enabled: true },
+  { id: 'crm', label: 'إدارة العملاء', description: 'العملاء المحتملون، الفرص، الاتصالات', icon: Handshake, enabled: true },
+  { id: 'manufacturing', label: 'التصنيع', description: 'أوامر العمل، قوائم المواد، محطات العمل', icon: Factory, enabled: false },
+  { id: 'projects', label: 'المشاريع', description: 'إدارة المشاريع، المهام، الجداول الزمنية', icon: Kanban, enabled: false },
 ];
 
 const DEFAULT_WAREHOUSES: WarehouseEntry[] = [
@@ -186,12 +194,12 @@ const DEFAULT_PAYMENT_METHODS: PaymentMethodEntry[] = [
 ];
 
 const FEATURE_HIGHLIGHTS = [
-  { icon: '💰', label: 'المحاسبة', desc: 'إدارة مالية شاملة' },
-  { icon: '📈', label: 'المبيعات', desc: 'فواتير وعروض أسعار' },
-  { icon: '🛒', label: 'المشتريات', desc: 'طلبات وموردين' },
-  { icon: '📦', label: 'المخزون', desc: 'تتبع وجرد' },
-  { icon: '👥', label: 'الموارد البشرية', desc: 'موظفون ورواتب' },
-  { icon: '🤝', label: 'إدارة العملاء', desc: 'فرص واتصالات' },
+  { icon: Landmark, label: 'المحاسبة', desc: 'إدارة مالية شاملة' },
+  { icon: TrendingUp, label: 'المبيعات', desc: 'فواتير وعروض أسعار' },
+  { icon: ShoppingCart, label: 'المشتريات', desc: 'طلبات وموردين' },
+  { icon: Package, label: 'المخزون', desc: 'تتبع وجرد' },
+  { icon: Users, label: 'الموارد البشرية', desc: 'موظفون ورواتب' },
+  { icon: Handshake, label: 'إدارة العملاء', desc: 'فرص واتصالات' },
 ];
 
 let nextId = 100;
@@ -861,19 +869,24 @@ export default function SetupWizardPage() {
               <Separator />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { label: 'إضافة الأصناف', desc: 'أضف منتجاتك وخدماتك', icon: '📦' },
-                  { label: 'إنشاء العملاء', desc: 'سجّل بيانات عملائك', icon: '👥' },
-                  { label: 'إضافة الموردين', desc: 'سجّل بيانات مورديك', icon: '🛒' },
-                  { label: 'إعداد الحسابات', desc: 'راجع دليل الحسابات', icon: '💰' },
-                ].map((item, i) => (
+                  { label: 'إضافة الأصناف', desc: 'أضف منتجاتك وخدماتك', icon: Package },
+                  { label: 'إنشاء العملاء', desc: 'سجّل بيانات عملائك', icon: Users },
+                  { label: 'إضافة الموردين', desc: 'سجّل بيانات مورديك', icon: ShoppingCart },
+                  { label: 'إعداد الحسابات', desc: 'راجع دليل الحسابات', icon: Landmark },
+                ].map((item, i) => {
+                  const ItemIcon = item.icon;
+                  return (
                   <div key={i} className="bg-muted/50 rounded-lg p-3 flex items-start gap-3">
-                    <span className="text-2xl">{item.icon}</span>
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <ItemIcon className="w-5 h-5 text-primary" />
+                    </div>
                     <div>
                       <p className="font-medium text-sm">{item.label}</p>
                       <p className="text-xs text-muted-foreground">{item.desc}</p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -1016,7 +1029,7 @@ export default function SetupWizardPage() {
 
         {/* محتوى الخطوة */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto p-6 md:p-8 space-y-6">
+          <div className="max-w-3xl mx-auto px-4 py-6 md:p-8 space-y-6">
             {/* رأس الخطوة */}
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -1034,15 +1047,15 @@ export default function SetupWizardPage() {
             {currentStep === 0 && (
               <div className="text-center space-y-8 py-6">
                 {/* الشعار مع تأثير متحرك */}
-                <div className="relative mx-auto w-32 h-32">
+                <div className="relative mx-auto w-24 h-24 md:w-32 md:h-32">
                   <div className="absolute inset-0 bg-gradient-to-bl from-emerald-400 to-teal-500 rounded-3xl rotate-6 opacity-30 animate-pulse" />
-                  <div className="relative w-32 h-32 rounded-3xl bg-gradient-to-bl from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl overflow-hidden">
-                    <img src="/logo.svg" alt="ERP Pro" className="w-20 h-20 drop-shadow-lg" />
+                  <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-gradient-to-bl from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl overflow-hidden">
+                    <img src="/logo.svg" alt="ERP Pro" className="w-16 h-16 md:w-20 md:h-20 drop-shadow-lg" />
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <h2 className="text-4xl font-bold bg-gradient-to-l from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                  <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-l from-emerald-600 to-teal-600 bg-clip-text text-transparent">
                     مرحباً بك في ERP Pro
                   </h2>
                   <p className="text-muted-foreground text-lg max-w-md mx-auto">
@@ -1058,7 +1071,7 @@ export default function SetupWizardPage() {
                       key={i}
                       className="bg-muted/50 hover:bg-muted rounded-xl p-4 text-center space-y-2 transition-colors"
                     >
-                      <span className="text-3xl">{feat.icon}</span>
+                      <feat.icon className="w-8 h-8 text-primary mx-auto" />
                       <p className="text-sm font-medium">{feat.label}</p>
                       <p className="text-xs text-muted-foreground">{feat.desc}</p>
                     </div>
@@ -1492,7 +1505,9 @@ export default function SetupWizardPage() {
                           : 'border-muted bg-background hover:border-muted-foreground/30'
                       }`}
                     >
-                      <span className="text-2xl mt-0.5">{mod.icon}</span>
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <mod.icon className="w-5 h-5 text-primary" />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-sm">{mod.label}</p>
@@ -1648,7 +1663,7 @@ export default function SetupWizardPage() {
                   {form.paymentMethods.map((pm, idx) => (
                     <div key={pm.id} className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-xs shrink-0">
-                        {pm.type === 'Cash' ? '💵' : pm.type === 'Bank' ? '🏦' : '💳'}
+                        {pm.type === 'Cash' ? <Landmark className="w-4 h-4 text-primary" /> : pm.type === 'Bank' ? <Building2 className="w-4 h-4 text-primary" /> : <CreditCard className="w-4 h-4 text-primary" />}
                       </div>
                       <Input
                         value={pm.name}
@@ -2032,9 +2047,12 @@ export default function SetupWizardPage() {
                   {!collapsedSections.modules && (
                     <CardContent className="pt-0 pb-4 space-y-2 text-sm">
                       <div className="flex flex-wrap gap-2">
-                        {form.modules.filter((m) => m.enabled).map((m) => (
-                          <Badge key={m.id} variant="secondary" className="gap-1">{m.icon} {m.label}</Badge>
-                        ))}
+                        {form.modules.filter((m) => m.enabled).map((m) => {
+                          const MIcon = m.icon;
+                          return (
+                          <Badge key={m.id} variant="secondary" className="gap-1"><MIcon className="w-3.5 h-3.5" /> {m.label}</Badge>
+                          );
+                        })}
                       </div>
                       <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(4); setStepErrors({}); }}>
                         تعديل ←
@@ -2204,12 +2222,14 @@ export default function SetupWizardPage() {
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>فشل الإعداد</AlertTitle>
-                    <AlertDescription>
-                      {setupError}
-                      <Button variant="outline" size="sm" className="mt-2 gap-2" onClick={executeSetup} disabled={executing}>
-                        {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                        إعادة المحاولة
-                      </Button>
+                    <AlertDescription className="space-y-3">
+                      <p>{setupError}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" size="sm" className="gap-2" onClick={executeSetup} disabled={executing}>
+                          {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+                          إعادة المحاولة
+                        </Button>
+                      </div>
                     </AlertDescription>
                   </Alert>
                 )}

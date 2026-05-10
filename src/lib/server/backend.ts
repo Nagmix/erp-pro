@@ -229,8 +229,11 @@ function isRetryableStatus(status: number): boolean {
 }
 
 function frappeSiteName(): string | null {
-  const v = process.env.BACKEND_SITE_NAME?.trim();
-  return v || null;
+  const fromEnv = process.env.BACKEND_SITE_NAME?.trim();
+  if (fromEnv) return fromEnv;
+  // ★ قراءة اسم الموقع من ملف الاتصال (يُكتب أثناء الإعداد)
+  const fromFile = loadFrappeConnectionFile().backendSiteName?.trim();
+  return fromFile || null;
 }
 
 function withSiteHeader(headers: Record<string, string>): Record<string, string> {
@@ -1139,7 +1142,7 @@ export async function isBackendAvailable(): Promise<boolean> {
     const response = await fetch(`${host}/api/method/ping`, {
       method: 'GET',
       headers: withSiteHeader({ Accept: 'application/json' }),
-      signal: AbortSignal.timeout(1000),
+      signal: AbortSignal.timeout(10000), // 10 ثوانٍ كافية لـ Railway
     });
     return response.ok;
   } catch {
