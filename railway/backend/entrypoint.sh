@@ -4,8 +4,8 @@
 # ============================================================
 # استراتيجية:
 #   1. نكتب common_site_config.json مباشرة بـ Python (موثوق 100%)
-#   2. نبدأ supervisor فوراً
-#   3. إنشاء الموقع في الخلفية
+#   2. نتحقق من MariaDB و Redis قبل بدء supervisor
+#   3. إنشاء الموقع في الخلفية (لا نوقف البدء)
 # ============================================================
 
 set -e
@@ -25,12 +25,10 @@ log "============================================"
 log "SITE_NAME       : ${SITE_NAME}"
 log "DB_HOST         : ${DB_HOST:-<not set>}"
 log "DB_PORT         : ${DB_PORT:-3306}"
+log "DB_NAME         : ${DB_NAME:-<not set>}"
+log "DB_USER         : ${DB_USER:-<not set>}"
 log "PORT (Railway)  : ${PORT:-8000}"
 log "REDIS_URL       : ${REDIS_URL:-<not set>}"
-log "REDIS_HOST      : ${REDIS_HOST:-<not set>}"
-log "REDIS_CACHE     : ${REDIS_CACHE:-<not set>}"
-log "REDIS_QUEUE     : ${REDIS_QUEUE:-<not set>}"
-log "REDIS_SOCKETIO  : ${REDIS_SOCKETIO:-<not set>}"
 log "============================================"
 
 # ----------------------------------------------------------
@@ -59,9 +57,65 @@ fi
 log "Directories and symlinks verified."
 
 # ----------------------------------------------------------
-# 2. كتابة common_site_config.json مباشرة بـ Python
-#    هذا هو الإصلاح الرئيسي — بدل bench set-config
-#    اللي يفشل بصمت لأن الموقع ما أنشئ بعد
+# 2. تشخيص شبكة MariaDB — قبل كل شيء
+# ----------------------------------------------------------
+log "=== MariaDB Network Diagnostics ==="
+if [ -n "$DB_HOST" ]; then
+    log "DB_HOST is set to: '${DB_HOST}'"
+    # محاولة حل DNS
+    python3 -c "
+import socket
+host = '${DB_HOST}'
+print(f'[DNS] Resolving: {host}')
+try:
+    results = socket.getaddrinfo(host, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
+    for r in results:
+        print(f'[DNS]   -> {r[0].name}: {r[4][0]}')
+except Exception as e:
+    print(f'[DNS] FAILED to resolve: {e}')
+" 2>&1 || log "[DNS] Resolution failed"
+
+    # محاولة اتصال TCP
+    python3 -c "
+import socket
+host = '${DB_HOST}'
+port = int('${DB_PORT:-3306}')
+print(f'[TCP] Connecting to {host}:{port} ...')
+try:
+    # Try IPv6 first (Railway private domains often use IPv6)
+    for family in [socket.AF_INET6, socket.AF_INET]:
+        try:
+            s = socket.socket(family, socket.SOCK_STREAM)
+            s.settimeout(5)
+            s.connect((host, port))
+            s.close()
+            print(f'[TCP] SUCCESS via {family.name}!')
+            break
+        except Exception as e:
+            print(f'[TCP] {family.name} failed: {e}')
+    else:
+        # Try using getaddrinfo
+        results = socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM)
+        for af, socktype, proto, canonname, sa in results:
+            try:
+                s = socket.socket(af, socktype, proto)
+                s.settimeout(5)
+                s.connect(sa)
+                s.close()
+                print(f'[TCP] SUCCESS via getaddrinfo ({af})!')
+                break
+            except Exception as e:
+                print(f'[TCP] getaddrinfo {af} failed: {e}')
+except Exception as e:
+    print(f'[TCP] All connection methods failed: {e}')
+" 2>&1 || log "[TCP] Connection test failed"
+else
+    log "WARNING: DB_HOST is not set! MariaDB will not be reachable."
+fi
+log "=== End of Network Diagnostics ==="
+
+# ----------------------------------------------------------
+# 3. كتابة common_site_config.json مباشرة بـ Python
 # ----------------------------------------------------------
 
 log "Writing common_site_config.json directly with Python (reliable method)..."
@@ -101,10 +155,7 @@ if db_port:
     print(f"[CONFIG] Set db_port = {db_port}")
 
 # ----------------------------------------------------------
-# إعدادات Redis — الأولوية:
-#   1. REDIS_URL (من Railway Redis Service)
-#   2. REDIS_HOST + REDIS_PORT + REDIS_PASSWORD
-#   3. REDIS_CACHE + REDIS_QUEUE + REDIS_SOCKETIO (فردية)
+# إعدادات Redis
 # ----------------------------------------------------------
 redis_url = os.environ.get('REDIS_URL', '').strip()
 redis_host = os.environ.get('REDIS_HOST', '').strip()
@@ -121,18 +172,9 @@ print(f"[CONFIG] REDIS_CACHE env = '{redis_cache_env}'")
 print(f"[CONFIG] REDIS_QUEUE env = '{redis_queue_env}'")
 print(f"[CONFIG] REDIS_SOCKETIO env = '{redis_socketio_env}'")
 
-# ----------------------------------------------------------
-# دالة مساعدة: بناء 3 Redis URLs من base URL
-# نضيف أرقام قاعدة بيانات مختلفة:
-#   redis_cache    -> DB 0
-#   redis_queue    -> DB 1
-#   redis_socketio -> DB 2
-# ----------------------------------------------------------
 def build_redis_urls(base):
     """Build 3 Redis URLs with different DB numbers from a base URL."""
-    # إزالة رقم DB الموجود في النهاية إن وُجد
     clean = re.sub(r'/\d+$', '', base)
-    # إزالة الـ slash في النهاية إن وُجد
     clean = clean.rstrip('/')
     return {
         'redis_cache': clean + '/0',
@@ -141,7 +183,6 @@ def build_redis_urls(base):
     }
 
 if redis_url and redis_url.startswith('redis://'):
-    # REDIS_URL من Railway: redis://default:PASSWORD@HOST:PORT
     urls = build_redis_urls(redis_url)
     config.update(urls)
     print(f"[CONFIG] Built Redis URLs from REDIS_URL:")
@@ -150,7 +191,6 @@ if redis_url and redis_url.startswith('redis://'):
     print(f"  redis_socketio = {urls['redis_socketio']}")
 
 elif redis_host:
-    # بناء من REDIS_HOST + REDIS_PORT + REDIS_PASSWORD
     if redis_password:
         auth = f':{redis_password}@'
     else:
@@ -165,9 +205,6 @@ elif redis_host:
     print(f"  redis_socketio = {urls['redis_socketio']}")
 
 elif redis_cache_env and redis_queue_env and redis_socketio_env:
-    # استخدام الروابط الفردية — نضيف أرقام DB مختلفة
-    # لأن Railway Redis يعطي نفس URL لكل الثلاثة
-    # نضيف /0 و /1 و /2 لكل واحد
     if '/0' not in redis_cache_env and '/1' not in redis_cache_env and '/2' not in redis_cache_env:
         config['redis_cache'] = redis_cache_env.rstrip('/') + '/0'
     else:
@@ -189,7 +226,6 @@ elif redis_cache_env and redis_queue_env and redis_socketio_env:
     print(f"  redis_socketio = {config['redis_socketio']}")
 
 elif redis_cache_env:
-    # فقط REDIS_CACHE متوفر — نبني الثلاثة منه
     urls = build_redis_urls(redis_cache_env)
     config.update(urls)
     print(f"[CONFIG] Built all Redis URLs from REDIS_CACHE:")
@@ -199,13 +235,15 @@ elif redis_cache_env:
 
 else:
     print("[CONFIG] WARNING: No Redis configuration found! Services will fail.")
-    print("[CONFIG] Set REDIS_URL or REDIS_CACHE/QUEUE/SOCKETIO or REDIS_HOST environment variables.")
 
 # ----------------------------------------------------------
 # إعدادات إضافية
 # ----------------------------------------------------------
 socketio_port = os.environ.get('SOCKETIO_PORT', '9000')
 config['socketio_port'] = int(socketio_port)
+
+# إعداد developer_mode لتسهيل التشخيص
+config['developer_mode'] = 1
 
 # ----------------------------------------------------------
 # كتابة الملف
@@ -226,14 +264,14 @@ cat "$COMMON_CONFIG" || true
 log "=== End of config ==="
 
 # ----------------------------------------------------------
-# 3. تعيين الموقع كافتراضي
+# 4. تعيين الموقع كافتراضي
 # ----------------------------------------------------------
 DEFAULT_SITE_FILE="${SITES_DIR}/currentsite.txt"
 echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
 log "Default site set to '${SITE_NAME}'."
 
 # ----------------------------------------------------------
-# 4. إنشاء site_config.json للموقع
+# 5. إنشاء site_config.json للموقع
 # ----------------------------------------------------------
 SITE_DIR="${SITES_DIR}/${SITE_NAME}"
 SITE_CONFIG="${SITE_DIR}/site_config.json"
@@ -242,7 +280,6 @@ if [ ! -d "$SITE_DIR" ]; then
     mkdir -p "$SITE_DIR"
 fi
 
-# كتابة إعدادات الموقع الأساسية
 if [ ! -f "$SITE_CONFIG" ]; then
     python3 << PYTHON_SITE_CONFIG
 import json, os
@@ -269,52 +306,92 @@ else
 fi
 
 # ----------------------------------------------------------
-# 5. إنشاء الموقع في الخلفية
+# 6. إنشاء الموقع في الخلفية مع تشخيص أفضل
 # ----------------------------------------------------------
 
-if [ ! -f "${SITE_DIR}/site_config.json" ] || [ ! -d "${SITE_DIR}/private" ]; then
+# نتحقق هل الموقع فعلاً أنشئ (يوجد مجلد private وملفات)
+SITE_INITIALIZED=false
+if [ -d "${SITE_DIR}/private" ] && [ -f "${SITE_DIR}/site_config.json" ]; then
+    # نتحقق إن الموقع فعلاً يعمل في قاعدة البيانات
+    SITE_INITIALIZED=true
+    log "Site '${SITE_NAME}' appears to be already initialized."
+fi
+
+if [ "$SITE_INITIALIZED" = "false" ]; then
     log "Site '${SITE_NAME}' needs initialization — creating in background ..."
     (
-        log "[BG] Waiting for MariaDB ..."
-        for i in $(seq 1 60); do
+        log "[BG] Waiting for MariaDB at ${DB_HOST}:${DB_PORT:-3306} ..."
+
+        # انتظار MariaDB مع دعم IPv4 و IPv6
+        MARIADB_READY=false
+        for i in $(seq 1 120); do
             if python3 -c "
 import socket, sys
 host='${DB_HOST}'
 port=int('${DB_PORT:-3306}')
+
+# Try all address families (IPv4 + IPv6)
 try:
-    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(3)
-    s.connect((host, port))
-    s.close()
-    sys.exit(0)
+    results = socket.getaddrinfo(host, port, socket.AF_UNSPEC, socket.SOCK_STREAM)
+    for af, socktype, proto, canonname, sa in results:
+        try:
+            s = socket.socket(af, socktype, proto)
+            s.settimeout(3)
+            s.connect(sa)
+            s.close()
+            sys.exit(0)
+        except:
+            continue
 except:
-    sys.exit(1)
+    pass
+
+# Fallback: try direct connection
+for family in [socket.AF_INET6, socket.AF_INET]:
+    try:
+        s = socket.socket(family, socket.SOCK_STREAM)
+        s.settimeout(3)
+        s.connect((host, port))
+        s.close()
+        sys.exit(0)
+    except:
+        continue
+
+sys.exit(1)
 " 2>/dev/null; then
-                log "[BG] MariaDB is ready!"
+                log "[BG] MariaDB is ready! (attempt $i)"
+                MARIADB_READY=true
                 break
             fi
-            [ $i -eq 60 ] && { log "[BG] MariaDB timeout — will retry on next restart"; exit 1; }
+
+            if [ $((i % 10)) -eq 0 ]; then
+                log "[BG] Still waiting for MariaDB... (attempt $i/120)"
+            fi
+
+            [ $i -eq 120 ] && { log "[BG] MariaDB timeout after 10 minutes — will retry on next restart"; exit 1; }
             sleep 5
         done
 
-        log "[BG] Creating site '${SITE_NAME}' ..."
-        cd /home/frappe/frappe-bench
+        if [ "$MARIADB_READY" = "true" ]; then
+            log "[BG] Creating site '${SITE_NAME}' ..."
+            cd /home/frappe/frappe-bench
 
-        bench new-site "$SITE_NAME" \
-            --db-host "$DB_HOST" \
-            --db-port "${DB_PORT:-3306}" \
-            --db-name "$DB_NAME" \
-            --db-user "$DB_USER" \
-            --db-password "$DB_PASSWORD" \
-            --admin-password "$ADMIN_PASSWORD" \
-            --install-app erpnext \
-            --install-app frappe \
-            --set-default \
-            --verbose 2>&1 || log "[BG] Site creation had errors (DB may already exist)"
+            # محاولة إنشاء الموقع
+            bench new-site "$SITE_NAME" \
+                --db-host "$DB_HOST" \
+                --db-port "${DB_PORT:-3306}" \
+                --db-name "$DB_NAME" \
+                --db-user "$DB_USER" \
+                --db-password "$DB_PASSWORD" \
+                --admin-password "$ADMIN_PASSWORD" \
+                --install-app erpnext \
+                --install-app frappe \
+                --set-default \
+                --verbose 2>&1 || log "[BG] Site creation had errors (DB may already exist)"
 
-        echo "$SITE_NAME" > "${SITES_DIR}/currentsite.txt"
-        chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
-        log "[BG] Site setup completed!"
+            echo "$SITE_NAME" > "${SITES_DIR}/currentsite.txt"
+            chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
+            log "[BG] Site setup completed!"
+        fi
     ) &
     log "Site creation running in background (PID: $!)"
 else
@@ -322,7 +399,7 @@ else
 fi
 
 # ----------------------------------------------------------
-# 6. Migrate في الخلفية إذا طُلب
+# 7. Migrate في الخلفية إذا طُلب
 # ----------------------------------------------------------
 
 if [ "${FORCE_SITE_MIGRATE}" = "true" ] && [ -d "$SITE_DIR" ]; then
@@ -333,7 +410,7 @@ if [ "${FORCE_SITE_MIGRATE}" = "true" ] && [ -d "$SITE_DIR" ]; then
 fi
 
 # ----------------------------------------------------------
-# 7. تنظيم الصلاحيات
+# 8. تنظيم الصلاحيات
 # ----------------------------------------------------------
 chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
 chown -R frappe:frappe "${BENCH_DIR}/logs" 2>/dev/null || true

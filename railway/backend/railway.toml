@@ -1,12 +1,16 @@
 # ============================================================
 # ERP Pro — Railway Backend Configuration
 # ============================================================
+# ملاحظة: لا نستخدم healthcheckPath لأنه يحتاج موقع جاهز
+# الـ Docker HEALTHCHECK (healthcheck.sh) يتعامل مع هالحالة
+# ============================================================
 
 [build]
 builder = "dockerfile"
 
 [deploy]
-healthcheckPath = "/api/method/ping"
+# لا نضع healthcheckPath لأن الموقع يُنشأ في الخلفية
+# الـ healthcheck.sh داخل Docker يتحقق بشكل تدريجي
 healthcheckTimeout = 600
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 5

@@ -25,11 +25,13 @@ RUN BENCH_REAL=$(which bench 2>/dev/null || echo "/usr/local/bin/bench") \
     && echo "Symlinks created!"
 
 # ------------------------------------------------------------------
-# تثبيت supervisor
+# تثبيت supervisor + أدوات تشخيص الشبكة
 # ------------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
     curl \
+    dnsutils \
+    iputils-ping \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/log/supervisor \
     && mkdir -p /var/run/supervisor
@@ -65,8 +67,10 @@ EXPOSE 8000 9000
 
 # ------------------------------------------------------------------
 # فحص الصحة
+# ملاحظة: start-period 300 ثانية = 5 دقائق
+# لأن إنشاء الموقع يأخذ وقت
 # ------------------------------------------------------------------
-HEALTHCHECK --interval=15s --timeout=10s --start-period=180s --retries=10 \
+HEALTHCHECK --interval=15s --timeout=10s --start-period=300s --retries=10 \
     CMD /usr/local/bin/healthcheck.sh
 
 # ------------------------------------------------------------------
