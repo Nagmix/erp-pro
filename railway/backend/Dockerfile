@@ -56,6 +56,7 @@ RUN mkdir -p /home/frappe/logs \
 COPY railway/backend/supervisord.conf /etc/supervisor/conf.d/erpnext.conf
 COPY railway/backend/entrypoint.sh   /usr/local/bin/entrypoint.sh
 COPY railway/backend/healthcheck.sh  /usr/local/bin/healthcheck.sh
+COPY railway/backend/wsgi_wrapper.py /home/frappe/frappe-bench/wsgi_wrapper.py
 
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     && chmod +x /usr/local/bin/healthcheck.sh

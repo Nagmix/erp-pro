@@ -72,19 +72,21 @@ RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN%/}"
 
 if [ -n "$RAILWAY_PUB_DOMAIN" ] && [ -n "$SITE_NAME" ]; then
     SYMLINK_PATH="${SITES_DIR}/${RAILWAY_PUB_DOMAIN}"
-    SITE_PATH="${SITES_DIR}/${SITE_NAME}"
+    SITE_PATH="${SITE_NAME}"
 
     # إنشاء مجلد الموقع لو ما موجود
-    mkdir -p "$SITE_PATH"
+    mkdir -p "${SITES_DIR}/${SITE_PATH}"
 
-    # إنشاء symlink (لو ما موجود أو يشير لمكان غلط)
-    if [ ! -L "$SYMLINK_PATH" ] || [ "$(readlink -f "$SYMLINK_PATH")" != "$(readlink -f "$SITE_PATH")" ]; then
-        rm -f "$SYMLINK_PATH" 2>/dev/null || true
-        ln -sf "$SITE_PATH" "$SYMLINK_PATH"
-        log "★ Created symlink: ${RAILWAY_PUB_DOMAIN} → ${SITE_NAME}"
+    # إنشاء symlink نسبي (مهم! المسار المطلق يسبب مشاكل)
+    cd "$SITES_DIR"
+    if [ ! -L "$RAILWAY_PUB_DOMAIN" ] || [ "$(readlink "$RAILWAY_PUB_DOMAIN")" != "$SITE_PATH" ]; then
+        rm -f "$RAILWAY_PUB_DOMAIN" 2>/dev/null || true
+        ln -sf "$SITE_PATH" "$RAILWAY_PUB_DOMAIN"
+        log "★ Created relative symlink: ${RAILWAY_PUB_DOMAIN} → ${SITE_NAME}"
     else
         log "★ Symlink already exists: ${RAILWAY_PUB_DOMAIN} → ${SITE_NAME}"
     fi
+    cd "$BENCH_DIR"
     chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
 else
     log "WARNING: RAILWAY_PUBLIC_DOMAIN or SITE_NAME not set — skipping domain symlink"
