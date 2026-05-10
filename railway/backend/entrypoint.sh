@@ -266,6 +266,20 @@ config['socketio_port'] = int(socketio_port)
 # إعداد developer_mode لتسهيل التشخيص
 config['developer_mode'] = 1
 
+# ★ إعداد serve_default_site — مهم جداً!
+# بدون هذا الإعداد، ERPNext يفشل في العثور على الموقع المناسب
+# لأنه يطابق اسم النطاق (Host header) مع اسم الموقع.
+# النطاق في Railway يكون مثل: erpnext-backend-production-xxxx.up.railway.app
+# بينما اسم الموقع هو 'erppro' — فما في تطابق = 404 Not Found!
+# serve_default_site=1 يخلي ERPNext يخدم الموقع الافتراضي لأي نطاق
+config['serve_default_site'] = 1
+
+# ★ إعداد allow_cors — للسماح بالطلبات من فرونت اند مختلف
+config['allow_cors'] = '*'
+
+# ★ إعداد skip_setup_wizard — لتفادي مشاكل معالجة الإعداد
+# config['skip_setup_wizard'] = 1
+
 # ----------------------------------------------------------
 # كتابة الملف
 # ----------------------------------------------------------
