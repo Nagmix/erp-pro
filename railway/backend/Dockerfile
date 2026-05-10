@@ -1,39 +1,42 @@
 # ============================================================
 # ERP Pro — ERPNext Backend for Railway
 # ============================================================
-# صورة واحدة تُشغّل جميع خدمات Frappe/ERPNext v16 عبر supervisor:
-#   - gunicorn (API server)      → PORT env variable
-#   - scheduler                  → background jobs
-#   - worker-default             → default queue
-#   - worker-long                → long-running queue
-#   - worker-short               → short-lived queue
-#   - socketio                   → WebSocket server → port 9000
-#
 # ملاحظات مهمة عن frappe/erpnext:v16:
-#   - bench متوفر في PATH (لا تحتاج المسار الكامل)
-#   - node متوفر في /usr/local/bin/node
-#   - السجلات تذهب إلى /home/frappe/logs/ (يجب إنشاؤه)
-#   - لا يوجد VOLUME (Railway يدير التخزين)
+#   - gunicorn في /home/frappe/frappe-bench/env/bin/gunicorn ✅
+#   - bench ليس في env/bin — نُنشئ symlink
+#   - node ليس في env/bin — نُنشئ symlink
+#   - /home/frappe/logs/ غير موجود — نُنشئه
 # ============================================================
 
 FROM frappe/erpnext:v16
 
-# ------------------------------------------------------------------
-# تثبيت الحزم الإضافية + اكتشاف المسارات الحقيقية
-# ------------------------------------------------------------------
 USER root
+
+# ------------------------------------------------------------------
+# اكتشاف المسارات الحقيقية + إنشاء symlinks
+# هذا يضمن إن supervisord.conf يشتغل بالمسارات المتوقعة
+# ------------------------------------------------------------------
+RUN BENCH_REAL=$(which bench 2>/dev/null || echo "/usr/local/bin/bench") \
+    && NODE_REAL=$(which node 2>/dev/null || echo "/usr/local/bin/node") \
+    && echo "bench is at: ${BENCH_REAL}" \
+    && echo "node is at: ${NODE_REAL}" \
+    && ln -sf "${BENCH_REAL}" /home/frappe/frappe-bench/env/bin/bench \
+    && ln -sf "${NODE_REAL}" /home/frappe/frappe-bench/env/bin/node \
+    && echo "Symlinks created!"
+
+# ------------------------------------------------------------------
+# تثبيت supervisor
+# ------------------------------------------------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
     curl \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/log/supervisor \
-    && mkdir -p /var/run/supervisor \
-    && echo "=== Discovering paths ===" \
-    && which bench && which node && which gunicorn \
-    && echo "=== Done ==="
+    && mkdir -p /var/run/supervisor
 
 # ------------------------------------------------------------------
-# إنشاء مجلدات مفقودة ضرورية لتشغيل Frappe
+# إنشاء مجلدات ضرورية لتشغيل Frappe
+# /home/frappe/logs/ مطلوب لـ RotatingFileHandler في frappe logger
 # ------------------------------------------------------------------
 RUN mkdir -p /home/frappe/logs \
     && mkdir -p /home/frappe/frappe-bench/logs \
@@ -41,7 +44,9 @@ RUN mkdir -p /home/frappe/logs \
     && mkdir -p /home/frappe/frappe-bench/sites/assets \
     && chown -R frappe:frappe /home/frappe/logs \
     && chown -R frappe:frappe /home/frappe/frappe-bench/logs \
-    && chown -R frappe:frappe /home/frappe/frappe-bench/sites
+    && chown -R frappe:frappe /home/frappe/frappe-bench/sites \
+    && chmod 777 /home/frappe/logs \
+    && echo "Directories created with proper permissions!"
 
 # ------------------------------------------------------------------
 # نسخ ملفات الإعداد
@@ -63,9 +68,8 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=120s --retries=6 \
     CMD curl -f http://localhost:${PORT:-8000}/api/method/ping || exit 1
 
 # ------------------------------------------------------------------
-# نقطة الإدخال — تهيئة الموقع + تشغيل supervisor
+# نقطة الإدخال
 # ------------------------------------------------------------------
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-# الأمر الافتراضي — تشغيل supervisor في المقدمة
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/erpnext.conf"]
