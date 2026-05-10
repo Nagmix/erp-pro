@@ -763,9 +763,9 @@ export default function MultiCurrencyPage() {
 
                 {/* From Currency */}
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">من عملة</Label>
+                  <Label className="text-sm font-medium">من عملة</Label>
                   <Select value={fromCurrency} onValueChange={setFromCurrency}>
-                    <SelectTrigger className="h-10">
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -780,11 +780,11 @@ export default function MultiCurrencyPage() {
 
                 {/* Amount */}
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">المبلغ</Label>
+                  <Label className="text-sm font-medium">المبلغ</Label>
                   <Input
                     type="number"
                     dir="ltr"
-                    className="h-10 text-lg tabular-nums font-semibold"
+                    className="h-9 text-lg tabular-nums font-semibold"
                     value={convertAmount}
                     onChange={(e) => setConvertAmount(e.target.value)}
                     placeholder="أدخل المبلغ"
@@ -798,7 +798,7 @@ export default function MultiCurrencyPage() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-10 w-10 rounded-full border-dashed"
+                    className="h-9 w-10 rounded-full border-dashed"
                     onClick={handleSwapCurrencies}
                     aria-label="تبديل العملات"
                   >
@@ -808,9 +808,9 @@ export default function MultiCurrencyPage() {
 
                 {/* To Currency */}
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">إلى عملة</Label>
+                  <Label className="text-sm font-medium">إلى عملة</Label>
                   <Select value={toCurrency} onValueChange={setToCurrency}>
-                    <SelectTrigger className="h-10">
+                    <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -981,14 +981,14 @@ export default function MultiCurrencyPage() {
 
             {/* Buy Rate */}
             <div className="space-y-2">
-              <Label htmlFor="editBuyRate" className="text-xs font-medium">
+              <Label htmlFor="editBuyRate" className="text-sm font-medium">
                 سعر الشراء (ريال يمني)
               </Label>
               <Input
                 id="editBuyRate"
                 type="number"
                 dir="ltr"
-                className="h-10 tabular-nums"
+                className="h-9 tabular-nums"
                 value={editBuyRate}
                 onChange={(e) => setEditBuyRate(e.target.value)}
                 placeholder="أدخل سعر الشراء"
@@ -999,14 +999,14 @@ export default function MultiCurrencyPage() {
 
             {/* Sell Rate */}
             <div className="space-y-2">
-              <Label htmlFor="editSellRate" className="text-xs font-medium">
+              <Label htmlFor="editSellRate" className="text-sm font-medium">
                 سعر البيع (ريال يمني)
               </Label>
               <Input
                 id="editSellRate"
                 type="number"
                 dir="ltr"
-                className="h-10 tabular-nums"
+                className="h-9 tabular-nums"
                 value={editSellRate}
                 onChange={(e) => setEditSellRate(e.target.value)}
                 placeholder="أدخل سعر البيع"

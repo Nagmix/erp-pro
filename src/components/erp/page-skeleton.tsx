@@ -34,7 +34,7 @@ export function PageSkeleton() {
       </div>
 
       {/* Secondary KPIs Skeleton */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i} className="overflow-hidden">
             <CardContent className="p-4">
@@ -63,7 +63,7 @@ export function PageSkeleton() {
           </CardHeader>
           <CardContent className="flex flex-col items-center">
             <Skeleton className="h-[200px] w-[200px] rounded-full" />
-            <div className="grid grid-cols-2 gap-2 mt-4 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 w-full">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <Skeleton className="h-2.5 w-2.5 rounded-full" />

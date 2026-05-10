@@ -327,7 +327,7 @@ export default function DailyExpensesPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">الموظف <span className="text-destructive">*</span></Label>
+              <Label className="text-sm font-medium">الموظف <span className="text-destructive">*</span></Label>
               <ErpLinkCombobox
                 doctype="Employee"
                 value={employee}
@@ -337,7 +337,7 @@ export default function DailyExpensesPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">نوع المصروف <span className="text-destructive">*</span></Label>
+              <Label className="text-sm font-medium">نوع المصروف <span className="text-destructive">*</span></Label>
               <ErpLinkCombobox
                 doctype="Expense Claim Type"
                 value={expenseType}
@@ -346,7 +346,7 @@ export default function DailyExpensesPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">المبلغ (ر.ي) <span className="text-destructive">*</span></Label>
+              <Label className="text-sm font-medium">المبلغ (ر.ي) <span className="text-destructive">*</span></Label>
               <Input
                 type="number"
                 value={amount}
@@ -357,7 +357,7 @@ export default function DailyExpensesPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">التاريخ</Label>
+              <Label className="text-sm font-medium">التاريخ</Label>
               <Input
                 type="date"
                 value={expenseDate}
@@ -367,7 +367,7 @@ export default function DailyExpensesPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">مركز التكلفة</Label>
+              <Label className="text-sm font-medium">مركز التكلفة</Label>
               <ErpLinkCombobox
                 doctype="Cost Center"
                 value={costCenter}
@@ -377,7 +377,7 @@ export default function DailyExpensesPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">ملاحظات</Label>
+              <Label className="text-sm font-medium">ملاحظات</Label>
               <Textarea
                 value={remark}
                 onChange={(e) => setRemark(e.target.value)}

@@ -183,7 +183,7 @@ function OrgNode({
             <div className={cn('w-1 self-stretch rounded-full shrink-0', deptColor)} />
 
             {/* Avatar */}
-            <Avatar className="h-10 w-10 shrink-0 border border-border/40">
+            <Avatar className="h-9 w-10 shrink-0 border border-border/40">
               {node.image ? (
                 <AvatarImage src={node.image} alt={nm} />
               ) : null}

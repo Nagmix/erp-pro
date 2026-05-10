@@ -164,12 +164,12 @@ export default function AttendancePage() {
             <DialogHeader><DialogTitle>تسجيل حضور موظف</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">الموظف <span className="text-destructive">*</span></Label>
+                <Label className="text-sm font-medium">الموظف <span className="text-destructive">*</span></Label>
                 <ErpLinkCombobox doctype="Employee" value={formData.employee} onChange={(v) => setFormData((p) => ({ ...p, employee: v }))} displayKey="employee_name" placeholder="اختر الموظف..." />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="text-xs font-medium">التاريخ <span className="text-destructive">*</span></Label><Input type="date" dir="ltr" value={formData.attendance_date} onChange={(e) => setFormData((p) => ({ ...p, attendance_date: e.target.value }))} /></div>
-                <div className="space-y-2"><Label className="text-xs font-medium">الحالة</Label>
+                <div className="space-y-2"><Label className="text-sm font-medium">التاريخ <span className="text-destructive">*</span></Label><Input type="date" dir="ltr" value={formData.attendance_date} onChange={(e) => setFormData((p) => ({ ...p, attendance_date: e.target.value }))} /></div>
+                <div className="space-y-2"><Label className="text-sm font-medium">الحالة</Label>
                   <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={formData.status} onChange={(e) => setFormData((p) => ({ ...p, status: e.target.value }))}>
                     <option value="Present">حاضر</option>
                     <option value="Absent">غائب</option>
@@ -180,8 +180,8 @@ export default function AttendancePage() {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="text-xs font-medium">وقت الحضور</Label><Input type="time" dir="ltr" value={formData.in_time} onChange={(e) => setFormData((p) => ({ ...p, in_time: e.target.value }))} /></div>
-                <div className="space-y-2"><Label className="text-xs font-medium">وقت الانصراف</Label><Input type="time" dir="ltr" value={formData.out_time} onChange={(e) => setFormData((p) => ({ ...p, out_time: e.target.value }))} /></div>
+                <div className="space-y-2"><Label className="text-sm font-medium">وقت الحضور</Label><Input type="time" dir="ltr" value={formData.in_time} onChange={(e) => setFormData((p) => ({ ...p, in_time: e.target.value }))} /></div>
+                <div className="space-y-2"><Label className="text-sm font-medium">وقت الانصراف</Label><Input type="time" dir="ltr" value={formData.out_time} onChange={(e) => setFormData((p) => ({ ...p, out_time: e.target.value }))} /></div>
               </div>
               <Button className="w-full" onClick={handleCreate} disabled={createMutation.isPending}>{createMutation.isPending ? 'جاري الحفظ...' : 'حفظ'}</Button>
             </div>

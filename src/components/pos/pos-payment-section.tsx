@@ -90,7 +90,7 @@ export function PosPaymentSection({
                 allocationOk
                   ? saveAsDraft
                     ? 'text-amber-800 dark:text-amber-400 font-medium tabular-nums'
-                    : 'text-green-700 dark:text-green-400 font-medium tabular-nums'
+                    : 'text-primary font-medium tabular-nums'
                   : 'text-destructive font-medium tabular-nums'
               }
             >

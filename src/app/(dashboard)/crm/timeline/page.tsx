@@ -537,13 +537,13 @@ export default function CrmTimelinePage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
             {/* Customer filter */}
             <div className="w-full sm:w-56 space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">العميل</Label>
+              <Label className="text-sm font-medium text-muted-foreground">العميل</Label>
               <ErpLinkCombobox doctype="Customer" value={customer} onChange={setCustomer} displayKey="customer_name" />
             </div>
 
             {/* Source type filter */}
             <div className="w-full sm:w-44 space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">نوع المصدر</Label>
+              <Label className="text-sm font-medium text-muted-foreground">نوع المصدر</Label>
               <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as typeof sourceFilter)}>
                 <SelectTrigger className="h-9">
                   <SelectValue />
@@ -559,7 +559,7 @@ export default function CrmTimelinePage() {
 
             {/* Date range filter */}
             <div className="w-full sm:w-64 space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">الفترة الزمنية</Label>
+              <Label className="text-sm font-medium text-muted-foreground">الفترة الزمنية</Label>
               <DateRangePicker value={dateRange} onChange={setDateRange} />
             </div>
 
@@ -605,7 +605,7 @@ export default function CrmTimelinePage() {
               <div className="space-y-3 py-4">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="flex gap-3 items-start">
-                    <div className="h-10 w-10 rounded-full bg-muted animate-pulse shrink-0" />
+                    <div className="h-9 w-10 rounded-full bg-muted animate-pulse shrink-0" />
                     <div className="flex-1 space-y-2">
                       <div className="h-4 w-48 rounded bg-muted animate-pulse" />
                       <div className="h-3 w-32 rounded bg-muted animate-pulse" />
@@ -733,11 +733,11 @@ export default function CrmTimelinePage() {
             {dialogType === 'Communication' && (
               <>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الموضوع *</Label>
+                  <Label className="text-sm font-medium">الموضوع *</Label>
                   <Input placeholder="موضوع الاتصال" value={commSubject} onChange={(e) => setCommSubject(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">وسيلة التواصل</Label>
+                  <Label className="text-sm font-medium">وسيلة التواصل</Label>
                   <Select value={commMedium} onValueChange={setCommMedium}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -748,7 +748,7 @@ export default function CrmTimelinePage() {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">المحتوى / الملاحظات</Label>
+                  <Label className="text-sm font-medium">المحتوى / الملاحظات</Label>
                   <Textarea placeholder="تفاصيل الاتصال..." value={commContent} onChange={(e) => setCommContent(e.target.value)} rows={3} />
                 </div>
               </>
@@ -758,21 +758,21 @@ export default function CrmTimelinePage() {
             {dialogType === 'Event' && (
               <>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الموضوع *</Label>
+                  <Label className="text-sm font-medium">الموضوع *</Label>
                   <Input placeholder="موضوع الحدث" value={eventSubject} onChange={(e) => setEventSubject(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">يبدأ في *</Label>
+                    <Label className="text-sm font-medium">يبدأ في *</Label>
                     <Input type="datetime-local" value={eventStartsOn} onChange={(e) => setEventStartsOn(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">ينتهي في</Label>
+                    <Label className="text-sm font-medium">ينتهي في</Label>
                     <Input type="datetime-local" value={eventEndsOn} onChange={(e) => setEventEndsOn(e.target.value)} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الفئة</Label>
+                  <Label className="text-sm font-medium">الفئة</Label>
                   <Select value={eventCategory} onValueChange={setEventCategory}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -784,7 +784,7 @@ export default function CrmTimelinePage() {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الوصف</Label>
+                  <Label className="text-sm font-medium">الوصف</Label>
                   <Textarea placeholder="تفاصيل الحدث..." value={eventDescription} onChange={(e) => setEventDescription(e.target.value)} rows={3} />
                 </div>
               </>
@@ -794,16 +794,16 @@ export default function CrmTimelinePage() {
             {dialogType === 'ToDo' && (
               <>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الوصف *</Label>
+                  <Label className="text-sm font-medium">الوصف *</Label>
                   <Textarea placeholder="وصف المهمة..." value={todoDescription} onChange={(e) => setTodoDescription(e.target.value)} rows={3} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">تاريخ الاستحقاق</Label>
+                    <Label className="text-sm font-medium">تاريخ الاستحقاق</Label>
                     <Input type="date" value={todoDate} onChange={(e) => setTodoDate(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الأولوية</Label>
+                    <Label className="text-sm font-medium">الأولوية</Label>
                     <Select value={todoPriority} onValueChange={setTodoPriority}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -820,7 +820,7 @@ export default function CrmTimelinePage() {
             {/* ── Shared: Reference ── */}
             <Separator />
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">مرجع (اختياري)</Label>
+              <Label className="text-sm font-medium">مرجع (اختياري)</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Select value={refType} onValueChange={(v) => { setRefType(v); setRefName(''); }}>
                   <SelectTrigger>

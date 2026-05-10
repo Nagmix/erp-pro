@@ -456,9 +456,9 @@ export default function ExcelImportPage() {
   <div className="rounded-xl border border-border/40 bg-card p-4 lg:p-5 space-y-4">
    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
    <div className="space-y-2">
-    <Label className="text-xs font-medium">نوع المستند <span className="text-destructive text-xs">*</span></Label>
+    <Label className="text-sm font-medium">نوع المستند <span className="text-destructive text-xs">*</span></Label>
     <Select value={selectedDoctype} onValueChange={setSelectedDoctype}>
-    <SelectTrigger className="h-10">
+    <SelectTrigger className="h-9">
      <SelectValue placeholder="اختر نوع المستند..." />
     </SelectTrigger>
     <SelectContent>
@@ -530,7 +530,7 @@ export default function ExcelImportPage() {
     if (f) handleFileDrop(f);
     }}
    >
-    <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+    <Upload className="h-9 w-10 mx-auto text-muted-foreground mb-3" />
     <p className="text-sm font-semibold mb-1">اسحب الملف وأفلته هنا</p>
     <p className="text-xs text-muted-foreground mb-3">الصيغ المدعومة: .xlsx, .csv</p>
     <div>

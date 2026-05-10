@@ -613,7 +613,7 @@ export default function SalarySlipsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-success/10 text-success flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-success/10 text-success flex items-center justify-center">
                 <Send className="h-5 w-5" />
               </div>
               <div>
@@ -652,7 +652,7 @@ export default function SalarySlipsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center">
                 <Undo2 className="h-5 w-5" />
               </div>
               <div>
@@ -691,7 +691,7 @@ export default function SalarySlipsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>
@@ -746,7 +746,7 @@ export default function SalarySlipsPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">من تاريخ</Label>
+                <Label className="text-sm font-medium">من تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -756,7 +756,7 @@ export default function SalarySlipsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">إلى تاريخ</Label>
+                <Label className="text-sm font-medium">إلى تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"

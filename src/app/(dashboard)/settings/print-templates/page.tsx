@@ -285,7 +285,7 @@ export default function PrintTemplatesPage() {
    <LayoutTemplate className="h-4 w-4 text-primary" />
    القوالب المدمجة
   </div>
-  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+  <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
    {BUILT_IN_TEMPLATES.map((tmpl) => (
    <Card
     key={tmpl.name}

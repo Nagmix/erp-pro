@@ -415,7 +415,7 @@ export default function FollowUpsPage() {
         {filtersOpen && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/30">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">الأولوية</Label>
+              <Label className="text-sm font-medium text-muted-foreground">الأولوية</Label>
               <Select value={filterPriority} onValueChange={setFilterPriority}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="الكل" />
@@ -429,7 +429,7 @@ export default function FollowUpsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
+              <Label className="text-sm font-medium text-muted-foreground">الحالة</Label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="الكل" />
@@ -442,7 +442,7 @@ export default function FollowUpsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">المسؤول</Label>
+              <Label className="text-sm font-medium text-muted-foreground">المسؤول</Label>
               <ErpLinkCombobox
                 doctype="User"
                 value={filterAllocated}
@@ -500,18 +500,18 @@ export default function FollowUpsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الوصف <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">الوصف <span className="text-destructive text-xs">*</span></Label>
                   <Textarea placeholder="ماذا تريد أن تتابعه؟" value={desc} onChange={(e) => setDesc(e.target.value)} className="min-h-[80px]" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">تاريخ الاستحقاق</Label>
-                    <Input type="date" dir="ltr" value={date} onChange={(e) => setDate(e.target.value)} className="h-10" />
+                    <Label className="text-sm font-medium">تاريخ الاستحقاق</Label>
+                    <Input type="date" dir="ltr" value={date} onChange={(e) => setDate(e.target.value)} className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الأولوية</Label>
+                    <Label className="text-sm font-medium">الأولوية</Label>
                     <Select value={priority} onValueChange={(v) => setPriority(v as PriorityType)}>
-                      <SelectTrigger className="h-10 text-sm">
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -523,7 +523,7 @@ export default function FollowUpsPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">تعيين إلى</Label>
+                  <Label className="text-sm font-medium">تعيين إلى</Label>
                   <ErpLinkCombobox
                     doctype="User"
                     value={allocatedTo}
@@ -549,9 +549,9 @@ export default function FollowUpsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع المرجع</Label>
+                    <Label className="text-sm font-medium">نوع المرجع</Label>
                     <Select value={refType || '_none'} onValueChange={(v) => { setRefType(v === '_none' ? '' : v); setRefName(''); }}>
-                      <SelectTrigger className="h-10 text-sm">
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue placeholder="بدون مرجع" />
                       </SelectTrigger>
                       <SelectContent>
@@ -564,7 +564,7 @@ export default function FollowUpsPage() {
                   </div>
                   {refType && (
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">اسم المرجع</Label>
+                      <Label className="text-sm font-medium">اسم المرجع</Label>
                       <ErpLinkCombobox
                         doctype={refType}
                         value={refName}

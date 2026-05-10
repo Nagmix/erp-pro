@@ -398,7 +398,7 @@ export default function ModuleSettingsHubPage() {
    <h2 className="text-sm font-semibold text-foreground">الإعداد السريع</h2>
    <span className="text-[10px] text-muted-foreground">— الإعدادات الأكثر استخداماً</span>
   </div>
-  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+  <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
    {quickSetupLinks.map((item) => {
    const Icon = item.icon;
    return (
@@ -549,7 +549,7 @@ export default function ModuleSettingsHubPage() {
   </div>
   <Card className="border-border/40">
    <CardContent className="p-4">
-   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+   <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
     <HealthIndicator
     label="العملاء"
     count={healthCounts.customers}

@@ -171,7 +171,7 @@ function MonthView({
             key={day}
             className={cn(
               'py-2 text-center text-xs font-medium text-muted-foreground',
-              i === 0 && 'text-emerald-600 dark:text-emerald-400', // Saturday
+              i === 0 && 'text-primary', // Saturday
               i === 6 && 'text-red-500 dark:text-red-400' // Friday
             )}
           >
@@ -286,7 +286,7 @@ function WeekView({
               className={cn(
                 'py-2 text-center text-xs font-medium',
                 today ? 'text-primary font-bold' : 'text-muted-foreground',
-                i === 0 && !today && 'text-emerald-600 dark:text-emerald-400',
+                i === 0 && !today && 'text-primary',
                 i === 6 && !today && 'text-red-500 dark:text-red-400',
               )}
             >
@@ -687,12 +687,12 @@ export default function CalendarPage() {
       />
 
       {/* Stats bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
         {[
           { label: 'الإجمالي', value: stats.total, color: 'text-foreground' },
-          { label: 'أحداث', value: stats.events, color: 'text-blue-600 dark:text-blue-400' },
+          { label: 'أحداث', value: stats.events, color: 'text-chart-1' },
           { label: 'مهام', value: stats.tasks, color: 'text-amber-600 dark:text-amber-400' },
-          { label: 'عطلات', value: stats.holidays, color: 'text-emerald-600 dark:text-emerald-400' },
+          { label: 'عطلات', value: stats.holidays, color: 'text-primary' },
         ].map((s) => (
           <Card key={s.label} className="px-3 py-2 flex items-center justify-between">
             <span className="text-xs text-muted-foreground">{s.label}</span>

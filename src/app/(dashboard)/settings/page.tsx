@@ -378,11 +378,11 @@ export default function SettingsPage() {
    <CardContent>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div className="space-y-2">
-     <Label className="text-xs font-medium">اسم الشركة</Label>
+     <Label className="text-sm font-medium">اسم الشركة</Label>
      <Input className="h-9 text-sm" value={settings.companyName} onChange={e => setSettings(s => ({ ...s, companyName: e.target.value }))} />
     </div>
     <div className="space-y-2">
-     <Label className="text-xs font-medium">العملة الافتراضية</Label>
+     <Label className="text-sm font-medium">العملة الافتراضية</Label>
      <Select value={settings.currency} onValueChange={v => setSettings(s => ({ ...s, currency: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
      <SelectContent>
@@ -397,7 +397,7 @@ export default function SettingsPage() {
      </Select>
     </div>
     <div className="space-y-2">
-     <Label className="text-xs font-medium">الدولة</Label>
+     <Label className="text-sm font-medium">الدولة</Label>
      <Select value={settings.country} onValueChange={v => setSettings(s => ({ ...s, country: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
      <SelectContent>
@@ -411,7 +411,7 @@ export default function SettingsPage() {
      </Select>
     </div>
     <div className="space-y-2">
-     <Label className="text-xs font-medium">المنطقة الزمنية</Label>
+     <Label className="text-sm font-medium">المنطقة الزمنية</Label>
      <Select value={settings.timezone} onValueChange={v => setSettings(s => ({ ...s, timezone: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
      <SelectContent>
@@ -447,11 +447,11 @@ export default function SettingsPage() {
    <CardContent>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div className="space-y-2">
-     <Label className="text-xs font-medium">الشركة الافتراضية</Label>
+     <Label className="text-sm font-medium">الشركة الافتراضية</Label>
      <Input className="h-9 text-sm" value={settings.defaultCompany} onChange={e => setSettings(s => ({ ...s, defaultCompany: e.target.value }))} />
     </div>
     <div className="space-y-2">
-     <Label className="text-xs font-medium">السنة المالية</Label>
+     <Label className="text-sm font-medium">السنة المالية</Label>
      <Select value={settings.fiscalYear} onValueChange={v => setSettings(s => ({ ...s, fiscalYear: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
      <SelectContent>
@@ -494,7 +494,7 @@ export default function SettingsPage() {
    <CardContent>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div className="space-y-2">
-     <Label className="text-xs font-medium">قالب الفاتورة الافتراضي</Label>
+     <Label className="text-sm font-medium">قالب الفاتورة الافتراضي</Label>
      <Select value={settings.invoiceTemplate} onValueChange={v => setSettings(s => ({ ...s, invoiceTemplate: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
      <SelectContent>
@@ -506,7 +506,7 @@ export default function SettingsPage() {
      </Select>
     </div>
     <div className="space-y-2">
-     <Label className="text-xs font-medium">مستودع نقاط البيع</Label>
+     <Label className="text-sm font-medium">مستودع نقاط البيع</Label>
      {/* TODO: جلب المستودعات من ERPNext API ديناميكياً */}
      <Select value={settings.posWarehouse} onValueChange={v => setSettings(s => ({ ...s, posWarehouse: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر المستودع" /></SelectTrigger>
@@ -547,7 +547,7 @@ export default function SettingsPage() {
    <CardContent>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div className="space-y-2">
-     <Label className="text-xs font-medium">ترقيم المشتريات</Label>
+     <Label className="text-sm font-medium">ترقيم المشتريات</Label>
      <Select value={settings.purchaseNumbering} onValueChange={v => setSettings(s => ({ ...s, purchaseNumbering: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
      <SelectContent>
@@ -590,7 +590,7 @@ export default function SettingsPage() {
    <CardContent>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div className="space-y-2">
-     <Label className="text-xs font-medium">المستودع الافتراضي</Label>
+     <Label className="text-sm font-medium">المستودع الافتراضي</Label>
      {/* TODO: جلب المستودعات من ERPNext API ديناميكياً */}
      <Select value={settings.defaultWarehouse} onValueChange={v => setSettings(s => ({ ...s, defaultWarehouse: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر المستودع" /></SelectTrigger>
@@ -599,7 +599,7 @@ export default function SettingsPage() {
      </Select>
     </div>
     <div className="space-y-2">
-     <Label className="text-xs font-medium">طريقة التقييم</Label>
+     <Label className="text-sm font-medium">طريقة التقييم</Label>
      <Select value={settings.valuationMethod} onValueChange={v => setSettings(s => ({ ...s, valuationMethod: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
      <SelectContent>
@@ -610,7 +610,7 @@ export default function SettingsPage() {
      </Select>
     </div>
     <div className="space-y-2">
-     <Label className="text-xs font-medium">حد إعادة الطلب الافتراضي</Label>
+     <Label className="text-sm font-medium">حد إعادة الطلب الافتراضي</Label>
      <Input type="number" className="h-9 text-sm" dir="ltr" value={settings.reorderLevel} onChange={e => setSettings(s => ({ ...s, reorderLevel: e.target.value }))} />
     </div>
     </div>
@@ -638,11 +638,11 @@ export default function SettingsPage() {
    <CardContent>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div className="space-y-2">
-     <Label className="text-xs font-medium">ساعات العمل اليومية</Label>
+     <Label className="text-sm font-medium">ساعات العمل اليومية</Label>
      <Input type="number" className="h-9 text-sm" dir="ltr" value={settings.workingHours} onChange={e => setSettings(s => ({ ...s, workingHours: e.target.value }))} />
     </div>
     <div className="space-y-2">
-     <Label className="text-xs font-medium">معدل العمل الإضافي</Label>
+     <Label className="text-sm font-medium">معدل العمل الإضافي</Label>
      <Input type="number" step="0.1" className="h-9 text-sm" dir="ltr" value={settings.overtimeRate} onChange={e => setSettings(s => ({ ...s, overtimeRate: e.target.value }))} />
     </div>
     </div>
@@ -678,7 +678,7 @@ export default function SettingsPage() {
    <CardContent>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div className="space-y-2">
-     <Label className="text-xs font-medium">قالب الطباعة</Label>
+     <Label className="text-sm font-medium">قالب الطباعة</Label>
      <Select value={settings.printTemplate} onValueChange={v => setSettings(s => ({ ...s, printTemplate: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
      <SelectContent>
@@ -690,7 +690,7 @@ export default function SettingsPage() {
      </Select>
     </div>
     <div className="space-y-2">
-     <Label className="text-xs font-medium">حجم الورق</Label>
+     <Label className="text-sm font-medium">حجم الورق</Label>
      <Select value={settings.paperSize} onValueChange={v => setSettings(s => ({ ...s, paperSize: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
      <SelectContent>
@@ -764,7 +764,7 @@ export default function SettingsPage() {
     {/* حالة القائمة الفارغة */}
     {!rolesLoading && !rolesError && roles.length === 0 && (
     <div className="flex flex-col items-center justify-center py-12 gap-3">
-     <Shield className="h-10 w-10 text-muted-foreground/40" />
+     <Shield className="h-9 w-10 text-muted-foreground/40" />
      <p className="text-sm text-muted-foreground">لا توجد أدوار في النظام</p>
      <Button variant="outline" size="sm" className="text-xs" onClick={fetchRoles}>
      إعادة التحميل
@@ -856,13 +856,13 @@ export default function SettingsPage() {
    <div className="space-y-4 py-2">
     {/* اسم الدور (للقراءة فقط) */}
     <div className="space-y-2">
-    <Label className="text-xs font-medium">اسم الدور</Label>
+    <Label className="text-sm font-medium">اسم الدور</Label>
     <Input className="h-9 text-sm bg-muted/50" value={editingRole.name} disabled />
     </div>
 
     {/* عدد المستخدمين (للقراءة فقط) */}
     <div className="space-y-2">
-    <Label className="text-xs font-medium">عدد المستخدمين</Label>
+    <Label className="text-sm font-medium">عدد المستخدمين</Label>
     <Input className="h-9 text-sm bg-muted/50" value={editingRole.users} disabled dir="ltr" />
     </div>
 

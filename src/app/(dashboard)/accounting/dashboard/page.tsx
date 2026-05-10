@@ -116,7 +116,7 @@ function AgingSummary({ current, days30, days60, over60 }: {
           />
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {segments.map((seg, i) => (
           <div key={i} className="flex items-center gap-2">
             <div className={`h-2.5 w-2.5 rounded-full ${seg.color}`} />
@@ -552,7 +552,7 @@ export default function AccountingDashboardPage() {
           <CardTitle className="text-sm font-semibold">صفحات المحاسبة</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
             {SUB_PAGES.map((page) => (
               <Link
                 key={page.href}

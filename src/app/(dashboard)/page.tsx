@@ -262,7 +262,7 @@ export default function DashboardPage() {
       ),
       kpi_secondary: (
         <div className="p-4 md:p-5">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <KpiCard title="الدائنون" value={kpisLoading ? '…' : formatCurrency(kpiData.outstandingPayables)} icon={ArrowDownLeft} compact accent="destructive" description="مجموع غير المدفوع للموردين" />
             <KpiCard title="مخزون منخفض" value={String(kpiData.lowStockItems)} icon={AlertTriangle} compact accent="warning" />
             <KpiCard title="العملاء" value={String(kpiData.totalCustomers)} icon={Users} compact accent="primary" />
@@ -340,7 +340,7 @@ export default function DashboardPage() {
                         <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid hsl(220, 10%, 90%)' }} formatter={(value: number) => `${value}%`} />
                       </PieChart>
                     </ResponsiveContainer>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                       {salesByModule.map((item, i) => (
                         <div key={i} className="flex items-center gap-2">
                           <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />

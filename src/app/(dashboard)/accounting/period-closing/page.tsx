@@ -274,13 +274,13 @@ export default function PeriodClosingPage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">الشركة (افتراضية)</Label>
+                      <Label className="text-sm font-medium">الشركة (افتراضية)</Label>
                       <p className="text-sm font-semibold">{form.watch('company') || company || '—'}</p>
                       {!company && <p className="text-[10px] text-destructive">اضبط الشركة الافتراضية من الإعدادات</p>}
                       <input type="hidden" {...form.register('company')} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">السنة المالية *</Label>
+                      <Label className="text-sm font-medium">السنة المالية *</Label>
                       <ErpLinkCombobox
                         doctype="Fiscal Year"
                         value={form.watch('fiscal_year')}
@@ -289,19 +289,19 @@ export default function PeriodClosingPage() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">تاريخ العملية *</Label>
+                      <Label className="text-sm font-medium">تاريخ العملية *</Label>
                       <Input type="date" dir="rtl" {...form.register('transaction_date')} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">بداية الفترة *</Label>
+                      <Label className="text-sm font-medium">بداية الفترة *</Label>
                       <Input type="date" dir="rtl" {...form.register('period_start_date')} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">نهاية الفترة *</Label>
+                      <Label className="text-sm font-medium">نهاية الفترة *</Label>
                       <Input type="date" dir="rtl" {...form.register('period_end_date')} />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
-                      <Label className="text-xs font-medium">حساب رأس إقفال *</Label>
+                      <Label className="text-sm font-medium">حساب رأس إقفال *</Label>
                       <ErpLinkCombobox
                         doctype="Account"
                         value={form.watch('closing_account_head')}
@@ -310,7 +310,7 @@ export default function PeriodClosingPage() {
                       />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
-                      <Label className="text-xs font-medium">ملاحظات *</Label>
+                      <Label className="text-sm font-medium">ملاحظات *</Label>
                       <Textarea rows={3} {...form.register('remarks')} />
                     </div>
                   </div>

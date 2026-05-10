@@ -404,7 +404,7 @@ export default function BankDisbursementPage() {
 
           {groupedByBank.size === 0 && (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Building2 className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <Building2 className="h-9 w-10 text-muted-foreground/40 mb-3" />
               <p className="text-sm text-muted-foreground">لا توجد كشوف رواتب مرحّلة للصرف</p>
             </div>
           )}

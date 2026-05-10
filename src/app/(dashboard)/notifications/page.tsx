@@ -87,16 +87,16 @@ type GroupByOption = 'date' | 'doctype' | 'none';
    ────────────────────────────────────────────── */
 
 const DOCTYPE_CONFIG: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; bg: string; ring: string }> = {
-  'Sales Invoice': { label: 'فواتير مبيعات', icon: FileText, color: 'text-red-600 dark:text-red-400', bg: 'bg-destructive/10', ring: 'ring-red-500/20' },
-  'Purchase Invoice': { label: 'فواتير مشتريات', icon: FileText, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-chart-4/10', ring: 'ring-orange-500/20' },
-  'Payment Entry': { label: 'مدفوعات', icon: DollarSign, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-chart-3/10', ring: 'ring-emerald-500/20' },
+  'Sales Invoice': { label: 'فواتير مبيعات', icon: FileText, color: 'text-destructive dark:text-red-400', bg: 'bg-destructive/10', ring: 'ring-red-500/20' },
+  'Purchase Invoice': { label: 'فواتير مشتريات', icon: FileText, color: 'text-chart-4', bg: 'bg-chart-4/10', ring: 'ring-orange-500/20' },
+  'Payment Entry': { label: 'مدفوعات', icon: DollarSign, color: 'text-primary', bg: 'bg-chart-3/10', ring: 'ring-emerald-500/20' },
   'Item': { label: 'مخزون', icon: Package, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-chart-1/10', ring: 'ring-sky-500/20' },
   'Stock Entry': { label: 'حركة مخزون', icon: Package, color: 'text-sky-600 dark:text-sky-400', bg: 'bg-chart-1/10', ring: 'ring-sky-500/20' },
   'Leave Application': { label: 'موارد بشرية', icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-chart-5/10', ring: 'ring-purple-500/20' },
   'Employee': { label: 'موارد بشرية', icon: Users, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-chart-5/10', ring: 'ring-purple-500/20' },
   'Sales Order': { label: 'مبيعات', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-chart-2/10', ring: 'ring-amber-500/20' },
   'Quotation': { label: 'مبيعات', icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-chart-2/10', ring: 'ring-amber-500/20' },
-  'Purchase Order': { label: 'مشتريات', icon: Truck, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-chart-4/10', ring: 'ring-orange-500/20' },
+  'Purchase Order': { label: 'مشتريات', icon: Truck, color: 'text-chart-4', bg: 'bg-chart-4/10', ring: 'ring-orange-500/20' },
 };
 
 const DEFAULT_DOCTYPE_CONFIG = { label: 'نظام', icon: Settings, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-500/10', ring: 'ring-gray-500/20' };

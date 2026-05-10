@@ -334,7 +334,7 @@ export default function FinancialStatementsPage() {
           )}
 
           {summaryStrip.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-4">
               {summaryStrip.map((s, i) => {
                 const label = String(s.label ?? '');
                 const datatype = String(s.datatype ?? '');

@@ -432,12 +432,12 @@ export default function CustomersPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم العميل <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">اسم العميل <span className="text-destructive text-xs">*</span></Label>
                   <Input placeholder="اسم العميل أو الشركة" value={formData.customer_name} onChange={e => setFormData(prev => ({ ...prev, customer_name: e.target.value }))} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع العميل</Label>
+                    <Label className="text-sm font-medium">نوع العميل</Label>
                     <Select dir="rtl" value={formData.customer_type} onValueChange={val => setFormData(prev => ({ ...prev, customer_type: val }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -447,7 +447,7 @@ export default function CustomersPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">مجموعة العملاء</Label>
+                    <Label className="text-sm font-medium">مجموعة العملاء</Label>
                     <ErpLinkCombobox
                       doctype="Customer Group"
                       value={formData.customer_group}
@@ -459,7 +459,7 @@ export default function CustomersPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">المنطقة</Label>
+                    <Label className="text-sm font-medium">المنطقة</Label>
                     <ErpLinkCombobox
                       doctype="Territory"
                       value={formData.territory}
@@ -469,7 +469,7 @@ export default function CustomersPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الرقم الضريبي</Label>
+                    <Label className="text-sm font-medium">الرقم الضريبي</Label>
                     <Input placeholder="300xxxxxxxxx" dir="ltr" value={formData.tax_id} onChange={e => setFormData(prev => ({ ...prev, tax_id: e.target.value }))} />
                   </div>
                 </div>
@@ -486,11 +486,11 @@ export default function CustomersPage() {
               <div className="p-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">البريد الإلكتروني</Label>
+                    <Label className="text-sm font-medium">البريد الإلكتروني</Label>
                     <Input type="email" placeholder="name@company.com" dir="ltr" value={formData.email_id} onChange={e => setFormData(prev => ({ ...prev, email_id: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">رقم الهاتف</Label>
+                    <Label className="text-sm font-medium">رقم الهاتف</Label>
                     <Input placeholder="05XXXXXXXX" dir="ltr" value={formData.mobile_no} onChange={e => setFormData(prev => ({ ...prev, mobile_no: e.target.value }))} />
                   </div>
                 </div>
@@ -534,7 +534,7 @@ export default function CustomersPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم العميل <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">اسم العميل <span className="text-destructive text-xs">*</span></Label>
                   <Input
                     placeholder="اسم العميل أو الشركة"
                     value={editFormData.customer_name}
@@ -542,12 +542,12 @@ export default function CustomersPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">كود العميل</Label>
+                  <Label className="text-sm font-medium">كود العميل</Label>
                   <Input value={selected?.name || ''} disabled className="bg-muted text-muted-foreground" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع العميل</Label>
+                    <Label className="text-sm font-medium">نوع العميل</Label>
                     <Select dir="rtl" value={editFormData.customer_type} onValueChange={val => setEditFormData(prev => ({ ...prev, customer_type: val }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -557,7 +557,7 @@ export default function CustomersPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">مجموعة العملاء</Label>
+                    <Label className="text-sm font-medium">مجموعة العملاء</Label>
                     <ErpLinkCombobox
                       doctype="Customer Group"
                       value={editFormData.customer_group}
@@ -569,7 +569,7 @@ export default function CustomersPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">المنطقة</Label>
+                    <Label className="text-sm font-medium">المنطقة</Label>
                     <ErpLinkCombobox
                       doctype="Territory"
                       value={editFormData.territory}
@@ -579,7 +579,7 @@ export default function CustomersPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الرقم الضريبي</Label>
+                    <Label className="text-sm font-medium">الرقم الضريبي</Label>
                     <Input placeholder="300xxxxxxxxx" dir="ltr" value={editFormData.tax_id} onChange={e => setEditFormData(prev => ({ ...prev, tax_id: e.target.value }))} />
                   </div>
                 </div>
@@ -596,11 +596,11 @@ export default function CustomersPage() {
               <div className="p-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">البريد الإلكتروني</Label>
+                    <Label className="text-sm font-medium">البريد الإلكتروني</Label>
                     <Input type="email" placeholder="name@company.com" dir="ltr" value={editFormData.email_id} onChange={e => setEditFormData(prev => ({ ...prev, email_id: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">رقم الهاتف</Label>
+                    <Label className="text-sm font-medium">رقم الهاتف</Label>
                     <Input placeholder="05XXXXXXXX" dir="ltr" value={editFormData.mobile_no} onChange={e => setEditFormData(prev => ({ ...prev, mobile_no: e.target.value }))} />
                   </div>
                 </div>

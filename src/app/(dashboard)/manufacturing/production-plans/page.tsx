@@ -682,7 +682,7 @@ export default function ProductionPlansPage() {
             {/* ── Summary ── */}
             <div className="rounded-lg border bg-muted/10 p-3">
               <h4 className="text-xs font-semibold mb-2">ملخص الخطة</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div>
                   <span className="text-muted-foreground">الشركة:</span>
                   <p className="font-medium truncate">{selectedCompany || company || '—'}</p>

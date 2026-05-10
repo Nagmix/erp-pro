@@ -367,7 +367,7 @@ export default function PurchasesDashboardPage() {
                   ))}
                 </div>
                 {/* Legend */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {poStatusSummary.map((item, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <div className={`h-2.5 w-2.5 rounded-full ${item.color}`} />

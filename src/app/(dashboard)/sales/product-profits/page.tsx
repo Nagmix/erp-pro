@@ -537,7 +537,7 @@ export default function ProductProfitsReportPage() {
                           <TableCell className="font-medium">{cat.category}</TableCell>
                           <TableCell className="tabular-nums">{fmt(cat.revenue)} ر.ي</TableCell>
                           <TableCell className="tabular-nums">{fmt(cat.cost)} ر.ي</TableCell>
-                          <TableCell className={`tabular-nums font-medium ${cat.profit >= 0 ? 'text-primary' : 'text-red-600'}`}>
+                          <TableCell className={`tabular-nums font-medium ${cat.profit >= 0 ? 'text-primary' : 'text-destructive'}`}>
                             {fmt(cat.profit)} ر.ي
                           </TableCell>
                           <TableCell>
@@ -654,7 +654,7 @@ export default function ProductProfitsReportPage() {
                         <TableCell className="tabular-nums">{product.qtySold.toFixed(2)}</TableCell>
                         <TableCell className="tabular-nums">{fmt(product.revenue)} ر.ي</TableCell>
                         <TableCell className="tabular-nums">{fmt(product.cost)} ر.ي</TableCell>
-                        <TableCell className={`tabular-nums font-medium ${product.profit >= 0 ? 'text-primary' : 'text-red-600'}`}>
+                        <TableCell className={`tabular-nums font-medium ${product.profit >= 0 ? 'text-primary' : 'text-destructive'}`}>
                           {fmt(product.profit)} ر.ي
                         </TableCell>
                         <TableCell>
@@ -684,7 +684,7 @@ export default function ProductProfitsReportPage() {
                         <TableCell className="tabular-nums">{totalsRow.qtySold.toFixed(2)}</TableCell>
                         <TableCell className="tabular-nums">{fmt(totalsRow.revenue)} ر.ي</TableCell>
                         <TableCell className="tabular-nums">{fmt(totalsRow.cost)} ر.ي</TableCell>
-                        <TableCell className={`tabular-nums ${totalsRow.profit >= 0 ? 'text-primary' : 'text-red-600'}`}>
+                        <TableCell className={`tabular-nums ${totalsRow.profit >= 0 ? 'text-primary' : 'text-destructive'}`}>
                           {fmt(totalsRow.profit)} ر.ي
                         </TableCell>
                         <TableCell>
@@ -748,7 +748,7 @@ export default function ProductProfitsReportPage() {
             <Card className="border-border/40">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
+                  <TrendingDown className="h-4 w-4 text-destructive" />
                   أقل المنتجات هامشاً
                 </CardTitle>
               </CardHeader>
@@ -843,7 +843,7 @@ export default function ProductProfitsReportPage() {
 
       {!data && !loading && !error && (
         <div className="rounded-lg border border-dashed border-border/60 p-10 text-center">
-          <BarChart3 className="mx-auto h-10 w-10 text-muted-foreground/50" />
+          <BarChart3 className="mx-auto h-9 w-10 text-muted-foreground/50" />
           <p className="mt-3 text-sm font-medium text-muted-foreground">اختر فترة تاريخ لعرض تقرير أرباح المنتجات</p>
         </div>
       )}

@@ -397,36 +397,36 @@ export default function QuotationsPage() {
                 <div className="p-4 space-y-4 bg-card/50">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
+                      <Label className="text-sm font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
                       <ErpLinkCombobox doctype="Customer" value={customer} onChange={setCustomer} displayKey="customer_name" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">مركز تكلفة</Label>
+                      <Label className="text-sm font-medium">مركز تكلفة</Label>
                       <ErpLinkCombobox doctype="Cost Center" value={costCenter} onChange={setCostCenter} />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">تاريخ العرض</Label>
+                      <Label className="text-sm font-medium">تاريخ العرض</Label>
                       <Input type="date" dir="ltr" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">صالح حتى</Label>
+                      <Label className="text-sm font-medium">صالح حتى</Label>
                       <Input type="date" dir="ltr" value={validTill} onChange={(e) => setValidTill(e.target.value)} />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">العملة</Label>
+                      <Label className="text-sm font-medium">العملة</Label>
                       <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="YER" className="h-9 text-sm" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">سعر التحويل</Label>
+                      <Label className="text-sm font-medium">سعر التحويل</Label>
                       <Input type="number" dir="ltr" step="any" min={0} value={conversionRate || ''} onChange={(e) => setConversionRate(Math.max(0.000001, Number(e.target.value) || 1))} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الشروط</Label>
+                    <Label className="text-sm font-medium">الشروط</Label>
                     <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} className="min-h-[60px] text-sm" />
                   </div>
                 </div>
@@ -506,7 +506,7 @@ export default function QuotationsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

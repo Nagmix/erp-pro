@@ -360,7 +360,7 @@ export default function ChequesPage() {
 
       {/* شريط مؤشرات الشيكات */}
       {includeLifecycle && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <CreditCard className="h-4.5 w-4.5" />

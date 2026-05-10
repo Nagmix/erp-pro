@@ -775,7 +775,7 @@ export default function InventoryPermitsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع الإذن <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">نوع الإذن <span className="text-destructive text-xs">*</span></Label>
                     <Select value={permitType} onValueChange={(v) => setPermitType(v as 'outbound' | 'inbound')}>
                       <SelectTrigger>
                         <SelectValue />
@@ -802,7 +802,7 @@ export default function InventoryPermitsPage() {
                     </p>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">التاريخ</Label>
+                    <Label className="text-sm font-medium">التاريخ</Label>
                     <Input
                       type="date"
                       dir="ltr"
@@ -814,7 +814,7 @@ export default function InventoryPermitsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium flex items-center gap-1.5">
+                    <Label className="text-sm font-medium flex items-center gap-1.5">
                       <Warehouse className="h-3.5 w-3.5" />
                       المستودع <span className="text-destructive text-xs">*</span>
                     </Label>
@@ -826,7 +826,7 @@ export default function InventoryPermitsPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium flex items-center gap-1.5">
+                    <Label className="text-sm font-medium flex items-center gap-1.5">
                       <Link2 className="h-3.5 w-3.5" />
                       الفاتورة المرجعية
                     </Label>
@@ -844,7 +844,7 @@ export default function InventoryPermitsPage() {
 
                 {referenceDoctype && (
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">رقم الفاتورة</Label>
+                    <Label className="text-sm font-medium">رقم الفاتورة</Label>
                     <ErpLinkCombobox
                       doctype={referenceDoctype}
                       value={referenceInvoice}
@@ -860,7 +860,7 @@ export default function InventoryPermitsPage() {
                     onCheckedChange={setAutoCreateOnInvoice}
                   />
                   <div>
-                    <Label className="text-xs font-medium">إنشاء تلقائي عند الفاتورة</Label>
+                    <Label className="text-sm font-medium">إنشاء تلقائي عند الفاتورة</Label>
                     <p className="text-xs text-muted-foreground">
                       يتم إنشاء الإذن تلقائياً عند تأكيد الفاتورة المرتبطة
                     </p>
@@ -1035,7 +1035,7 @@ export default function InventoryPermitsPage() {
           {viewTarget && (
             <div className="space-y-4 mt-2">
               {/* ── Permit Info Grid ── */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="rounded-lg border border-border/40 bg-muted/30 p-3">
                   <p className="text-xs text-muted-foreground mb-0.5">رقم الإذن</p>
                   <p className="text-sm font-semibold text-primary">{viewTarget.name}</p>

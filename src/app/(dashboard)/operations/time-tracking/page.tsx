@@ -417,7 +417,7 @@ export default function TimeTrackingPage() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">الموظف <span className="text-destructive">*</span></Label>
+                <Label className="text-sm font-medium">الموظف <span className="text-destructive">*</span></Label>
                 <ErpLinkCombobox
                   doctype="Employee"
                   value={formData.employee}
@@ -428,7 +428,7 @@ export default function TimeTrackingPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">المشروع</Label>
+                  <Label className="text-sm font-medium">المشروع</Label>
                   <ErpLinkCombobox
                     doctype="Project"
                     value={formData.project}
@@ -438,7 +438,7 @@ export default function TimeTrackingPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">النشاط</Label>
+                  <Label className="text-sm font-medium">النشاط</Label>
                   <ErpLinkCombobox
                     doctype="Activity Type"
                     value={formData.activity}
@@ -448,16 +448,16 @@ export default function TimeTrackingPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">التاريخ <span className="text-destructive">*</span></Label>
+                <Label className="text-sm font-medium">التاريخ <span className="text-destructive">*</span></Label>
                 <Input type="date" dir="ltr" className="h-9 text-sm" value={formData.date} onChange={e => setFormData(prev => ({ ...prev, date: e.target.value }))} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">وقت البداية <span className="text-destructive">*</span></Label>
+                  <Label className="text-sm font-medium">وقت البداية <span className="text-destructive">*</span></Label>
                   <Input type="time" dir="ltr" className="h-9 text-sm" value={formData.from_time} onChange={e => setFormData(prev => ({ ...prev, from_time: e.target.value }))} />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">وقت النهاية <span className="text-destructive">*</span></Label>
+                  <Label className="text-sm font-medium">وقت النهاية <span className="text-destructive">*</span></Label>
                   <Input type="time" dir="ltr" className="h-9 text-sm" value={formData.to_time} onChange={e => setFormData(prev => ({ ...prev, to_time: e.target.value }))} />
                 </div>
               </div>
@@ -471,7 +471,7 @@ export default function TimeTrackingPage() {
       />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
         <Card>
           <CardContent className="p-3 flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-chart-1/10 flex items-center justify-center shrink-0">
@@ -596,7 +596,7 @@ export default function TimeTrackingPage() {
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-xs font-medium text-muted-foreground">تصفية السجلات</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">الموظف</Label>
               <Select value={filterEmployee} onValueChange={setFilterEmployee}>

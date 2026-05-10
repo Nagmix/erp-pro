@@ -74,7 +74,7 @@ export function PosClosingDialog({
           <div className="space-y-1">
             <Label className="text-xs">فتحة وردية مفتوحة</Label>
             <Select dir="rtl" value={selectedPoe} onValueChange={onSelectPoe}>
-              <SelectTrigger className="h-10">
+              <SelectTrigger className="h-9">
                 <SelectValue placeholder="اختر..." />
               </SelectTrigger>
               <SelectContent dir="rtl" align="start">

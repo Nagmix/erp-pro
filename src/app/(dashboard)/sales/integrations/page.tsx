@@ -461,11 +461,11 @@ export default function SalesIntegrationsPage() {
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">اسم القالب <span className="text-destructive text-xs">*</span></Label>
+              <Label className="text-sm font-medium">اسم القالب <span className="text-destructive text-xs">*</span></Label>
               <Input value={ptName} onChange={(e) => setPtName(e.target.value)} placeholder="مثال: دفع خلال 30 يوم" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">عدد أيام السداد</Label>
+              <Label className="text-sm font-medium">عدد أيام السداد</Label>
               <Input type="number" dir="ltr" min={0} value={ptDueDate} onChange={(e) => setPtDueDate(e.target.value)} placeholder="مثال: 30" />
             </div>
           </div>
@@ -494,11 +494,11 @@ export default function SalesIntegrationsPage() {
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
+              <Label className="text-sm font-medium">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
               <Input value={srName} onChange={(e) => setSrName(e.target.value)} placeholder="مثال: شحن مجاني فوق 500" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">النوع</Label>
+              <Label className="text-sm font-medium">النوع</Label>
               <Select value={srType} onValueChange={setSrType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>

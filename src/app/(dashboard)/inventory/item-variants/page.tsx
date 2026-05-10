@@ -1078,7 +1078,7 @@ export default function ItemVariantsPage() {
             <TabsContent value="combinations" className="space-y-4 mt-4 outline-none">
               {combinations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <Grid3X3 className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                  <Grid3X3 className="h-9 w-10 text-muted-foreground/30 mb-3" />
                   <p className="text-sm text-muted-foreground">لم يتم تحديد سمات بعد</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     أضف سمات وقيم في تبويب «السمات» لعرض التوليفات
@@ -1418,7 +1418,7 @@ export default function ItemVariantsPage() {
               </div>
             ) : viewVariants.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Inbox className="h-10 w-10 text-muted-foreground/30 mb-3" />
+                <Inbox className="h-9 w-10 text-muted-foreground/30 mb-3" />
                 <p className="text-sm text-muted-foreground">لا توجد تبديلات لهذه المجموعة</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   أنشئ تبديلات من خلال نافذة «مجموعة جديدة»

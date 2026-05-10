@@ -527,7 +527,7 @@ export default function ApprovalsPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">ملاحظات</Label>
+              <Label className="text-sm font-medium">ملاحظات</Label>
               <Textarea value={notesText} onChange={(e) => setNotesText(e.target.value)} placeholder="أدخل ملاحظاتك هنا (اختياري)..." rows={3} className="text-xs" />
             </div>
           </div>

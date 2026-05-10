@@ -996,7 +996,7 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-primary/10">
                 <Package className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -1017,7 +1017,7 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-2/10">
+              <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-chart-2/10">
                 <Factory className="h-5 w-5 text-chart-2" />
               </div>
               <div>
@@ -1038,7 +1038,7 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-1/10">
+              <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-chart-1/10">
                 <ClipboardList className="h-5 w-5 text-chart-1" />
               </div>
               <div>
@@ -1059,7 +1059,7 @@ export default function ManufacturingDashboardPage() {
         <Card className="border-border/40">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-5/10">
+              <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-chart-5/10">
                 <Wrench className="h-5 w-5 text-chart-5" />
               </div>
               <div>
@@ -1089,7 +1089,7 @@ export default function ManufacturingDashboardPage() {
           <CardContent>
             <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+                <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-destructive/10">
                   <StopCircle className="h-5 w-5 text-destructive" />
                 </div>
                 <div>
@@ -1122,7 +1122,7 @@ export default function ManufacturingDashboardPage() {
             <p className="text-xs text-muted-foreground py-8 text-center">لا توجد بيانات إنتاج كافية.</p>
           )}
           {!isLoading && workOrders.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               <div className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-chart-2/5">
                 <span className="text-[10px] text-muted-foreground">لم يبدأ</span>
                 <span className="text-lg font-bold tabular-nums text-chart-2">

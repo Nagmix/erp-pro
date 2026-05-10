@@ -634,7 +634,7 @@ export default function PayrollEntryPage() {
             {/* Company & Currency */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">
+                <Label className="text-sm font-medium">
                   الشركة <span className="text-destructive">*</span>
                 </Label>
                 <ErpLinkCombobox
@@ -645,7 +645,7 @@ export default function PayrollEntryPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">العملة</Label>
+                <Label className="text-sm font-medium">العملة</Label>
                 <ErpLinkCombobox
                   doctype="Currency"
                   value={formData.currency}
@@ -658,7 +658,7 @@ export default function PayrollEntryPage() {
             {/* Dates */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">
+                <Label className="text-sm font-medium">
                   تاريخ القيد <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -670,7 +670,7 @@ export default function PayrollEntryPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">
+                <Label className="text-sm font-medium">
                   من <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -682,7 +682,7 @@ export default function PayrollEntryPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">
+                <Label className="text-sm font-medium">
                   إلى <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -697,7 +697,7 @@ export default function PayrollEntryPage() {
 
             {/* Payroll Frequency */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">الدورية</Label>
+              <Label className="text-sm font-medium">الدورية</Label>
               <select
                 className="w-full h-9 rounded-md border bg-background px-3 text-sm"
                 value={formData.payroll_frequency}
@@ -718,7 +718,7 @@ export default function PayrollEntryPage() {
             {/* Branch, Department, Designation */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الفرع</Label>
+                <Label className="text-sm font-medium">الفرع</Label>
                 <ErpLinkCombobox
                   doctype="Branch"
                   value={formData.branch}
@@ -727,7 +727,7 @@ export default function PayrollEntryPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">القسم</Label>
+                <Label className="text-sm font-medium">القسم</Label>
                 <ErpLinkCombobox
                   doctype="Department"
                   value={formData.department}
@@ -736,7 +736,7 @@ export default function PayrollEntryPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">المسمى الوظيفي</Label>
+                <Label className="text-sm font-medium">المسمى الوظيفي</Label>
                 <ErpLinkCombobox
                   doctype="Designation"
                   value={formData.designation}
@@ -748,7 +748,7 @@ export default function PayrollEntryPage() {
 
             {/* Payroll Payable Account */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">حساب الرواتب المستحقة</Label>
+              <Label className="text-sm font-medium">حساب الرواتب المستحقة</Label>
               <ErpLinkCombobox
                 doctype="Account"
                 value={formData.payroll_payable_account}
@@ -790,7 +790,7 @@ export default function PayrollEntryPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-success/10 text-success flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-success/10 text-success flex items-center justify-center">
                 <Send className="h-5 w-5" />
               </div>
               <div>
@@ -829,7 +829,7 @@ export default function PayrollEntryPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center">
                 <Undo2 className="h-5 w-5" />
               </div>
               <div>

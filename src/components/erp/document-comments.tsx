@@ -243,7 +243,7 @@ export function DocumentComments({ doctype, docname, className }: DocumentCommen
 
             {isEmpty && (
               <div className="text-center py-8">
-                <MessageSquare className="h-10 w-10 mx-auto text-muted-foreground/40" />
+                <MessageSquare className="h-9 w-10 mx-auto text-muted-foreground/40" />
                 <p className="text-sm text-muted-foreground mt-2">
                   لا توجد تعليقات بعد
                 </p>

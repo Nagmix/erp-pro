@@ -334,22 +334,22 @@ export default function DeliveryNotesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox doctype="Customer" value={customer} onChange={setCustomer} displayKey="customer_name" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">التاريخ</Label>
+                    <Label className="text-sm font-medium">التاريخ</Label>
                     <Input type="date" dir="ltr" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} />
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">مركز تكلفة</Label>
+                    <Label className="text-sm font-medium">مركز تكلفة</Label>
                     <ErpLinkCombobox doctype="Cost Center" value={costCenter} onChange={setCostCenter} />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">ملاحظات / شروط</Label>
+                  <Label className="text-sm font-medium">ملاحظات / شروط</Label>
                   <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} className="min-h-[50px] text-sm" />
                 </div>
               </div>
@@ -399,7 +399,7 @@ export default function DeliveryNotesPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

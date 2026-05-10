@@ -419,7 +419,7 @@ export default function LeadsPage() {
                     <div className="p-4 space-y-4 bg-card/50">
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium">اللقب</Label>
+                          <Label className="text-sm font-medium">اللقب</Label>
                           <Select value={formData.salutation} onValueChange={v => setFormData(p => ({ ...p, salutation: v }))}>
                             <SelectTrigger className="h-9 text-sm">
                               <SelectValue placeholder="اللقب" />
@@ -432,16 +432,16 @@ export default function LeadsPage() {
                           </Select>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium">الاسم الأول <span className="text-destructive text-xs">*</span></Label>
+                          <Label className="text-sm font-medium">الاسم الأول <span className="text-destructive text-xs">*</span></Label>
                           <Input value={formData.first_name} onChange={(e) => setFormData((p) => ({ ...p, first_name: e.target.value }))} className="h-9" placeholder="الاسم الأول" />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium">اسم العائلة</Label>
+                          <Label className="text-sm font-medium">اسم العائلة</Label>
                           <Input value={formData.last_name} onChange={(e) => setFormData((p) => ({ ...p, last_name: e.target.value }))} className="h-9" placeholder="اسم العائلة" />
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium">اسم المنشأة (بديل عن الاسم)</Label>
+                        <Label className="text-sm font-medium">اسم المنشأة (بديل عن الاسم)</Label>
                         <Input value={formData.company_name} onChange={(e) => setFormData((p) => ({ ...p, company_name: e.target.value }))} className="h-9" placeholder="اسم المنشأة" />
                       </div>
                     </div>
@@ -460,17 +460,17 @@ export default function LeadsPage() {
                     <div className="p-4 space-y-4 bg-card/50">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium">البريد الإلكتروني</Label>
+                          <Label className="text-sm font-medium">البريد الإلكتروني</Label>
                           <Input dir="ltr" type="email" value={formData.email_id} onChange={(e) => setFormData((p) => ({ ...p, email_id: e.target.value }))} className="h-9" placeholder="email@company.com" />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium">رقم الجوال</Label>
+                          <Label className="text-sm font-medium">رقم الجوال</Label>
                           <Input dir="ltr" value={formData.phone} onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))} className="h-9" placeholder="05xxxxxxxx" />
                         </div>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium">المصدر</Label>
+                          <Label className="text-sm font-medium">المصدر</Label>
                           <Select value={formData.source || '_none'} onValueChange={v => setFormData(p => ({ ...p, source: v === '_none' ? '' : v }))}>
                             <SelectTrigger className="h-9 text-sm">
                               <SelectValue placeholder="اختر المصدر" />
@@ -484,7 +484,7 @@ export default function LeadsPage() {
                           </Select>
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium">الحالة</Label>
+                          <Label className="text-sm font-medium">الحالة</Label>
                           <Select value={formData.status} onValueChange={v => setFormData(p => ({ ...p, status: v }))}>
                             <SelectTrigger className="h-9 text-sm">
                               <SelectValue />
@@ -513,7 +513,7 @@ export default function LeadsPage() {
                     <div className="p-4 space-y-4 bg-card/50">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium">المنطقة</Label>
+                          <Label className="text-sm font-medium">المنطقة</Label>
                           <ErpLinkCombobox
                             doctype="Territory"
                             value={formData.territory}
@@ -523,7 +523,7 @@ export default function LeadsPage() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <Label className="text-xs font-medium">مسؤول العميل</Label>
+                          <Label className="text-sm font-medium">مسؤول العميل</Label>
                           <ErpLinkCombobox
                             doctype="User"
                             value={formData.lead_owner}
@@ -625,7 +625,7 @@ export default function LeadsPage() {
         {filtersOpen && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/30">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">المصدر</Label>
+              <Label className="text-sm font-medium text-muted-foreground">المصدر</Label>
               <Select value={filterSource} onValueChange={setFilterSource}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="جميع المصادر" />
@@ -639,7 +639,7 @@ export default function LeadsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
+              <Label className="text-sm font-medium text-muted-foreground">الحالة</Label>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="جميع الحالات" />
@@ -653,7 +653,7 @@ export default function LeadsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">المنطقة</Label>
+              <Label className="text-sm font-medium text-muted-foreground">المنطقة</Label>
               <Select value={filterTerritory} onValueChange={setFilterTerritory}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="جميع المناطق" />

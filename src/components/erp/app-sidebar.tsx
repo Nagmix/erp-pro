@@ -244,7 +244,7 @@ export function AppSidebar() {
         {/* Brand Header */}
         <div className="relative flex h-16 items-center gap-2 border-b border-[color:var(--sidebar-border)] px-3 shrink-0">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md-ui)] bg-[color:var(--sidebar-primary)] ring-1 ring-white/15">
+            <div className="relative flex h-9 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md-ui)] bg-[color:var(--sidebar-primary)] ring-1 ring-white/15">
               <ModernIcon iconify="solar:layers-bold-duotone" className="relative h-5 w-5 text-white" />
             </div>
             {!collapsed && (

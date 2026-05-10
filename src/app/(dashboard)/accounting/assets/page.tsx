@@ -403,13 +403,13 @@ export default function AssetsPage() {
   const renderAssetFormFields = (form: UseFormReturn<AssetFormInput, any, AssetFormOutput>) => (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-xs font-medium">اسم الأصل *</Label>
+        <Label className="text-sm font-medium">اسم الأصل *</Label>
         <Input placeholder="اسم الأصل" {...form.register('asset_name')} />
         {form.formState.errors.asset_name && <p className="text-xs text-destructive">{form.formState.errors.asset_name.message}</p>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-medium">فئة الأصل *</Label>
+          <Label className="text-sm font-medium">فئة الأصل *</Label>
           <ErpLinkCombobox
             doctype="Asset Category"
             value={form.watch('category')}
@@ -421,7 +421,7 @@ export default function AssetsPage() {
           )}
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-medium">صنف الأصل (Item)</Label>
+          <Label className="text-sm font-medium">صنف الأصل (Item)</Label>
           <ErpLinkCombobox
             doctype="Item"
             value={form.watch('item_code')}
@@ -434,7 +434,7 @@ export default function AssetsPage() {
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label className="text-xs font-medium">الشركة (افتراضية)</Label>
+        <Label className="text-sm font-medium">الشركة (افتراضية)</Label>
         <p className="text-sm font-semibold">{form.watch('company') || defaultCo || '—'}</p>
         {!defaultCo && (
           <p className="text-xs text-destructive">اضبط الشركة الافتراضية من الإعدادات</p>
@@ -443,18 +443,18 @@ export default function AssetsPage() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-medium">تاريخ الشراء *</Label>
+          <Label className="text-sm font-medium">تاريخ الشراء *</Label>
           <Input type="date" dir="ltr" {...form.register('purchase_date')} />
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-medium">قيمة الشراء *</Label>
+          <Label className="text-sm font-medium">قيمة الشراء *</Label>
           <Input type="number" dir="ltr" placeholder="0.00" {...form.register('purchase_amount', { valueAsNumber: true })} />
           {form.formState.errors.purchase_amount && <p className="text-xs text-destructive">{form.formState.errors.purchase_amount.message}</p>}
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-medium">طريقة الإهلاك</Label>
+          <Label className="text-sm font-medium">طريقة الإهلاك</Label>
           <Select value={form.watch('depreciation_method')} onValueChange={v => form.setValue('depreciation_method', v)}>
             <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
             <SelectContent dir="rtl" align="start">
@@ -466,7 +466,7 @@ export default function AssetsPage() {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-medium">العمر الإنتاجي (سنوات)</Label>
+          <Label className="text-sm font-medium">العمر الإنتاجي (سنوات)</Label>
           <Input type="number" dir="ltr" placeholder="0" {...form.register('useful_life', { valueAsNumber: true })} />
         </div>
       </div>
@@ -479,7 +479,7 @@ export default function AssetsPage() {
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-2 sm:col-span-2">
-              <Label className="text-xs font-medium">حساب الأصل الثابت *</Label>
+              <Label className="text-sm font-medium">حساب الأصل الثابت *</Label>
               <ErpLinkCombobox
                 doctype="Account"
                 value={form.watch('fixed_asset_account')}
@@ -492,7 +492,7 @@ export default function AssetsPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">حساب مجمع الإهلاك *</Label>
+              <Label className="text-sm font-medium">حساب مجمع الإهلاك *</Label>
               <ErpLinkCombobox
                 doctype="Account"
                 value={form.watch('accumulated_depreciation_account')}
@@ -507,7 +507,7 @@ export default function AssetsPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">حساب مصروف الإهلاك *</Label>
+              <Label className="text-sm font-medium">حساب مصروف الإهلاك *</Label>
               <ErpLinkCombobox
                 doctype="Account"
                 value={form.watch('depreciation_expense_account')}
@@ -526,11 +526,11 @@ export default function AssetsPage() {
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-medium">الموقع</Label>
+          <Label className="text-sm font-medium">الموقع</Label>
           <ErpLinkCombobox doctype="Location" value={form.watch('location') || ''} onChange={(v) => form.setValue('location', v)} placeholder="موقع الأصل" />
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-medium">المسؤول</Label>
+          <Label className="text-sm font-medium">المسؤول</Label>
           <ErpLinkCombobox doctype="Employee" value={form.watch('custodian') || ''} onChange={(v) => form.setValue('custodian', v)} placeholder="المسؤول عن الأصل" />
         </div>
       </div>
@@ -722,7 +722,7 @@ export default function AssetsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

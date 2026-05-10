@@ -605,7 +605,7 @@ export default function BudgetsPage() {
           {costCenterComparison.length === 0 ? (
             <Card className="border-border/40">
               <CardContent className="p-10 text-center">
-                <BarChart3 className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                <BarChart3 className="h-9 w-10 mx-auto text-muted-foreground/30 mb-3" />
                 <p className="text-sm text-muted-foreground">لا توجد بيانات كافية للمقارنة</p>
               </CardContent>
             </Card>
@@ -668,7 +668,7 @@ export default function BudgetsPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-3 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                       <div className="rounded-lg bg-muted/30 p-2.5 text-center">
                         <p className="text-muted-foreground mb-0.5">المخصص</p>
                         <p className="font-semibold tabular-nums">{formatCurrency(item.allocated)}</p>
@@ -710,7 +710,7 @@ export default function BudgetsPage() {
           {budgets.length === 0 ? (
             <Card className="border-border/40">
               <CardContent className="p-10 text-center">
-                <PieChart className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                <PieChart className="h-9 w-10 mx-auto text-muted-foreground/30 mb-3" />
                 <p className="text-sm text-muted-foreground">لا توجد ميزانيات لعرض توزيعها</p>
               </CardContent>
             </Card>
@@ -824,7 +824,7 @@ export default function BudgetsPage() {
             {/* Basic Fields */}
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-1.5 sm:col-span-2">
-                <Label className="text-xs font-medium">اسم الميزانية *</Label>
+                <Label className="text-sm font-medium">اسم الميزانية *</Label>
                 <Input
                   className="h-9"
                   placeholder="مثال: ميزانية الرواتب 2026"
@@ -834,7 +834,7 @@ export default function BudgetsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">مركز التكلفة *</Label>
+                <Label className="text-sm font-medium">مركز التكلفة *</Label>
                 <Select
                   value={form.costCenter}
                   onValueChange={(v) => setForm((f) => ({ ...f, costCenter: v }))}
@@ -853,7 +853,7 @@ export default function BudgetsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">السنة المالية *</Label>
+                <Label className="text-sm font-medium">السنة المالية *</Label>
                 <Input
                   className="h-9"
                   type="number"
@@ -864,7 +864,7 @@ export default function BudgetsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">نوع الفترة *</Label>
+                <Label className="text-sm font-medium">نوع الفترة *</Label>
                 <Select
                   value={form.period}
                   onValueChange={(v) => setForm((f) => ({ ...f, period: v as Budget['period'] }))}
@@ -883,7 +883,7 @@ export default function BudgetsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">المبلغ المخصص *</Label>
+                <Label className="text-sm font-medium">المبلغ المخصص *</Label>
                 <Input
                   className="h-9"
                   type="number"
@@ -898,7 +898,7 @@ export default function BudgetsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الحالة</Label>
+                <Label className="text-sm font-medium">الحالة</Label>
                 <Select
                   value={form.status}
                   onValueChange={(v) => setForm((f) => ({ ...f, status: v as Budget['status'] }))}
@@ -920,7 +920,7 @@ export default function BudgetsPage() {
             {/* Distribution Table */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label className="text-xs font-medium">توزيع المبلغ على الحسابات</Label>
+                <Label className="text-sm font-medium">توزيع المبلغ على الحسابات</Label>
                 <Button
                   type="button"
                   variant="ghost"

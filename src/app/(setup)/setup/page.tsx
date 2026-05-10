@@ -471,7 +471,7 @@ export default function SetupWizardPage() {
         <Card className="w-full max-w-lg shadow-xl border-0">
           <CardContent className="p-8 text-center space-y-6">
             <div className="mx-auto w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center">
-              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+              <CheckCircle2 className="w-10 h-9 text-emerald-600" />
             </div>
             <div>
               <h2 className="text-2xl font-bold text-foreground">تم الإعداد بنجاح!</h2>
@@ -487,7 +487,7 @@ export default function SetupWizardPage() {
                     {r.status === 'ok' && <Check className="w-4 h-4 text-emerald-600 shrink-0" />}
                     {r.status === 'skip' && <AlertCircle className="w-4 h-4 text-amber-500 shrink-0" />}
                     {r.status === 'error' && <X className="w-4 h-4 text-red-500 shrink-0" />}
-                    <span className={r.status === 'error' ? 'text-red-600' : r.status === 'skip' ? 'text-amber-600' : 'text-foreground'}>
+                    <span className={r.status === 'error' ? 'text-destructive' : r.status === 'skip' ? 'text-amber-600' : 'text-foreground'}>
                       {r.message}
                     </span>
                   </div>
@@ -578,7 +578,7 @@ export default function SetupWizardPage() {
         <Card className="shadow-lg border-0">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="w-10 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                 <StepIcon className="w-5 h-5 text-primary" />
               </div>
               <div>
@@ -711,7 +711,7 @@ export default function SetupWizardPage() {
                       {connectionResult.success ? (
                         <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                       ) : (
-                        <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                        <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                       )}
                       <div className="space-y-1">
                         <p className={`text-sm font-medium ${connectionResult.success ? 'text-emerald-800' : 'text-red-800'}`}>
@@ -1260,7 +1260,7 @@ export default function SetupWizardPage() {
               <div className="space-y-4">
                 <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                   <h3 className="font-semibold text-base">اتصال الخادم</h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <div><span className="text-muted-foreground">عنوان الخادم:</span> {form.backendHost || '—'}</div>
                     <div><span className="text-muted-foreground">المستخدم:</span> {form.serverAdminUser}</div>
                     <div><span className="text-muted-foreground">حالة الاتصال:</span> {form.serverConnectionOk ? '✓ متصل' : '✗ غير متصل'}</div>
@@ -1271,7 +1271,7 @@ export default function SetupWizardPage() {
 
                 <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                   <h3 className="font-semibold text-base">معلومات الشركة</h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <div><span className="text-muted-foreground">الاسم:</span> {form.companyName}</div>
                     <div><span className="text-muted-foreground">الاختصار:</span> {form.abbr || '—'}</div>
                     <div><span className="text-muted-foreground">العملة:</span> {form.currency}</div>
@@ -1298,7 +1298,7 @@ export default function SetupWizardPage() {
 
                 <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                   <h3 className="font-semibold text-base">السنة المالية</h3>
-                  <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
                     <div><span className="text-muted-foreground">الاسم:</span> {form.fiscalYearName}</div>
                     <div><span className="text-muted-foreground">البداية:</span> {form.fiscalYearStart}</div>
                     <div><span className="text-muted-foreground">النهاية:</span> {form.fiscalYearEnd}</div>
@@ -1334,7 +1334,7 @@ export default function SetupWizardPage() {
                 <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                   <h3 className="font-semibold text-base">الضرائب</h3>
                   {form.enableTax ? (
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div><span className="text-muted-foreground">الضريبة:</span> {form.taxName}</div>
                       <div><span className="text-muted-foreground">النسبة:</span> {form.taxRate}%</div>
                     </div>
@@ -1347,7 +1347,7 @@ export default function SetupWizardPage() {
 
                 <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                   <h3 className="font-semibold text-base">المستخدم الإداري</h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <div><span className="text-muted-foreground">الاسم:</span> {form.adminFirstName} {form.adminLastName}</div>
                     <div><span className="text-muted-foreground">البريد:</span> {form.adminEmail}</div>
                   </div>
@@ -1357,7 +1357,7 @@ export default function SetupWizardPage() {
 
                 <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                   <h3 className="font-semibold text-base">الموظف الإداري</h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <div><span className="text-muted-foreground">الاسم:</span> {form.employeeFirstName} {form.employeeLastName}</div>
                     <div><span className="text-muted-foreground">المسمى:</span> {form.employeeDesignation || '—'}</div>
                     <div><span className="text-muted-foreground">البريد:</span> {form.employeeEmail || '—'}</div>

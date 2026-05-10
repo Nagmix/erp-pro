@@ -674,7 +674,7 @@ export default function DailySalesReportPage() {
       {/* ─── Empty state ─── */}
       {!data && !loading && !error && (
         <div className="rounded-lg border border-dashed border-border/60 p-10 text-center">
-          <BarChart3 className="mx-auto h-10 w-10 text-muted-foreground/50" />
+          <BarChart3 className="mx-auto h-9 w-10 text-muted-foreground/50" />
           <p className="mt-3 text-sm font-medium text-muted-foreground">اختر تاريخاً لعرض تقرير المبيعات اليومية</p>
         </div>
       )}

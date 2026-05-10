@@ -258,7 +258,7 @@ export default function BankAccountsPage() {
   const btCols: Column<BtRow>[] = useMemo(() => [
     { key: 'date', header: 'التاريخ', render: (v) => String(v || '—') },
     { key: 'deposit', header: 'الإيداع', render: (v) => <span className="text-green-600 font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span> },
-    { key: 'withdrawal', header: 'السحب', render: (v) => <span className="text-red-600 font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span> },
+    { key: 'withdrawal', header: 'السحب', render: (v) => <span className="text-destructive font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span> },
     { key: 'description', header: 'الوصف' },
     { key: 'reference_number', header: 'المرجع' },
     {
@@ -523,7 +523,7 @@ export default function BankAccountsPage() {
         header: 'القرار',
         render: (_, row) => {
           const d = reconDecisions[row.matchKey];
-          if (d === 'confirmed') return <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">موافق ✓</span>;
+          if (d === 'confirmed') return <span className="text-primary font-semibold text-[11px]">موافق ✓</span>;
           if (d === 'rejected') return <span className="text-destructive font-semibold text-[11px]">مرفوض ✗</span>;
           return <span className="text-muted-foreground text-[11px]">—</span>;
         },
@@ -838,7 +838,7 @@ export default function BankAccountsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

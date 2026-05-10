@@ -789,7 +789,7 @@ export default function SmsTemplatesPage() {
 
    {/* Original Template */}
    <div className="space-y-1.5">
-    <Label className="text-xs font-medium text-muted-foreground">نص القالب الأصلي</Label>
+    <Label className="text-sm font-medium text-muted-foreground">نص القالب الأصلي</Label>
     <div className="rounded-lg border border-border/40 bg-muted/30 p-2.5">
     <p className="text-xs font-mono leading-relaxed" dir="ltr">{previewOriginal}</p>
     </div>
@@ -797,7 +797,7 @@ export default function SmsTemplatesPage() {
 
    {/* Sample Data Used */}
    <div className="space-y-1.5">
-    <Label className="text-xs font-medium text-muted-foreground">المتغيرات المستخدمة في المعاينة</Label>
+    <Label className="text-sm font-medium text-muted-foreground">المتغيرات المستخدمة في المعاينة</Label>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
     {Object.entries(PREVIEW_FALLBACK_DATA).slice(0, 6).map(([key, value]) => (
      <div key={key} className="flex items-center gap-1 text-[9px]">

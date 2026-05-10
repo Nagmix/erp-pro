@@ -90,7 +90,7 @@ function ItemGroupTreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 text-xs"
+        className="flex items-center gap-2 h-9 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 text-xs"
         style={{ paddingRight: `${level * 1.25 + 1}rem` }}
       >
         {hasChildren ? (
@@ -388,11 +388,11 @@ export default function ItemGroupsPage() {
                     </div>
                     <div className="p-4 space-y-4 bg-card/50">
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium">اسم المجموعة <span className="text-destructive text-xs">*</span></Label>
-                        <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="مثال: منتجات غذائية، أدوات مكتبية" className="h-10" />
+                        <Label className="text-sm font-medium">اسم المجموعة <span className="text-destructive text-xs">*</span></Label>
+                        <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="مثال: منتجات غذائية، أدوات مكتبية" className="h-9" />
                       </div>
                       <div className="space-y-1.5">
-                        <Label className="text-xs font-medium">المجموعة الأب</Label>
+                        <Label className="text-sm font-medium">المجموعة الأب</Label>
                         <ErpLinkCombobox
                           doctype="Item Group"
                           value={parentGroup}
@@ -522,7 +522,7 @@ export default function ItemGroupsPage() {
         {filtersOpen && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/30">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">المجموعة الأب</Label>
+              <Label className="text-sm font-medium text-muted-foreground">المجموعة الأب</Label>
               <Select value={filterParent} onValueChange={setFilterParent}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="جميع المجموعات" />
@@ -536,7 +536,7 @@ export default function ItemGroupsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">النوع</Label>
+              <Label className="text-sm font-medium text-muted-foreground">النوع</Label>
               <Select value={filterIsGroup} onValueChange={setFilterIsGroup}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
@@ -549,7 +549,7 @@ export default function ItemGroupsPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
+              <Label className="text-sm font-medium text-muted-foreground">الحالة</Label>
               <Select value={filterDisabled} onValueChange={setFilterDisabled}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
@@ -590,7 +590,7 @@ export default function ItemGroupsPage() {
           {isLoading ? (
             <div className="divide-y divide-border/20">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 h-10 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem` }}>
+                <div key={i} className="flex items-center gap-3 h-9 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem` }}>
                   <div className="h-3.5 w-3.5 rounded bg-muted" />
                   <div className="h-3.5 rounded bg-muted flex-1 max-w-[180px]" />
                   <div className="h-3 rounded bg-muted w-14" />

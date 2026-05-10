@@ -277,7 +277,7 @@ export default function CrmMessagesPage() {
       <div className="grid lg:grid-cols-2 gap-4">
         <div className="rounded-xl border border-border/40 bg-card p-4 space-y-3">
           <p className="text-sm font-semibold">إعداد القنوات</p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">مزود SMS</Label>
               <Input value={settings.sms_provider} onChange={(e) => updateSetting('sms_provider', e.target.value)} placeholder="مثال: Unifonic" />
@@ -287,7 +287,7 @@ export default function CrmMessagesPage() {
               <Input dir="ltr" value={settings.sms_api_key} onChange={(e) => updateSetting('sms_api_key', e.target.value)} placeholder="مفتاح API" type="password" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <Label className="text-xs">مزود WhatsApp</Label>
               <Input value={settings.wa_provider} onChange={(e) => updateSetting('wa_provider', e.target.value)} placeholder="مثال: Meta" />
@@ -297,7 +297,7 @@ export default function CrmMessagesPage() {
               <Input dir="ltr" value={settings.wa_api_key} onChange={(e) => updateSetting('wa_api_key', e.target.value)} placeholder="مفتاح API" type="password" />
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div>
               <Label className="text-xs">خادم البريد</Label>
               <Input dir="ltr" value={settings.smtp_host} onChange={(e) => updateSetting('smtp_host', e.target.value)} placeholder="smtp.example.com" />
@@ -319,7 +319,7 @@ export default function CrmMessagesPage() {
         <div className="rounded-xl border border-border/40 bg-card p-4 space-y-3">
           <p className="text-sm font-semibold">قالب ورسائل تلقائية</p>
           <Textarea rows={4} value={settings.auto_reply_template} onChange={(e) => updateSetting('auto_reply_template', e.target.value)} />
-          <div className="grid grid-cols-2 gap-y-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-xs">
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={settings.rule_invoice} onChange={(e) => updateSetting('rule_invoice', e.target.checked)} />
               عند إنشاء فاتورة

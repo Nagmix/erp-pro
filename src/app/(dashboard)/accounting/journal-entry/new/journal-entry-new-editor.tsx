@@ -417,11 +417,11 @@ export function JournalEntryNewEditor() {
             <TabsContent value="header" className="mt-4 space-y-4 outline-none">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">تاريخ القيد *</Label>
+                  <Label className="text-sm font-medium">تاريخ القيد *</Label>
                   <Input type="date" dir="ltr" {...form.register('posting_date')} />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">نوع القيد</Label>
+                  <Label className="text-sm font-medium">نوع القيد</Label>
                   <Select value={form.watch('voucher_type')} onValueChange={(v) => form.setValue('voucher_type', v)}>
                     <SelectTrigger className="h-9 text-sm">
                       <SelectValue />
@@ -436,14 +436,14 @@ export function JournalEntryNewEditor() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">العنوان *</Label>
+                  <Label className="text-sm font-medium">العنوان *</Label>
                   <Input placeholder="عنوان القيد..." {...form.register('title')} />
                   {form.formState.errors.title && (
                     <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">ملاحظات</Label>
+                  <Label className="text-sm font-medium">ملاحظات</Label>
                   <Input placeholder="وصف القيد..." {...form.register('user_remark')} />
                 </div>
               </div>
@@ -485,12 +485,12 @@ export function JournalEntryNewEditor() {
             <TabsContent value="balance" className="mt-4 outline-none">
               <div
                 className={`rounded-xl p-4 border ${
-                  difference === 0 ? 'bg-green-50/80 dark:bg-green-900/20 border-green-200/50' : 'bg-destructive/5 border-destructive/30'
+                  difference === 0 ? 'bg-primary/10 border-primary/30' : 'bg-destructive/5 border-destructive/30'
                 }`}
               >
                 <div className="flex justify-between items-center text-sm">
                   <span className="font-semibold">إجمالي المدين</span>
-                  <span className="text-blue-600 font-bold tabular-nums">{formatCurrency(totalDebit)}</span>
+                  <span className="text-chart-1 font-bold tabular-nums">{formatCurrency(totalDebit)}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm mt-2">
                   <span className="font-semibold">إجمالي الدائن</span>

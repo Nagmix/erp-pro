@@ -402,7 +402,7 @@ export default function EmployeesPage() {
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">
+                      <Label className="text-sm font-medium">
                         الاسم الأول <span className="text-destructive">*</span>
                       </Label>
                       <Input
@@ -417,7 +417,7 @@ export default function EmployeesPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">
+                      <Label className="text-sm font-medium">
                         اسم العائلة <span className="text-destructive">*</span>
                       </Label>
                       <Input
@@ -434,7 +434,7 @@ export default function EmployeesPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">الجنس</Label>
+                      <Label className="text-sm font-medium">الجنس</Label>
                       <Select
                         value={formData.gender}
                         onValueChange={(v) =>
@@ -451,7 +451,7 @@ export default function EmployeesPage() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">
+                      <Label className="text-sm font-medium">
                         تاريخ الميلاد
                       </Label>
                       <Input
@@ -476,7 +476,7 @@ export default function EmployeesPage() {
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">
+                      <Label className="text-sm font-medium">
                         المسمى الوظيفي
                       </Label>
                       <ErpLinkCombobox
@@ -492,7 +492,7 @@ export default function EmployeesPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">القسم</Label>
+                      <Label className="text-sm font-medium">القسم</Label>
                       <ErpLinkCombobox
                         doctype="Department"
                         value={formData.department}
@@ -508,7 +508,7 @@ export default function EmployeesPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">
+                      <Label className="text-sm font-medium">
                         تاريخ الالتحاق
                       </Label>
                       <Input
@@ -524,7 +524,7 @@ export default function EmployeesPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">الحالة</Label>
+                      <Label className="text-sm font-medium">الحالة</Label>
                       <Select
                         value={formData.status}
                         onValueChange={(v) =>
@@ -551,7 +551,7 @@ export default function EmployeesPage() {
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">
+                      <Label className="text-sm font-medium">
                         البريد الإلكتروني المفضّل
                       </Label>
                       <Input
@@ -568,7 +568,7 @@ export default function EmployeesPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">رقم الهاتف</Label>
+                      <Label className="text-sm font-medium">رقم الهاتف</Label>
                       <Input
                         placeholder="05XXXXXXXX"
                         dir="ltr"
@@ -584,7 +584,7 @@ export default function EmployeesPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">الفرع</Label>
+                      <Label className="text-sm font-medium">الفرع</Label>
                       <ErpLinkCombobox
                         doctype="Branch"
                         value={formData.branch}
@@ -595,7 +595,7 @@ export default function EmployeesPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">الشركة</Label>
+                      <Label className="text-sm font-medium">الشركة</Label>
                       <ErpLinkCombobox
                         doctype="Company"
                         value={formData.company || defaultCompany || ''}

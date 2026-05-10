@@ -242,21 +242,21 @@ export default function FiscalYearPage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">اسم السنة *</Label>
+                      <Label className="text-sm font-medium">اسم السنة *</Label>
                       <Input placeholder="مثال: 2025" dir="rtl" {...form.register('year')} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">الشركة (افتراضية)</Label>
+                      <Label className="text-sm font-medium">الشركة (افتراضية)</Label>
                       <p className="text-sm font-semibold">{form.watch('company') || company || '—'}</p>
                       {!company && <p className="text-[10px] text-destructive">اضبط الشركة الافتراضية من الإعدادات</p>}
                       <input type="hidden" {...form.register('company')} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">بداية السنة *</Label>
+                      <Label className="text-sm font-medium">بداية السنة *</Label>
                       <Input type="date" dir="rtl" {...form.register('year_start_date')} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">نهاية السنة *</Label>
+                      <Label className="text-sm font-medium">نهاية السنة *</Label>
                       <Input type="date" dir="rtl" {...form.register('year_end_date')} />
                     </div>
                   </div>

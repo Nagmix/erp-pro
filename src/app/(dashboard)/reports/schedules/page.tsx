@@ -320,7 +320,7 @@ export default function ReportSchedulesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="border-border/40 hover:border-border/60 transition-colors">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-5/5 text-purple-600 dark:bg-chart-5/10 dark:text-purple-400">
+            <div className="flex h-9 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-5/5 text-purple-600 dark:bg-chart-5/10 dark:text-purple-400">
               <CalendarClock className="h-5 w-5" />
             </div>
             <div>
@@ -331,7 +331,7 @@ export default function ReportSchedulesPage() {
         </Card>
         <Card className="border-border/40 hover:border-border/60 transition-colors">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-emerald-600 dark:bg-primary/10 dark:text-emerald-400">
+            <div className="flex h-9 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/5 text-emerald-600 dark:bg-primary/10 dark:text-emerald-400">
               <ToggleLeft className="h-5 w-5" />
             </div>
             <div>
@@ -342,7 +342,7 @@ export default function ReportSchedulesPage() {
         </Card>
         <Card className="border-border/40 hover:border-border/60 transition-colors">
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-2/5 text-amber-600 dark:bg-chart-2/10 dark:text-amber-400">
+            <div className="flex h-9 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-2/5 text-amber-600 dark:bg-chart-2/10 dark:text-amber-400">
               <Clock className="h-5 w-5" />
             </div>
             <div>
@@ -393,7 +393,7 @@ export default function ReportSchedulesPage() {
           <div className="space-y-4 py-4">
             {/* التقرير */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">التقرير</Label>
+              <Label className="text-sm font-medium">التقرير</Label>
               <Select
                 value={form.reportId}
                 onValueChange={(v) => setForm((f) => ({ ...f, reportId: v }))}
@@ -413,7 +413,7 @@ export default function ReportSchedulesPage() {
 
             {/* التكرار */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">التكرار</Label>
+              <Label className="text-sm font-medium">التكرار</Label>
               <Select
                 value={form.frequency}
                 onValueChange={(v) => setForm((f) => ({ ...f, frequency: v }))}
@@ -446,7 +446,7 @@ export default function ReportSchedulesPage() {
 
             {/* البريد الإلكتروني */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">البريد الإلكتروني</Label>
+              <Label className="text-sm font-medium">البريد الإلكتروني</Label>
               <div className="relative">
                 <Mail className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -462,7 +462,7 @@ export default function ReportSchedulesPage() {
 
             {/* الصيغة */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">صيغة التصدير</Label>
+              <Label className="text-sm font-medium">صيغة التصدير</Label>
               <Select
                 value={form.format}
                 onValueChange={(v) => setForm((f) => ({ ...f, format: v as 'csv' | 'excel' | 'pdf' }))}
@@ -495,7 +495,7 @@ export default function ReportSchedulesPage() {
 
             {/* فلاتر إضافية (اختياري) */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 فلاتر إضافية
                 <span className="text-muted-foreground font-normal ms-1">(اختياري)</span>
               </Label>
@@ -512,7 +512,7 @@ export default function ReportSchedulesPage() {
             {/* التفعيل */}
             <div className="flex items-center justify-between rounded-lg border border-border/40 p-3">
               <div className="space-y-0.5">
-                <Label className="text-xs font-medium">تفعيل الجدول</Label>
+                <Label className="text-sm font-medium">تفعيل الجدول</Label>
                 <p className="text-[10px] text-muted-foreground">عند التفعيل سيتم إرسال التقرير تلقائياً</p>
               </div>
               <Switch

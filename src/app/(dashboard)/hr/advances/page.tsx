@@ -586,7 +586,7 @@ export default function EmployeeAdvancesPage() {
           </DialogHeader>
           <div className="space-y-4 py-3">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 الموظف <span className="text-destructive">*</span>
               </Label>
               <ErpLinkCombobox
@@ -599,7 +599,7 @@ export default function EmployeeAdvancesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">السبب</Label>
+              <Label className="text-sm font-medium">السبب</Label>
               <Input
                 value={formData.purpose}
                 onChange={(e) => setFormData((p) => ({ ...p, purpose: e.target.value }))}
@@ -608,7 +608,7 @@ export default function EmployeeAdvancesPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">
+                <Label className="text-sm font-medium">
                   مبلغ السلفة <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -620,7 +620,7 @@ export default function EmployeeAdvancesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">التاريخ</Label>
+                <Label className="text-sm font-medium">التاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -631,7 +631,7 @@ export default function EmployeeAdvancesPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">الشركة</Label>
+                <Label className="text-sm font-medium">الشركة</Label>
                 <Input
                   value={formData.company || company || ''}
                   onChange={(e) => setFormData((p) => ({ ...p, company: e.target.value }))}
@@ -639,7 +639,7 @@ export default function EmployeeAdvancesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">العملة</Label>
+                <Label className="text-sm font-medium">العملة</Label>
                 <Input
                   value={formData.currency}
                   onChange={(e) => setFormData((p) => ({ ...p, currency: e.target.value }))}
@@ -649,7 +649,7 @@ export default function EmployeeAdvancesPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">حساب السلف</Label>
+              <Label className="text-sm font-medium">حساب السلف</Label>
               <ErpLinkCombobox
                 doctype="Account"
                 value={formData.advance_account}

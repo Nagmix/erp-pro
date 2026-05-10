@@ -607,10 +607,10 @@ export default function TaxRulesPage() {
   </div>
 
   {/* ── Stats Cards ───────────────────────────────────── */}
-  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
   <Card>
    <CardContent className="p-4 flex items-center gap-3">
-   <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+   <div className="h-9 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
     <FileText className="h-5 w-5 text-primary" />
    </div>
    <div>
@@ -621,7 +621,7 @@ export default function TaxRulesPage() {
   </Card>
   <Card>
    <CardContent className="p-4 flex items-center gap-3">
-   <div className="h-10 w-10 rounded-lg bg-chart-3/10 flex items-center justify-center shrink-0">
+   <div className="h-9 w-10 rounded-lg bg-chart-3/10 flex items-center justify-center shrink-0">
     <CheckCircle2 className="h-5 w-5 text-chart-3" />
    </div>
    <div>
@@ -632,7 +632,7 @@ export default function TaxRulesPage() {
   </Card>
   <Card>
    <CardContent className="p-4 flex items-center gap-3">
-   <div className="h-10 w-10 rounded-lg bg-chart-2/10 flex items-center justify-center shrink-0">
+   <div className="h-9 w-10 rounded-lg bg-chart-2/10 flex items-center justify-center shrink-0">
     <Tags className="h-5 w-5 text-chart-2" />
    </div>
    <div>
@@ -643,7 +643,7 @@ export default function TaxRulesPage() {
   </Card>
   <Card>
    <CardContent className="p-4 flex items-center gap-3">
-   <div className="h-10 w-10 rounded-lg bg-chart-1/10 flex items-center justify-center shrink-0">
+   <div className="h-9 w-10 rounded-lg bg-chart-1/10 flex items-center justify-center shrink-0">
     <Percent className="h-5 w-5 text-chart-1" />
    </div>
    <div>
@@ -801,7 +801,7 @@ export default function TaxRulesPage() {
    <Card>
    <CardContent className="p-6">
     <div className="flex items-center gap-3 mb-6">
-    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+    <div className="h-9 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
      <Calculator className="h-5 w-5 text-primary" />
     </div>
     <div>
@@ -823,7 +823,7 @@ export default function TaxRulesPage() {
       min={0}
       step="0.01"
       dir="ltr"
-      className="h-10 pe-12 font-mono"
+      className="h-9 pe-12 font-mono"
       placeholder="1000.00"
       value={calcAmount}
       onChange={(e) => setCalcAmount(e.target.value)}
@@ -837,7 +837,7 @@ export default function TaxRulesPage() {
      <div className="space-y-1.5">
      <Label className="text-xs">قاعدة الضريبة</Label>
      <Select value={calcTaxRule} onValueChange={setCalcTaxRule}>
-      <SelectTrigger className="h-10 text-xs">
+      <SelectTrigger className="h-9 text-xs">
       <SelectValue placeholder="اختر قاعدة ضريبية…" />
       </SelectTrigger>
       <SelectContent>
@@ -909,7 +909,7 @@ export default function TaxRulesPage() {
      </div>
      ) : (
      <div className="flex flex-col items-center justify-center py-8 text-center">
-      <Calculator className="h-10 w-10 text-muted-foreground/30 mb-3" />
+      <Calculator className="h-9 w-10 text-muted-foreground/30 mb-3" />
       <p className="text-xs text-muted-foreground">
       أدخل مبلغاً واختر قاعدة ضريبية لرؤية نتيجة الحساب
       </p>
@@ -1030,7 +1030,7 @@ export default function TaxRulesPage() {
    {/* Row 4: Included in Price Toggle */}
    <div className="flex items-center justify-between gap-4 rounded-lg border border-border/50 p-3">
     <div className="space-y-0.5">
-    <Label className="text-xs font-medium">ضريبة متضمنة في السعر</Label>
+    <Label className="text-sm font-medium">ضريبة متضمنة في السعر</Label>
     <p className="text-xs text-muted-foreground">
      عند التفعيل، يكون السعر المعروض للعميل شاملاً الضريبة (ضريبة متضمنة). عند التعطيل، تُضاف الضريبة فوق السعر (ضريبة غير متضمنة).
     </p>
@@ -1079,7 +1079,7 @@ export default function TaxRulesPage() {
    {/* Row 7: Disabled Toggle */}
    <div className="flex items-center justify-between gap-4 rounded-lg border border-border/50 p-3">
     <div className="space-y-0.5">
-    <Label className="text-xs font-medium">تعطيل القاعدة</Label>
+    <Label className="text-sm font-medium">تعطيل القاعدة</Label>
     <p className="text-xs text-muted-foreground">
      القاعدة المعطّلة لا تظهر في الفواتير الجديدة لكن تبقى مسجلة في النظام
     </p>

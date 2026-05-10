@@ -152,7 +152,7 @@ function KPICard({
   subtitle?: string;
 }) {
   const accentMap: Record<string, string> = {
-    emerald: 'from-emerald-500/15 to-emerald-600/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+    emerald: 'from-emerald-500/15 to-emerald-600/5 text-primary border-emerald-500/20',
     amber: 'from-amber-500/15 to-amber-600/5 text-amber-600 dark:text-amber-400 border-amber-500/20',
     rose: 'from-rose-500/15 to-rose-600/5 text-rose-600 dark:text-rose-400 border-rose-500/20',
     sky: 'from-sky-500/15 to-sky-600/5 text-sky-600 dark:text-sky-400 border-sky-500/20',
@@ -929,7 +929,7 @@ export default function PortalPage() {
             </Card>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <KPICard
                 title="إجمالي المستحقات"
                 value={formatCurrency(outstanding)}
@@ -1023,7 +1023,7 @@ export default function PortalPage() {
                 <CardTitle className="text-base">إجراءات سريعة</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
                   <Button variant="outline" className="h-auto flex-col gap-2 py-4" onClick={() => setActiveTab('invoices')}>
                     <FileText className="h-5 w-5 text-sky-500" />
                     <span className="text-xs">عرض الفواتير</span>
@@ -1048,7 +1048,7 @@ export default function PortalPage() {
           {/* ═══════════════ INVOICES TAB ═══════════════ */}
           <TabsContent value="invoices" className="space-y-6">
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
               <Card className="border-border/40">
                 <CardContent className="p-3 text-center">
                   <p className="text-[11px] text-muted-foreground">إجمالي الفوترة</p>
@@ -1131,7 +1131,7 @@ export default function PortalPage() {
                     <p className="text-xs text-muted-foreground mb-1">30-60 يوم</p>
                     <p className="text-sm font-bold text-amber-600">{formatCurrency(aging.d30.amount)}</p>
                   </div>
-                  <div className="rounded-lg bg-orange-50 dark:bg-orange-950/20 p-3 text-center">
+                  <div className="rounded-lg bg-chart-4/5 p-3 text-center">
                     <p className="text-xs text-muted-foreground mb-1">60-90 يوم</p>
                     <p className="text-sm font-bold text-orange-600">{formatCurrency(aging.d60.amount)}</p>
                   </div>
@@ -1286,7 +1286,7 @@ export default function PortalPage() {
                 </div>
 
                 {/* Summary */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
                   <div className="rounded-lg bg-muted/50 p-3 text-center">
                     <p className="text-[11px] text-muted-foreground">إجمالي المدين</p>
                     <p className="text-sm font-bold text-rose-600">
@@ -1314,7 +1314,7 @@ export default function PortalPage() {
                 {/* Statement Table */}
                 {statementData.length === 0 ? (
                   <div className="py-12 text-center text-sm text-muted-foreground">
-                    <Receipt className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
+                    <Receipt className="h-9 w-10 mx-auto mb-3 text-muted-foreground/30" />
                     <p>لا توجد حركات في الفترة المحددة</p>
                   </div>
                 ) : (
@@ -1383,19 +1383,19 @@ export default function PortalPage() {
               <CardContent className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الموضوع *</Label>
+                    <Label className="text-sm font-medium">الموضوع *</Label>
                     <Input
                       value={issueSubject}
                       onChange={(e) => setIssueSubject(e.target.value)}
                       placeholder="عنوان البلاغ أو الطلب"
-                      className="h-10"
+                      className="h-9"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">الأولوية</Label>
+                      <Label className="text-sm font-medium">الأولوية</Label>
                       <Select value={issuePriority} onValueChange={setIssuePriority}>
-                        <SelectTrigger className="h-10 text-xs">
+                        <SelectTrigger className="h-9 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -1406,9 +1406,9 @@ export default function PortalPage() {
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">نوع البلاغ</Label>
+                      <Label className="text-sm font-medium">نوع البلاغ</Label>
                       <Select value={issueType} onValueChange={setIssueType}>
-                        <SelectTrigger className="h-10 text-xs">
+                        <SelectTrigger className="h-9 text-xs">
                           <SelectValue placeholder="اختر النوع" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1423,7 +1423,7 @@ export default function PortalPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">التفاصيل</Label>
+                  <Label className="text-sm font-medium">التفاصيل</Label>
                   <Textarea
                     value={issueDesc}
                     onChange={(e) => setIssueDesc(e.target.value)}

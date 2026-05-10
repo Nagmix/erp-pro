@@ -247,7 +247,7 @@ export default function EmployeeRequestsPage() {
 
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
         <Card><CardContent className="p-3 flex items-center gap-3"><ClipboardList className="h-4 w-4 text-primary" /><div><p className="text-[10px] text-muted-foreground">الإجمالي</p><p className="text-sm font-bold">{requests.length}</p></div></CardContent></Card>
         <Card><CardContent className="p-3"><p className="text-[10px] text-muted-foreground">مسودة</p><p className="text-sm font-bold">{draftCount}</p></CardContent></Card>
         <Card><CardContent className="p-3"><p className="text-[10px] text-muted-foreground">مُرحَّل</p><p className="text-sm font-bold text-green-600">{submittedCount}</p></CardContent></Card>

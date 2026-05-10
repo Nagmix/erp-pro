@@ -1032,7 +1032,7 @@ export default function FleetManagementPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Card className="border-border/40">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-3/[0.09] text-primary">
+                <div className="flex h-9 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-3/[0.09] text-primary">
                   <DollarSign className="h-[18px] w-[18px]" />
                 </div>
                 <div>
@@ -1043,7 +1043,7 @@ export default function FleetManagementPage() {
             </Card>
             <Card className="border-border/40">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-1/[0.09] text-chart-1">
+                <div className="flex h-9 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-1/[0.09] text-chart-1">
                   <Fuel className="h-[18px] w-[18px]" />
                 </div>
                 <div>
@@ -1054,7 +1054,7 @@ export default function FleetManagementPage() {
             </Card>
             <Card className="border-border/40">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-2/[0.09] text-chart-2">
+                <div className="flex h-9 w-10 shrink-0 items-center justify-center rounded-lg bg-chart-2/[0.09] text-chart-2">
                   <Clock className="h-[18px] w-[18px]" />
                 </div>
                 <div>

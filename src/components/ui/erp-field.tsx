@@ -20,7 +20,7 @@ type ErpFieldProps = {
 export function ErpField({ label, htmlFor, required, error, hint, children, className }: ErpFieldProps) {
   return (
     <div className={cn('space-y-1.5', className)}>
-      <Label htmlFor={htmlFor} className="text-xs font-medium flex items-center gap-1">
+      <Label htmlFor={htmlFor} className="text-sm font-medium flex items-center gap-1">
         {label}
         {required && <span className="text-destructive font-bold" aria-hidden>*</span>}
       </Label>

@@ -21,7 +21,7 @@ export default function NotFound() {
             {/* Overlay icon */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
-                <Search className="h-10 w-10 text-primary/60" />
+                <Search className="h-9 w-10 text-primary/60" />
               </div>
             </div>
           </div>

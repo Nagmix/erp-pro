@@ -284,7 +284,7 @@ export default function SecuritySettingsPage() {
    </div>
    </div>
 
-   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
    <div className="flex items-center justify-between p-3 rounded-lg border border-border/40 bg-muted/20">
     <div className="space-y-0.5">
     <Label className="text-xs font-semibold">أحرف كبيرة</Label>

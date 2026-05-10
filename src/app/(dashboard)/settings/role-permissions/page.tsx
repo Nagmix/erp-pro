@@ -848,7 +848,7 @@ export default function RolePermissionsPage() {
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
      <div className="flex items-center gap-3">
      <div
-      className="h-10 w-10 shrink-0 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+      className="h-9 w-10 shrink-0 rounded-lg flex items-center justify-center text-white font-bold text-sm"
       style={{
       backgroundColor: roleColor(
        roles.findIndex((r) => r.name === selectedRole)

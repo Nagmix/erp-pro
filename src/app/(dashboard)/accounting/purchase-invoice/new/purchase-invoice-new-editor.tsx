@@ -207,7 +207,7 @@ export function PurchaseInvoiceNewEditor() {
                 onChange={(v) => form.setValue('supplier', v)}
                 displayKey="supplier_name"
                 placeholder="اختر المورد..."
-                className="h-10"
+                className="h-9"
               />
               {form.formState.errors.supplier && (
                 <p className="text-xs font-medium text-destructive">{form.formState.errors.supplier.message}</p>
@@ -219,7 +219,7 @@ export function PurchaseInvoiceNewEditor() {
                 <Input
                   type="date"
                   dir="ltr"
-                  className="h-10 border-border/60 bg-background/50 transition-colors focus:bg-background"
+                  className="h-9 border-border/60 bg-background/50 transition-colors focus:bg-background"
                   {...form.register('posting_date')}
                 />
               </div>
@@ -228,7 +228,7 @@ export function PurchaseInvoiceNewEditor() {
                 <Input
                   type="date"
                   dir="ltr"
-                  className="h-10 border-border/60 bg-background/50 transition-colors focus:bg-background"
+                  className="h-9 border-border/60 bg-background/50 transition-colors focus:bg-background"
                   {...form.register('due_date')}
                 />
               </div>
@@ -246,7 +246,7 @@ export function PurchaseInvoiceNewEditor() {
                   value={form.watch('currency')}
                   onChange={(v) => form.setValue('currency', v || 'YER')}
                   placeholder="YER"
-                  className="h-10"
+                  className="h-9"
                 />
               </div>
               <div className="space-y-2.5">
@@ -256,7 +256,7 @@ export function PurchaseInvoiceNewEditor() {
                   dir="ltr"
                   min={0.000001}
                   step="any"
-                  className="h-10 border-border/60 bg-background/50 transition-colors focus:bg-background"
+                  className="h-9 border-border/60 bg-background/50 transition-colors focus:bg-background"
                   {...form.register('exchange_rate', { valueAsNumber: true })}
                 />
               </div>
@@ -269,14 +269,14 @@ export function PurchaseInvoiceNewEditor() {
                 onChange={(v) => form.setValue('taxes_and_charges', v)}
                 placeholder="اختياري — يُحمّل الضريبة من القالب في النظام"
                 showCreateShortcut={false}
-                className="h-10"
+                className="h-9"
               />
             </div>
             <div className="space-y-2.5" dir="rtl">
               <Label className="text-xs font-semibold text-foreground/90">رقم فاتورة المورد (مرجع)</Label>
               <Input
                 dir="ltr"
-                className="h-10 border-border/60 bg-background/50 transition-colors focus:bg-background"
+                className="h-9 border-border/60 bg-background/50 transition-colors focus:bg-background"
                 placeholder="يُحفظ في bill_no"
                 {...form.register('supplier_reference')}
               />
@@ -298,7 +298,7 @@ export function PurchaseInvoiceNewEditor() {
         <div className="relative">
           <div className="mb-5 flex items-center gap-2.5">
             <div className="rounded-lg bg-blue-500/10 p-2 ring-1 ring-blue-500/20">
-              <Receipt className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <Receipt className="h-4 w-4 text-chart-1" />
             </div>
             <h3 className="text-sm font-bold tracking-tight">إضافات</h3>
           </div>
@@ -308,7 +308,7 @@ export function PurchaseInvoiceNewEditor() {
               <Input
                 type="number"
                 dir="ltr"
-                className="h-10 border-border/60 bg-background/50 tabular-nums transition-colors focus:bg-background"
+                className="h-9 border-border/60 bg-background/50 tabular-nums transition-colors focus:bg-background"
                 placeholder="0.00"
                 {...form.register('discount_amount', { valueAsNumber: true })}
               />
@@ -320,7 +320,7 @@ export function PurchaseInvoiceNewEditor() {
                 value={form.watch('cost_center')}
                 onChange={(v) => form.setValue('cost_center', v)}
                 placeholder="اختياري"
-                className="h-10"
+                className="h-9"
               />
             </div>
             <div className="flex flex-col gap-3 rounded-lg border border-border/40 bg-background/30 p-3">
@@ -391,7 +391,7 @@ export function PurchaseInvoiceNewEditor() {
                   <Percent className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-sm font-medium text-muted-foreground">الضريبة</span>
                 </div>
-                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">حسب القالب</span>
+                <span className="text-sm font-semibold text-chart-1">حسب القالب</span>
               </div>
             ) : (
               <div className="flex items-center justify-between rounded-lg bg-background/40 px-4 py-3 backdrop-blur-sm">
@@ -399,7 +399,7 @@ export function PurchaseInvoiceNewEditor() {
                   <Percent className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-sm font-medium text-muted-foreground">ض.ق.م (15%)</span>
                 </div>
-                <span className="text-base font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                <span className="text-base font-bold tabular-nums text-primary">
                   {formatCurrency(estimatedVat)}
                 </span>
               </div>
@@ -513,12 +513,12 @@ export function PurchaseInvoiceNewEditor() {
                           onChange={(v) => updateItem(idx, 'item_code', v)}
                           displayKey="item_name"
                           placeholder="اختر صنف..."
-                          className="h-10"
+                          className="h-9"
                         />
                       </td>
                       <td className="p-2.5 align-middle">
                         <Input
-                          className="h-10 border-border/40 bg-background/50 transition-colors focus:bg-background"
+                          className="h-9 border-border/40 bg-background/50 transition-colors focus:bg-background"
                           value={item.description}
                           onChange={(e) => updateItem(idx, 'description', e.target.value)}
                           placeholder="وصف..."
@@ -526,7 +526,7 @@ export function PurchaseInvoiceNewEditor() {
                       </td>
                       <td className="p-2.5 align-middle">
                         <Input
-                          className="h-10 border-border/40 bg-background/50 tabular-nums transition-colors focus:bg-background"
+                          className="h-9 border-border/40 bg-background/50 tabular-nums transition-colors focus:bg-background"
                           type="number"
                           dir="ltr"
                           min={0}
@@ -537,7 +537,7 @@ export function PurchaseInvoiceNewEditor() {
                       </td>
                       <td className="p-2.5 align-middle">
                         <Input
-                          className="h-10 border-border/40 bg-background/50 tabular-nums transition-colors focus:bg-background"
+                          className="h-9 border-border/40 bg-background/50 tabular-nums transition-colors focus:bg-background"
                           type="number"
                           dir="ltr"
                           min={0}
@@ -555,7 +555,7 @@ export function PurchaseInvoiceNewEditor() {
                           value={item.warehouse}
                           onChange={(v) => updateItem(idx, 'warehouse', v)}
                           placeholder="مستودع..."
-                          className="h-10 text-xs"
+                          className="h-9 text-xs"
                         />
                       </td>
                       <td className="p-2 align-middle text-center">
@@ -600,13 +600,13 @@ export function PurchaseInvoiceNewEditor() {
         dir="rtl"
       >
         <div className="flex flex-wrap items-center gap-4">
-          <Button variant="outline" size="sm" className="h-10 gap-2 shadow-sm" asChild>
+          <Button variant="outline" size="sm" className="h-9 gap-2 shadow-sm" asChild>
             <Link href="/purchases/purchase-invoices">
               <ArrowRight className="h-4 w-4" />
               عودة للقائمة
             </Link>
           </Button>
-          <Separator orientation="vertical" className="hidden h-10 sm:block" />
+          <Separator orientation="vertical" className="hidden h-9 sm:block" />
           <div>
             <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl">فاتورة مشتريات جديدة</h1>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -633,7 +633,7 @@ export function PurchaseInvoiceNewEditor() {
             type="button"
             variant="ghost"
             size="sm"
-            className="h-10 px-4"
+            className="h-9 px-4"
             onClick={() => router.push('/purchases/purchase-invoices')}
           >
             إلغاء
@@ -643,7 +643,7 @@ export function PurchaseInvoiceNewEditor() {
             form={FORM_ID}
             size="sm"
             disabled={coLoading || createMutation.isPending}
-            className="h-10 min-w-[130px] font-semibold shadow-sm"
+            className="h-9 min-w-[130px] font-semibold shadow-sm"
           >
             {createMutation.isPending ? 'جاري الحفظ…' : 'حفظ مسودة'}
           </Button>

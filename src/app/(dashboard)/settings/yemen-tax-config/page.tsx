@@ -448,7 +448,7 @@ export default function YemenTaxConfigPage() {
     </div>
    ) : (
     <div className="border rounded-lg overflow-hidden">
-    <div className="bg-muted/50 px-4 py-2.5 grid grid-cols-5 gap-2 text-xs font-semibold">
+    <div className="bg-muted/50 px-4 py-2.5 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs font-semibold">
      <div>اسم الحساب</div>
      <div>نوع الحساب</div>
      <div>الحساب الأب</div>
@@ -459,7 +459,7 @@ export default function YemenTaxConfigPage() {
      {taxAccounts.map((acc) => {
      const isActive = !Boolean(acc.disabled);
      return (
-      <div key={acc.name} className="px-4 py-3 grid grid-cols-5 gap-2 items-center border-b last:border-b-0 hover:bg-muted/20 transition-colors">
+      <div key={acc.name} className="px-4 py-3 grid grid-cols-2 sm:grid-cols-5 gap-2 items-center border-b last:border-b-0 hover:bg-muted/20 transition-colors">
       <span className="text-sm font-medium truncate">{acc.account_name || acc.name}</span>
       <span className="text-xs text-muted-foreground">{acc.account_type}</span>
       <span className="text-[10px] text-muted-foreground truncate">{acc.parent_account}</span>
@@ -702,7 +702,7 @@ export default function YemenTaxConfigPage() {
    <CardContent className="space-y-5">
     <div className="grid gap-4 sm:grid-cols-2">
     <div className="space-y-2">
-     <Label className="text-xs font-medium">الضريبة الافتراضية للمبيعات</Label>
+     <Label className="text-sm font-medium">الضريبة الافتراضية للمبيعات</Label>
      <Select value={settings.defaultSalesTax} onValueChange={v => setSettings(s => ({ ...s, defaultSalesTax: v }))}>
      <SelectTrigger className="h-9">
       <SelectValue placeholder="اختر قالب الضريبة" />
@@ -718,7 +718,7 @@ export default function YemenTaxConfigPage() {
     </div>
 
     <div className="space-y-2">
-     <Label className="text-xs font-medium">الضريبة الافتراضية للمشتريات</Label>
+     <Label className="text-sm font-medium">الضريبة الافتراضية للمشتريات</Label>
      <Select value={settings.defaultPurchaseTax} onValueChange={v => setSettings(s => ({ ...s, defaultPurchaseTax: v }))}>
      <SelectTrigger className="h-9">
       <SelectValue placeholder="اختر قالب الضريبة" />
@@ -763,7 +763,7 @@ export default function YemenTaxConfigPage() {
     <Separator />
 
     <div className="space-y-2">
-    <Label className="text-xs font-medium">الرقم الضريبي (TRN)</Label>
+    <Label className="text-sm font-medium">الرقم الضريبي (TRN)</Label>
     <Input
      dir="ltr"
      placeholder="أدخل الرقم الضريبي للتسجيل"

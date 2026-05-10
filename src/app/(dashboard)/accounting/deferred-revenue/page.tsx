@@ -290,7 +290,7 @@ export default function DeferredRevenuePage() {
             <div className="space-y-1.5">
               <Label>نوع المعالجة *</Label>
               <Select value={form.watch('type')} onValueChange={(v) => form.setValue('type', v as 'Income' | 'Expense')}>
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -301,15 +301,15 @@ export default function DeferredRevenuePage() {
             </div>
             <div className="space-y-1.5">
               <Label>تاريخ الترحيل *</Label>
-              <Input type="date" dir="ltr" className="h-10" {...form.register('posting_date')} />
+              <Input type="date" dir="ltr" className="h-9" {...form.register('posting_date')} />
             </div>
             <div className="space-y-1.5">
               <Label>بداية فترة الخدمة *</Label>
-              <Input type="date" dir="ltr" className="h-10" {...form.register('start_date')} />
+              <Input type="date" dir="ltr" className="h-9" {...form.register('start_date')} />
             </div>
             <div className="space-y-1.5">
               <Label>نهاية فترة الخدمة *</Label>
-              <Input type="date" dir="ltr" className="h-10" {...form.register('end_date')} />
+              <Input type="date" dir="ltr" className="h-9" {...form.register('end_date')} />
               {form.formState.errors.end_date && (
                 <p className="text-[10px] text-destructive">{form.formState.errors.end_date.message}</p>
               )}
@@ -321,7 +321,7 @@ export default function DeferredRevenuePage() {
                 value={form.watch('account')}
                 onChange={(v) => form.setValue('account', v)}
                 placeholder="كل حسابات الإيراد المؤجل للشركة — أو اختر حساباً محدداً"
-                className="h-10"
+                className="h-9"
               />
             </div>
             <div className="md:col-span-2 lg:col-span-3 flex justify-end pt-2">

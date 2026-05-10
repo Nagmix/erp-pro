@@ -228,7 +228,7 @@ export default function JournalEntryPage() {
         header: 'إجمالي المدين',
         sortable: true,
         render: (value) => (
-          <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums" dir="ltr">
+          <span className="font-semibold text-primary tabular-nums" dir="ltr">
             {formatCurrency(asNumber(value))}
           </span>
         )},
@@ -237,7 +237,7 @@ export default function JournalEntryPage() {
         header: 'إجمالي الدائن',
         sortable: true,
         render: (value) => (
-          <span className="font-semibold text-orange-600 dark:text-orange-400 tabular-nums" dir="ltr">
+          <span className="font-semibold text-chart-4 tabular-nums" dir="ltr">
             {formatCurrency(asNumber(value))}
           </span>
         )},
@@ -492,7 +492,7 @@ export default function JournalEntryPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

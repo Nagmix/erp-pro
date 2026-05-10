@@ -646,7 +646,7 @@ export default function DebtReschedulePage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">عدد الأقساط</Label>
+                    <Label className="text-sm font-medium">عدد الأقساط</Label>
                     <Input
                       type="number"
                       min={1}
@@ -667,7 +667,7 @@ export default function DebtReschedulePage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">تاريخ البدء <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">تاريخ البدء <span className="text-destructive text-xs">*</span></Label>
                     <Input
                       type="date"
                       dir="ltr"
@@ -677,7 +677,7 @@ export default function DebtReschedulePage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">مبلغ القسط</Label>
+                  <Label className="text-sm font-medium">مبلغ القسط</Label>
                   <Input
                     type="number"
                     min={0}
@@ -689,7 +689,7 @@ export default function DebtReschedulePage() {
                   </p>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">سبب إعادة الجدولة</Label>
+                  <Label className="text-sm font-medium">سبب إعادة الجدولة</Label>
                   <Textarea
                     placeholder="أدخل سبب إعادة الجدولة..."
                     value={rescheduleForm.reason}

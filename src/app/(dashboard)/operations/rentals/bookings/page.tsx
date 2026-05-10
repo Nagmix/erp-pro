@@ -519,7 +519,7 @@ export default function BookingsPage() {
           <form onSubmit={createForm.handleSubmit(handleCreate)}>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">العميل *</Label>
+                <Label className="text-sm font-medium">العميل *</Label>
                 <ErpLinkCombobox
                   doctype="Customer"
                   value={createForm.watch('customer')}
@@ -536,7 +536,7 @@ export default function BookingsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">تاريخ الحجز *</Label>
+                  <Label className="text-sm font-medium">تاريخ الحجز *</Label>
                   <Input
                     type="date"
                     dir="ltr"
@@ -549,7 +549,7 @@ export default function BookingsPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">تاريخ الانتهاء *</Label>
+                  <Label className="text-sm font-medium">تاريخ الانتهاء *</Label>
                   <Input
                     type="date"
                     dir="ltr"
@@ -565,7 +565,7 @@ export default function BookingsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">الوحدة</Label>
+                  <Label className="text-sm font-medium">الوحدة</Label>
                   <ErpLinkCombobox
                     doctype="Item"
                     value={createForm.watch('item_code') ?? ''}
@@ -576,7 +576,7 @@ export default function BookingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">السعر</Label>
+                  <Label className="text-sm font-medium">السعر</Label>
                   <Input
                     type="number"
                     dir="ltr"
@@ -587,7 +587,7 @@ export default function BookingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-medium">ملاحظات</Label>
+                <Label className="text-sm font-medium">ملاحظات</Label>
                 <Textarea
                   placeholder="ملاحظات إضافية..."
                   rows={3}
@@ -621,7 +621,7 @@ export default function BookingsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                 <Send className="h-5 w-5" />
               </div>
               <div>
@@ -648,7 +648,7 @@ export default function BookingsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Ban className="h-5 w-5" />
               </div>
               <div>
@@ -678,7 +678,7 @@ export default function BookingsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

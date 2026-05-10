@@ -959,7 +959,7 @@ export default function WorkOrdersOpsPage() {
           <div className="grid gap-4 py-2">
             {/* Subject */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 الموضوع <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -972,7 +972,7 @@ export default function WorkOrdersOpsPage() {
 
             {/* Description */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">الوصف</Label>
+              <Label className="text-sm font-medium">الوصف</Label>
               <Textarea
                 className="text-sm min-h-[80px]"
                 value={formDescription}
@@ -985,7 +985,7 @@ export default function WorkOrdersOpsPage() {
             {/* Assigned To + Category */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">المسؤول</Label>
+                <Label className="text-sm font-medium">المسؤول</Label>
                 <Select value={formAssignedTo} onValueChange={setFormAssignedTo}>
                   <SelectTrigger className="h-9 text-sm">
                     <SelectValue placeholder="اختر الموظف" />
@@ -1000,7 +1000,7 @@ export default function WorkOrdersOpsPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">التصنيف</Label>
+                <Label className="text-sm font-medium">التصنيف</Label>
                 <Input
                   className="h-9 text-sm"
                   value={formCategory}
@@ -1013,7 +1013,7 @@ export default function WorkOrdersOpsPage() {
             {/* Priority + Status */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الأولوية</Label>
+                <Label className="text-sm font-medium">الأولوية</Label>
                 <Select
                   value={formPriority}
                   onValueChange={(v) => setFormPriority(v as WorkOrderPriority)}
@@ -1030,7 +1030,7 @@ export default function WorkOrdersOpsPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الحالة</Label>
+                <Label className="text-sm font-medium">الحالة</Label>
                 <Select
                   value={formStatus}
                   onValueChange={(v) => setFormStatus(v as WorkOrderStatus)}
@@ -1050,7 +1050,7 @@ export default function WorkOrdersOpsPage() {
 
             {/* Due Date */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">تاريخ الاستحقاق</Label>
+              <Label className="text-sm font-medium">تاريخ الاستحقاق</Label>
               <Input
                 type="date"
                 className="h-9 text-sm"

@@ -505,7 +505,7 @@ export default function ShiftsPage() {
           </DialogHeader>
           <div className="space-y-4 py-3">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 الاسم <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -518,7 +518,7 @@ export default function ShiftsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">وقت البداية</Label>
+                <Label className="text-sm font-medium">وقت البداية</Label>
                 <Input
                   type="time"
                   dir="ltr"
@@ -527,7 +527,7 @@ export default function ShiftsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">وقت النهاية</Label>
+                <Label className="text-sm font-medium">وقت النهاية</Label>
                 <Input
                   type="time"
                   dir="ltr"
@@ -549,7 +549,7 @@ export default function ShiftsPage() {
             )}
 
             <div className="space-y-2">
-              <Label className="text-xs font-medium">قائمة العطلات</Label>
+              <Label className="text-sm font-medium">قائمة العطلات</Label>
               <ErpLinkCombobox
                 doctype="Holiday List"
                 value={formData.holiday_list}
@@ -585,7 +585,7 @@ export default function ShiftsPage() {
           </DialogHeader>
           <div className="space-y-4 py-3">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">الموظف</Label>
+              <Label className="text-sm font-medium">الموظف</Label>
               <ErpLinkCombobox
                 doctype="Employee"
                 value={assignForm.employee}
@@ -596,7 +596,7 @@ export default function ShiftsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">نوع الوردية</Label>
+              <Label className="text-sm font-medium">نوع الوردية</Label>
               <ErpLinkCombobox
                 doctype="Shift Type"
                 value={assignForm.shift_type}
@@ -606,7 +606,7 @@ export default function ShiftsPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">من تاريخ</Label>
+                <Label className="text-sm font-medium">من تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -615,7 +615,7 @@ export default function ShiftsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">إلى تاريخ</Label>
+                <Label className="text-sm font-medium">إلى تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -625,7 +625,7 @@ export default function ShiftsPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">الحالة</Label>
+              <Label className="text-sm font-medium">الحالة</Label>
               <Select value={assignForm.status} onValueChange={(v) => setAssignForm((p) => ({ ...p, status: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>

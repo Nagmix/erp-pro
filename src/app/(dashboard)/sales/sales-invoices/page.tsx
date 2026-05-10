@@ -236,7 +236,7 @@ export default function SalesInvoicesPage() {
       />
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border/40 bg-card p-4 space-y-1">
           <p className="text-[11px] font-medium text-muted-foreground">إجمالي الفواتير</p>
           <p className="text-2xl font-bold tabular-nums">{totalInvoices}</p>
@@ -362,7 +362,7 @@ export default function SalesInvoicesPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

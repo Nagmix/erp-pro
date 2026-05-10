@@ -652,7 +652,7 @@ export default function AttendanceSummaryPage() {
                       </button>
                       {expandedDept === dept.department && (
                         <div className="border-t border-border/30 p-4 bg-muted/10">
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                             <div className="rounded-lg border border-border/30 bg-background p-2.5 text-center">
                               <p className="text-[10px] text-muted-foreground">أيام الحضور</p>
                               <p className="text-lg font-bold text-emerald-600 tabular-nums">{dept.total_present}</p>
@@ -710,7 +710,7 @@ export default function AttendanceSummaryPage() {
             <CardContent>
               {lateArrivals.length === 0 ? (
                 <div className="text-center py-8">
-                  <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto mb-2" />
+                  <CheckCircle2 className="h-9 w-10 text-emerald-400 mx-auto mb-2" />
                   <p className="text-sm font-medium text-emerald-600">لا توجد تأخيرات في هذه الفترة</p>
                   <p className="text-[10px] text-muted-foreground">جميع الموظفين حضروا في الوقت المحدد</p>
                 </div>

@@ -72,7 +72,7 @@ const CONTRACT_STATUS_MAP: Record<string, { label: string; cls: string }> = {
   Unsigned: { label: 'غير موقّع', cls: 'bg-chart-2/10 text-chart-2' },
   Signed: { label: 'موقّع', cls: 'bg-primary/10 text-primary' },
   Active: { label: 'ساري', cls: 'bg-primary/10 text-primary' },
-  Cancelled: { label: 'ملغي', cls: 'bg-destructive/10 text-red-700 dark:text-red-300' },
+  Cancelled: { label: 'ملغي', cls: 'bg-destructive/10 text-destructive' },
   Expired: { label: 'منتهي', cls: 'bg-muted text-muted-foreground' },
   Draft: { label: 'مسودة', cls: 'bg-secondary text-secondary-foreground' },
 };
@@ -401,7 +401,7 @@ export default function RentalContractsPage() {
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-medium">نوع العقد *</Label>
+          <Label className="text-sm font-medium">نوع العقد *</Label>
           <Select
             value={form.watch('contract_type')}
             onValueChange={(v) => form.setValue('contract_type', v)}
@@ -420,7 +420,7 @@ export default function RentalContractsPage() {
           )}
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-medium">الطرف *</Label>
+          <Label className="text-sm font-medium">الطرف *</Label>
           <ErpLinkCombobox
             doctype="Customer"
             value={form.watch('party_name')}
@@ -436,14 +436,14 @@ export default function RentalContractsPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-medium">تاريخ البداية *</Label>
+          <Label className="text-sm font-medium">تاريخ البداية *</Label>
           <Input type="date" dir="ltr" {...form.register('start_date')} />
           {form.formState.errors.start_date && (
             <p className="text-xs text-destructive">{form.formState.errors.start_date.message}</p>
           )}
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-medium">تاريخ النهاية *</Label>
+          <Label className="text-sm font-medium">تاريخ النهاية *</Label>
           <Input type="date" dir="ltr" {...form.register('end_date')} />
           {form.formState.errors.end_date && (
             <p className="text-xs text-destructive">{form.formState.errors.end_date.message}</p>
@@ -452,7 +452,7 @@ export default function RentalContractsPage() {
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs font-medium">القيمة</Label>
+        <Label className="text-sm font-medium">القيمة</Label>
         <Input
           type="number"
           dir="ltr"
@@ -462,7 +462,7 @@ export default function RentalContractsPage() {
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs font-medium">الشروط والأحكام</Label>
+        <Label className="text-sm font-medium">الشروط والأحكام</Label>
         <Textarea
           placeholder="أدخل شروط وأحكام العقد..."
           rows={4}
@@ -704,7 +704,7 @@ export default function RentalContractsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                 <Send className="h-5 w-5" />
               </div>
               <div>
@@ -731,7 +731,7 @@ export default function RentalContractsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Ban className="h-5 w-5" />
               </div>
               <div>
@@ -761,7 +761,7 @@ export default function RentalContractsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

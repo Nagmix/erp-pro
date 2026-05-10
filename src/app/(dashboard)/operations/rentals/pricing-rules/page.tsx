@@ -567,11 +567,11 @@ export default function RentalPricingRulesPage() {
             <TabsContent value="general" className="space-y-4 mt-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">عنوان القاعدة <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">عنوان القاعدة <span className="text-destructive text-xs">*</span></Label>
                   <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="مثال: تسعيرة الإيجار اليومي" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">نوع التسعير <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">نوع التسعير <span className="text-destructive text-xs">*</span></Label>
                   <Select value={formPriceOrDiscount} onValueChange={setFormPriceOrDiscount}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -582,7 +582,7 @@ export default function RentalPricingRulesPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">القيمة <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-sm font-medium">القيمة <span className="text-destructive text-xs">*</span></Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -599,7 +599,7 @@ export default function RentalPricingRulesPage() {
             <TabsContent value="application" className="space-y-4 mt-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">يُطبّق على <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">يُطبّق على <span className="text-destructive text-xs">*</span></Label>
                   <Select value={formApplyOn} onValueChange={setFormApplyOn}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -609,7 +609,7 @@ export default function RentalPricingRulesPage() {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">
+                  <Label className="text-sm font-medium">
                     {formApplyOn === 'Item Group' ? 'المجموعة' : 'الصنف'} <span className="text-destructive text-xs">*</span>
                   </Label>
                   <ErpLinkCombobox
@@ -622,7 +622,7 @@ export default function RentalPricingRulesPage() {
                 </div>
               </div>
               <div className="space-y-1.5 max-w-xs">
-                <Label className="text-xs font-medium">الكمية</Label>
+                <Label className="text-sm font-medium">الكمية</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -638,16 +638,16 @@ export default function RentalPricingRulesPage() {
             <TabsContent value="period" className="space-y-4 mt-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">تاريخ البداية</Label>
+                  <Label className="text-sm font-medium">تاريخ البداية</Label>
                   <Input type="date" dir="ltr" value={formValidFrom} onChange={(e) => setFormValidFrom(e.target.value)} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">تاريخ النهاية</Label>
+                  <Label className="text-sm font-medium">تاريخ النهاية</Label>
                   <Input type="date" dir="ltr" value={formValidUpto} onChange={(e) => setFormValidUpto(e.target.value)} />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">أيام الأسبوع</Label>
+                <Label className="text-sm font-medium">أيام الأسبوع</Label>
                 <div className="flex flex-wrap gap-2">
                   {WEEKDAYS.map((day) => (
                     <label
@@ -675,7 +675,7 @@ export default function RentalPricingRulesPage() {
             <TabsContent value="pricing" className="space-y-4 mt-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">السعر اليومي (ر.ي)</Label>
+                  <Label className="text-sm font-medium">السعر اليومي (ر.ي)</Label>
                   <Input
                     type="number"
                     dir="ltr"
@@ -687,7 +687,7 @@ export default function RentalPricingRulesPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">السعر بالساعة (ر.ي)</Label>
+                  <Label className="text-sm font-medium">السعر بالساعة (ر.ي)</Label>
                   <Input
                     type="number"
                     dir="ltr"
@@ -701,7 +701,7 @@ export default function RentalPricingRulesPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الحد الأدنى للساعات</Label>
+                  <Label className="text-sm font-medium">الحد الأدنى للساعات</Label>
                   <Input
                     type="number"
                     dir="ltr"
@@ -712,7 +712,7 @@ export default function RentalPricingRulesPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">فترة الحجز</Label>
+                  <Label className="text-sm font-medium">فترة الحجز</Label>
                   <Select value={formBookingSlot} onValueChange={setFormBookingSlot}>
                     <SelectTrigger><SelectValue placeholder="اختر فترة الحجز..." /></SelectTrigger>
                     <SelectContent>
@@ -730,7 +730,7 @@ export default function RentalPricingRulesPage() {
             <TabsContent value="advanced" className="space-y-4 mt-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">المستودع</Label>
+                  <Label className="text-sm font-medium">المستودع</Label>
                   <ErpLinkCombobox
                     doctype="Warehouse"
                     value={formWarehouse}
@@ -739,7 +739,7 @@ export default function RentalPricingRulesPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الأولوية</Label>
+                  <Label className="text-sm font-medium">الأولوية</Label>
                   <Input
                     type="number"
                     dir="ltr"
@@ -756,7 +756,7 @@ export default function RentalPricingRulesPage() {
                   onCheckedChange={setFormActive}
                   id="rule-active"
                 />
-                <Label htmlFor="rule-active" className="text-xs font-medium cursor-pointer">
+                <Label htmlFor="rule-active" className="text-sm font-medium cursor-pointer">
                   {formActive ? 'نشط' : 'معطّل'}
                 </Label>
               </div>

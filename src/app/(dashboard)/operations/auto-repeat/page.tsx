@@ -471,7 +471,7 @@ export default function AutoRepeatPage() {
           <div className="space-y-4 py-2">
             {/* نوع المستند المرجعي */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">نوع المستند المرجعي *</Label>
+              <Label className="text-sm font-medium">نوع المستند المرجعي *</Label>
               <Select value={refDoctype} onValueChange={setRefDoctype}>
                 <SelectTrigger className="h-9 text-xs">
                   <SelectValue />
@@ -488,13 +488,13 @@ export default function AutoRepeatPage() {
 
             {/* أو اختر نوع مستند آخر */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">أو اختر نوع مستند آخر</Label>
+              <Label className="text-sm font-medium">أو اختر نوع مستند آخر</Label>
               <ErpLinkCombobox doctype="DocType" value={refDoctype} onChange={setRefDoctype} className="h-9" />
             </div>
 
             {/* اسم المستند المرجعي */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">اسم المستند المرجعي *</Label>
+              <Label className="text-sm font-medium">اسم المستند المرجعي *</Label>
               <ErpLinkCombobox
                 doctype={refDoctype}
                 value={referenceName}
@@ -506,7 +506,7 @@ export default function AutoRepeatPage() {
 
             {/* التكرار */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">التكرار *</Label>
+              <Label className="text-sm font-medium">التكرار *</Label>
               <Select value={frequency} onValueChange={setFrequency}>
                 <SelectTrigger className="h-9 text-xs">
                   <SelectValue />
@@ -525,11 +525,11 @@ export default function AutoRepeatPage() {
             {/* تواريخ */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">تاريخ البدء *</Label>
+                <Label className="text-sm font-medium">تاريخ البدء *</Label>
                 <Input type="date" dir="ltr" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">تاريخ الانتهاء</Label>
+                <Label className="text-sm font-medium">تاريخ الانتهاء</Label>
                 <Input type="date" dir="ltr" value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="اختياري" />
               </div>
             </div>
@@ -542,7 +542,7 @@ export default function AutoRepeatPage() {
                 onCheckedChange={setNotifyByEmail}
               />
               <div>
-                <Label htmlFor="notify-email" className="text-xs font-medium cursor-pointer">
+                <Label htmlFor="notify-email" className="text-sm font-medium cursor-pointer">
                   إرسال إشعار بالبريد الإلكتروني
                 </Label>
                 <p className="text-xs text-muted-foreground">

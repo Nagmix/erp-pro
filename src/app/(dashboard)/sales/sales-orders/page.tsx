@@ -464,33 +464,33 @@ export default function SalesOrdersPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox
                       doctype="Customer"
                       value={customer}
                       onChange={setCustomer}
                       displayKey="customer_name"
-                      className="h-10"
+                      className="h-9"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">مركز تكلفة (اختياري)</Label>
+                    <Label className="text-sm font-medium">مركز تكلفة (اختياري)</Label>
                     <ErpLinkCombobox
                       doctype="Cost Center"
                       value={costCenter}
                       onChange={setCostCenter}
-                      className="h-10"
+                      className="h-9"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">تاريخ الأمر</Label>
-                    <Input type="date" dir="ltr" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-10" />
+                    <Label className="text-sm font-medium">تاريخ الأمر</Label>
+                    <Input type="date" dir="ltr" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">تاريخ التسليم المستهدف</Label>
-                    <Input type="date" dir="ltr" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="h-10" />
+                    <Label className="text-sm font-medium">تاريخ التسليم المستهدف</Label>
+                    <Input type="date" dir="ltr" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className="h-9" />
                   </div>
                 </div>
               </div>
@@ -507,11 +507,11 @@ export default function SalesOrdersPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">العملة</Label>
-                    <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="YER" className="h-10 text-sm" />
+                    <Label className="text-sm font-medium">العملة</Label>
+                    <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="YER" className="h-9 text-sm" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">سعر التحويل</Label>
+                    <Label className="text-sm font-medium">سعر التحويل</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -519,7 +519,7 @@ export default function SalesOrdersPage() {
                       min={0}
                       value={conversionRate || ''}
                       onChange={(e) => setConversionRate(Math.max(0.000001, Number(e.target.value) || 1))}
-                      className="h-10"
+                      className="h-9"
                     />
                   </div>
                 </div>
@@ -536,7 +536,7 @@ export default function SalesOrdersPage() {
               </div>
               <div className="p-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الشروط</Label>
+                  <Label className="text-sm font-medium">الشروط</Label>
                   <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} className="min-h-[80px] text-sm" />
                 </div>
               </div>
@@ -568,13 +568,13 @@ export default function SalesOrdersPage() {
                           doctype="Item"
                           value={line.item_code}
                           onChange={(v) => updateLine(idx, { item_code: v })}
-                          className="h-10"
+                          className="h-9"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
-                          className="h-10 text-sm"
+                          className="h-9 text-sm"
                           value={line.qty}
                           onChange={(e) => updateLine(idx, { qty: Math.max(0, Number(e.target.value)) })}
                         />
@@ -582,7 +582,7 @@ export default function SalesOrdersPage() {
                       <TableCell>
                         <Input
                           type="number"
-                          className="h-10 text-sm"
+                          className="h-9 text-sm"
                           value={line.rate}
                           onChange={(e) => updateLine(idx, { rate: Math.max(0, Number(e.target.value)) })}
                         />
@@ -592,11 +592,11 @@ export default function SalesOrdersPage() {
                           doctype="Warehouse"
                           value={line.warehouse}
                           onChange={(v) => updateLine(idx, { warehouse: v })}
-                          className="h-10"
+                          className="h-9"
                         />
                       </TableCell>
                       <TableCell>
-                        <Button type="button" variant="ghost" size="icon" className="h-10" onClick={() => removeLine(idx)} disabled={lines.length === 1}>
+                        <Button type="button" variant="ghost" size="icon" className="h-9" onClick={() => removeLine(idx)} disabled={lines.length === 1}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </TableCell>
@@ -644,7 +644,7 @@ export default function SalesOrdersPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

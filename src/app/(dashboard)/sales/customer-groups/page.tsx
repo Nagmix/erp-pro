@@ -607,11 +607,11 @@ export default function CustomerGroupsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم المجموعة <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">اسم المجموعة <span className="text-destructive text-xs">*</span></Label>
                   <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="مثال: عملاء جملة، عملاء تجزئة" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">المجموعة الأب</Label>
+                  <Label className="text-sm font-medium">المجموعة الأب</Label>
                   <ErpLinkCombobox
                     doctype="Customer Group"
                     value={parentGroup}
@@ -675,11 +675,11 @@ export default function CustomerGroupsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم المجموعة</Label>
+                  <Label className="text-sm font-medium">اسم المجموعة</Label>
                   <Input value={editGroup?.name || ''} disabled className="bg-muted" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">المجموعة الأب</Label>
+                  <Label className="text-sm font-medium">المجموعة الأب</Label>
                   <ErpLinkCombobox
                     doctype="Customer Group"
                     value={editParentGroup}

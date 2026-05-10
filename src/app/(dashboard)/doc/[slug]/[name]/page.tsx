@@ -229,7 +229,7 @@ export default function DocDetailPage() {
       {
         key: 'debit',
         header: 'مدين',
-        render: (v) => <span className="tabular-nums text-blue-600 font-medium">{formatCurrency(Number(v ?? 0))}</span>,
+        render: (v) => <span className="tabular-nums text-chart-1 font-medium">{formatCurrency(Number(v ?? 0))}</span>,
       },
       {
         key: 'credit',

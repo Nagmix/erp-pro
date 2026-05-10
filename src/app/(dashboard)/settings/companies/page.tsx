@@ -307,7 +307,7 @@ export default function CompaniesPage() {
   <h3 className="text-sm font-semibold mb-3 text-primary">المعلومات الأساسية</h3>
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
    <div className="space-y-2">
-   <Label className="text-xs font-medium">اسم الشركة *</Label>
+   <Label className="text-sm font-medium">اسم الشركة *</Label>
    <Input
     placeholder="مثال: شركة الأمل التجارية"
     value={formData.company_name}
@@ -316,7 +316,7 @@ export default function CompaniesPage() {
    />
    </div>
    <div className="space-y-2">
-   <Label className="text-xs font-medium">الاختصار</Label>
+   <Label className="text-sm font-medium">الاختصار</Label>
    <Input
     placeholder="مثال: أمل"
     value={formData.abbr}
@@ -326,7 +326,7 @@ export default function CompaniesPage() {
    />
    </div>
    <div className="space-y-2">
-   <Label className="text-xs font-medium">الدولة</Label>
+   <Label className="text-sm font-medium">الدولة</Label>
    <Select value={formData.country} onValueChange={val => setFormData(p => ({ ...p, country: val }))}>
     <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
     <SelectContent>
@@ -335,7 +335,7 @@ export default function CompaniesPage() {
    </Select>
    </div>
    <div className="space-y-2">
-   <Label className="text-xs font-medium">العملة الافتراضية</Label>
+   <Label className="text-sm font-medium">العملة الافتراضية</Label>
    <Select value={formData.default_currency} onValueChange={val => setFormData(p => ({ ...p, default_currency: val }))}>
     <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
     <SelectContent>
@@ -344,7 +344,7 @@ export default function CompaniesPage() {
    </Select>
    </div>
    <div className="space-y-2">
-   <Label className="text-xs font-medium">شجرة الحسابات</Label>
+   <Label className="text-sm font-medium">شجرة الحسابات</Label>
    <Select value={formData.chart_of_accounts} onValueChange={val => setFormData(p => ({ ...p, chart_of_accounts: val }))} disabled={isEdit}>
     <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
     <SelectContent>
@@ -362,15 +362,15 @@ export default function CompaniesPage() {
   <h3 className="text-sm font-semibold mb-3 text-primary">معلومات التسجيل</h3>
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
    <div className="space-y-2">
-   <Label className="text-xs font-medium">الرقم الضريبي</Label>
+   <Label className="text-sm font-medium">الرقم الضريبي</Label>
    <Input placeholder="رقم الضريبة" value={formData.tax_id} onChange={e => setFormData(p => ({ ...p, tax_id: e.target.value }))} />
    </div>
    <div className="space-y-2">
-   <Label className="text-xs font-medium">رقم التسجيل</Label>
+   <Label className="text-sm font-medium">رقم التسجيل</Label>
    <Input placeholder="رقم السجل التجاري" value={formData.tax_id} onChange={e => setFormData(p => ({ ...p, tax_id: e.target.value }))} />
    </div>
    <div className="space-y-2">
-   <Label className="text-xs font-medium">تاريخ التأسيس</Label>
+   <Label className="text-sm font-medium">تاريخ التأسيس</Label>
    <Input type="date" value={formData.date_of_establishment} onChange={e => setFormData(p => ({ ...p, date_of_establishment: e.target.value }))} />
    </div>
   </div>
@@ -383,19 +383,19 @@ export default function CompaniesPage() {
   <h3 className="text-sm font-semibold mb-3 text-primary">معلومات الاتصال</h3>
   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
    <div className="space-y-2">
-   <Label className="text-xs font-medium">البريد الإلكتروني</Label>
+   <Label className="text-sm font-medium">البريد الإلكتروني</Label>
    <Input type="email" placeholder="info@example.com" dir="ltr" value={formData.company_email} onChange={e => setFormData(p => ({ ...p, company_email: e.target.value }))} />
    </div>
    <div className="space-y-2">
-   <Label className="text-xs font-medium">الهاتف</Label>
+   <Label className="text-sm font-medium">الهاتف</Label>
    <Input placeholder="01XXXXXXXX" dir="ltr" value={formData.company_phone} onChange={e => setFormData(p => ({ ...p, company_phone: e.target.value }))} />
    </div>
    <div className="space-y-2">
-   <Label className="text-xs font-medium">الفاكس</Label>
+   <Label className="text-sm font-medium">الفاكس</Label>
    <Input placeholder="رقم الفاكس" dir="ltr" value={formData.fax} onChange={e => setFormData(p => ({ ...p, fax: e.target.value }))} />
    </div>
    <div className="space-y-2">
-   <Label className="text-xs font-medium">الموقع الإلكتروني</Label>
+   <Label className="text-sm font-medium">الموقع الإلكتروني</Label>
    <Input placeholder="https://example.com" dir="ltr" value={formData.website} onChange={e => setFormData(p => ({ ...p, website: e.target.value }))} />
    </div>
   </div>
@@ -408,7 +408,7 @@ export default function CompaniesPage() {
    <div>
    <h3 className="text-sm font-semibold mb-3 text-primary">الشروط والأحكام</h3>
    <div className="space-y-2">
-    <Label className="text-xs font-medium">الشروط الافتراضية</Label>
+    <Label className="text-sm font-medium">الشروط الافتراضية</Label>
     <Textarea
     placeholder="الشروط والأحكام الافتراضية للشركة..."
     rows={4}
@@ -543,7 +543,7 @@ export default function CompaniesPage() {
 
     <CardContent className="px-4 pb-4 pt-0 space-y-2.5">
      {/* Info rows */}
-     <div className="grid grid-cols-2 gap-2 text-xs">
+     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
      <div className="flex items-center gap-1.5 text-muted-foreground">
       <Globe className="h-3 w-3 shrink-0" />
       <span className="truncate">{countryLabel(company.country)}</span>

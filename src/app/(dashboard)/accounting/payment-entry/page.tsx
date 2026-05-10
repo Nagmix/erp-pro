@@ -328,8 +328,8 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
       render: (value) => {
         const typeMap: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
           Receive: { icon: <ArrowUpLeft className="h-3.5 w-3.5" />, label: 'قبض', color: 'text-green-600 bg-primary/10' },
-          Pay: { icon: <ArrowDownLeft className="h-3.5 w-3.5" />, label: 'صرف', color: 'text-red-600 bg-destructive/10' },
-          'Internal Transfer': { icon: <ArrowLeftRight className="h-3.5 w-3.5" />, label: 'تحويل داخلي', color: 'text-blue-600 bg-chart-1/10' }};
+          Pay: { icon: <ArrowDownLeft className="h-3.5 w-3.5" />, label: 'صرف', color: 'text-destructive bg-destructive/10' },
+          'Internal Transfer': { icon: <ArrowLeftRight className="h-3.5 w-3.5" />, label: 'تحويل داخلي', color: 'text-chart-1 bg-chart-1/10' }};
         const info = typeMap[String(value)] || { icon: null, label: String(value), color: '' };
         return <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${info.color}`}>{info.icon}{info.label}</span>;
       }},
@@ -528,7 +528,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
 
               <TabsContent value="main" className="space-y-4 py-4 outline-none">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">النوع *</Label>
+                <Label className="text-sm font-medium">النوع *</Label>
                 <Select value={watchPaymentType} onValueChange={v => {
                   form.setValue('payment_type', v);
                   if (v === 'Internal Transfer') { form.setValue('party_type', ''); form.setValue('party', ''); }
@@ -546,7 +546,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
               {watchPaymentType !== 'Internal Transfer' && (
                 <>
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">نوع الطرف *</Label>
+                    <Label className="text-sm font-medium">نوع الطرف *</Label>
                     <Select value={watchPartyType} onValueChange={v => { form.setValue('party_type', v); form.setValue('party', ''); }}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -557,7 +557,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">الطرف *</Label>
+                    <Label className="text-sm font-medium">الطرف *</Label>
                     <ErpLinkCombobox
                       doctype={watchPartyType === 'Customer' ? 'Customer' : watchPartyType === 'Supplier' ? 'Supplier' : 'Employee'}
                       value={form.watch('party')}
@@ -570,7 +570,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
               )}
 
               <div className="space-y-2">
-                <Label className="text-xs font-medium">طريقة الدفع *</Label>
+                <Label className="text-sm font-medium">طريقة الدفع *</Label>
                 <ErpLinkCombobox
                   doctype="Mode of Payment"
                   value={form.watch('mode_of_payment')}
@@ -581,7 +581,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">الحساب الدافع (من)</Label>
+                  <Label className="text-sm font-medium">الحساب الدافع (من)</Label>
                   <ErpLinkCombobox
                     doctype="Account"
                     value={form.watch('paid_from')}
@@ -590,7 +590,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">الحساب المستلم (إلى)</Label>
+                  <Label className="text-sm font-medium">الحساب المستلم (إلى)</Label>
                   <ErpLinkCombobox
                     doctype="Account"
                     value={form.watch('paid_to')}
@@ -602,33 +602,33 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">المبلغ المدفوع *</Label>
+                  <Label className="text-sm font-medium">المبلغ المدفوع *</Label>
                   <Input type="number" placeholder="0.00" dir="ltr" {...form.register('paid_amount', { valueAsNumber: true })} />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">المبلغ المستلم</Label>
+                  <Label className="text-sm font-medium">المبلغ المستلم</Label>
                   <Input type="number" placeholder="0.00" dir="ltr" {...form.register('received_amount', { valueAsNumber: true })} />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">التاريخ *</Label>
+                  <Label className="text-sm font-medium">التاريخ *</Label>
                   <Input type="date" dir="ltr" {...form.register('posting_date')} />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">رقم المرجع (شيك/تأكيد)</Label>
+                  <Label className="text-sm font-medium">رقم المرجع (شيك/تأكيد)</Label>
                   <Input placeholder="رقم المرجع" dir="ltr" {...form.register('reference_no')} />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-medium">ملاحظات</Label>
+                <Label className="text-sm font-medium">ملاحظات</Label>
                 <Input placeholder="ملاحظات إضافية" {...form.register('remarks')} />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-medium">تاريخ المرجع</Label>
+                <Label className="text-sm font-medium">تاريخ المرجع</Label>
                 <Input type="date" dir="ltr" {...form.register('reference_date')} />
               </div>
 
@@ -645,20 +645,20 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                       }
                     }}
                   />
-                  <Label htmlFor="pe-fx-unified" className="text-xs font-medium cursor-pointer">
+                  <Label htmlFor="pe-fx-unified" className="text-sm font-medium cursor-pointer">
                     سعر صرف موحّد (حساب الدفع منه = حساب الدفع إليه بالنسبة لعملة الشركة)
                   </Label>
                 </div>
                 <div className={`grid gap-3 ${peFxUnified ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">
+                    <Label className="text-sm font-medium">
                       {peFxUnified ? 'سعر الصرف (مصدر/هدف)' : 'سعر صرف المصدر (paid_from)'}
                     </Label>
                     <Input type="number" dir="ltr" step="any" min={0} placeholder="1" {...form.register('source_exchange_rate', { valueAsNumber: true })} />
                   </div>
                   {!peFxUnified && (
                     <div className="space-y-2">
-                      <Label className="text-xs font-medium">سعر صرف الهدف (paid_to)</Label>
+                      <Label className="text-sm font-medium">سعر صرف الهدف (paid_to)</Label>
                       <Input type="number" dir="ltr" step="any" min={0} placeholder="1" {...form.register('target_exchange_rate', { valueAsNumber: true })} />
                     </div>
                   )}
@@ -673,7 +673,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
               {refDoctype && watchPaymentType !== 'Internal Transfer' ? (
                 <div className="space-y-2 border rounded-lg p-3 bg-muted/20">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium">ربط بفواتير (مخصص)</Label>
+                    <Label className="text-sm font-medium">ربط بفواتير (مخصص)</Label>
                     <span className="text-xs text-muted-foreground">
                       مجموع: {formatCurrency(sumAllocated)} / {formatCurrency(Number(form.watch('paid_amount')) || 0)}
                     </span>
@@ -760,7 +760,7 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

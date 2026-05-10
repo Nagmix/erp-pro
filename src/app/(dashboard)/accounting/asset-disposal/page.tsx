@@ -260,7 +260,7 @@ export default function AssetDisposalPage() {
           </DialogHeader>
           <form onSubmit={saleForm.handleSubmit(handleSale)} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">الأصل *</Label>
+              <Label className="text-sm font-medium">الأصل *</Label>
               <ErpLinkCombobox
                 doctype="Asset"
                 value={saleForm.watch('asset')}
@@ -274,14 +274,14 @@ export default function AssetDisposalPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">تاريخ البيع *</Label>
+                <Label className="text-sm font-medium">تاريخ البيع *</Label>
                 <Input type="date" dir="ltr" {...saleForm.register('sale_date')} />
                 {saleForm.formState.errors.sale_date && (
                   <p className="text-[10px] text-destructive">{saleForm.formState.errors.sale_date.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">قيمة البيع *</Label>
+                <Label className="text-sm font-medium">قيمة البيع *</Label>
                 <Input type="number" dir="ltr" placeholder="0.00" {...saleForm.register('sale_amount', { valueAsNumber: true })} />
                 {saleForm.formState.errors.sale_amount && (
                   <p className="text-[10px] text-destructive">{saleForm.formState.errors.sale_amount.message}</p>
@@ -289,7 +289,7 @@ export default function AssetDisposalPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">العميل *</Label>
+              <Label className="text-sm font-medium">العميل *</Label>
               <ErpLinkCombobox
                 doctype="Customer"
                 value={saleForm.watch('customer')}
@@ -302,7 +302,7 @@ export default function AssetDisposalPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">حساب الأرباح/الخسائر</Label>
+              <Label className="text-sm font-medium">حساب الأرباح/الخسائر</Label>
               <ErpLinkCombobox
                 doctype="Account"
                 value={saleForm.watch('gain_loss_account')}
@@ -331,7 +331,7 @@ export default function AssetDisposalPage() {
           </DialogHeader>
           <form onSubmit={scrapForm.handleSubmit(handleScrap)} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">الأصل *</Label>
+              <Label className="text-sm font-medium">الأصل *</Label>
               <ErpLinkCombobox
                 doctype="Asset"
                 value={scrapForm.watch('asset')}
@@ -344,14 +344,14 @@ export default function AssetDisposalPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">تاريخ الاستهلاك *</Label>
+              <Label className="text-sm font-medium">تاريخ الاستهلاك *</Label>
               <Input type="date" dir="ltr" {...scrapForm.register('scrap_date')} />
               {scrapForm.formState.errors.scrap_date && (
                 <p className="text-[10px] text-destructive">{scrapForm.formState.errors.scrap_date.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">سبب الاستهلاك</Label>
+              <Label className="text-sm font-medium">سبب الاستهلاك</Label>
               <Textarea
                 placeholder="اذكر سبب الاستهلاك (اختياري)..."
                 {...scrapForm.register('scrap_reason')}

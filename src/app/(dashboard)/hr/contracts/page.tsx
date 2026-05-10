@@ -577,7 +577,7 @@ export default function ContractsPage() {
           </DialogHeader>
           <div className="space-y-4 py-3">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">الموظف *</Label>
+              <Label className="text-sm font-medium">الموظف *</Label>
               <ErpLinkCombobox
                 doctype="Employee"
                 value={formData.party_name}
@@ -590,7 +590,7 @@ export default function ContractsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">نوع العقد *</Label>
+              <Label className="text-sm font-medium">نوع العقد *</Label>
               <Select
                 value={formData.contract_type}
                 onValueChange={(v) =>
@@ -609,7 +609,7 @@ export default function ContractsPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">تاريخ البدء *</Label>
+                <Label className="text-sm font-medium">تاريخ البدء *</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -620,7 +620,7 @@ export default function ContractsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">تاريخ الانتهاء</Label>
+                <Label className="text-sm font-medium">تاريخ الانتهاء</Label>
                 <Input
                   type="date"
                   dir="ltr"

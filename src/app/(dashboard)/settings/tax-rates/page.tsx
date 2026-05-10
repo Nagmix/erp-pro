@@ -311,7 +311,7 @@ export default function TaxRatesPage() {
   </Card>
   )}
 
-  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
   <Card>
    <CardContent className="p-3 flex items-center gap-3">
    <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">

@@ -601,7 +601,7 @@ export default function PeriodClosingV2Page() {
                 <div className="space-y-4">
                   {/* Closing type selector */}
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع الإقفال</Label>
+                    <Label className="text-sm font-medium">نوع الإقفال</Label>
                     <div className="flex gap-2">
                       {([
                         { value: 'monthly', label: 'شهري', icon: CalendarDays },
@@ -625,14 +625,14 @@ export default function PeriodClosingV2Page() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">الشركة (افتراضية)</Label>
+                      <Label className="text-sm font-medium">الشركة (افتراضية)</Label>
                       <p className="text-sm font-semibold">{company || '—'}</p>
                       {!company && (
                         <p className="text-[10px] text-destructive">اضبط الشركة الافتراضية من الإعدادات</p>
                       )}
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">السنة المالية *</Label>
+                      <Label className="text-sm font-medium">السنة المالية *</Label>
                       <ErpLinkCombobox
                         doctype="Fiscal Year"
                         value={form.fiscal_year}
@@ -641,7 +641,7 @@ export default function PeriodClosingV2Page() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">تاريخ العملية *</Label>
+                      <Label className="text-sm font-medium">تاريخ العملية *</Label>
                       <Input
                         type="date"
                         dir="rtl"
@@ -650,7 +650,7 @@ export default function PeriodClosingV2Page() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">بداية الفترة *</Label>
+                      <Label className="text-sm font-medium">بداية الفترة *</Label>
                       <Input
                         type="date"
                         dir="rtl"
@@ -659,7 +659,7 @@ export default function PeriodClosingV2Page() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">نهاية الفترة *</Label>
+                      <Label className="text-sm font-medium">نهاية الفترة *</Label>
                       <Input
                         type="date"
                         dir="rtl"
@@ -668,7 +668,7 @@ export default function PeriodClosingV2Page() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">حساب رأس إقفال (الأرباح المحتجزة) *</Label>
+                      <Label className="text-sm font-medium">حساب رأس إقفال (الأرباح المحتجزة) *</Label>
                       <ErpLinkCombobox
                         doctype="Account"
                         value={form.closing_account_head}
@@ -678,7 +678,7 @@ export default function PeriodClosingV2Page() {
                       />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
-                      <Label className="text-xs font-medium">ملاحظات</Label>
+                      <Label className="text-sm font-medium">ملاحظات</Label>
                       <Textarea
                         rows={3}
                         value={form.remarks}
@@ -997,7 +997,7 @@ export default function PeriodClosingV2Page() {
               {closedPeriods.length > 0 && (
                 <div className="mt-4">
                   <Separator className="mb-3" />
-                  <p className="text-xs font-medium mb-2">الفترات المقفلة:</p>
+                  <p className="text-sm font-medium mb-2">الفترات المقفلة:</p>
                   <div className="space-y-1.5">
                     {closedPeriods.map((cp, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs">
@@ -1028,7 +1028,7 @@ export default function PeriodClosingV2Page() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم السنة المالية *</Label>
+                  <Label className="text-sm font-medium">اسم السنة المالية *</Label>
                   <Input
                     placeholder="مثال: 2025 أو سنة مالية 2025"
                     value={fyForm.year}
@@ -1036,7 +1036,7 @@ export default function PeriodClosingV2Page() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">تاريخ البداية *</Label>
+                  <Label className="text-sm font-medium">تاريخ البداية *</Label>
                   <Input
                     type="date"
                     dir="rtl"
@@ -1045,7 +1045,7 @@ export default function PeriodClosingV2Page() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">تاريخ النهاية *</Label>
+                  <Label className="text-sm font-medium">تاريخ النهاية *</Label>
                   <Input
                     type="date"
                     dir="rtl"

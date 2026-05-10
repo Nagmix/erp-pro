@@ -627,33 +627,33 @@ export default function SettingsIntegrationsPage() {
 
    <div className="grid md:grid-cols-2 gap-4">
    <div className="space-y-1.5">
-    <Label className="text-xs font-medium">متجر Shopify</Label>
+    <Label className="text-sm font-medium">متجر Shopify</Label>
     <Input dir="ltr" value={shopify} onChange={(e) => setShopify(e.target.value)} placeholder="example.myshopify.com" />
    </div>
    <div className="space-y-1.5">
-    <Label className="text-xs font-medium">تاجر Salla</Label>
+    <Label className="text-sm font-medium">تاجر Salla</Label>
     <Input value={salla} onChange={(e) => setSalla(e.target.value)} placeholder="اسم المتجر" />
    </div>
    <div className="space-y-1.5">
-    <Label className="text-xs font-medium">تاجر Zid</Label>
+    <Label className="text-sm font-medium">تاجر Zid</Label>
     <Input value={zid} onChange={(e) => setZid(e.target.value)} placeholder="معرف المتجر" />
    </div>
    <div className="space-y-1.5">
-    <Label className="text-xs font-medium">رابط WooCommerce</Label>
+    <Label className="text-sm font-medium">رابط WooCommerce</Label>
     <Input dir="ltr" value={woo} onChange={(e) => setWoo(e.target.value)} placeholder="https://store.com" />
    </div>
    <div className="space-y-1.5">
-    <Label className="text-xs font-medium">مزود الرسائل النصية</Label>
+    <Label className="text-sm font-medium">مزود الرسائل النصية</Label>
     <Input value={smsProvider} onChange={(e) => setSmsProvider(e.target.value)} placeholder="يونيفونيك" />
    </div>
    <div className="space-y-1.5">
-    <Label className="text-xs font-medium">مزود WhatsApp</Label>
+    <Label className="text-sm font-medium">مزود WhatsApp</Label>
     <Input value={waProvider} onChange={(e) => setWaProvider(e.target.value)} placeholder="ميتا" />
    </div>
    </div>
 
    <div className="space-y-1.5">
-   <Label className="text-xs font-medium">ملاحظات الربط</Label>
+   <Label className="text-sm font-medium">ملاحظات الربط</Label>
    <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="ملاحظات حول إعدادات التكامل..." />
    </div>
 

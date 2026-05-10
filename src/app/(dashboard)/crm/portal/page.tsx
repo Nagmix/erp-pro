@@ -213,7 +213,7 @@ function CustomerInfoCard({ customer }: { customer: CustomerDoc | null }) {
     <Card className="border-border/60 overflow-hidden">
       <div className="bg-gradient-to-l from-primary/[0.06] via-transparent to-transparent px-5 py-3 border-b border-border/30">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+          <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
             <User className="h-5 w-5" />
           </div>
           <div className="min-w-0">
@@ -228,7 +228,7 @@ function CustomerInfoCard({ customer }: { customer: CustomerDoc | null }) {
         </div>
       </div>
       <CardContent className="p-4">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-4">
           {infoItems.map((item) => (
             <div key={item.label} className="space-y-1">
               <div className="flex items-center gap-1.5 text-muted-foreground">

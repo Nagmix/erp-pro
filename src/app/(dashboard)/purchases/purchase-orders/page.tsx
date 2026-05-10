@@ -449,18 +449,18 @@ export default function PurchasesPurchaseOrdersPage() {
                 <div className="p-4 space-y-4 bg-card/50">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">المورد <span className="text-destructive text-xs">*</span></Label>
-                      <ErpLinkCombobox doctype="Supplier" value={supplier} onChange={setSupplier} displayKey="supplier_name" className="h-10" />
+                      <Label className="text-sm font-medium">المورد <span className="text-destructive text-xs">*</span></Label>
+                      <ErpLinkCombobox doctype="Supplier" value={supplier} onChange={setSupplier} displayKey="supplier_name" className="h-9" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">التاريخ</Label>
-                      <Input type="date" dir="ltr" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-10" />
+                      <Label className="text-sm font-medium">التاريخ</Label>
+                      <Input type="date" dir="ltr" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-9" />
                     </div>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">مركز تكلفة</Label>
-                      <ErpLinkCombobox doctype="Cost Center" value={costCenter} onChange={setCostCenter} className="h-10" />
+                      <Label className="text-sm font-medium">مركز تكلفة</Label>
+                      <ErpLinkCombobox doctype="Cost Center" value={costCenter} onChange={setCostCenter} className="h-9" />
                     </div>
                   </div>
                 </div>
@@ -477,11 +477,11 @@ export default function PurchasesPurchaseOrdersPage() {
                 <div className="p-4 space-y-4 bg-card/50">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">العملة</Label>
-                      <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="YER" className="h-10 text-sm" />
+                      <Label className="text-sm font-medium">العملة</Label>
+                      <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="YER" className="h-9 text-sm" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">سعر التحويل</Label>
+                      <Label className="text-sm font-medium">سعر التحويل</Label>
                       <Input
                         type="number"
                         dir="ltr"
@@ -489,7 +489,7 @@ export default function PurchasesPurchaseOrdersPage() {
                         min={0}
                         value={conversionRate || ''}
                         onChange={(e) => setConversionRate(Math.max(0.000001, Number(e.target.value) || 1))}
-                        className="h-10"
+                        className="h-9"
                       />
                     </div>
                   </div>
@@ -506,7 +506,7 @@ export default function PurchasesPurchaseOrdersPage() {
                 </div>
                 <div className="p-4 bg-card/50">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الشروط</Label>
+                    <Label className="text-sm font-medium">الشروط</Label>
                     <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} className="min-h-[80px] text-sm" />
                   </div>
                 </div>

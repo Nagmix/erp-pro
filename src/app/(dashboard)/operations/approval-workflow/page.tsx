@@ -515,7 +515,7 @@ export default function ApprovalWorkflowPage() {
           ) : pendingItems.length === 0 ? (
             <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-dashed border-border/50 bg-muted/10">
               <div className="text-center space-y-2">
-                <CheckCircle2 className="h-10 w-10 text-success mx-auto" />
+                <CheckCircle2 className="h-9 w-10 text-success mx-auto" />
                 <p className="text-sm font-semibold text-foreground">لا توجد طلبات بانتظار الموافقة</p>
                 <p className="text-xs text-muted-foreground">جميع الطلبات تمت معالجتها</p>
               </div>
@@ -619,7 +619,7 @@ export default function ApprovalWorkflowPage() {
           ) : workflowList.length === 0 ? (
             <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-dashed border-border/50 bg-muted/10">
               <div className="text-center space-y-2">
-                <Workflow className="h-10 w-10 text-muted-foreground mx-auto" />
+                <Workflow className="h-9 w-10 text-muted-foreground mx-auto" />
                 <p className="text-sm text-muted-foreground">لا يوجد سير عمل معرف</p>
                 <Button size="sm" className="gap-1.5" onClick={() => window.open('/operations/workflow-studio', '_blank')}>
                   <Plus className="h-3.5 w-3.5" /> إنشاء سير عمل
@@ -660,7 +660,7 @@ export default function ApprovalWorkflowPage() {
           ) : ruleList.length === 0 ? (
             <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-dashed border-border/50 bg-muted/10">
               <div className="text-center space-y-2">
-                <Shield className="h-10 w-10 text-muted-foreground mx-auto" />
+                <Shield className="h-9 w-10 text-muted-foreground mx-auto" />
                 <p className="text-sm text-muted-foreground">لا توجد قواعد تخويل</p>
                 <Button size="sm" className="gap-1.5" onClick={() => setRuleDialogOpen(true)}>
                   <Plus className="h-3.5 w-3.5" /> إنشاء قاعدة
@@ -781,7 +781,7 @@ export default function ApprovalWorkflowPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">ملاحظات</Label>
+              <Label className="text-sm font-medium">ملاحظات</Label>
               <Textarea
                 value={notesText}
                 onChange={(e) => setNotesText(e.target.value)}
@@ -830,7 +830,7 @@ export default function ApprovalWorkflowPage() {
           </DialogHeader>
           <div className="space-y-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">نوع المستند <span className="text-destructive text-xs">*</span></Label>
+              <Label className="text-sm font-medium">نوع المستند <span className="text-destructive text-xs">*</span></Label>
               <Select dir="rtl" value={ruleForm.doctype} onValueChange={(val) => setRuleForm(prev => ({ ...prev, doctype: val }))}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر نوع المستند..." /></SelectTrigger>
                 <SelectContent dir="rtl" align="start">
@@ -846,7 +846,7 @@ export default function ApprovalWorkflowPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الحالة الحالية <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-sm font-medium">الحالة الحالية <span className="text-destructive text-xs">*</span></Label>
                 <Input
                   placeholder="مثال: مسودة"
                   value={ruleForm.currentState}
@@ -854,7 +854,7 @@ export default function ApprovalWorkflowPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الحالة التالية <span className="text-destructive text-xs">*</span></Label>
+                <Label className="text-sm font-medium">الحالة التالية <span className="text-destructive text-xs">*</span></Label>
                 <Input
                   placeholder="مثال: موافق عليه"
                   value={ruleForm.nextState}
@@ -864,7 +864,7 @@ export default function ApprovalWorkflowPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">دور الموافق</Label>
+                <Label className="text-sm font-medium">دور الموافق</Label>
                 <ErpLinkCombobox
                   doctype="Role"
                   value={ruleForm.approverRole}
@@ -874,7 +874,7 @@ export default function ApprovalWorkflowPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">مستخدم الموافق</Label>
+                <Label className="text-sm font-medium">مستخدم الموافق</Label>
                 <ErpLinkCombobox
                   doctype="User"
                   value={ruleForm.approverUser}

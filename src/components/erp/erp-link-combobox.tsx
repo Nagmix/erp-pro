@@ -183,7 +183,7 @@ export function ErpLinkCombobox({
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="بحث حي بالاسم..."
-            className="h-10 border-b border-border/40 text-[13px]"
+            className="h-9 border-b border-border/40 text-[13px]"
             value={search}
             onValueChange={setSearch}
           />

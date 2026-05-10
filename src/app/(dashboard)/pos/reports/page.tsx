@@ -335,7 +335,7 @@ export default function PosReportsHubPage() {
       <Card className="border-primary/15 bg-primary/[0.03]">
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md-ui)] bg-primary/10 text-primary">
+            <div className="flex h-9 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md-ui)] bg-primary/10 text-primary">
               <BarChart3 className="h-5 w-5" aria-hidden />
             </div>
             <div>
@@ -392,7 +392,7 @@ function ReportTile({
     >
       <Card className="h-full border-border/60 bg-card transition-colors hover:border-border hover:bg-muted/30">
         <CardHeader className="flex flex-row items-start gap-3 space-y-0 pb-2">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md-ui)] bg-primary/8 text-primary ring-1 ring-border/50">
+          <div className="flex h-9 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md-ui)] bg-primary/8 text-primary ring-1 ring-border/50">
             <Icon className="h-5 w-5" aria-hidden />
           </div>
           <div className="min-w-0 space-y-1">

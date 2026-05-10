@@ -273,7 +273,7 @@ export default function BankReconciliationPage() {
     { key: 'description', header: 'الوصف' },
     { key: 'reference_number', header: 'رقم المرجع', render: (v) => String(v || '—') },
     { key: 'deposit', header: 'إيداع', sortable: true, render: (v) => Number(v) > 0 ? (
-      <span className="text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(v))}</span>
+      <span className="text-primary font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(v))}</span>
     ) : <span className="text-muted-foreground">—</span> },
     { key: 'withdrawal', header: 'سحب', sortable: true, render: (v) => Number(v) > 0 ? (
       <span className="text-rose-600 dark:text-rose-400 font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(v))}</span>
@@ -646,7 +646,7 @@ export default function BankReconciliationPage() {
           </DialogHeader>
           <form onSubmit={form.handleSubmit(handleCreateBankTx)} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">الحساب البنكي *</Label>
+              <Label className="text-sm font-medium">الحساب البنكي *</Label>
               <ErpLinkCombobox
                 doctype="Bank Account"
                 value={form.watch('bank_account')}
@@ -658,30 +658,30 @@ export default function BankReconciliationPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">التاريخ *</Label>
+              <Label className="text-sm font-medium">التاريخ *</Label>
               <Input type="date" dir="ltr" {...form.register('date')} />
               {form.formState.errors.date && (
                 <p className="text-xs text-destructive">{form.formState.errors.date.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">الوصف *</Label>
+              <Label className="text-sm font-medium">الوصف *</Label>
               <Input placeholder="وصف الحركة البنكية..." {...form.register('description')} />
               {form.formState.errors.description && (
                 <p className="text-xs text-destructive">{form.formState.errors.description.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">رقم المرجع</Label>
+              <Label className="text-sm font-medium">رقم المرجع</Label>
               <Input placeholder="رقم مرجعي (اختياري)..." dir="ltr" {...form.register('reference_number')} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">الإيداع</Label>
+                <Label className="text-sm font-medium">الإيداع</Label>
                 <Input type="number" dir="ltr" placeholder="0.00" {...form.register('deposit', { valueAsNumber: true })} />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">السحب</Label>
+                <Label className="text-sm font-medium">السحب</Label>
                 <Input type="number" dir="ltr" placeholder="0.00" {...form.register('withdrawal', { valueAsNumber: true })} />
               </div>
             </div>

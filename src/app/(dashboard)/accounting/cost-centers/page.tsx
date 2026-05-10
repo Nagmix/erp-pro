@@ -91,7 +91,7 @@ function CostCenterTreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
+        className="flex items-center gap-2 h-9 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
         style={{ paddingRight: `${level * 1.25 + 1}rem` }}
       >
         {hasChildren ? (
@@ -285,16 +285,16 @@ export default function CostCentersPage() {
   const renderCostCenterFormFields = (form: UseFormReturn<CostCenterFormData>) => (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-xs font-medium">اسم مركز التكلفة *</Label>
+        <Label className="text-sm font-medium">اسم مركز التكلفة *</Label>
         <Input placeholder="اسم مركز التكلفة" {...form.register('cost_center_name')} />
         {form.formState.errors.cost_center_name && <p className="text-[10px] text-destructive">{form.formState.errors.cost_center_name.message}</p>}
       </div>
       <div className="space-y-2">
-        <Label className="text-xs font-medium">رقم مركز التكلفة</Label>
+        <Label className="text-sm font-medium">رقم مركز التكلفة</Label>
         <Input placeholder="رقم مركز التكلفة (اختياري)" dir="ltr" className="font-mono tabular-nums text-start" {...form.register('cost_center_number')} />
       </div>
       <div className="space-y-2">
-        <Label className="text-xs font-medium">مركز الأب</Label>
+        <Label className="text-sm font-medium">مركز الأب</Label>
         <div className="flex flex-col gap-2">
           <Button type="button" variant="ghost" size="sm" className="h-8 self-start text-xs text-muted-foreground" onClick={() => form.setValue('parent_cost_center', '')}>
             بدون أب (جذري)
@@ -310,7 +310,7 @@ export default function CostCentersPage() {
         </div>
       </div>
       <div className="space-y-1.5">
-        <Label className="text-xs font-medium">الشركة (افتراضية)</Label>
+        <Label className="text-sm font-medium">الشركة (افتراضية)</Label>
         <p className="text-sm font-semibold">{form.watch('company') || defaultCompany || '—'}</p>
         {!defaultCompany && <p className="text-[10px] text-destructive">اضبط الشركة الافتراضية من الإعدادات</p>}
         <input type="hidden" {...form.register('company')} />
@@ -398,7 +398,7 @@ export default function CostCentersPage() {
         {isLoading ? (
           <div className="divide-y divide-border/20">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 h-10 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem` }}>
+              <div key={i} className="flex items-center gap-3 h-9 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem` }}>
                 <div className="h-3.5 w-3.5 rounded bg-muted" />
                 <div className="h-3.5 rounded bg-muted flex-1 max-w-[180px]" />
                 <div className="h-3 rounded bg-muted w-14" />
@@ -473,7 +473,7 @@ export default function CostCentersPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

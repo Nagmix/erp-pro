@@ -753,7 +753,7 @@ export default function UsersManagementPage() {
      <TableRow>
      <TableCell colSpan={7} className="text-center py-12">
       <div className="flex flex-col items-center gap-3">
-      <Users className="h-10 w-10 text-muted-foreground/30" />
+      <Users className="h-9 w-10 text-muted-foreground/30" />
       <p className="text-sm text-muted-foreground">
        {searchQuery || roleFilter !== 'all' || statusFilter !== 'all'
        ? 'لا توجد نتائج مطابقة للبحث'
@@ -1121,7 +1121,7 @@ export default function UsersManagementPage() {
    <div className="space-y-4 py-2">
     {/* User info */}
     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 border border-border/30">
-    <div className="h-10 w-10 shrink-0 rounded-full bg-chart-1/10 text-chart-1 flex items-center justify-center font-bold text-sm">
+    <div className="h-9 w-10 shrink-0 rounded-full bg-chart-1/10 text-chart-1 flex items-center justify-center font-bold text-sm">
      {(roleDialogUser.full_name || roleDialogUser.name).charAt(0).toUpperCase()}
     </div>
     <div>

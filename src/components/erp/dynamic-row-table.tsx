@@ -74,7 +74,7 @@ export function DynamicRowTable({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-medium">البنود</Label>
+        <Label className="text-sm font-medium">البنود</Label>
         <Button type="button" variant="outline" size="sm" onClick={addRow} className="h-7 text-xs gap-1">
           <Plus className="h-3 w-3" />
           {addLabel}

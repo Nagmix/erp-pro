@@ -746,26 +746,26 @@ export default function CalendarPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الموضوع <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">الموضوع <span className="text-destructive text-xs">*</span></Label>
                   <Input placeholder="موضوع الموعد" value={form.subject} onChange={(e) => setForm(prev => ({ ...prev, subject: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">التاريخ <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">التاريخ <span className="text-destructive text-xs">*</span></Label>
                   <Input type="date" dir="ltr" value={createDate} onChange={(e) => setCreateDate(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">من</Label>
+                    <Label className="text-sm font-medium">من</Label>
                     <Input type="time" dir="ltr" value={form.timeStart} onChange={(e) => setForm(prev => ({ ...prev, timeStart: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">إلى</Label>
+                    <Label className="text-sm font-medium">إلى</Label>
                     <Input type="time" dir="ltr" value={form.timeEnd} onChange={(e) => setForm(prev => ({ ...prev, timeEnd: e.target.value }))} />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع الحدث</Label>
+                    <Label className="text-sm font-medium">نوع الحدث</Label>
                     <Select dir="rtl" value={form.eventType} onValueChange={(val) => setForm(prev => ({ ...prev, eventType: val as 'Private' | 'Public' }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -775,7 +775,7 @@ export default function CalendarPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">التكرار</Label>
+                    <Label className="text-sm font-medium">التكرار</Label>
                     <Select dir="rtl" value={form.repeat} onValueChange={(val) => setForm(prev => ({ ...prev, repeat: val as typeof form.repeat }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -788,7 +788,7 @@ export default function CalendarPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الوصف</Label>
+                  <Label className="text-sm font-medium">الوصف</Label>
                   <Textarea placeholder="وصف الموعد..." value={form.desc} onChange={(e) => setForm(prev => ({ ...prev, desc: e.target.value }))} rows={2} />
                 </div>
               </div>
@@ -803,12 +803,12 @@ export default function CalendarPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">تعيين لموظف</Label>
+                  <Label className="text-sm font-medium">تعيين لموظف</Label>
                   <ErpLinkCombobox doctype="User" value={form.assignee} onChange={(v) => setForm(prev => ({ ...prev, assignee: v }))} displayKey="full_name" className="h-9" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع المرجع</Label>
+                    <Label className="text-sm font-medium">نوع المرجع</Label>
                     <Select dir="rtl" value={form.refType} onValueChange={(val) => setForm(prev => ({ ...prev, refType: val, refName: '' }))}>
                       <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر..." /></SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -821,7 +821,7 @@ export default function CalendarPage() {
                   </div>
                   {form.refType && (
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">اسم المرجع</Label>
+                      <Label className="text-sm font-medium">اسم المرجع</Label>
                       <ErpLinkCombobox
                         doctype={form.refType}
                         value={form.refName}

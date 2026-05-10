@@ -567,7 +567,7 @@ export default function PurchasesSuppliersPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">
+                  <Label className="text-sm font-medium">
                     اسم المورد <span className="text-destructive text-xs">*</span>
                   </Label>
                   <Input
@@ -579,12 +579,12 @@ export default function PurchasesSuppliersPage() {
                         supplier_name: e.target.value,
                       }))
                     }
-                    className="h-10"
+                    className="h-9"
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع المورد</Label>
+                    <Label className="text-sm font-medium">نوع المورد</Label>
                     <Select
                       dir="rtl"
                       value={formData.supplier_type}
@@ -595,7 +595,7 @@ export default function PurchasesSuppliersPage() {
                         }))
                       }
                     >
-                      <SelectTrigger className="h-10 text-sm">
+                      <SelectTrigger className="h-9 text-sm">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent dir="rtl" align="start">
@@ -605,7 +605,7 @@ export default function PurchasesSuppliersPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">مجموعة الموردين</Label>
+                    <Label className="text-sm font-medium">مجموعة الموردين</Label>
                     <ErpLinkCombobox
                       doctype="Supplier Group"
                       value={formData.supplier_group}
@@ -616,13 +616,13 @@ export default function PurchasesSuppliersPage() {
                         }))
                       }
                       placeholder="اختر المجموعة..."
-                      className="h-10 text-sm"
+                      className="h-9 text-sm"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">العملة الافتراضية</Label>
+                    <Label className="text-sm font-medium">العملة الافتراضية</Label>
                     <ErpLinkCombobox
                       doctype="Currency"
                       value={formData.default_currency}
@@ -633,11 +633,11 @@ export default function PurchasesSuppliersPage() {
                         }))
                       }
                       placeholder="اختر العملة..."
-                      className="h-10 text-sm"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">شروط الدفع</Label>
+                    <Label className="text-sm font-medium">شروط الدفع</Label>
                     <ErpLinkCombobox
                       doctype="Payment Terms Template"
                       value={formData.payment_terms}
@@ -648,7 +648,7 @@ export default function PurchasesSuppliersPage() {
                         }))
                       }
                       placeholder="اختر شروط الدفع..."
-                      className="h-10 text-sm"
+                      className="h-9 text-sm"
                     />
                   </div>
                 </div>
@@ -691,7 +691,7 @@ export default function PurchasesSuppliersPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">البريد الإلكتروني</Label>
+                    <Label className="text-sm font-medium">البريد الإلكتروني</Label>
                     <Input
                       type="email"
                       placeholder="name@company.sa"
@@ -703,11 +703,11 @@ export default function PurchasesSuppliersPage() {
                           email_id: e.target.value,
                         }))
                       }
-                      className="h-10"
+                      className="h-9"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">رقم الهاتف</Label>
+                    <Label className="text-sm font-medium">رقم الهاتف</Label>
                     <Input
                       placeholder="05XXXXXXXX"
                       dir="ltr"
@@ -718,7 +718,7 @@ export default function PurchasesSuppliersPage() {
                           mobile_no: e.target.value,
                         }))
                       }
-                      className="h-10"
+                      className="h-9"
                     />
                   </div>
                 </div>
@@ -738,7 +738,7 @@ export default function PurchasesSuppliersPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">البلد</Label>
+                    <Label className="text-sm font-medium">البلد</Label>
                     <ErpLinkCombobox
                       doctype="Country"
                       value={formData.country}
@@ -749,11 +749,11 @@ export default function PurchasesSuppliersPage() {
                         }))
                       }
                       placeholder="اختر البلد..."
-                      className="h-10 text-sm"
+                      className="h-9 text-sm"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الرقم الضريبي</Label>
+                    <Label className="text-sm font-medium">الرقم الضريبي</Label>
                     <Input
                       placeholder="الرقم الضريبي"
                       dir="rtl"
@@ -764,7 +764,7 @@ export default function PurchasesSuppliersPage() {
                           tax_id: e.target.value,
                         }))
                       }
-                      className="h-10"
+                      className="h-9"
                     />
                   </div>
                 </div>

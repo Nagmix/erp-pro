@@ -607,7 +607,7 @@ export default function WorkflowStudioPage() {
       {/* Basic fields */}
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium">اسم سير العمل *</Label>
+          <Label className="text-sm font-medium">اسم سير العمل *</Label>
           <Input
             value={workflowName}
             onChange={(e) => setWorkflowName(e.target.value)}
@@ -617,7 +617,7 @@ export default function WorkflowStudioPage() {
           />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs font-medium">نوع المستند *</Label>
+          <Label className="text-sm font-medium">نوع المستند *</Label>
           <ErpLinkCombobox
             doctype="DocType"
             value={documentType}
@@ -626,7 +626,7 @@ export default function WorkflowStudioPage() {
           />
         </div>
         <div className="space-y-1.5 md:col-span-2">
-          <Label className="text-xs font-medium">حقل الحالة</Label>
+          <Label className="text-sm font-medium">حقل الحالة</Label>
           <Input
             value={stateField}
             onChange={(e) => setStateField(e.target.value)}
@@ -1029,7 +1029,7 @@ export default function WorkflowStudioPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

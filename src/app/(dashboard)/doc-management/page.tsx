@@ -543,7 +543,7 @@ export default function DocManagementPage() {
               /* ── Grid View ── */
               filteredFiles.length === 0 ? (
                 <div className="flex min-h-[300px] flex-col items-center justify-center rounded-xl border border-dashed border-border/60 bg-muted/20 py-12 text-center">
-                  <Folder className="h-10 w-10 text-muted-foreground/50 mb-3" />
+                  <Folder className="h-9 w-10 text-muted-foreground/50 mb-3" />
                   <p className="text-sm font-semibold text-foreground">لا توجد ملفات</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {searchQuery ? 'عدّل البحث أو الفلاتر لعرض النتائج' : 'ابدأ برفع ملف جديد'}

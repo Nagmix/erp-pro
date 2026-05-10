@@ -353,15 +353,15 @@ export default function WorkstationsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم المحطة <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">اسم المحطة <span className="text-destructive text-xs">*</span></Label>
                   <Input placeholder="مثال: ماكينة القص" value={formData.workstation_name} onChange={e => setFormData(prev => ({ ...prev, workstation_name: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">نوع المحطة</Label>
+                  <Label className="text-sm font-medium">نوع المحطة</Label>
                   <Input placeholder="مثال: قطع ليزر" value={formData.workstation_type} onChange={e => setFormData(prev => ({ ...prev, workstation_type: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الوصف</Label>
+                  <Label className="text-sm font-medium">الوصف</Label>
                   <Input placeholder="وصف مختصر للمحطة..." value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} />
                 </div>
               </div>
@@ -377,11 +377,11 @@ export default function WorkstationsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">سعر الساعة</Label>
+                    <Label className="text-sm font-medium">سعر الساعة</Label>
                     <Input type="number" dir="ltr" placeholder="0" value={formData.hour_rate} onChange={e => setFormData(prev => ({ ...prev, hour_rate: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">السعة الإنتاجية</Label>
+                    <Label className="text-sm font-medium">السعة الإنتاجية</Label>
                     <Input type="number" dir="ltr" placeholder="0" value={formData.production_capacity} onChange={e => setFormData(prev => ({ ...prev, production_capacity: e.target.value }))} />
                   </div>
                 </div>
@@ -397,11 +397,11 @@ export default function WorkstationsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">مستودع افتراضي</Label>
+                  <Label className="text-sm font-medium">مستودع افتراضي</Label>
                   <ErpLinkCombobox doctype="Warehouse" value={formData.warehouse} onChange={v => setFormData(prev => ({ ...prev, warehouse: v }))} placeholder="اختر المستودع..." className="h-9 text-sm" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">قائمة العطلات</Label>
+                  <Label className="text-sm font-medium">قائمة العطلات</Label>
                   <ErpLinkCombobox doctype="Holiday List" value={formData.holiday_list} onChange={v => setFormData(prev => ({ ...prev, holiday_list: v }))} placeholder="اختر قائمة العطلات..." className="h-9 text-sm" />
                 </div>
               </div>
@@ -444,19 +444,19 @@ export default function WorkstationsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">كود المحطة</Label>
+                  <Label className="text-sm font-medium">كود المحطة</Label>
                   <Input value={selected?.name || ''} disabled className="bg-muted text-muted-foreground" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم المحطة <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">اسم المحطة <span className="text-destructive text-xs">*</span></Label>
                   <Input value={editFormData.workstation_name} onChange={e => setEditFormData(prev => ({ ...prev, workstation_name: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">نوع المحطة</Label>
+                  <Label className="text-sm font-medium">نوع المحطة</Label>
                   <Input value={editFormData.workstation_type} onChange={e => setEditFormData(prev => ({ ...prev, workstation_type: e.target.value }))} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الوصف</Label>
+                  <Label className="text-sm font-medium">الوصف</Label>
                   <Input value={editFormData.description} onChange={e => setEditFormData(prev => ({ ...prev, description: e.target.value }))} />
                 </div>
               </div>
@@ -472,11 +472,11 @@ export default function WorkstationsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">سعر الساعة</Label>
+                    <Label className="text-sm font-medium">سعر الساعة</Label>
                     <Input type="number" dir="ltr" value={editFormData.hour_rate} onChange={e => setEditFormData(prev => ({ ...prev, hour_rate: e.target.value }))} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">السعة الإنتاجية</Label>
+                    <Label className="text-sm font-medium">السعة الإنتاجية</Label>
                     <Input type="number" dir="ltr" value={editFormData.production_capacity} onChange={e => setEditFormData(prev => ({ ...prev, production_capacity: e.target.value }))} />
                   </div>
                 </div>
@@ -492,11 +492,11 @@ export default function WorkstationsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">مستودع افتراضي</Label>
+                  <Label className="text-sm font-medium">مستودع افتراضي</Label>
                   <ErpLinkCombobox doctype="Warehouse" value={editFormData.warehouse} onChange={v => setEditFormData(prev => ({ ...prev, warehouse: v }))} placeholder="اختر المستودع..." className="h-9 text-sm" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">قائمة العطلات</Label>
+                  <Label className="text-sm font-medium">قائمة العطلات</Label>
                   <ErpLinkCombobox doctype="Holiday List" value={editFormData.holiday_list} onChange={v => setEditFormData(prev => ({ ...prev, holiday_list: v }))} placeholder="اختر قائمة العطلات..." className="h-9 text-sm" />
                 </div>
               </div>

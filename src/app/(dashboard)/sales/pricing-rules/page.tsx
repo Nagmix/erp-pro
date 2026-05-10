@@ -500,18 +500,18 @@ export default function PricingRulesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
                     <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="مثال: خصم الصيف 2025" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الشركة</Label>
+                    <Label className="text-sm font-medium">الشركة</Label>
                     <ErpLinkCombobox doctype="Company" value={formCompany} onChange={setFormCompany} placeholder={defaultCompany || 'اختر الشركة'} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">ينطبق على</Label>
+                    <Label className="text-sm font-medium">ينطبق على</Label>
                     <Select value={formApplyOn} onValueChange={setFormApplyOn}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -522,7 +522,7 @@ export default function PricingRulesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">النوع</Label>
+                    <Label className="text-sm font-medium">النوع</Label>
                     <Select value={formPriceOrDiscount} onValueChange={setFormPriceOrDiscount}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -535,7 +535,7 @@ export default function PricingRulesPage() {
 
                 {formPriceOrDiscount === 'Discount' && (
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نسبة الخصم <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">نسبة الخصم <span className="text-destructive text-xs">*</span></Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -551,17 +551,17 @@ export default function PricingRulesPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">صالح من</Label>
+                    <Label className="text-sm font-medium">صالح من</Label>
                     <Input type="date" dir="ltr" value={formValidFrom} onChange={(e) => setFormValidFrom(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">صالح إلى</Label>
+                    <Label className="text-sm font-medium">صالح إلى</Label>
                     <Input type="date" dir="ltr" value={formValidUpto} onChange={(e) => setFormValidUpto(e.target.value)} />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">قائمة الأسعار (اختياري)</Label>
+                  <Label className="text-sm font-medium">قائمة الأسعار (اختياري)</Label>
                   <ErpLinkCombobox doctype="Price List" value={formForPriceList} onChange={setFormForPriceList} placeholder="اختر قائمة أسعار" />
                 </div>
 

@@ -481,7 +481,7 @@ export default function LeaveTypesPage() {
           </DialogHeader>
           <div className="space-y-4 py-3">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 اسم نوع الإجازة <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -491,7 +491,7 @@ export default function LeaveTypesPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">الحد الأقصى للأيام</Label>
+              <Label className="text-sm font-medium">الحد الأقصى للأيام</Label>
               <Input
                 type="number"
                 dir="ltr"

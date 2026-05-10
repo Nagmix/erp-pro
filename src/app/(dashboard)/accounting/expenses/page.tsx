@@ -440,7 +440,7 @@ export default function ExpensesPage() {
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">الموظف *</Label>
+                  <Label className="text-sm font-medium">الموظف *</Label>
                   <ErpLinkCombobox
                     doctype="Employee"
                     value={form.watch('employee')}
@@ -453,11 +453,11 @@ export default function ExpensesPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">تاريخ الترحيل *</Label>
+                  <Label className="text-sm font-medium">تاريخ الترحيل *</Label>
                   <Input type="date" dir="ltr" {...form.register('posting_date')} />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">مركز التكلفة</Label>
+                  <Label className="text-sm font-medium">مركز التكلفة</Label>
                   <ErpLinkCombobox
                     doctype="Cost Center"
                     value={form.watch('cost_center')}
@@ -469,7 +469,7 @@ export default function ExpensesPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">العملة</Label>
+                  <Label className="text-sm font-medium">العملة</Label>
                   <ErpLinkCombobox
                     doctype="Currency"
                     value={form.watch('currency')}
@@ -478,7 +478,7 @@ export default function ExpensesPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">سعر الصرف</Label>
+                  <Label className="text-sm font-medium">سعر الصرف</Label>
                   <Input
                     type="number"
                     dir="ltr"
@@ -555,7 +555,7 @@ export default function ExpensesPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs font-medium">ملاحظات</Label>
+                <Label className="text-sm font-medium">ملاحظات</Label>
                 <Textarea placeholder="ملاحظات إضافية..." {...form.register('remark')} rows={3} />
               </div>
             </div>
@@ -607,7 +607,7 @@ export default function ExpensesPage() {
           <div className="space-y-4 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">الموظف *</Label>
+                <Label className="text-sm font-medium">الموظف *</Label>
                 <ErpLinkCombobox
                   doctype="Employee"
                   value={importEmployee}
@@ -617,13 +617,13 @@ export default function ExpensesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">تاريخ الترحيل *</Label>
+                <Label className="text-sm font-medium">تاريخ الترحيل *</Label>
                 <Input type="date" dir="ltr" value={importDate} onChange={(e) => setImportDate(e.target.value)} />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">مركز التكلفة</Label>
+                <Label className="text-sm font-medium">مركز التكلفة</Label>
                 <ErpLinkCombobox
                   doctype="Cost Center"
                   value={importCostCenter}
@@ -632,7 +632,7 @@ export default function ExpensesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">ملاحظات</Label>
+                <Label className="text-sm font-medium">ملاحظات</Label>
                 <Input
                   placeholder="ملاحظات إضافية..."
                   value={importRemark}
@@ -736,7 +736,7 @@ export default function ExpensesPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

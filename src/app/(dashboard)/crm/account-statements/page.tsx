@@ -651,8 +651,8 @@ export default function CustomerAccountStatementPage() {
                       </TableCell>
                       <TableCell className="text-xs py-2.5 tabular-nums font-semibold" dir="ltr">
                         <span className={cn(
-                          beginningBalance > 0 && 'text-red-600 dark:text-red-400',
-                          beginningBalance < 0 && 'text-emerald-600 dark:text-emerald-400',
+                          beginningBalance > 0 && 'text-destructive dark:text-red-400',
+                          beginningBalance < 0 && 'text-primary',
                         )}>
                           {formatCurrency(beginningBalance, 'YER')}
                         </span>
@@ -687,22 +687,22 @@ export default function CustomerAccountStatementPage() {
                         </TableCell>
                         <TableCell className="text-xs py-2 tabular-nums" dir="ltr">
                           {entry.debit > 0 ? (
-                            <span className="text-red-600 dark:text-red-400 font-medium">
+                            <span className="text-destructive dark:text-red-400 font-medium">
                               {formatCurrency(entry.debit, 'YER')}
                             </span>
                           ) : '—'}
                         </TableCell>
                         <TableCell className="text-xs py-2 tabular-nums" dir="ltr">
                           {entry.credit > 0 ? (
-                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                            <span className="text-primary font-medium">
                               {formatCurrency(entry.credit, 'YER')}
                             </span>
                           ) : '—'}
                         </TableCell>
                         <TableCell className="text-xs py-2 tabular-nums font-semibold" dir="ltr">
                           <span className={cn(
-                            entry.running_balance > 0 && 'text-red-600 dark:text-red-400',
-                            entry.running_balance < 0 && 'text-emerald-600 dark:text-emerald-400',
+                            entry.running_balance > 0 && 'text-destructive dark:text-red-400',
+                            entry.running_balance < 0 && 'text-primary',
                             entry.running_balance === 0 && 'text-muted-foreground',
                           )}>
                             {formatCurrency(entry.running_balance, 'YER')}
@@ -716,16 +716,16 @@ export default function CustomerAccountStatementPage() {
                       <TableCell colSpan={5} className="text-xs py-2.5 font-bold">
                         رصيد ختامي
                       </TableCell>
-                      <TableCell className="text-xs py-2.5 tabular-nums font-bold text-red-600 dark:text-red-400" dir="ltr">
+                      <TableCell className="text-xs py-2.5 tabular-nums font-bold text-destructive dark:text-red-400" dir="ltr">
                         {formatCurrency(summary.totalDebit, 'YER')}
                       </TableCell>
-                      <TableCell className="text-xs py-2.5 tabular-nums font-bold text-emerald-600 dark:text-emerald-400" dir="ltr">
+                      <TableCell className="text-xs py-2.5 tabular-nums font-bold text-primary" dir="ltr">
                         {formatCurrency(summary.totalCredit, 'YER')}
                       </TableCell>
                       <TableCell className="text-xs py-2.5 tabular-nums font-bold" dir="ltr">
                         <span className={cn(
-                          endingBalance > 0 && 'text-red-600 dark:text-red-400',
-                          endingBalance < 0 && 'text-emerald-600 dark:text-emerald-400',
+                          endingBalance > 0 && 'text-destructive dark:text-red-400',
+                          endingBalance < 0 && 'text-primary',
                         )}>
                           {formatCurrency(endingBalance, 'YER')}
                         </span>
@@ -750,13 +750,13 @@ export default function CustomerAccountStatementPage() {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center py-2 border-b border-border/20">
                   <span className="text-sm text-muted-foreground">إجمالي المدين (على العميل)</span>
-                  <span className="text-sm font-semibold text-red-600 dark:text-red-400" dir="ltr">
+                  <span className="text-sm font-semibold text-destructive dark:text-red-400" dir="ltr">
                     {formatCurrency(summary.totalDebit, 'YER')}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-border/20">
                   <span className="text-sm text-muted-foreground">إجمالي الدائن (لصالح العميل)</span>
-                  <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400" dir="ltr">
+                  <span className="text-sm font-semibold text-primary" dir="ltr">
                     {formatCurrency(summary.totalCredit, 'YER')}
                   </span>
                 </div>
@@ -764,7 +764,7 @@ export default function CustomerAccountStatementPage() {
                   <span className="text-sm text-muted-foreground">صافي الرصيد</span>
                   <span className={cn(
                     'text-sm font-bold',
-                    summary.netBalance > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
+                    summary.netBalance > 0 ? 'text-destructive dark:text-red-400' : 'text-primary'
                   )} dir="ltr">
                     {formatCurrency(summary.netBalance, 'YER')}
                   </span>
@@ -774,7 +774,7 @@ export default function CustomerAccountStatementPage() {
                     <AlertTriangle className="h-3.5 w-3.5" />
                     المبالغ المتأخرة ({'>'} 30 يوم)
                   </span>
-                  <span className="text-sm font-semibold text-orange-600 dark:text-orange-400" dir="ltr">
+                  <span className="text-sm font-semibold text-chart-4" dir="ltr">
                     {formatCurrency(summary.overdueAmount, 'YER')}
                   </span>
                 </div>
@@ -867,7 +867,7 @@ export default function CustomerAccountStatementPage() {
                         <span className="h-2.5 w-2.5 rounded-full bg-destructive/80" />
                         أكثر من 90 يوم
                       </span>
-                      <span className="text-xs font-medium tabular-nums text-red-600 dark:text-red-400" dir="ltr">
+                      <span className="text-xs font-medium tabular-nums text-destructive dark:text-red-400" dir="ltr">
                         {formatCurrency(aging.daysAbove90, 'YER')}
                       </span>
                     </div>

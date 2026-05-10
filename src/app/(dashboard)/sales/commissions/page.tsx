@@ -989,7 +989,7 @@ export default function SalesCommissionsPage() {
 
                   <Separator className="my-3" />
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <p className="text-xs text-muted-foreground">إجمالي العمولة</p>
                       <p className="text-sm font-bold tabular-nums text-success">{formatCurrency(emp.total_commission)}</p>
@@ -1043,11 +1043,11 @@ export default function SalesCommissionsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">اسم القاعدة <span className="text-destructive text-xs">*</span></Label>
                     <Input value={formRuleName} onChange={(e) => setFormRuleName(e.target.value)} placeholder="مثال: عمولة المبيعات الشهرية" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الفترة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">الفترة <span className="text-destructive text-xs">*</span></Label>
                     <Select value={formPeriod} onValueChange={setFormPeriod}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -1061,7 +1061,7 @@ export default function SalesCommissionsPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">أساس الحساب <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">أساس الحساب <span className="text-destructive text-xs">*</span></Label>
                     <Select value={formBasis} onValueChange={setFormBasis}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -1072,7 +1072,7 @@ export default function SalesCommissionsPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">المستهدف (مبلغ)</Label>
+                    <Label className="text-sm font-medium">المستهدف (مبلغ)</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -1087,7 +1087,7 @@ export default function SalesCommissionsPage() {
 
                 {(formBasis === 'sales_quantity') && (
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">المستهدف (كمية)</Label>
+                    <Label className="text-sm font-medium">المستهدف (كمية)</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -1109,7 +1109,7 @@ export default function SalesCommissionsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع العمولة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">نوع العمولة <span className="text-destructive text-xs">*</span></Label>
                     <Select value={formCommissionType} onValueChange={setFormCommissionType}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -1121,7 +1121,7 @@ export default function SalesCommissionsPage() {
                   </div>
                   {formCommissionType === 'percentage' ? (
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">نسبة العمولة (%) <span className="text-destructive text-xs">*</span></Label>
+                      <Label className="text-sm font-medium">نسبة العمولة (%) <span className="text-destructive text-xs">*</span></Label>
                       <div className="relative">
                         <Input
                           type="number"
@@ -1138,7 +1138,7 @@ export default function SalesCommissionsPage() {
                     </div>
                   ) : (
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">مبلغ العمولة الثابت <span className="text-destructive text-xs">*</span></Label>
+                      <Label className="text-sm font-medium">مبلغ العمولة الثابت <span className="text-destructive text-xs">*</span></Label>
                       <Input
                         type="number"
                         dir="ltr"
@@ -1197,7 +1197,7 @@ export default function SalesCommissionsPage() {
 
                 <div className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border/30 bg-background/50">
                   <div>
-                    <Label className="text-xs font-medium">حالة القاعدة</Label>
+                    <Label className="text-sm font-medium">حالة القاعدة</Label>
                     <p className="text-xs text-muted-foreground">تفعيل أو تعطيل القاعدة</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1327,7 +1327,7 @@ export default function SalesCommissionsPage() {
           {selectedSummary && (
             <div className="space-y-4 mt-2">
               {/* Summary Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="rounded-xl border border-border/40 p-3 text-center">
                   <CircleDollarSign className="h-5 w-5 mx-auto text-success mb-1" />
                   <p className="text-xs text-muted-foreground">إجمالي العمولة</p>

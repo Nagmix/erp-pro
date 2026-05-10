@@ -239,7 +239,7 @@ export default function UnitTypesPage() {
   ) => (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label className="text-xs font-medium">اسم النوع *</Label>
+        <Label className="text-sm font-medium">اسم النوع *</Label>
         <Input placeholder="أدخل اسم نوع الوحدة..." {...form.register('item_group_name')} />
         {form.formState.errors.item_group_name && (
           <p className="text-[10px] text-destructive">
@@ -248,7 +248,7 @@ export default function UnitTypesPage() {
         )}
       </div>
       <div className="space-y-2">
-        <Label className="text-xs font-medium">النوع الأب *</Label>
+        <Label className="text-sm font-medium">النوع الأب *</Label>
         <ErpLinkCombobox
           doctype="Item Group"
           value={form.watch('parent_item_group')}
@@ -269,7 +269,7 @@ export default function UnitTypesPage() {
         />
         <Label
           htmlFor={`is-group-${form === createForm ? 'create' : 'edit'}`}
-          className="text-xs font-medium cursor-pointer"
+          className="text-sm font-medium cursor-pointer"
         >
           هل هو مجموعة (يحتوي على أنواع فرعية)
         </Label>
@@ -443,7 +443,7 @@ export default function UnitTypesPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

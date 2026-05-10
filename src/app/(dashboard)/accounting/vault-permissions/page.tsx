@@ -514,7 +514,7 @@ export default function VaultPermissionsPage() {
         <div className="space-y-4">
           <div className="rounded-xl border border-border/40 bg-card p-4 lg:p-5">
             <div className="space-y-2 max-w-md">
-              <Label className="text-xs font-medium">اختر الموظف</Label>
+              <Label className="text-sm font-medium">اختر الموظف</Label>
               <ErpLinkCombobox
                 doctype="Employee"
                 value={selectedEmployee}
@@ -608,7 +608,7 @@ export default function VaultPermissionsPage() {
         <div className="space-y-4">
           <div className="rounded-xl border border-border/40 bg-card p-4 lg:p-5">
             <div className="space-y-2 max-w-md">
-              <Label className="text-xs font-medium">اختر الخزينة</Label>
+              <Label className="text-sm font-medium">اختر الخزينة</Label>
               <ErpLinkCombobox
                 doctype="Account"
                 value={selectedVault}

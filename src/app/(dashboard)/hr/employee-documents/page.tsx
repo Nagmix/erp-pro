@@ -578,7 +578,7 @@ export default function EmployeeDocumentsPage() {
           </DialogHeader>
           <div className="space-y-4 py-3">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 الموظف <span className="text-destructive">*</span>
               </Label>
               <ErpLinkCombobox
@@ -590,7 +590,7 @@ export default function EmployeeDocumentsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">نوع المستند</Label>
+              <Label className="text-sm font-medium">نوع المستند</Label>
               <Select
                 value={formData.document_type}
                 onValueChange={(v) => setFormData((p) => ({ ...p, document_type: v }))}
@@ -608,7 +608,7 @@ export default function EmployeeDocumentsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 اسم المستند <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -618,7 +618,7 @@ export default function EmployeeDocumentsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 رابط الملف (URL) <span className="text-destructive">*</span>
               </Label>
               <Input
@@ -630,7 +630,7 @@ export default function EmployeeDocumentsPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">تاريخ الإصدار</Label>
+                <Label className="text-sm font-medium">تاريخ الإصدار</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -639,7 +639,7 @@ export default function EmployeeDocumentsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">صالح من</Label>
+                <Label className="text-sm font-medium">صالح من</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -648,7 +648,7 @@ export default function EmployeeDocumentsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">صالح إلى</Label>
+                <Label className="text-sm font-medium">صالح إلى</Label>
                 <Input
                   type="date"
                   dir="ltr"

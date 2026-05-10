@@ -304,7 +304,7 @@ export default function SalaryComponentsPage() {
               <div className="space-y-4 py-3">
                 {/* اسم المكوّن */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">
+                  <Label className="text-sm font-medium">
                     اسم المكوّن <span className="text-destructive">*</span>
                   </Label>
                   <Input
@@ -317,7 +317,7 @@ export default function SalaryComponentsPage() {
                 {/* النوع والاختصار */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">النوع</Label>
+                    <Label className="text-sm font-medium">النوع</Label>
                     <select
                       className="w-full h-9 rounded-md border bg-background px-2 text-sm"
                       value={formData.type}
@@ -328,7 +328,7 @@ export default function SalaryComponentsPage() {
                     </select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الاختصار</Label>
+                    <Label className="text-sm font-medium">الاختصار</Label>
                     <Input
                       placeholder="مثال: BS, HA"
                       dir="ltr"
@@ -376,7 +376,7 @@ export default function SalaryComponentsPage() {
 
                 {/* الوصف */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الوصف</Label>
+                  <Label className="text-sm font-medium">الوصف</Label>
                   <Input
                     placeholder="وصف اختياري للمكوّن"
                     value={formData.description}

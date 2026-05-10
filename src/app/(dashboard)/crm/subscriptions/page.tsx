@@ -415,24 +415,24 @@ export default function CrmSubscriptionsPage() {
                 </DialogHeader>
                 <div className="space-y-4 py-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">اسم الباقة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">اسم الباقة <span className="text-destructive text-xs">*</span></Label>
                     <Input value={planName} onChange={(e) => setPlanName(e.target.value)} placeholder="مثال: باقة شهرية برو" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">السعر <span className="text-destructive text-xs">*</span></Label>
+                      <Label className="text-sm font-medium">السعر <span className="text-destructive text-xs">*</span></Label>
                       <Input type="number" dir="ltr" value={cost || ''} onChange={(e) => setCost(Number(e.target.value || 0))} placeholder="0.00" />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">العملة</Label>
+                      <Label className="text-sm font-medium">العملة</Label>
                       <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="اختر العملة" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">دورة الفوترة</Label>
+                      <Label className="text-sm font-medium">دورة الفوترة</Label>
                       <select
-                        className="w-full h-10 rounded-md border border-border/40 bg-background px-3 text-sm"
+                        className="w-full h-9 rounded-md border border-border/40 bg-background px-3 text-sm"
                         value={billingInterval}
                         onChange={(e) => setBillingInterval(e.target.value as typeof billingInterval)}
                       >
@@ -443,7 +443,7 @@ export default function CrmSubscriptionsPage() {
                       </select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">كل (عدد)</Label>
+                      <Label className="text-sm font-medium">كل (عدد)</Label>
                       <Input
                         type="number"
                         dir="ltr"
@@ -485,15 +485,15 @@ export default function CrmSubscriptionsPage() {
                 </DialogHeader>
                 <div className="space-y-4 py-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox doctype="Customer" value={subCustomer} onChange={setSubCustomer} displayKey="customer_name" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الباقة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">الباقة <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox doctype="Subscription Plan" value={subPlan} onChange={setSubPlan} displayKey="plan_name" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">تاريخ البداية</Label>
+                    <Label className="text-sm font-medium">تاريخ البداية</Label>
                     <Input
                       type="date"
                       dir="ltr"

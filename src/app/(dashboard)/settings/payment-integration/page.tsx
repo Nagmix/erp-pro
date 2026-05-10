@@ -330,7 +330,7 @@ export default function PaymentIntegrationPage() {
    ) : paymentGateways.length === 0 ? (
     <div className="col-span-full text-center py-12 text-muted-foreground text-sm">
     <div className="flex flex-col items-center gap-3">
-     <Globe className="h-10 w-10 text-muted-foreground/40" />
+     <Globe className="h-9 w-10 text-muted-foreground/40" />
      <p>لا توجد بوابات دفع إلكترونية مسجلة</p>
      <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setGatewayDialogOpen(true)}>
      <Plus className="h-3.5 w-3.5" />
@@ -346,7 +346,7 @@ export default function PaymentIntegrationPage() {
      <CardContent className="p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
       <div className="flex items-center gap-3 min-w-0">
-       <div className="h-10 w-10 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+       <div className="h-9 w-10 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
        <Globe className="h-5 w-5 text-primary" />
        </div>
        <div className="min-w-0">
@@ -397,7 +397,7 @@ export default function PaymentIntegrationPage() {
    <div className="grid gap-3 sm:grid-cols-3 mb-4">
    <Card>
     <CardContent className="p-4 flex items-center gap-3">
-    <div className="h-10 w-10 shrink-0 rounded-lg bg-chart-3/10 flex items-center justify-center">
+    <div className="h-9 w-10 shrink-0 rounded-lg bg-chart-3/10 flex items-center justify-center">
      <CheckCircle2 className="h-5 w-5 text-chart-3" />
     </div>
     <div>
@@ -408,7 +408,7 @@ export default function PaymentIntegrationPage() {
    </Card>
    <Card>
     <CardContent className="p-4 flex items-center gap-3">
-    <div className="h-10 w-10 shrink-0 rounded-lg bg-chart-1/10 flex items-center justify-center">
+    <div className="h-9 w-10 shrink-0 rounded-lg bg-chart-1/10 flex items-center justify-center">
      <Receipt className="h-5 w-5 text-chart-1" />
     </div>
     <div>
@@ -419,7 +419,7 @@ export default function PaymentIntegrationPage() {
    </Card>
    <Card>
     <CardContent className="p-4 flex items-center gap-3">
-    <div className="h-10 w-10 shrink-0 rounded-lg bg-destructive/10 flex items-center justify-center">
+    <div className="h-9 w-10 shrink-0 rounded-lg bg-destructive/10 flex items-center justify-center">
      <XCircle className="h-5 w-5 text-destructive" />
     </div>
     <div>
@@ -441,7 +441,7 @@ export default function PaymentIntegrationPage() {
    </div>
    ) : (
    <div className="border rounded-lg overflow-x-auto">
-    <div className="bg-muted/50 px-4 py-2.5 grid grid-cols-5 gap-2 text-xs font-semibold min-w-[500px]">
+    <div className="bg-muted/50 px-4 py-2.5 grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs font-semibold min-w-[500px]">
     <div>المعرف</div>
     <div>النوع</div>
     <div>التاريخ</div>
@@ -453,7 +453,7 @@ export default function PaymentIntegrationPage() {
      const statusLabel = e.docstatus === 0 ? 'مسودة' : e.docstatus === 1 ? 'مُقدّم' : 'ملغي';
      const statusColor = e.docstatus === 0 ? 'bg-secondary text-secondary-foreground' : e.docstatus === 1 ? 'bg-primary/10 text-primary' : 'bg-destructive/10 text-destructive';
      return (
-     <div key={e.name} className="px-4 py-3 grid grid-cols-5 gap-2 items-center border-b last:border-b-0 hover:bg-muted/20 transition-colors min-w-[500px]">
+     <div key={e.name} className="px-4 py-3 grid grid-cols-2 sm:grid-cols-5 gap-2 items-center border-b last:border-b-0 hover:bg-muted/20 transition-colors min-w-[500px]">
       <span className="font-mono text-[10px] text-muted-foreground truncate">{e.name}</span>
       <span className="text-xs">{e.payment_type === 'Receive' ? 'قبض' : e.payment_type === 'Pay' ? 'صرف' : 'تحويل داخلي'}</span>
       <span className="text-xs text-muted-foreground">{e.posting_date}</span>
@@ -548,11 +548,11 @@ export default function PaymentIntegrationPage() {
    </DialogHeader>
    <div className="space-y-4 py-4">
    <div className="space-y-2">
-    <Label className="text-xs font-medium">اسم طريقة الدفع *</Label>
+    <Label className="text-sm font-medium">اسم طريقة الدفع *</Label>
     <Input placeholder="مثال: تحويل بنكي" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} />
    </div>
    <div className="space-y-2">
-    <Label className="text-xs font-medium">النوع</Label>
+    <Label className="text-sm font-medium">النوع</Label>
     <Select value={formData.type} onValueChange={val => setFormData(prev => ({ ...prev, type: val }))}>
     <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
     <SelectContent>
@@ -571,7 +571,7 @@ export default function PaymentIntegrationPage() {
     onChange={e => setFormData(prev => ({ ...prev, enabled: e.target.checked }))}
     className="rounded border-input"
     />
-    <Label htmlFor="pi-enabled" className="text-xs font-medium cursor-pointer">مفعّل</Label>
+    <Label htmlFor="pi-enabled" className="text-sm font-medium cursor-pointer">مفعّل</Label>
    </div>
    <Button className="w-full" onClick={handleCreateMethod} disabled={createMethodMutation.isPending}>
     {createMethodMutation.isPending ? <><Loader2 className="h-4 w-4 animate-spin ms-2" /> جاري الحفظ...</> : 'حفظ طريقة الدفع'}
@@ -591,19 +591,19 @@ export default function PaymentIntegrationPage() {
    </DialogHeader>
    <div className="space-y-4 py-4">
    <div className="space-y-2">
-    <Label className="text-xs font-medium">اسم البوابة *</Label>
+    <Label className="text-sm font-medium">اسم البوابة *</Label>
     <Input placeholder="مثال: Stripe" value={gatewayForm.name} onChange={e => setGatewayForm(prev => ({ ...prev, name: e.target.value }))} />
    </div>
    <div className="space-y-2">
-    <Label className="text-xs font-medium">رابط API</Label>
+    <Label className="text-sm font-medium">رابط API</Label>
     <Input dir="ltr" placeholder="https://api.example.com" value={gatewayForm.url} onChange={e => setGatewayForm(prev => ({ ...prev, url: e.target.value }))} />
    </div>
    <div className="space-y-2">
-    <Label className="text-xs font-medium">مفتاح API</Label>
+    <Label className="text-sm font-medium">مفتاح API</Label>
     <Input dir="ltr" type="password" placeholder="مفتاح الواجهة البرمجية" value={gatewayForm.apiKey} onChange={e => setGatewayForm(prev => ({ ...prev, apiKey: e.target.value }))} />
    </div>
    <div className="space-y-2">
-    <Label className="text-xs font-medium">معرّف التاجر</Label>
+    <Label className="text-sm font-medium">معرّف التاجر</Label>
     <Input dir="ltr" placeholder="معرف التاجر" value={gatewayForm.merchantId} onChange={e => setGatewayForm(prev => ({ ...prev, merchantId: e.target.value }))} />
    </div>
    <Button className="w-full" onClick={handleCreateGateway} disabled={createGatewayMutation.isPending}>

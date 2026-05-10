@@ -805,7 +805,7 @@ export default function OpeningBalancesPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">العميل *</Label>
+                <Label className="text-sm font-medium">العميل *</Label>
                 <ErpLinkCombobox
                   doctype="Customer"
                   value={custForm.customer}
@@ -815,7 +815,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الرصيد الافتتاحي *</Label>
+                <Label className="text-sm font-medium">الرصيد الافتتاحي *</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -825,7 +825,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">العملة</Label>
+                <Label className="text-sm font-medium">العملة</Label>
                 <Select
                   value={custForm.currency}
                   onValueChange={(v) => setCustForm((p) => ({ ...p, currency: v }))}
@@ -842,7 +842,7 @@ export default function OpeningBalancesPage() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">نوع الطرف</Label>
+                <Label className="text-sm font-medium">نوع الطرف</Label>
                 <Badge variant="outline" className="h-9 px-3 text-xs">عميل</Badge>
               </div>
             </div>
@@ -875,7 +875,7 @@ export default function OpeningBalancesPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">المورد *</Label>
+                <Label className="text-sm font-medium">المورد *</Label>
                 <ErpLinkCombobox
                   doctype="Supplier"
                   value={suppForm.supplier}
@@ -885,7 +885,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الرصيد الافتتاحي *</Label>
+                <Label className="text-sm font-medium">الرصيد الافتتاحي *</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -895,7 +895,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">العملة</Label>
+                <Label className="text-sm font-medium">العملة</Label>
                 <Select
                   value={suppForm.currency}
                   onValueChange={(v) => setSuppForm((p) => ({ ...p, currency: v }))}
@@ -941,7 +941,7 @@ export default function OpeningBalancesPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الصنف *</Label>
+                <Label className="text-sm font-medium">الصنف *</Label>
                 <ErpLinkCombobox
                   doctype="Item"
                   value={invForm.item_code}
@@ -952,7 +952,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">المستودع *</Label>
+                <Label className="text-sm font-medium">المستودع *</Label>
                 <ErpLinkCombobox
                   doctype="Warehouse"
                   value={invForm.warehouse}
@@ -961,7 +961,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">الكمية *</Label>
+                <Label className="text-sm font-medium">الكمية *</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -971,7 +971,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">تكلفة الوحدة *</Label>
+                <Label className="text-sm font-medium">تكلفة الوحدة *</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -1006,7 +1006,7 @@ export default function OpeningBalancesPage() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5 md:col-span-2">
-                <Label className="text-xs font-medium">الحساب *</Label>
+                <Label className="text-sm font-medium">الحساب *</Label>
                 <ErpLinkCombobox
                   doctype="Account"
                   value={accForm.account}
@@ -1015,7 +1015,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">مدين (Debit)</Label>
+                <Label className="text-sm font-medium">مدين (Debit)</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -1025,7 +1025,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">دائن (Credit)</Label>
+                <Label className="text-sm font-medium">دائن (Credit)</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -1035,7 +1035,7 @@ export default function OpeningBalancesPage() {
                 />
               </div>
               <div className="space-y-1.5 md:col-span-2">
-                <Label className="text-xs font-medium">مركز التكلفة</Label>
+                <Label className="text-sm font-medium">مركز التكلفة</Label>
                 <ErpLinkCombobox
                   doctype="Cost Center"
                   value={accForm.cost_center}
@@ -1133,7 +1133,7 @@ export default function OpeningBalancesPage() {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/30 p-8 text-center">
-                    <Upload className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
+                    <Upload className="h-9 w-10 mx-auto text-muted-foreground/60 mb-3" />
                     <p className="text-sm font-medium">اسحب ملف Excel هنا أو انقر للاختيار</p>
                     <p className="text-xs text-muted-foreground mt-1">
                       يدعم ملفات .xlsx و .xls

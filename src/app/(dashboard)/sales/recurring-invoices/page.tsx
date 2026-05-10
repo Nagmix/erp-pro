@@ -755,7 +755,7 @@ export default function RecurringInvoicesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">العميل <span className="text-destructive text-xs">*</span></Label>
                     <ErpLinkCombobox
                       doctype="Customer"
                       value={formCustomer}
@@ -765,7 +765,7 @@ export default function RecurringInvoicesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">التكرار <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">التكرار <span className="text-destructive text-xs">*</span></Label>
                     <Select value={formFrequency} onValueChange={setFormFrequency}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -779,11 +779,11 @@ export default function RecurringInvoicesPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">تاريخ أول فاتورة <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">تاريخ أول فاتورة <span className="text-destructive text-xs">*</span></Label>
                     <Input type="date" dir="ltr" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">عدد مرات التكرار</Label>
+                    <Label className="text-sm font-medium">عدد مرات التكرار</Label>
                     <div className="flex items-center gap-3">
                       <Input
                         type="number"
@@ -805,7 +805,7 @@ export default function RecurringInvoicesPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">إصدار مبكر (أيام قبل الاستحقاق)</Label>
+                    <Label className="text-sm font-medium">إصدار مبكر (أيام قبل الاستحقاق)</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -816,7 +816,7 @@ export default function RecurringInvoicesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">إشعار قبل التوليد</Label>
+                    <Label className="text-sm font-medium">إشعار قبل التوليد</Label>
                     <div className="flex items-center gap-2 h-9">
                       <Switch checked={formNotifyBefore} onCheckedChange={setFormNotifyBefore} />
                       <span className="text-xs text-muted-foreground">{formNotifyBefore ? 'مفعّل' : 'معطّل'}</span>
@@ -924,7 +924,7 @@ export default function RecurringInvoicesPage() {
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-info" />
                       <div>
-                        <Label className="text-xs font-medium">إرسال بريد تلقائي</Label>
+                        <Label className="text-sm font-medium">إرسال بريد تلقائي</Label>
                         <p className="text-xs text-muted-foreground">إرسال الفاتورة بالبريد عند التوليد</p>
                       </div>
                     </div>
@@ -934,7 +934,7 @@ export default function RecurringInvoicesPage() {
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4 text-warning" />
                       <div>
-                        <Label className="text-xs font-medium">دفع تلقائي من الرصيد</Label>
+                        <Label className="text-sm font-medium">دفع تلقائي من الرصيد</Label>
                         <p className="text-xs text-muted-foreground">خصم من رصيد العميل الدائن</p>
                       </div>
                     </div>
@@ -946,7 +946,7 @@ export default function RecurringInvoicesPage() {
                     <div className="flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-success" />
                       <div>
-                        <Label className="text-xs font-medium">عرض فترة الفاتورة</Label>
+                        <Label className="text-sm font-medium">عرض فترة الفاتورة</Label>
                         <p className="text-xs text-muted-foreground">إظهار تواريخ البداية والنهاية</p>
                       </div>
                     </div>
@@ -956,7 +956,7 @@ export default function RecurringInvoicesPage() {
                     <div className="flex items-center gap-2">
                       <Bell className="h-4 w-4 text-destructive" />
                       <div>
-                        <Label className="text-xs font-medium">إشعار قبل التوليد</Label>
+                        <Label className="text-sm font-medium">إشعار قبل التوليد</Label>
                         <p className="text-xs text-muted-foreground">تنبيه قبل إنشاء الفاتورة</p>
                       </div>
                     </div>
@@ -1025,7 +1025,7 @@ export default function RecurringInvoicesPage() {
             </div>
           ) : generatedInvoices.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileText className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <FileText className="h-9 w-10 text-muted-foreground/40 mb-3" />
               <p className="text-sm text-muted-foreground">لا توجد فواتير مولّدة بعد</p>
               <p className="text-xs text-muted-foreground mt-1">سيتم عرض الفواتير هنا عند توليدها تلقائياً أو يدوياً</p>
             </div>

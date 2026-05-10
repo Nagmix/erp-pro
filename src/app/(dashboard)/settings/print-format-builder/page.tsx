@@ -389,7 +389,7 @@ function PreviewPanel({ sections, formatName }: { sections: PrintFormatSection[]
     <h4 className="text-xs font-semibold text-muted-foreground border-b border-border/30 pb-1">
      {section.label}
     </h4>
-    <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
      {visibleFields.map((field) => (
      <div key={field.fieldname} className="flex items-baseline gap-1.5">
       <span className="text-xs text-muted-foreground min-w-[80px]">{field.label}:</span>

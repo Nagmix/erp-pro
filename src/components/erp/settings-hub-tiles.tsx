@@ -51,7 +51,7 @@ export function SettingsHubTiles() {
         <LayoutGrid className="h-4 w-4 text-primary" />
         <span>وصول سريع للإعدادات</span>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {tiles.map((t) => {
           const Icon = t.icon;
           return (

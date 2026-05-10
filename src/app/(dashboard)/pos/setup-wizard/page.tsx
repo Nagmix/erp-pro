@@ -530,7 +530,7 @@ export default function PosSetupWizardPage() {
             <CardContent className="space-y-4">
               {checking && !readiness && (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                  <Loader2 className="h-9 w-10 animate-spin text-primary" />
                   <p className="text-sm text-muted-foreground">جارٍ فحص جاهزية نقطة البيع...</p>
                 </div>
               )}
@@ -999,7 +999,7 @@ export default function PosSetupWizardPage() {
             <CardContent className="space-y-4">
               {verifying && !verificationResult && (
                 <div className="flex flex-col items-center justify-center py-12 gap-3">
-                  <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                  <Loader2 className="h-9 w-10 animate-spin text-primary" />
                   <p className="text-sm text-muted-foreground">جارٍ التحقق النهائي...</p>
                 </div>
               )}
@@ -1010,7 +1010,7 @@ export default function PosSetupWizardPage() {
                     /* ═══ نجاح: نقطة البيع جاهزة ═══ */
                     <div className="flex flex-col items-center py-8 gap-4 text-center">
                       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 ring-4 ring-primary/20">
-                        <CheckCircle2 className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
+                        <CheckCircle2 className="h-9 w-10 text-primary" />
                       </div>
                       <div className="space-y-2">
                         <h3 className="text-2xl font-bold text-primary">

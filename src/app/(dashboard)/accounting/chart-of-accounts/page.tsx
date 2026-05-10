@@ -199,7 +199,7 @@ function AccountTreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
+        className="flex items-center gap-2 h-9 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
         style={{ paddingRight: `${level * 1.25 + 1}rem` }}
       >
         {hasChildren ? (
@@ -312,7 +312,7 @@ function FormField({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-medium text-foreground flex items-center gap-2">
+      <Label className="text-sm font-medium text-foreground flex items-center gap-2">
         <span className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
           <Icon className="h-3.5 w-3.5 text-muted-foreground" />
         </span>
@@ -811,7 +811,7 @@ export default function ChartOfAccountsPage() {
       />
 
       {/* ─── KPI Summary ─── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {Object.entries(rootTypeConfig).map(([key, config]) => {
           const count = accounts.filter(a => a.root_type === key).length;
           return (
@@ -934,7 +934,7 @@ export default function ChartOfAccountsPage() {
         {isLoading ? (
           <div className="divide-y divide-border/20">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 h-10 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem` }}>
+              <div key={i} className="flex items-center gap-3 h-9 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem` }}>
                 <div className="h-3.5 w-3.5 rounded bg-muted" />
                 <div className="h-3.5 rounded bg-muted flex-1 max-w-[180px]" />
                 <div className="h-3 rounded bg-muted w-14" />
@@ -1056,7 +1056,7 @@ export default function ChartOfAccountsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

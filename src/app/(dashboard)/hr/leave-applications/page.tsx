@@ -173,16 +173,16 @@ export default function LeaveApplicationsPage() {
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="space-y-1.5"><Label className="text-xs font-medium">الموظف <span className="text-destructive text-xs">*</span></Label><ErpLinkCombobox doctype="Employee" value={formData.employee} onChange={(v) => setFormData((p) => ({ ...p, employee: v }))} displayKey="employee_name" className="h-10" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">نوع الإجازة</Label><ErpLinkCombobox doctype="Leave Type" value={formData.leave_type} onChange={(v) => setFormData((p) => ({ ...p, leave_type: v }))} className="h-10" /></div>
+              <div className="space-y-1.5"><Label className="text-sm font-medium">الموظف <span className="text-destructive text-xs">*</span></Label><ErpLinkCombobox doctype="Employee" value={formData.employee} onChange={(v) => setFormData((p) => ({ ...p, employee: v }))} displayKey="employee_name" className="h-9" /></div>
+              <div className="space-y-1.5"><Label className="text-sm font-medium">نوع الإجازة</Label><ErpLinkCombobox doctype="Leave Type" value={formData.leave_type} onChange={(v) => setFormData((p) => ({ ...p, leave_type: v }))} className="h-9" /></div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5"><Label className="text-xs font-medium">من تاريخ</Label><Input type="date" dir="ltr" value={formData.from_date} onChange={(e) => setFormData((p) => ({ ...p, from_date: e.target.value }))} className="h-10" /></div>
-                <div className="space-y-1.5"><Label className="text-xs font-medium">إلى تاريخ</Label><Input type="date" dir="ltr" value={formData.to_date} onChange={(e) => setFormData((p) => ({ ...p, to_date: e.target.value }))} className="h-10" /></div>
+                <div className="space-y-1.5"><Label className="text-sm font-medium">من تاريخ</Label><Input type="date" dir="ltr" value={formData.from_date} onChange={(e) => setFormData((p) => ({ ...p, from_date: e.target.value }))} className="h-9" /></div>
+                <div className="space-y-1.5"><Label className="text-sm font-medium">إلى تاريخ</Label><Input type="date" dir="ltr" value={formData.to_date} onChange={(e) => setFormData((p) => ({ ...p, to_date: e.target.value }))} className="h-9" /></div>
               </div>
               {calculateDays() > 0 && <div className="bg-muted/35 rounded-lg p-3 text-sm"><span className="text-muted-foreground">أيام تقريبية: </span><span className="font-bold">{calculateDays()}</span> (يحسبها النظام عند الحفظ)</div>}
               <div className="flex items-center gap-2"><input type="checkbox" id="lahd" checked={formData.half_day} onChange={(e) => setFormData((p) => ({ ...p, half_day: e.target.checked }))} className="rounded" /><Label htmlFor="lahd" className="text-xs">نصف يوم</Label></div>
-              {formData.half_day && <div className="space-y-1.5"><Label className="text-xs font-medium">تاريخ نصف اليوم</Label><Input type="date" dir="ltr" value={formData.half_day_date} onChange={(e) => setFormData((p) => ({ ...p, half_day_date: e.target.value }))} className="h-10" /></div>}
-              <div className="space-y-1.5"><Label className="text-xs font-medium">السبب</Label><Textarea placeholder="سبب الإجازة..." value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} rows={2} /></div>
+              {formData.half_day && <div className="space-y-1.5"><Label className="text-sm font-medium">تاريخ نصف اليوم</Label><Input type="date" dir="ltr" value={formData.half_day_date} onChange={(e) => setFormData((p) => ({ ...p, half_day_date: e.target.value }))} className="h-9" /></div>}
+              <div className="space-y-1.5"><Label className="text-sm font-medium">السبب</Label><Textarea placeholder="سبب الإجازة..." value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} rows={2} /></div>
               <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
                 <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
                 <Button onClick={handleCreate} disabled={createMutation.isPending} className="gap-1.5 min-w-[130px]">

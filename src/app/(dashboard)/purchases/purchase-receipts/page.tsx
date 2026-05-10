@@ -300,12 +300,12 @@ export default function PurchaseReceiptsPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">المورد <span className="text-destructive text-xs">*</span></Label>
-                    <ErpLinkCombobox doctype="Supplier" value={supplier} onChange={setSupplier} displayKey="supplier_name" className="h-10" />
+                    <Label className="text-sm font-medium">المورد <span className="text-destructive text-xs">*</span></Label>
+                    <ErpLinkCombobox doctype="Supplier" value={supplier} onChange={setSupplier} displayKey="supplier_name" className="h-9" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">تاريخ الاستلام</Label>
-                    <Input type="date" dir="ltr" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} className="h-10" />
+                    <Label className="text-sm font-medium">تاريخ الاستلام</Label>
+                    <Input type="date" dir="ltr" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} className="h-9" />
                   </div>
                 </div>
               </div>

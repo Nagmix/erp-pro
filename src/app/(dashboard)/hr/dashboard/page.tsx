@@ -425,9 +425,9 @@ export default function HrDashboardPage() {
             <CardTitle className="text-sm font-semibold">ملخص حضور اليوم</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-primary/10">
                   <UserCheck className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -436,7 +436,7 @@ export default function HrDashboardPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+                <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-destructive/10">
                   <UserX className="h-5 w-5 text-destructive" />
                 </div>
                 <div>
@@ -445,7 +445,7 @@ export default function HrDashboardPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-1/5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-1/10">
+                <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-chart-1/10">
                   <PlaneTakeoff className="h-5 w-5 text-chart-1" />
                 </div>
                 <div>
@@ -454,7 +454,7 @@ export default function HrDashboardPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 rounded-lg bg-chart-2/5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-chart-2/10">
+                <div className="flex h-9 w-10 items-center justify-center rounded-lg bg-chart-2/10">
                   <Clock className="h-5 w-5 text-chart-2" />
                 </div>
                 <div>
@@ -493,7 +493,7 @@ export default function HrDashboardPage() {
           <CardContent>
             {upcomingHolidays.length === 0 && (
               <div className="py-6 text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-chart-5/10">
+                <div className="mx-auto mb-2 flex h-9 w-10 items-center justify-center rounded-full bg-chart-5/10">
                   <CalendarDays className="h-5 w-5 text-chart-5" />
                 </div>
                 <p className="text-xs text-muted-foreground">لا توجد عطلات قادمة مسجلة</p>
@@ -531,7 +531,7 @@ export default function HrDashboardPage() {
           <CardContent>
             {pendingLeaveList.length === 0 && (
               <div className="py-6 text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <div className="mx-auto mb-2 flex h-9 w-10 items-center justify-center rounded-full bg-primary/10">
                   <ClipboardCheck className="h-5 w-5 text-primary" />
                 </div>
                 <p className="text-xs text-muted-foreground">لا توجد طلبات إجازة معلّقة</p>

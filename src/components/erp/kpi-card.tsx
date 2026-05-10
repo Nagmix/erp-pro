@@ -126,13 +126,13 @@ export function KpiCard({
               </p>
               {showChange && (
                 <div className="flex items-center gap-1 pt-0.5">
-                  {changeType === 'positive' && <TrendingUp className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />}
+                  {changeType === 'positive' && <TrendingUp className="h-3 w-3 text-primary" />}
                   {changeType === 'negative' && <TrendingDown className="h-3 w-3 text-rose-600 dark:text-rose-400" />}
                   {changeType === 'neutral' && <Minus className="h-3 w-3 text-muted-foreground" />}
                   <span
                     className={cn(
                       'text-[11px] font-medium',
-                      changeType === 'positive' && 'text-emerald-600 dark:text-emerald-400',
+                      changeType === 'positive' && 'text-primary',
                       changeType === 'negative' && 'text-rose-600 dark:text-rose-400',
                       changeType === 'neutral' && 'text-muted-foreground',
                     )}

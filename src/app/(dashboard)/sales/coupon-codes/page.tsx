@@ -495,11 +495,11 @@ export default function CouponCodesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">اسم الكوبون <span className="text-destructive text-xs">*</span></Label>
+                    <Label className="text-sm font-medium">اسم الكوبون <span className="text-destructive text-xs">*</span></Label>
                     <Input value={formCouponName} onChange={(e) => setFormCouponName(e.target.value)} placeholder="مثال: خصم العيد 2025" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">رمز الكوبون</Label>
+                    <Label className="text-sm font-medium">رمز الكوبون</Label>
                     <div className="flex gap-2">
                       <Input
                         value={formCouponCode}
@@ -523,7 +523,7 @@ export default function CouponCodesPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">النوع</Label>
+                    <Label className="text-sm font-medium">النوع</Label>
                     <Select value={formCouponType} onValueChange={setFormCouponType}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -533,7 +533,7 @@ export default function CouponCodesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">الحد الأقصى للاستخدام</Label>
+                    <Label className="text-sm font-medium">الحد الأقصى للاستخدام</Label>
                     <Input
                       type="number"
                       dir="ltr"
@@ -546,17 +546,17 @@ export default function CouponCodesPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">قاعدة التسعير المرتبطة <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">قاعدة التسعير المرتبطة <span className="text-destructive text-xs">*</span></Label>
                   <ErpLinkCombobox doctype="Pricing Rule" value={formPricingRule} onChange={setFormPricingRule} placeholder="اختر قاعدة تسعير" />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">صالح من</Label>
+                    <Label className="text-sm font-medium">صالح من</Label>
                     <Input type="date" dir="ltr" value={formValidFrom} onChange={(e) => setFormValidFrom(e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">صالح إلى</Label>
+                    <Label className="text-sm font-medium">صالح إلى</Label>
                     <Input type="date" dir="ltr" value={formValidUpto} onChange={(e) => setFormValidUpto(e.target.value)} />
                   </div>
                 </div>

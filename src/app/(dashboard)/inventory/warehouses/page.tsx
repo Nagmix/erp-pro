@@ -93,7 +93,7 @@ function WarehouseTreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 h-10 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 text-xs"
+        className="flex items-center gap-2 h-9 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 text-xs"
         style={{ paddingRight: `${level * 1.25 + 1}rem` }}
       >
         {hasChildren ? (
@@ -465,7 +465,7 @@ export default function WarehousesPage() {
         {filtersOpen && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/30">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">الشركة</Label>
+              <Label className="text-sm font-medium text-muted-foreground">الشركة</Label>
               <Select value={filterCompany} onValueChange={setFilterCompany}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="جميع الشركات" />
@@ -479,7 +479,7 @@ export default function WarehousesPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">النوع</Label>
+              <Label className="text-sm font-medium text-muted-foreground">النوع</Label>
               <Select value={filterIsGroup} onValueChange={setFilterIsGroup}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
@@ -492,7 +492,7 @@ export default function WarehousesPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">الحالة</Label>
+              <Label className="text-sm font-medium text-muted-foreground">الحالة</Label>
               <Select value={filterDisabled} onValueChange={setFilterDisabled}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
@@ -538,7 +538,7 @@ export default function WarehousesPage() {
           {isLoading ? (
             <div className="divide-y divide-border/20">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 h-10 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem` }}>
+                <div key={i} className="flex items-center gap-3 h-9 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem` }}>
                   <div className="h-3.5 w-3.5 rounded bg-muted" />
                   <div className="h-3.5 rounded bg-muted flex-1 max-w-[180px]" />
                   <div className="h-3 rounded bg-muted w-14" />
@@ -616,16 +616,16 @@ export default function WarehousesPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم المستودع <span className="text-destructive text-xs">*</span></Label>
+                  <Label className="text-sm font-medium">اسم المستودع <span className="text-destructive text-xs">*</span></Label>
                   <Input
                     value={whName}
                     onChange={(e) => setWhName(e.target.value)}
                     placeholder="مثال: مستودع رئيسي - الرياض"
-                    className="h-10"
+                    className="h-9"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">مستودع أب (اختياري)</Label>
+                  <Label className="text-sm font-medium">مستودع أب (اختياري)</Label>
                   <ErpLinkCombobox
                     doctype="Warehouse"
                     value={parent}
@@ -649,7 +649,7 @@ export default function WarehousesPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الشركة</Label>
+                  <Label className="text-sm font-medium">الشركة</Label>
                   <ErpLinkCombobox
                     doctype="Company"
                     value={whCompany || company}
@@ -661,7 +661,7 @@ export default function WarehousesPage() {
                   )}
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">حساب المخزون (اختياري)</Label>
+                  <Label className="text-sm font-medium">حساب المخزون (اختياري)</Label>
                   <ErpLinkCombobox
                     doctype="Account"
                     value={whAccount}

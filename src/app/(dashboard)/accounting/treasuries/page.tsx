@@ -204,7 +204,7 @@ export default function TreasuriesPage() {
         render: (_v, row) => {
           const bal = balanceMap[row.name] || 0;
           return (
-            <span className={`tabular-nums font-bold text-base ${bal >= 0 ? "text-emerald-600" : "text-red-600"}`}>
+            <span className={`tabular-nums font-bold text-base ${bal >= 0 ? "text-emerald-600" : "text-destructive"}`}>
               {formatCurrency(bal)}
             </span>
           );

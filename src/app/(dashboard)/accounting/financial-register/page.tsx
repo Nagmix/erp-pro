@@ -140,7 +140,7 @@ export default function FinancialRegisterPage() {
         return <Badge variant="outline" className="text-[10px]">{map[String(v)] || String(v)}</Badge>;
       },
     },
-    { key: 'total_debit', header: 'مدين', sortable: true, render: (v) => <span className="font-semibold text-blue-600 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span> },
+    { key: 'total_debit', header: 'مدين', sortable: true, render: (v) => <span className="font-semibold text-chart-1 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span> },
     { key: 'total_credit', header: 'دائن', sortable: true, render: (v) => <span className="font-semibold text-orange-600 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span> },
     { key: 'user_remark', header: 'البيان', filterable: true, render: (v) => String(v || '\u2014') },
     { key: 'docstatus', header: 'الحالة', render: (v) => <DocStatusBadge docstatus={Number(v) as 0 | 1 | 2} /> },
@@ -185,7 +185,7 @@ export default function FinancialRegisterPage() {
     { key: 'voucher_no', header: 'رقم القيد', sortable: true, filterable: true },
     { key: 'posting_date', header: 'التاريخ', sortable: true, render: (v) => v ? formatDate(String(v)) : '\u2014' },
     { key: 'account', header: 'الحساب', filterable: true, render: (v) => translateAccountName(String(v)) },
-    { key: 'debit', header: 'مدين', sortable: true, render: (v) => <span className="font-semibold text-blue-600 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span> },
+    { key: 'debit', header: 'مدين', sortable: true, render: (v) => <span className="font-semibold text-chart-1 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span> },
     { key: 'credit', header: 'دائن', sortable: true, render: (v) => <span className="font-semibold text-orange-600 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span> },
     { key: 'against', header: 'مقابل', filterable: true, render: (v) => String(v || '\u2014') },
     { key: 'voucher_type', header: 'النوع', filterable: true, render: (v) => String(v || '\u2014') },

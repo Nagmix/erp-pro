@@ -94,7 +94,7 @@ export function AppHeader() {
             />
             <Input
               placeholder="بحث في الشاشات والبيانات…"
-              className="h-10 cursor-pointer rounded-xl border border-border/60 bg-muted/30 pe-11 ps-3 sm:ps-[4.25rem] text-sm shadow-inner shadow-black/[0.03] transition-[border,box-shadow] placeholder:text-muted-foreground/80 hover:border-border hover:bg-muted/40 focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/15"
+              className="h-9 cursor-pointer rounded-xl border border-border/60 bg-muted/30 pe-11 ps-3 sm:ps-[4.25rem] text-sm shadow-inner shadow-black/[0.03] transition-[border,box-shadow] placeholder:text-muted-foreground/80 hover:border-border hover:bg-muted/40 focus-visible:border-primary/45 focus-visible:ring-2 focus-visible:ring-primary/15"
               readOnly
               value=""
               aria-label="فتح البحث العام"
@@ -233,9 +233,9 @@ export function AppHeader() {
               <div className="max-h-80 overflow-y-auto">
                 {notificationsLoading && notificationItems.length === 0 ? (
                   <div className="space-y-2 px-3 py-4">
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
+                    <Skeleton className="h-9 w-full" />
                   </div>
                 ) : notificationsError ? (
                   <p className="px-3 py-6 text-center text-xs text-destructive">

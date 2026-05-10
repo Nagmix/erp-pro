@@ -608,7 +608,7 @@ export default function EmployeeLoansPage() {
           </DialogHeader>
           <div className="space-y-4 py-3">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 الموظف <span className="text-destructive">*</span>
               </Label>
               <ErpLinkCombobox
@@ -621,7 +621,7 @@ export default function EmployeeLoansPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 نوع القرض <span className="text-destructive">*</span>
               </Label>
               <ErpLinkCombobox
@@ -634,7 +634,7 @@ export default function EmployeeLoansPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">
+                <Label className="text-sm font-medium">
                   مبلغ القرض <span className="text-destructive">*</span>
                 </Label>
                 <Input
@@ -646,7 +646,7 @@ export default function EmployeeLoansPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">نسبة الفائدة %</Label>
+                <Label className="text-sm font-medium">نسبة الفائدة %</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -658,7 +658,7 @@ export default function EmployeeLoansPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">طريقة السداد</Label>
+              <Label className="text-sm font-medium">طريقة السداد</Label>
               <Select
                 value={formData.repayment_method}
                 onValueChange={(v) => setFormData((p) => ({ ...p, repayment_method: v }))}
@@ -674,7 +674,7 @@ export default function EmployeeLoansPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">القسط الشهري</Label>
+                <Label className="text-sm font-medium">القسط الشهري</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -684,7 +684,7 @@ export default function EmployeeLoansPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">التاريخ</Label>
+                <Label className="text-sm font-medium">التاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -694,7 +694,7 @@ export default function EmployeeLoansPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">الشركة</Label>
+              <Label className="text-sm font-medium">الشركة</Label>
               <Input
                 value={formData.company || company || ''}
                 onChange={(e) => setFormData((p) => ({ ...p, company: e.target.value }))}

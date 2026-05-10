@@ -804,7 +804,7 @@ export default function ShippingCompaniesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">
+                    <Label className="text-sm font-medium">
                       اسم الشركة <span className="text-destructive text-xs">*</span>
                     </Label>
                     <Input
@@ -814,7 +814,7 @@ export default function ShippingCompaniesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">جهة الاتصال</Label>
+                    <Label className="text-sm font-medium">جهة الاتصال</Label>
                     <Input
                       value={form.contact_person}
                       onChange={(e) => updateField('contact_person', e.target.value)}
@@ -824,7 +824,7 @@ export default function ShippingCompaniesPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">رقم الهاتف</Label>
+                    <Label className="text-sm font-medium">رقم الهاتف</Label>
                     <Input
                       value={form.phone}
                       onChange={(e) => updateField('phone', e.target.value)}
@@ -833,7 +833,7 @@ export default function ShippingCompaniesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">البريد الإلكتروني</Label>
+                    <Label className="text-sm font-medium">البريد الإلكتروني</Label>
                     <Input
                       type="email"
                       value={form.email}
@@ -844,7 +844,7 @@ export default function ShippingCompaniesPage() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium flex items-center gap-1.5">
+                  <Label className="text-sm font-medium flex items-center gap-1.5">
                     <Globe className="h-3.5 w-3.5" />
                     رابط التتبع
                   </Label>
@@ -860,7 +860,7 @@ export default function ShippingCompaniesPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">حالة الشركة</Label>
+                    <Label className="text-sm font-medium">حالة الشركة</Label>
                     <Select value={form.status} onValueChange={(v) => updateField('status', v)}>
                       <SelectTrigger>
                         <SelectValue />
@@ -887,7 +887,7 @@ export default function ShippingCompaniesPage() {
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">نوع الرسوم</Label>
+                    <Label className="text-sm font-medium">نوع الرسوم</Label>
                     <Select value={form.fees_type} onValueChange={(v) => updateField('fees_type', v)}>
                       <SelectTrigger>
                         <SelectValue />
@@ -899,7 +899,7 @@ export default function ShippingCompaniesPage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">
+                    <Label className="text-sm font-medium">
                       قيمة الرسوم {form.fees_type === 'Percentage' ? '(%)' : ''}
                     </Label>
                     <Input
@@ -940,7 +940,7 @@ export default function ShippingCompaniesPage() {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">نوع رسوم COD</Label>
+                      <Label className="text-sm font-medium">نوع رسوم COD</Label>
                       <Select value={form.cod_fees_type} onValueChange={(v) => updateField('cod_fees_type', v)}>
                         <SelectTrigger>
                           <SelectValue />
@@ -952,7 +952,7 @@ export default function ShippingCompaniesPage() {
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs font-medium">
+                      <Label className="text-sm font-medium">
                         قيمة رسوم COD {form.cod_fees_type === 'Percentage' ? '(%)' : ''}
                       </Label>
                       <Input
@@ -991,7 +991,7 @@ export default function ShippingCompaniesPage() {
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">حساب مصروفات الشحن</Label>
+                    <Label className="text-sm font-medium">حساب مصروفات الشحن</Label>
                     <ErpLinkCombobox
                       doctype="Account"
                       value={form.expense_account}
@@ -1000,7 +1000,7 @@ export default function ShippingCompaniesPage() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs font-medium">حساب إيرادات الشحن</Label>
+                    <Label className="text-sm font-medium">حساب إيرادات الشحن</Label>
                     <ErpLinkCombobox
                       doctype="Account"
                       value={form.revenue_account}

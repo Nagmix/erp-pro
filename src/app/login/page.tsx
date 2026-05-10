@@ -165,7 +165,7 @@ export default function LoginPage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-xs font-medium">
+                  <Label htmlFor="username" className="text-sm font-medium">
                     اسم المستخدم
                   </Label>
                   <div className="relative">
@@ -187,7 +187,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-xs font-medium">
+                  <Label htmlFor="password" className="text-sm font-medium">
                     كلمة المرور
                   </Label>
                   <div className="relative">
@@ -313,7 +313,7 @@ export default function LoginPage() {
         <div className="relative z-10 text-center px-12">
           {/* Main brand icon */}
           <div className="inline-flex items-center justify-center h-20 w-20 rounded-3xl bg-white/10 backdrop-blur-sm mb-8 shadow-2xl border border-white/10">
-            <Calculator className="h-10 w-10 text-white" />
+            <Calculator className="h-9 w-10 text-white" />
           </div>
 
           <h2 className="text-3xl font-bold text-white mb-3">ERP Pro</h2>
@@ -325,7 +325,7 @@ export default function LoginPage() {
           {/* Feature list */}
           <div className="space-y-4 text-start max-w-xs mx-auto">
             <div className="flex items-center gap-3 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm group-hover:bg-white/20 transition-colors shrink-0">
+              <div className="flex h-9 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm group-hover:bg-white/20 transition-colors shrink-0">
                 <Shield className="h-5 w-5 text-white/80" />
               </div>
               <div>
@@ -335,7 +335,7 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center gap-3 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm group-hover:bg-white/20 transition-colors shrink-0">
+              <div className="flex h-9 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm group-hover:bg-white/20 transition-colors shrink-0">
                 <BarChart3 className="h-5 w-5 text-white/80" />
               </div>
               <div>
@@ -345,7 +345,7 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center gap-3 group">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm group-hover:bg-white/20 transition-colors shrink-0">
+              <div className="flex h-9 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm group-hover:bg-white/20 transition-colors shrink-0">
                 <ArrowLeft className="h-5 w-5 text-white/80" />
               </div>
               <div>
@@ -376,12 +376,12 @@ export default function LoginPage() {
             <div className="space-y-4 py-2">
               <div className="flex flex-col items-center gap-3 text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
                 <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Mail className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  <Mail className="h-6 w-6 text-primary" />
                 </div>
                 <p className="text-sm text-green-800 dark:text-green-200 font-medium">
                   تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني
                 </p>
-                <p className="text-xs text-green-600 dark:text-green-400">
+                <p className="text-xs text-primary">
                   يرجى التحقق من صندوق الوارد والبريد غير المرغوب فيه
                 </p>
               </div>
@@ -394,7 +394,7 @@ export default function LoginPage() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="forgot-email" className="text-xs font-medium">
+                <Label htmlFor="forgot-email" className="text-sm font-medium">
                   البريد الإلكتروني
                 </Label>
                 <div className="relative">

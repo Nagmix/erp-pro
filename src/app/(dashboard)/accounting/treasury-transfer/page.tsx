@@ -157,7 +157,7 @@ export default function TreasuryTransferPage() {
         key: 'total_debit',
         header: 'المبلغ',
         sortable: true,
-        render: (v) => <span className="font-semibold text-blue-600 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span>,
+        render: (v) => <span className="font-semibold text-chart-1 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span>,
       },
       { key: 'user_remark', header: 'البيان', filterable: true, render: (v) => String(v || '\u2014') },
       {
@@ -206,7 +206,7 @@ export default function TreasuryTransferPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">خزينة المصدر <span className="text-destructive">*</span></Label>
+              <Label className="text-sm font-medium">خزينة المصدر <span className="text-destructive">*</span></Label>
               <ErpLinkCombobox
                 doctype="Account"
                 value={fromAccount}
@@ -217,7 +217,7 @@ export default function TreasuryTransferPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">خزينة الهدف <span className="text-destructive">*</span></Label>
+              <Label className="text-sm font-medium">خزينة الهدف <span className="text-destructive">*</span></Label>
               <ErpLinkCombobox
                 doctype="Account"
                 value={toAccount}
@@ -228,7 +228,7 @@ export default function TreasuryTransferPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">المبلغ (ر.ي) <span className="text-destructive">*</span></Label>
+              <Label className="text-sm font-medium">المبلغ (ر.ي) <span className="text-destructive">*</span></Label>
               <Input
                 type="number"
                 value={amount}
@@ -239,7 +239,7 @@ export default function TreasuryTransferPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">التاريخ</Label>
+              <Label className="text-sm font-medium">التاريخ</Label>
               <Input
                 type="date"
                 value={transferDate}
@@ -249,7 +249,7 @@ export default function TreasuryTransferPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">المرجع</Label>
+              <Label className="text-sm font-medium">المرجع</Label>
               <Input
                 type="text"
                 value={reference}
@@ -259,7 +259,7 @@ export default function TreasuryTransferPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">ملاحظات</Label>
+              <Label className="text-sm font-medium">ملاحظات</Label>
               <Textarea
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}

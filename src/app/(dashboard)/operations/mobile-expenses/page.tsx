@@ -79,7 +79,7 @@ type OcrExtractionResult = {
 };
 
 const CONFIDITY_STYLES: Record<string, { color: string; icon: typeof CheckCircle; label: string }> = {
-  high: { color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle, label: 'مرتفعة' },
+  high: { color: 'text-primary', icon: CheckCircle, label: 'مرتفعة' },
   medium: { color: 'text-amber-600 dark:text-amber-400', icon: AlertTriangle, label: 'متوسطة' },
   low: { color: 'text-red-500 dark:text-red-400', icon: AlertCircle, label: 'منخفضة' },
 };
@@ -403,7 +403,7 @@ export default function MobileExpensesPage() {
         key: 'total_sanctioned_amount',
         header: 'المبلغ المعتمد',
         render: (v) => (
-          <span className="tabular-nums text-emerald-600 dark:text-emerald-400">
+          <span className="tabular-nums text-primary">
             {formatCurrency(Number(v || 0))}
           </span>
         ),
@@ -612,7 +612,7 @@ export default function MobileExpensesPage() {
             <div className="grid md:grid-cols-2 gap-3">
               {/* الموظف */}
               <div>
-                <Label className="text-xs font-medium">الموظف *</Label>
+                <Label className="text-sm font-medium">الموظف *</Label>
                 <ErpLinkCombobox
                   doctype="Employee"
                   value={employee}
@@ -622,7 +622,7 @@ export default function MobileExpensesPage() {
               </div>
               {/* الشركة */}
               <div>
-                <Label className="text-xs font-medium">الشركة</Label>
+                <Label className="text-sm font-medium">الشركة</Label>
                 <ErpLinkCombobox
                   doctype="Company"
                   value={company || defaultCompany}
@@ -633,12 +633,12 @@ export default function MobileExpensesPage() {
               </div>
               {/* تاريخ المطالبة */}
               <div>
-                <Label className="text-xs font-medium">تاريخ المطالبة</Label>
+                <Label className="text-sm font-medium">تاريخ المطالبة</Label>
                 <Input type="date" dir="ltr" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} />
               </div>
               {/* نوع المصروف */}
               <div>
-                <Label className="text-xs font-medium">نوع المصروف *</Label>
+                <Label className="text-sm font-medium">نوع المصروف *</Label>
                 <ErpLinkCombobox
                   doctype="Expense Claim Type"
                   value={expenseType}
@@ -649,12 +649,12 @@ export default function MobileExpensesPage() {
               </div>
               {/* المبلغ */}
               <div>
-                <Label className="text-xs font-medium">المبلغ *</Label>
+                <Label className="text-sm font-medium">المبلغ *</Label>
                 <Input type="number" dir="ltr" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
               </div>
               {/* مركز التكلفة */}
               <div>
-                <Label className="text-xs font-medium">مركز التكلفة</Label>
+                <Label className="text-sm font-medium">مركز التكلفة</Label>
                 <ErpLinkCombobox
                   doctype="Cost Center"
                   value={costCenter}
@@ -665,12 +665,12 @@ export default function MobileExpensesPage() {
               </div>
               {/* العملة */}
               <div>
-                <Label className="text-xs font-medium">العملة</Label>
+                <Label className="text-sm font-medium">العملة</Label>
                 <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="YER" className="h-9 text-sm" />
               </div>
               {/* سعر الصرف */}
               <div>
-                <Label className="text-xs font-medium">سعر الصرف</Label>
+                <Label className="text-sm font-medium">سعر الصرف</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -684,7 +684,7 @@ export default function MobileExpensesPage() {
 
             {/* رابط الإيصال أو رفع صورة */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">صورة الإيصال</Label>
+              <Label className="text-sm font-medium">صورة الإيصال</Label>
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 bg-muted/30 px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors text-xs">
                   <Upload className="h-4 w-4" />
@@ -782,13 +782,13 @@ export default function MobileExpensesPage() {
 
             {/* ملاحظات */}
             <div>
-              <Label className="text-xs font-medium">ملاحظات</Label>
+              <Label className="text-sm font-medium">ملاحظات</Label>
               <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </div>
 
             {/* نتيجة القراءة */}
             <div>
-              <Label className="text-xs font-medium">ملاحظات إضافية من القراءة</Label>
+              <Label className="text-sm font-medium">ملاحظات إضافية من القراءة</Label>
               <Textarea rows={2} value={ocrText} onChange={(e) => setOcrText(e.target.value)} placeholder="سيتم ملؤها تلقائياً من الإيصال..." />
             </div>
 
@@ -811,7 +811,7 @@ export default function MobileExpensesPage() {
                 onCheckedChange={setIsDraft}
               />
               <div>
-                <Label htmlFor="save-as-draft" className="text-xs font-medium cursor-pointer">
+                <Label htmlFor="save-as-draft" className="text-sm font-medium cursor-pointer">
                   حفظ كمسودة
                 </Label>
                 <p className="text-xs text-muted-foreground">

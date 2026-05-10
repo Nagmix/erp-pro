@@ -293,7 +293,7 @@ export default function RecurringEntriesPage() {
           </DialogHeader>
           <form onSubmit={form.handleSubmit(handleCreate)} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-medium">نوع المستند *</Label>
+              <Label className="text-sm font-medium">نوع المستند *</Label>
               <Select value={form.watch('reference_doctype')} onValueChange={v => form.setValue('reference_doctype', v)}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent dir="rtl" align="start">
@@ -307,7 +307,7 @@ export default function RecurringEntriesPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">رقم المستند *</Label>
+              <Label className="text-sm font-medium">رقم المستند *</Label>
               <ErpLinkCombobox
                 doctype={selectedDoctype}
                 value={form.watch('reference_name')}
@@ -319,7 +319,7 @@ export default function RecurringEntriesPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-xs font-medium">التكرار *</Label>
+              <Label className="text-sm font-medium">التكرار *</Label>
               <Select value={form.watch('frequency')} onValueChange={v => form.setValue('frequency', v)}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                 <SelectContent dir="rtl" align="start">
@@ -336,20 +336,20 @@ export default function RecurringEntriesPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">تاريخ البداية *</Label>
+                <Label className="text-sm font-medium">تاريخ البداية *</Label>
                 <Input type="date" dir="ltr" {...form.register('start_date')} />
                 {form.formState.errors.start_date && (
                   <p className="text-[10px] text-destructive">{form.formState.errors.start_date.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">تاريخ النهاية</Label>
+                <Label className="text-sm font-medium">تاريخ النهاية</Label>
                 <Input type="date" dir="ltr" {...form.register('end_date')} />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">عدد التكرارات</Label>
+                <Label className="text-sm font-medium">عدد التكرارات</Label>
                 <Input type="number" dir="ltr" placeholder="0 = غير محدود" {...form.register('repeat_count', { valueAsNumber: true })} />
               </div>
               <div className="flex items-center gap-2 pt-6">
@@ -358,7 +358,7 @@ export default function RecurringEntriesPage() {
                   checked={form.watch('notify_by_email')}
                   onCheckedChange={(checked) => form.setValue('notify_by_email', Boolean(checked))}
                 />
-                <Label htmlFor="notify-email" className="text-xs font-medium cursor-pointer">إشعار بالبريد</Label>
+                <Label htmlFor="notify-email" className="text-sm font-medium cursor-pointer">إشعار بالبريد</Label>
               </div>
             </div>
             <DialogFooter className="gap-2 mt-4">
@@ -376,7 +376,7 @@ export default function RecurringEntriesPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

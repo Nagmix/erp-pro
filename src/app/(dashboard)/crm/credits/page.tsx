@@ -633,7 +633,7 @@ export default function CreditsPage() {
               <h3 className="text-sm font-semibold text-foreground">ملخص تقادم المستحقات</h3>
               <span className="text-xs text-muted-foreground">— تصنيف المبالغ غير المسددة حسب الأيام المتأخرة</span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-5 gap-3">
               <AgingBucket
                 label="حالي (غير مستحق)"
                 amount={aging.current}
@@ -823,7 +823,7 @@ export default function CreditsPage() {
           <div className="space-y-4">
             {/* نوع العملية */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">نوع العملية *</Label>
+              <Label className="text-sm font-medium">نوع العملية *</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Button
                   type="button"
@@ -856,7 +856,7 @@ export default function CreditsPage() {
 
             {/* العميل */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">العميل *</Label>
+              <Label className="text-sm font-medium">العميل *</Label>
               <ErpLinkCombobox
                 doctype="Customer"
                 value={formCustomer}
@@ -869,7 +869,7 @@ export default function CreditsPage() {
             {/* المبلغ والعملة */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="col-span-2 space-y-2">
-                <Label className="text-xs font-medium">المبلغ *</Label>
+                <Label className="text-sm font-medium">المبلغ *</Label>
                 <Input
                   type="number"
                   dir="ltr"
@@ -881,7 +881,7 @@ export default function CreditsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">العملة</Label>
+                <Label className="text-sm font-medium">العملة</Label>
                 <Select value={formCurrency} onValueChange={setFormCurrency}>
                   <SelectTrigger className="h-9 text-xs" dir="ltr">
                     <SelectValue />
@@ -899,7 +899,7 @@ export default function CreditsPage() {
 
             {/* طريقة الدفع */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">طريقة الدفع</Label>
+              <Label className="text-sm font-medium">طريقة الدفع</Label>
               <ErpLinkCombobox
                 doctype="Mode of Payment"
                 value={formModeOfPayment}
@@ -911,7 +911,7 @@ export default function CreditsPage() {
             {/* الحسابات */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">
+                <Label className="text-sm font-medium">
                   {formPaymentType === 'Receive'
                     ? 'الحساب المستلم (إلى)'
                     : 'الحساب الدافع (من)'}
@@ -928,7 +928,7 @@ export default function CreditsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">
+                <Label className="text-sm font-medium">
                   {formPaymentType === 'Receive'
                     ? 'حساب العميل (من)'
                     : 'حساب العميل (إلى)'}
@@ -949,7 +949,7 @@ export default function CreditsPage() {
             {/* التاريخ والمرجع */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label className="text-xs font-medium">تاريخ القيد *</Label>
+                <Label className="text-sm font-medium">تاريخ القيد *</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -958,7 +958,7 @@ export default function CreditsPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-medium">رقم المرجع</Label>
+                <Label className="text-sm font-medium">رقم المرجع</Label>
                 <Input
                   placeholder="رقم الشيك / التأكيد"
                   dir="ltr"
@@ -970,7 +970,7 @@ export default function CreditsPage() {
 
             {/* ملاحظات */}
             <div className="space-y-2">
-              <Label className="text-xs font-medium">ملاحظات</Label>
+              <Label className="text-sm font-medium">ملاحظات</Label>
               <Input
                 placeholder="ملاحظات إضافية"
                 value={formRemarks}

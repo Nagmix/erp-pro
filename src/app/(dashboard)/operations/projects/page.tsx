@@ -491,7 +491,7 @@ export default function ProjectsManagementPage() {
           <Card className="border-border/40">
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <Label className="text-xs font-medium shrink-0">اختر المشروع:</Label>
+                <Label className="text-sm font-medium shrink-0">اختر المشروع:</Label>
                 <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
                   <SelectTrigger className="h-9 w-full sm:w-72 text-xs">
                     <SelectValue placeholder="اختر مشروعاً لعرض مراحله..." />
@@ -577,7 +577,7 @@ export default function ProjectsManagementPage() {
           {selectedProject && !tasksQuery.isLoading && selectedProject.phases.length === 0 && (
             <Card className="border-border/40">
               <CardContent className="p-8 text-center space-y-3">
-                <GanttChart className="h-10 w-10 mx-auto text-muted-foreground/40" />
+                <GanttChart className="h-9 w-10 mx-auto text-muted-foreground/40" />
                 <p className="text-sm text-muted-foreground">لا توجد مراحل لهذا المشروع</p>
                 <Button size="sm" variant="outline" className="gap-1.5" onClick={() => openPhaseDialog()}>
                   <Plus className="h-3.5 w-3.5" />إضافة مرحلة
@@ -592,7 +592,7 @@ export default function ProjectsManagementPage() {
           <Card className="border-border/40">
             <CardContent className="p-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <Label className="text-xs font-medium shrink-0">اختر المشروع:</Label>
+                <Label className="text-sm font-medium shrink-0">اختر المشروع:</Label>
                 <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
                   <SelectTrigger className="h-9 w-full sm:w-72 text-xs">
                     <SelectValue placeholder="اختر مشروعاً لعرض تكاليفه..." />
@@ -645,7 +645,7 @@ export default function ProjectsManagementPage() {
                   </div>
                   <Progress value={costAnalysis.budget > 0 ? Math.min(100, (costAnalysis.spent / costAnalysis.budget) * 100) : 0} className="h-3" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="rounded-lg border border-border/40 p-4 space-y-2">
                     <p className="text-xs text-muted-foreground">الميزانية التقديرية</p>
                     <p className="text-lg font-bold tabular-nums">{formatCurrency(costAnalysis.budget)}</p>
@@ -682,7 +682,7 @@ export default function ProjectsManagementPage() {
           {!selectedProject && (
             <Card className="border-border/40">
               <CardContent className="p-8 text-center">
-                <Receipt className="h-10 w-10 mx-auto text-muted-foreground/40" />
+                <Receipt className="h-9 w-10 mx-auto text-muted-foreground/40" />
                 <p className="mt-3 text-sm text-muted-foreground">اختر مشروعاً لعرض تحليل التكاليف</p>
               </CardContent>
             </Card>

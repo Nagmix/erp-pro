@@ -421,12 +421,12 @@ export default function DeveloperApiPage() {
             <CardContent className="space-y-3">
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم المفتاح</Label>
-                  <Input value={keyLabel} onChange={(e) => setKeyLabel(e.target.value)} placeholder="مفتاح تطبيق الجوال" className="h-10" />
+                  <Label className="text-sm font-medium">اسم المفتاح</Label>
+                  <Input value={keyLabel} onChange={(e) => setKeyLabel(e.target.value)} placeholder="مفتاح تطبيق الجوال" className="h-9" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">النطاقات المسموحة (مفصولة بفاصلة)</Label>
-                  <Input value={scopes} onChange={(e) => setScopes(e.target.value)} placeholder="قراءة,كتابة,تقارير" className="h-10" />
+                  <Label className="text-sm font-medium">النطاقات المسموحة (مفصولة بفاصلة)</Label>
+                  <Input value={scopes} onChange={(e) => setScopes(e.target.value)} placeholder="قراءة,كتابة,تقارير" className="h-9" />
                 </div>
               </div>
               <Button size="sm" onClick={createKey} className="gap-2" disabled={creatingKey}>
@@ -496,16 +496,16 @@ export default function DeveloperApiPage() {
             <CardContent className="space-y-3">
               <div className="grid sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">اسم الحدث</Label>
-                  <Input value={event} onChange={(e) => setEvent(e.target.value)} placeholder="حدث الفاتورة" className="h-10" />
+                  <Label className="text-sm font-medium">اسم الحدث</Label>
+                  <Input value={event} onChange={(e) => setEvent(e.target.value)} placeholder="حدث الفاتورة" className="h-9" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">رابط الاستقبال</Label>
-                  <Input dir="ltr" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/hook" className="h-10" />
+                  <Label className="text-sm font-medium">رابط الاستقبال</Label>
+                  <Input dir="ltr" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/hook" className="h-9" />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">بيانات الإرسال (JSON)</Label>
+                <Label className="text-sm font-medium">بيانات الإرسال (JSON)</Label>
                 <Textarea rows={3} value={payload} onChange={(e) => setPayload(e.target.value)} placeholder='{"key": "value"}' />
               </div>
               <div className="flex gap-2">
@@ -760,7 +760,7 @@ console.log(data);`}
             <CardContent className="space-y-3">
               <div className="grid sm:grid-cols-[120px_1fr] gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">الطريقة</Label>
+                  <Label className="text-sm font-medium">الطريقة</Label>
                   <Select value={testMethod} onValueChange={setTestMethod}>
                     <SelectTrigger className="h-9 text-xs">
                       <SelectValue />
@@ -775,7 +775,7 @@ console.log(data);`}
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">نقطة النهاية</Label>
+                  <Label className="text-sm font-medium">نقطة النهاية</Label>
                   <Input
                     dir="ltr"
                     value={testEndpoint}
@@ -787,7 +787,7 @@ console.log(data);`}
               </div>
               {['POST', 'PUT', 'PATCH'].includes(testMethod) && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">نص الطلب (JSON)</Label>
+                  <Label className="text-sm font-medium">نص الطلب (JSON)</Label>
                   <Textarea
                     rows={5}
                     dir="ltr"
@@ -805,7 +805,7 @@ console.log(data);`}
               {testResponse && (
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-medium">الاستجابة</Label>
+                    <Label className="text-sm font-medium">الاستجابة</Label>
                     <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(testResponse)}>
                       <Copy className="h-3 w-3" />
                     </Button>

@@ -350,14 +350,14 @@ export default function RentalUnitsPage() {
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-medium">اسم الوحدة *</Label>
+          <Label className="text-sm font-medium">اسم الوحدة *</Label>
           <Input placeholder="اسم وحدة الإيجار" {...form.register('item_name')} />
           {form.formState.errors.item_name && (
             <p className="text-xs text-destructive">{form.formState.errors.item_name.message}</p>
           )}
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-medium">كود الوحدة *</Label>
+          <Label className="text-sm font-medium">كود الوحدة *</Label>
           <Input placeholder="كود الوحدة" dir="ltr" {...form.register('item_code')} />
           {form.formState.errors.item_code && (
             <p className="text-xs text-destructive">{form.formState.errors.item_code.message}</p>
@@ -367,7 +367,7 @@ export default function RentalUnitsPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-medium">مجموعة الأصناف *</Label>
+          <Label className="text-sm font-medium">مجموعة الأصناف *</Label>
           <ErpLinkCombobox
             doctype="Item Group"
             value={form.watch('item_group')}
@@ -379,7 +379,7 @@ export default function RentalUnitsPage() {
           )}
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-medium">الحالة</Label>
+          <Label className="text-sm font-medium">الحالة</Label>
           <Select value={form.watch('unit_status')} onValueChange={(v) => form.setValue('unit_status', v)}>
             <SelectTrigger className="h-9 text-sm">
               <SelectValue />
@@ -395,7 +395,7 @@ export default function RentalUnitsPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-xs font-medium">السعر اليومي</Label>
+          <Label className="text-sm font-medium">السعر اليومي</Label>
           <Input
             type="number"
             dir="ltr"
@@ -404,7 +404,7 @@ export default function RentalUnitsPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label className="text-xs font-medium">المستودع</Label>
+          <Label className="text-sm font-medium">المستودع</Label>
           <ErpLinkCombobox
             doctype="Warehouse"
             value={form.watch('warehouse') ?? ''}
@@ -416,7 +416,7 @@ export default function RentalUnitsPage() {
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs font-medium">الوصف</Label>
+        <Label className="text-sm font-medium">الوصف</Label>
         <Textarea
           placeholder="وصف وحدة الإيجار..."
           rows={3}
@@ -627,7 +627,7 @@ export default function RentalUnitsPage() {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div>

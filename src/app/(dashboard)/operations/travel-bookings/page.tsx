@@ -639,7 +639,7 @@ export default function TravelBookingsPage() {
           <div className="space-y-4 py-4">
             {/* Employee */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">
+              <Label className="text-sm font-medium">
                 الموظف <span className="text-destructive text-xs">*</span>
               </Label>
               <ErpLinkCombobox
@@ -650,20 +650,20 @@ export default function TravelBookingsPage() {
                 }
                 displayKey="employee_name"
                 disabled={!!editingDoc}
-                className="h-10"
+                className="h-9"
               />
             </div>
 
             {/* Travel Type */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">نوع السفر</Label>
+              <Label className="text-sm font-medium">نوع السفر</Label>
               <Select
                 value={formData.travel_type}
                 onValueChange={(v) =>
                   setFormData((p) => ({ ...p, travel_type: v }))
                 }
               >
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-9">
                   <SelectValue placeholder="اختر نوع السفر" />
                 </SelectTrigger>
                 <SelectContent>
@@ -677,7 +677,7 @@ export default function TravelBookingsPage() {
 
             {/* Destination */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">الوجهة</Label>
+              <Label className="text-sm font-medium">الوجهة</Label>
               <Input
                 value={formData.destination}
                 onChange={(e) =>
@@ -687,14 +687,14 @@ export default function TravelBookingsPage() {
                   }))
                 }
                 placeholder="مثال: الرياض، جدة..."
-                className="h-10"
+                className="h-9"
               />
             </div>
 
             {/* Dates */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">من تاريخ</Label>
+                <Label className="text-sm font-medium">من تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -705,11 +705,11 @@ export default function TravelBookingsPage() {
                       from_date: e.target.value,
                     }))
                   }
-                  className="h-10"
+                  className="h-9"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label className="text-xs font-medium">إلى تاريخ</Label>
+                <Label className="text-sm font-medium">إلى تاريخ</Label>
                 <Input
                   type="date"
                   dir="ltr"
@@ -720,27 +720,27 @@ export default function TravelBookingsPage() {
                       to_date: e.target.value,
                     }))
                   }
-                  className="h-10"
+                  className="h-9"
                 />
               </div>
             </div>
 
             {/* Purpose */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">الغرض</Label>
+              <Label className="text-sm font-medium">الغرض</Label>
               <Input
                 value={formData.purpose}
                 onChange={(e) =>
                   setFormData((p) => ({ ...p, purpose: e.target.value }))
                 }
                 placeholder="غرض السفر..."
-                className="h-10"
+                className="h-9"
               />
             </div>
 
             {/* Advance Amount */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">مبلغ السلفة</Label>
+              <Label className="text-sm font-medium">مبلغ السلفة</Label>
               <Input
                 type="number"
                 dir="ltr"
@@ -752,13 +752,13 @@ export default function TravelBookingsPage() {
                   }))
                 }
                 placeholder="0.00"
-                className="h-10"
+                className="h-9"
               />
             </div>
 
             {/* Description / Notes */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">ملاحظات</Label>
+              <Label className="text-sm font-medium">ملاحظات</Label>
               <Textarea
                 placeholder="ملاحظات إضافية..."
                 value={formData.description}

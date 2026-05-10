@@ -275,7 +275,7 @@ export default function PaymentMethodsPage() {
 
   <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
-  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
   <Card><CardContent className="p-3 flex items-center gap-3">
    <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><CreditCard className="h-4 w-4 text-primary" /></div>
    <div><p className="text-[10px] text-muted-foreground">إجمالي الطرق</p><p className="text-sm font-bold mt-0.5">{methods.length}</p></div>
@@ -310,11 +310,11 @@ export default function PaymentMethodsPage() {
    <DialogHeader><DialogTitle>إضافة طريقة دفع جديدة</DialogTitle></DialogHeader>
    <div className="space-y-4 py-4">
    <div className="space-y-2">
-    <Label className="text-xs font-medium">اسم طريقة الدفع *</Label>
+    <Label className="text-sm font-medium">اسم طريقة الدفع *</Label>
     <Input placeholder="مثال: تحويل بنكي" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} />
    </div>
    <div className="space-y-2">
-    <Label className="text-xs font-medium">النوع</Label>
+    <Label className="text-sm font-medium">النوع</Label>
     <Select value={formData.type} onValueChange={val => setFormData(prev => ({ ...prev, type: val }))}>
     <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
     <SelectContent>
@@ -333,7 +333,7 @@ export default function PaymentMethodsPage() {
     onChange={e => setFormData(prev => ({ ...prev, enabled: e.target.checked }))}
     className="rounded border-input"
     />
-    <Label htmlFor="pm-enabled" className="text-xs font-medium cursor-pointer">مفعّل</Label>
+    <Label htmlFor="pm-enabled" className="text-sm font-medium cursor-pointer">مفعّل</Label>
    </div>
    <Button className="w-full" onClick={handleCreate} disabled={createMutation.isPending}>
     {createMutation.isPending ? <><Loader2 className="h-4 w-4 animate-spin ms-2" /> جاري الحفظ...</> : 'حفظ طريقة الدفع'}

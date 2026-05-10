@@ -157,30 +157,30 @@ export default function BranchesPage() {
    <div className="space-y-4 py-4">
    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div className="space-y-2">
-    <Label className="text-xs font-medium">اسم الفرع *</Label>
+    <Label className="text-sm font-medium">اسم الفرع *</Label>
     <Input placeholder="اسم الفرع" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} />
     </div>
     <div className="space-y-2">
-    <Label className="text-xs font-medium">الشركة</Label>
+    <Label className="text-sm font-medium">الشركة</Label>
     <Input placeholder="اسم الشركة" value={formData.company} onChange={e => setFormData(prev => ({ ...prev, company: e.target.value }))} />
     </div>
    </div>
    <div className="space-y-2">
-    <Label className="text-xs font-medium">العنوان</Label>
+    <Label className="text-sm font-medium">العنوان</Label>
     <Input placeholder="عنوان الفرع" value={formData.address} onChange={e => setFormData(prev => ({ ...prev, address: e.target.value }))} />
    </div>
    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div className="space-y-2">
-    <Label className="text-xs font-medium">الهاتف</Label>
+    <Label className="text-sm font-medium">الهاتف</Label>
     <Input placeholder="01XXXXXXXX" dir="ltr" value={formData.phone} onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))} />
     </div>
     <div className="space-y-2">
-    <Label className="text-xs font-medium">المدير</Label>
+    <Label className="text-sm font-medium">المدير</Label>
     <Input placeholder="اسم مدير الفرع" value={formData.manager} onChange={e => setFormData(prev => ({ ...prev, manager: e.target.value }))} />
     </div>
    </div>
    <div className="space-y-2">
-    <Label className="text-xs font-medium">الحالة</Label>
+    <Label className="text-sm font-medium">الحالة</Label>
     <Select value={formData.status} onValueChange={val => setFormData(prev => ({ ...prev, status: val }))}>
     <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
     <SelectContent>
