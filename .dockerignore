@@ -6,7 +6,8 @@ node_modules
 .env*
 !.env.example
 docker-compose.yml
-railway/
+railway/RAILWAY_SETUP_GUIDE.md
+railway/backend/.dockerignore
 docs/
 examples/
 *.log

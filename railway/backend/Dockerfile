@@ -13,6 +13,7 @@
 #   - لا يوجد VOLUME (Railway يدير التخزين بطريقته الخاصة)
 #   - MariaDB و Redis كخدمات مُدارة من Railway
 #   - الإدخال عبر entrypoint.sh الذي يُهيئ الموقع عند أول تشغيل
+#   - مسارات COPY نسبية من جذر المستودع (Railway build context = repo root)
 # ============================================================
 
 FROM frappe/erpnext:v16
@@ -30,9 +31,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # ------------------------------------------------------------------
 # نسخ ملفات الإعداد
+# المسارات نسبية من جذر المستودع لأن Railway يستخدم repo root كـ build context
 # ------------------------------------------------------------------
-COPY supervisord.conf /etc/supervisor/conf.d/erpnext.conf
-COPY entrypoint.sh   /usr/local/bin/entrypoint.sh
+COPY railway/backend/supervisord.conf /etc/supervisor/conf.d/erpnext.conf
+COPY railway/backend/entrypoint.sh   /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
