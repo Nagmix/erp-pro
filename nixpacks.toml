@@ -13,8 +13,16 @@ depends_on = ["install"]
 
 [phases.build]
 name = "Build Next.js"
-cmds = ["DATABASE_URL=\"file:./dev.db\" npm run build"]
+cmds = ["DATABASE_URL=\"file:./dev.db\" npx next build --webpack"]
 depends_on = ["generate"]
+
+[phases.postbuild]
+name = "Copy static files for standalone"
+cmds = [
+  "if [ -d .next/static ] && [ -d .next/standalone ]; then cp -r .next/static .next/standalone/.next/ && echo 'copied static'; fi",
+  "if [ -d public ] && [ -d .next/standalone ]; then cp -r public .next/standalone/ && echo 'copied public'; fi"
+]
+depends_on = ["build"]
 
 [start]
 cmd = "node server.js"

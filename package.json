@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "next build --webpack && bash scripts/postbuild-fix-standalone.sh",
-    "build:webpack": "next build --webpack && bash scripts/postbuild-fix-standalone.sh",
+    "build": "next build --webpack && sh scripts/postbuild-fix-standalone.sh",
+    "build:webpack": "next build --webpack && sh scripts/postbuild-fix-standalone.sh",
     "start": "next start -p 3000",
     "lint": "eslint .",
     "test": "vitest run",

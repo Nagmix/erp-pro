@@ -1,6 +1,9 @@
 # ============================================================
 # ERP Pro - Next.js Frontend Dockerfile
 # ============================================================
+# هذا الملف يشغّل الواجهة الأمامية فقط (Next.js)
+# ERPNext الخلفي يحتاج خدمة منفصلة على Railway
+# ============================================================
 
 FROM node:20-alpine AS base
 
@@ -9,10 +12,10 @@ FROM base AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy prisma schema FIRST so postinstall can find it during npm install
+# Copy prisma schema FIRST so prisma generate can find it during npm install
 COPY prisma ./prisma
 
-# Install deps — postinstall may try prisma generate; schema is now available
+# Install deps
 COPY package.json package-lock.json ./
 RUN npm install --no-audit --no-fund
 
@@ -26,10 +29,25 @@ RUN npx prisma generate
 ARG BACKEND_HOST=http://backend:8000
 ENV BACKEND_HOST=$BACKEND_HOST
 
-# Set a dummy DATABASE_URL for Prisma during build (SQLite won't be used at build time)
+# Set a dummy DATABASE_URL for Prisma during build
 ENV DATABASE_URL="file:./dev.db"
 
-RUN npm run build
+# Build Next.js (standalone output)
+RUN npx next build --webpack
+
+# Post-build: copy static files into standalone directory (replaces bash script)
+RUN if [ -d .next/static ] && [ -d .next/standalone ]; then \
+      cp -r .next/static .next/standalone/.next/ && \
+      echo "✓ Copied .next/static → standalone"; \
+    fi && \
+    if [ -d public ] && [ -d .next/standalone ]; then \
+      cp -r public .next/standalone/ && \
+      echo "✓ Copied public → standalone"; \
+    fi && \
+    if [ -f .env ] && [ -d .next/standalone ]; then \
+      cp .env .next/standalone/.env && \
+      echo "✓ Copied .env → standalone"; \
+    fi
 
 # Production image
 FROM base AS runner

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Post-build script: Copy static files to standalone directory
 # This fixes the Next.js standalone mode 404 issue for CSS/JS/fonts
 # Must run after `next build`
