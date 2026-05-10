@@ -92,6 +92,30 @@ else
     log "WARNING: RAILWAY_PUBLIC_DOMAIN or SITE_NAME not set — skipping domain symlink"
 fi
 
+# ★★★ حل احتياطي مهم: symlink على مستوى bench ★★★
+# لو sites_path ما اتعيين صح في wsgi_wrapper، Frappe بيدور على الموقع في:
+#   /home/frappe/frappe-bench/erppro/  (غلط!)
+# بدال:
+#   /home/frappe/frappe-bench/sites/erppro/  (صح!)
+# هذا الـ symlink يخلي المسار الغلط يشتغل بعد:
+#   /home/frappe/frappe-bench/erppro → sites/erppro
+BENCH_LEVEL_SYMLINK="${BENCH_DIR}/${SITE_NAME}"
+if [ -n "$SITE_NAME" ] && [ -d "${SITES_DIR}/${SITE_NAME}" ]; then
+    cd "$BENCH_DIR"
+    if [ ! -L "$SITE_NAME" ] && [ ! -d "$SITE_NAME" ]; then
+        ln -sf "sites/${SITE_NAME}" "$SITE_NAME"
+        log "★ Created bench-level symlink: ${BENCH_DIR}/${SITE_NAME} → sites/${SITE_NAME}"
+    elif [ -L "$SITE_NAME" ]; then
+        log "★ Bench-level symlink already exists: ${SITE_NAME} → $(readlink "$SITE_NAME")"
+    else
+        log "WARNING: ${BENCH_DIR}/${SITE_NAME} exists as a real directory (not symlink)"
+    fi
+    cd "$BENCH_DIR"
+    chown -R frappe:frappe "$BENCH_DIR" 2>/dev/null || true
+else
+    log "WARNING: Cannot create bench-level symlink — SITE_NAME or site dir not found"
+fi
+
 # ----------------------------------------------------------
 # 2. كتابة سكربت التحقق من MariaDB في ملف منفصل
 #    هذا يتجنب مشاكل quoting في python3 -c "..."
@@ -349,9 +373,12 @@ log "=== End of config ==="
 # ----------------------------------------------------------
 # 4. تعيين الموقع كافتراضي
 # ----------------------------------------------------------
-DEFAULT_SITE_FILE="${SITES_DIR}/currentsite.txt"
-echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
-log "Default site set to '${SITE_NAME}'."
+# ★ إنشاء ملف currentsite (بدون .txt!) — Frappe يبحث عن هذا الملف
+# بعض إصدارات Frappe تستخدم currentsite.txt وبعضها currentsite
+# ننشئ الاثنين عشان نضمن
+echo "$SITE_NAME" > "${SITES_DIR}/currentsite"
+echo "$SITE_NAME" > "${SITES_DIR}/currentsite.txt"
+log "Default site set to '${SITE_NAME}' (currentsite + currentsite.txt)."
 
 # ----------------------------------------------------------
 # 5. إنشاء site_config.json للموقع
