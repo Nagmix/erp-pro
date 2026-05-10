@@ -300,6 +300,15 @@ if [ ! -d "$SITE_DIR" ]; then
     mkdir -p "$SITE_DIR"
 fi
 
+# ضمان وجود مجلدات الموقع المطلوبة (logs, private, public, locks)
+# Frappe يحتاجها وإلا يفشل migrate
+mkdir -p "${SITE_DIR}/logs"
+mkdir -p "${SITE_DIR}/private"
+mkdir -p "${SITE_DIR}/private/backups"
+mkdir -p "${SITE_DIR}/public"
+mkdir -p "${SITE_DIR}/locks"
+chown -R frappe:frappe "$SITE_DIR" 2>/dev/null || true
+
 if [ ! -f "$SITE_CONFIG" ]; then
     python3 << PYTHON_SITE_CONFIG
 import json, os
@@ -377,6 +386,14 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
         if [ "$MARIADB_READY" = "true" ]; then
             log "[BG] Creating site '${SITE_NAME}' as user 'frappe' ..."
             cd /home/frappe/frappe-bench
+
+            # ضمان وجود مجلدات الموقع المطلوبة
+            mkdir -p "/home/frappe/frappe-bench/sites/${SITE_NAME}/logs"
+            mkdir -p "/home/frappe/frappe-bench/sites/${SITE_NAME}/private"
+            mkdir -p "/home/frappe/frappe-bench/sites/${SITE_NAME}/private/backups"
+            mkdir -p "/home/frappe/frappe-bench/sites/${SITE_NAME}/public"
+            mkdir -p "/home/frappe/frappe-bench/sites/${SITE_NAME}/locks"
+            chown -R frappe:frappe "/home/frappe/frappe-bench/sites/${SITE_NAME}" 2>/dev/null || true
 
             # تحقق من إن قاعدة البيانات موجودة
             log "[BG] Checking if database '${DB_NAME}' exists ..."
