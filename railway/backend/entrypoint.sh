@@ -266,6 +266,13 @@ config['socketio_port'] = int(socketio_port)
 # إعداد developer_mode لتسهيل التشخيص
 config['developer_mode'] = 1
 
+# ★ إعداد default_site — الموقع الافتراضي
+# ERPNext في v16 لا يدعم currentsite.txt بعد الآن
+# لازم نحدد default_site في common_site_config.json
+site_name = os.environ.get('SITE_NAME', 'erppro')
+config['default_site'] = site_name
+print(f"[CONFIG] Set default_site = {site_name}")
+
 # ★ إعداد serve_default_site — مهم جداً!
 # بدون هذا الإعداد، ERPNext يفشل في العثور على الموقع المناسب
 # لأنه يطابق اسم النطاق (Host header) مع اسم الموقع.
@@ -279,6 +286,13 @@ config['allow_cors'] = '*'
 
 # ★ إعداد skip_setup_wizard — لتفادي مشاكل معالجة الإعداد
 # config['skip_setup_wizard'] = 1
+
+# ★ إعداد إضافي — إضافة نطاق Railway للموقع
+# هذا يضمن إن ERPNext يتعرف على النطاق الخارجي
+railway_domain = os.environ.get('RAILWAY_STATIC_URL', '').replace('https://', '').replace('http://', '').strip('/')
+if railway_domain:
+    config['host_name'] = railway_domain
+    print(f"[CONFIG] Set host_name = {railway_domain}")
 
 # ----------------------------------------------------------
 # كتابة الملف
@@ -509,12 +523,48 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
 
             echo "$SITE_NAME" > "${SITES_DIR}/currentsite.txt"
             chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
+
+            # ★ تعيين الموقع كافتراضي بالطريقة الصحيحة لـ v16
+            log "[BG] Setting default site via 'bench use'..."
+            su - frappe -c "cd /home/frappe/frappe-bench && bench use ${SITE_NAME}" 2>&1 || log "[BG] bench use had warnings"
+
+            # ★ إضافة نطاق Railway للموقع — هذا الحل الأساسي!
+            # بدون هذا، ERPNext ما يتعرف على النطاق الخارجي
+            RAILWAY_PUBLIC_DOMAIN="${RAILWAY_STATIC_URL:-}"
+            RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN#https://}"
+            RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN#http://}"
+            RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN%/}"
+
+            if [ -n "$RAILWAY_PUBLIC_DOMAIN" ]; then
+                log "[BG] Adding Railway domain '${RAILWAY_PUBLIC_DOMAIN}' to site '${SITE_NAME}'..."
+                su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUBLIC_DOMAIN}" 2>&1 || log "[BG] add-domain had warnings (may already exist)"
+            else
+                log "[BG] RAILWAY_STATIC_URL not set — skipping add-domain"
+            fi
+
             log "[BG] Site setup completed!"
         fi
     ) &
     log "Site creation running in background (PID: $!)"
 else
     log "Site '${SITE_NAME}' already exists and is initialized."
+
+    # حتى لو الموقع موجود، نتأكد من إعدادات التوجيه
+    log "Ensuring serve_default_site is configured..."
+    su - frappe -c "cd /home/frappe/frappe-bench && bench set-config -g serve_default_site 1" 2>&1 || true
+    su - frappe -c "cd /home/frappe/frappe-bench && bench set-config -g default_site ${SITE_NAME}" 2>&1 || true
+    su - frappe -c "cd /home/frappe/frappe-bench && bench set-config -g allow_cors '*'" 2>&1 || true
+
+    # إضافة نطاق Railway لو موجود
+    RAILWAY_PUBLIC_DOMAIN="${RAILWAY_STATIC_URL:-}"
+    RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN#https://}"
+    RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN#http://}"
+    RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN%/}"
+
+    if [ -n "$RAILWAY_PUBLIC_DOMAIN" ]; then
+        log "Adding Railway domain '${RAILWAY_PUBLIC_DOMAIN}' to existing site..."
+        su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUBLIC_DOMAIN}" 2>&1 || log "add-domain had warnings (may already exist)"
+    fi
 fi
 
 # ----------------------------------------------------------
