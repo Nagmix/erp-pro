@@ -31,6 +31,7 @@ log "DB_USER         : ${DB_USER:-<not set>}"
 log "PORT (Railway)  : ${PORT:-8000}"
 log "REDIS_URL       : ${REDIS_URL:-<not set>}"
 log "MYSQL_ROOT_PW   : ${MYSQL_ROOT_PASSWORD:+<set>}${MYSQL_ROOT_PASSWORD:-<not set>}"
+log "RAILWAY_DOMAIN  : ${RAILWAY_PUBLIC_DOMAIN:-<not set>}"
 log "============================================"
 
 # ----------------------------------------------------------
@@ -289,7 +290,7 @@ config['allow_cors'] = '*'
 
 # ★ إعداد إضافي — إضافة نطاق Railway للموقع
 # هذا يضمن إن ERPNext يتعرف على النطاق الخارجي
-railway_domain = os.environ.get('RAILWAY_STATIC_URL', '').replace('https://', '').replace('http://', '').strip('/')
+railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').replace('https://', '').replace('http://', '').strip('/')
 if railway_domain:
     config['host_name'] = railway_domain
     print(f"[CONFIG] Set host_name = {railway_domain}")
@@ -530,16 +531,16 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
 
             # ★ إضافة نطاق Railway للموقع — هذا الحل الأساسي!
             # بدون هذا، ERPNext ما يتعرف على النطاق الخارجي
-            RAILWAY_PUBLIC_DOMAIN="${RAILWAY_STATIC_URL:-}"
-            RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN#https://}"
-            RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN#http://}"
-            RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN%/}"
+            RAILWAY_PUB_DOMAIN="${RAILWAY_PUBLIC_DOMAIN:-}"
+            RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN#https://}"
+            RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN#http://}"
+            RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN%/}"
 
-            if [ -n "$RAILWAY_PUBLIC_DOMAIN" ]; then
-                log "[BG] Adding Railway domain '${RAILWAY_PUBLIC_DOMAIN}' to site '${SITE_NAME}'..."
-                su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUBLIC_DOMAIN}" 2>&1 || log "[BG] add-domain had warnings (may already exist)"
+            if [ -n "$RAILWAY_PUB_DOMAIN" ]; then
+                log "[BG] Adding Railway domain '${RAILWAY_PUB_DOMAIN}' to site '${SITE_NAME}'..."
+                su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUB_DOMAIN}" 2>&1 || log "[BG] add-domain had warnings (may already exist)"
             else
-                log "[BG] RAILWAY_STATIC_URL not set — skipping add-domain"
+                log "[BG] RAILWAY_PUBLIC_DOMAIN not set — skipping add-domain"
             fi
 
             log "[BG] Site setup completed!"
@@ -556,14 +557,14 @@ else
     su - frappe -c "cd /home/frappe/frappe-bench && bench set-config -g allow_cors '*'" 2>&1 || true
 
     # إضافة نطاق Railway لو موجود
-    RAILWAY_PUBLIC_DOMAIN="${RAILWAY_STATIC_URL:-}"
-    RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN#https://}"
-    RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN#http://}"
-    RAILWAY_PUBLIC_DOMAIN="${RAILWAY_PUBLIC_DOMAIN%/}"
+    RAILWAY_PUB_DOMAIN="${RAILWAY_PUBLIC_DOMAIN:-}"
+    RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN#https://}"
+    RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN#http://}"
+    RAILWAY_PUB_DOMAIN="${RAILWAY_PUB_DOMAIN%/}"
 
-    if [ -n "$RAILWAY_PUBLIC_DOMAIN" ]; then
-        log "Adding Railway domain '${RAILWAY_PUBLIC_DOMAIN}' to existing site..."
-        su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUBLIC_DOMAIN}" 2>&1 || log "add-domain had warnings (may already exist)"
+    if [ -n "$RAILWAY_PUB_DOMAIN" ]; then
+        log "Adding Railway domain '${RAILWAY_PUB_DOMAIN}' to existing site..."
+        su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUB_DOMAIN}" 2>&1 || log "add-domain had warnings (may already exist)"
     fi
 fi
 
