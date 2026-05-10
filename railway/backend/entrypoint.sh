@@ -326,18 +326,24 @@ else
 fi
 
 # ----------------------------------------------------------
-# 6. إنشاء الموقع في الخلفية — باستخدام سكربت Python منفصل
+# 6. إنشاء الموقع في الخلفية — كمستخدم frappe
 # ----------------------------------------------------------
 
-# نتحقق هل الموقع فعلاً أنشئ
+# نتحقق هل الموقع فعلاً أنشئ (نحتاج مجلد private + قاعدة بيانات)
 SITE_INITIALIZED=false
-if [ -d "${SITE_DIR}/private" ] && [ -f "${SITE_DIR}/site_config.json" ]; then
+if [ -d "${SITE_DIR}/private" ] && [ -d "${SITE_DIR}/public" ]; then
     SITE_INITIALIZED=true
     log "Site '${SITE_NAME}' appears to be already initialized."
 fi
 
 if [ "$SITE_INITIALIZED" = "false" ]; then
     log "Site '${SITE_NAME}' needs initialization — creating in background ..."
+
+    # ضمان صلاحيات frappe على كل المجلدات المطلوبة
+    chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
+    chown -R frappe:frappe "${BENCH_DIR}" 2>/dev/null || true
+    chown -R frappe:frappe "$LOGS_DIR" 2>/dev/null || true
+
     (
         log "[BG] Waiting for MariaDB at ${DB_HOST}:${DB_PORT:-3306} ..."
 
@@ -369,21 +375,39 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
         done
 
         if [ "$MARIADB_READY" = "true" ]; then
-            log "[BG] Creating site '${SITE_NAME}' ..."
+            log "[BG] Creating site '${SITE_NAME}' as user 'frappe' ..."
             cd /home/frappe/frappe-bench
 
-            # محاولة إنشاء الموقع
-            bench new-site "$SITE_NAME" \
-                --db-host "$DB_HOST" \
-                --db-port "${DB_PORT:-3306}" \
-                --db-name "$DB_NAME" \
-                --db-user "$DB_USER" \
-                --db-password "$DB_PASSWORD" \
-                --admin-password "$ADMIN_PASSWORD" \
-                --install-app erpnext \
-                --install-app frappe \
-                --set-default \
-                --verbose 2>&1 || log "[BG] Site creation had errors (DB may already exist)"
+            # تحقق من إن قاعدة البيانات موجودة
+            log "[BG] Checking if database '${DB_NAME}' exists ..."
+            mysql -h "${DB_HOST}" -P "${DB_PORT:-3306}" -u "${DB_USER}" -p"${DB_PASSWORD}" -e "USE ${DB_NAME};" 2>&1 && {
+                log "[BG] Database '${DB_NAME}' already exists! Skipping new-site, running migrate instead..."
+                su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} migrate" 2>&1 || log "[BG] Migration had errors"
+            } || {
+                log "[BG] Database '${DB_NAME}' does not exist. Creating new site..."
+
+                # إنشاء الموقع كمستخدم frappe (مو root!)
+                su - frappe -c "cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
+                    --db-host ${DB_HOST} \
+                    --db-port ${DB_PORT:-3306} \
+                    --db-name ${DB_NAME} \
+                    --db-user ${DB_USER} \
+                    --db-password ${DB_PASSWORD} \
+                    --admin-password ${ADMIN_PASSWORD} \
+                    --install-app erpnext \
+                    --install-app frappe \
+                    --set-default \
+                    --verbose" 2>&1
+
+                SITE_RESULT=$?
+                if [ $SITE_RESULT -ne 0 ]; then
+                    log "[BG] bench new-site FAILED with exit code ${SITE_RESULT}"
+                    log "[BG] Trying migrate as fallback..."
+                    su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} migrate" 2>&1 || log "[BG] Migration also had errors"
+                else
+                    log "[BG] Site '${SITE_NAME}' created successfully!"
+                fi
+            }
 
             echo "$SITE_NAME" > "${SITES_DIR}/currentsite.txt"
             chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
