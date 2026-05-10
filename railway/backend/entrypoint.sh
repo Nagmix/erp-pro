@@ -5,7 +5,7 @@
 # هذا السكربت يُنفَّذ عند كل تشغيل للحاوية ويقوم بـ:
 #
 #   1. التحقق من اتصال قاعدة البيانات (MariaDB)
-#   2. التحقق من اتصال Redis
+#   2. التحقق من اتصال Redis (عبر Python — بدون redis-cli)
 #   3. إنشاء موقع Frappe جديد إذا لم يكن موجوداً
 #   4. تحديث إعدادات الموقع (db_host, redis, إلخ)
 #   5. تشغيل migrate إذا طُلب ذلك
@@ -48,10 +48,12 @@ wait_for_db() {
     log "MariaDB is ready!"
 }
 
+# فحص Redis عبر Python (متوفر في صورة ERPNext)
+# لأن redis-cli غير مثبت في الصورة الافتراضية
 wait_for_redis() {
     local redis_url="$1"
     local label="$2"
-    local max_retries=30
+    local max_retries=15
     local retry=0
 
     if [ -z "$redis_url" ]; then
@@ -59,15 +61,25 @@ wait_for_redis() {
         return 0
     fi
 
-    # استخراج host و port من URL مثل redis://host:port
+    # استخراج host و port من URL مثل redis://host:port أو redis://host:port/db
     local redis_host
     local redis_port
-    redis_host=$(echo "$redis_url" | sed -E 's#^redis://([^:]+).*#\1#')
-    redis_port=$(echo "$redis_url" | sed -E 's#^redis://[^:]+:([0-9]+).*#\1#')
+    redis_host=$(echo "$redis_url" | sed -E 's#^redis://([^:/]+).*#\1#')
+    redis_port=$(echo "$redis_url" | sed -E 's#^redis://[^:/]+:([0-9]+).*#\1#')
     redis_port="${redis_port:-6379}"
 
     log "Waiting for Redis (${label}) at ${redis_host}:${redis_port} ..."
-    while ! redis-cli -h "$redis_host" -p "$redis_port" ping > /dev/null 2>&1; do
+    while ! python3 -c "
+import socket, sys
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.settimeout(3)
+try:
+    s.connect(('${redis_host}', ${redis_port}))
+    s.close()
+    sys.exit(0)
+except:
+    sys.exit(1)
+" 2>/dev/null; do
         retry=$((retry + 1))
         if [ $retry -ge $max_retries ]; then
             log "WARNING: Redis (${label}) not available after ${max_retries} retries — continuing anyway"
@@ -167,12 +179,12 @@ if [ ! -d "$SITE_DIR" ]; then
         --install-app frappe \
         --set-default \
         --verbose 2>&1 || {
-            log "ERROR: Failed to create site '${SITE_NAME}'"
+            log "WARNING: Failed to create site '${SITE_NAME}'"
             log "This could be because the database already has data."
             log "Attempting to proceed with existing database ..."
         }
 
-    log "Site '${SITE_NAME}' created successfully!"
+    log "Site '${SITE_NAME}' creation attempt completed!"
 else
     log "Site '${SITE_NAME}' already exists — skipping creation."
 fi

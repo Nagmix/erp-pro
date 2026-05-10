@@ -25,6 +25,7 @@ USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor \
     curl \
+    redis-tools \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/log/supervisor \
     && mkdir -p /var/run/supervisor
@@ -50,7 +51,7 @@ RUN mkdir -p /home/frappe/frappe-bench/sites \
 # ------------------------------------------------------------------
 # المنافذ
 # ------------------------------------------------------------------
-# 8000 → gunicorn (Frappe/ERPNext API)
+# 8000 → gunicorn (Frappe/ERPNext API) — Railway healthcheck target
 # 9000 → socketio (WebSocket للتحديثات الفورية)
 EXPOSE 8000 9000
 
