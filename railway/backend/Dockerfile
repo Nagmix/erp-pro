@@ -53,8 +53,10 @@ RUN mkdir -p /home/frappe/logs \
 # ------------------------------------------------------------------
 COPY railway/backend/supervisord.conf /etc/supervisor/conf.d/erpnext.conf
 COPY railway/backend/entrypoint.sh   /usr/local/bin/entrypoint.sh
+COPY railway/backend/healthcheck.sh  /usr/local/bin/healthcheck.sh
 
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/healthcheck.sh
 
 # ------------------------------------------------------------------
 # المنافذ
@@ -64,8 +66,8 @@ EXPOSE 8000 9000
 # ------------------------------------------------------------------
 # فحص الصحة
 # ------------------------------------------------------------------
-HEALTHCHECK --interval=10s --timeout=5s --start-period=120s --retries=6 \
-    CMD curl -f http://localhost:${PORT:-8000}/api/method/ping || exit 1
+HEALTHCHECK --interval=15s --timeout=10s --start-period=180s --retries=10 \
+    CMD /usr/local/bin/healthcheck.sh
 
 # ------------------------------------------------------------------
 # نقطة الإدخال
