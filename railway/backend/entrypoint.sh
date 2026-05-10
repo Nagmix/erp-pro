@@ -2,26 +2,28 @@
 # ============================================================
 # ERP Pro — ERPNext Backend Entrypoint for Railway
 # ============================================================
-# استراتيجية سريعة: لا ننتظر الخدمات — نكتب الإعدادات فقط
-# ونبدأ supervisor فوراً. gunicorn و workers سيعيدون الاتصال تلقائياً.
-#
-# هذا يضمن إن gunicorn يبدأ خلال ثواني (وليس دقائق)
-# وبكذا healthcheck ينجح قبل الـ timeout
+# استراتيجية سريعة: نكتب الإعدادات ونبدأ supervisor فوراً
+# إنشاء الموقع يتم في الخلفية — gunicorn يبدأ خلال ثواني
 # ============================================================
 
 set -e
-
-# ----------------------------------------------------------
-# دوال مساعدة
-# ----------------------------------------------------------
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ENTRYPOINT] $*"
 }
 
 # ----------------------------------------------------------
-# بداية التنفيذ
+# اكتشاف المسارات الحقيقية
 # ----------------------------------------------------------
+
+BENCH_CMD=$(which bench 2>/dev/null || echo "bench")
+NODE_CMD=$(which node 2>/dev/null || echo "/usr/local/bin/node")
+GUNICORN_CMD=$(which gunicorn 2>/dev/null || echo "/home/frappe/frappe-bench/env/bin/gunicorn")
+
+BENCH_DIR="/home/frappe/frappe-bench"
+SITES_DIR="${BENCH_DIR}/sites"
+LOGS_DIR="/home/frappe/logs"
+COMMON_CONFIG="${SITES_DIR}/common_site_config.json"
 
 log "============================================"
 log "ERP Pro — ERPNext Backend (Railway)"
@@ -30,68 +32,83 @@ log "Site Name      : ${SITE_NAME}"
 log "DB Host        : ${DB_HOST:-<not set>}"
 log "DB Port        : ${DB_PORT:-3306}"
 log "DB Name        : ${DB_NAME}"
-log "DB User        : ${DB_USER}"
 log "PORT (Railway) : ${PORT:-8000}"
+log "bench path     : ${BENCH_CMD}"
+log "node path      : ${NODE_CMD}"
+log "gunicorn path  : ${GUNICORN_CMD}"
 log "Redis Cache    : ${REDIS_CACHE:-<not set>}"
 log "Redis Queue    : ${REDIS_QUEUE:-<not set>}"
 log "Redis Socketio : ${REDIS_SOCKETIO:-<not set>}"
 log "============================================"
 
 # ----------------------------------------------------------
-# 1. إعداد common_site_config.json (سريع — بدون انتظار)
+# 1. إنشاء المجلدات المفقودة (ضمان)
 # ----------------------------------------------------------
 
-BENCH_DIR="/home/frappe/frappe-bench"
-SITES_DIR="${BENCH_DIR}/sites"
-COMMON_CONFIG="${SITES_DIR}/common_site_config.json"
+mkdir -p "$LOGS_DIR"
+mkdir -p "${BENCH_DIR}/logs"
+mkdir -p "$SITES_DIR"
+mkdir -p "${SITES_DIR}/assets"
+chown -R frappe:frappe "$LOGS_DIR" 2>/dev/null || true
+chown -R frappe:frappe "${BENCH_DIR}/logs" 2>/dev/null || true
+chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
+
+log "Directories verified."
+
+# ----------------------------------------------------------
+# 2. إعداد common_site_config.json
+# ----------------------------------------------------------
 
 log "Configuring common_site_config.json ..."
 
 cd "$BENCH_DIR"
 
-# إنشاء الملف إذا لم يكن موجوداً
 if [ ! -f "$COMMON_CONFIG" ]; then
     echo '{}' > "$COMMON_CONFIG"
 fi
 
 # تعيين قاعدة البيانات
 if [ -n "$DB_HOST" ]; then
-    bench set-config -g db_host "$DB_HOST" 2>/dev/null || true
+    $BENCH_CMD set-config -g db_host "$DB_HOST" 2>/dev/null || true
 fi
 if [ -n "$DB_PORT" ]; then
-    bench set-config -g db_port "$(printf '%d' "$DB_PORT")" 2>/dev/null || true
+    $BENCH_CMD set-config -g db_port "$(printf '%d' "$DB_PORT")" 2>/dev/null || true
 fi
 
 # تعيين Redis
 if [ -n "$REDIS_CACHE" ]; then
-    bench set-config -g redis_cache "$REDIS_CACHE" 2>/dev/null || true
+    $BENCH_CMD set-config -g redis_cache "$REDIS_CACHE" 2>/dev/null || true
 fi
 if [ -n "$REDIS_QUEUE" ]; then
-    bench set-config -g redis_queue "$REDIS_QUEUE" 2>/dev/null || true
+    $BENCH_CMD set-config -g redis_queue "$REDIS_QUEUE" 2>/dev/null || true
 fi
 if [ -n "$REDIS_SOCKETIO" ]; then
-    bench set-config -g redis_socketio "$REDIS_SOCKETIO" 2>/dev/null || true
+    $BENCH_CMD set-config -g redis_socketio "$REDIS_SOCKETIO" 2>/dev/null || true
 fi
 
 # إعدادات عامة
-bench set-config -g socketio_port "${SOCKETIO_PORT:-9000}" 2>/dev/null || true
+$BENCH_CMD set-config -g socketio_port "${SOCKETIO_PORT:-9000}" 2>/dev/null || true
 
 log "common_site_config.json updated."
 
 # ----------------------------------------------------------
-# 2. إنشاء الموقع إذا لم يكن موجوداً (في الخلفية بعد أول تشغيل)
+# 3. تعيين الموقع كافتراضي
+# ----------------------------------------------------------
+
+DEFAULT_SITE_FILE="${SITES_DIR}/currentsite.txt"
+echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
+log "Default site set to '${SITE_NAME}'."
+
+# ----------------------------------------------------------
+# 4. إنشاء الموقع في الخلفية (إذا لم يكن موجوداً)
 # ----------------------------------------------------------
 
 SITE_DIR="${SITES_DIR}/${SITE_NAME}"
-DEFAULT_SITE_FILE="${SITES_DIR}/currentsite.txt"
 
 if [ ! -d "$SITE_DIR" ]; then
-    log "Site '${SITE_NAME}' does not exist — will create after services start ..."
+    log "Site '${SITE_NAME}' does not exist — will create in background ..."
 
-    # إنشاء الموقع في الخلفية حتى لا نوقف gunicorn
-    # supervisor سيعمل وجunicorn سيستجيب للـ healthcheck
     (
-        # انتظر قاعدة البيانات أولاً
         log "[BG] Waiting for MariaDB at ${DB_HOST}:${DB_PORT:-3306} ..."
         for i in $(seq 1 60); do
             if mysqladmin ping -h "$DB_HOST" -P "${DB_PORT:-3306}" -u "$DB_USER" -p"$DB_PASSWORD" --silent 2>/dev/null; then
@@ -106,7 +123,7 @@ if [ ! -d "$SITE_DIR" ]; then
         done
 
         log "[BG] Creating site '${SITE_NAME}' ..."
-        bench new-site "$SITE_NAME" \
+        $BENCH_CMD new-site "$SITE_NAME" \
             --db-host "$DB_HOST" \
             --db-port "${DB_PORT:-3306}" \
             --db-name "$DB_NAME" \
@@ -124,32 +141,19 @@ if [ ! -d "$SITE_DIR" ]; then
         chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
         log "[BG] Site '${SITE_NAME}' setup completed!"
     ) &
-    SITE_CREATE_PID=$!
-    log "Site creation running in background (PID: ${SITE_CREATE_PID})"
+    log "Site creation running in background (PID: $!)"
 else
     log "Site '${SITE_NAME}' already exists — skipping creation."
-    echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
 fi
 
 # ----------------------------------------------------------
-# 3. تعيين الموقع كافتراضي
-# ----------------------------------------------------------
-
-if [ -f "$DEFAULT_SITE_FILE" ]; then
-    log "Default site already set."
-else
-    echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
-    log "Default site set to '${SITE_NAME}'."
-fi
-
-# ----------------------------------------------------------
-# 4. تشغيل migrate إذا طُلب ذلك (في الخلفية أيضاً)
+# 5. تشغيل migrate إذا طُلب ذلك (في الخلفية)
 # ----------------------------------------------------------
 
 if [ "${FORCE_SITE_MIGRATE}" = "true" ] && [ -d "$SITE_DIR" ]; then
-    log "Running bench migrate in background (FORCE_SITE_MIGRATE=true) ..."
+    log "Running bench migrate in background ..."
     (
-        bench --site "$SITE_NAME" migrate 2>&1 || {
+        $BENCH_CMD --site "$SITE_NAME" migrate 2>&1 || {
             log "[BG] WARNING: Migration had warnings/errors"
         }
         log "[BG] Migration completed."
@@ -157,19 +161,29 @@ if [ "${FORCE_SITE_MIGRATE}" = "true" ] && [ -d "$SITE_DIR" ]; then
 fi
 
 # ----------------------------------------------------------
-# 5. تنظيم الصلاحيات
+# 6. تنظيم الصلاحيات
 # ----------------------------------------------------------
 
 chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
 chown -R frappe:frappe "${BENCH_DIR}/logs" 2>/dev/null || true
+chown -R frappe:frappe "$LOGS_DIR" 2>/dev/null || true
+
+# ----------------------------------------------------------
+# 7. تحديث مسارات supervisor بالمسارات الحقيقية
+# ----------------------------------------------------------
+
+SUPERVISOR_CONF="/etc/supervisor/conf.d/erpnext.conf"
+
+# استبدال المسارات الثابتة بالمسارات المكتشفة
+if [ -f "$SUPERVISOR_CONF" ]; then
+    sed -i "s|/home/frappe/frappe-bench/env/bin/bench|${BENCH_CMD}|g" "$SUPERVISOR_CONF"
+    sed -i "s|/home/frappe/frappe-bench/env/bin/node|${NODE_CMD}|g" "$SUPERVISOR_CONF"
+    sed -i "s|/home/frappe/frappe-bench/env/bin/gunicorn|${GUNICORN_CMD}|g" "$SUPERVISOR_CONF"
+    log "Supervisor paths updated: bench=${BENCH_CMD}, node=${NODE_CMD}, gunicorn=${GUNICORN_CMD}"
+fi
 
 log "============================================"
 log "Entrypoint complete — starting supervisor NOW"
-log "(site setup continues in background if needed)"
 log "============================================"
-
-# ----------------------------------------------------------
-# 6. تنفيذ الأمر المُمرَّر (CMD = supervisord)
-# ----------------------------------------------------------
 
 exec "$@"
