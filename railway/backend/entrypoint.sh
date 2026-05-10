@@ -30,6 +30,7 @@ log "DB_NAME         : ${DB_NAME:-<not set>}"
 log "DB_USER         : ${DB_USER:-<not set>}"
 log "PORT (Railway)  : ${PORT:-8000}"
 log "REDIS_URL       : ${REDIS_URL:-<not set>}"
+log "MYSQL_ROOT_PW   : ${MYSQL_ROOT_PASSWORD:+<set>}${MYSQL_ROOT_PASSWORD:-<not set>}"
 log "============================================"
 
 # ----------------------------------------------------------
@@ -322,6 +323,16 @@ site_config = {
 if os.environ.get('DB_USER'):
     site_config['db_user'] = os.environ.get('DB_USER')
 
+# إضافة بيانات root لـ MariaDB — مطلوبة لـ bench new-site
+# بدونها، bench يسأل تفاعلياً عن كلمة مرور root ويفشل في الخلفية
+root_password = os.environ.get('MYSQL_ROOT_PASSWORD', '')
+if root_password:
+    site_config['root_login'] = 'root'
+    site_config['root_password'] = root_password
+    print(f"[SITE_CONFIG] Added root_login=root, root_password=<set>")
+else:
+    print(f"[SITE_CONFIG] WARNING: MYSQL_ROOT_PASSWORD not set! bench new-site will fail!")
+
 config_path = '${SITE_CONFIG}'
 with open(config_path, 'w') as f:
     json.dump(site_config, f, indent=2)
@@ -435,18 +446,42 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
 
                 # إنشاء الموقع كمستخدم frappe (مو root!)
                 # --force مطلوب لأننا سوينا مجلد الموقع و site_config.json مسبقاً
-                su - frappe -c "cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
-                    --db-host ${DB_HOST} \
-                    --db-port ${DB_PORT:-3306} \
-                    --db-name ${DB_NAME} \
-                    --db-user ${DB_USER} \
-                    --db-password ${DB_PASSWORD} \
-                    --admin-password ${ADMIN_PASSWORD} \
-                    --install-app erpnext \
-                    --install-app frappe \
-                    --set-default \
-                    --force \
-                    --verbose" 2>&1
+                # --db-root-username و --db-root-password مطلوبين عشان ما يسأل تفاعلياً
+                DB_ROOT_USER="root"
+                DB_ROOT_PASS="${MYSQL_ROOT_PASSWORD:-}"
+
+                if [ -z "$DB_ROOT_PASS" ]; then
+                    log "[BG] WARNING: MYSQL_ROOT_PASSWORD is not set!"
+                    log "[BG] Trying bench new-site without root credentials (may fail)..."
+                    su - frappe -c "cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
+                        --db-host ${DB_HOST} \
+                        --db-port ${DB_PORT:-3306} \
+                        --db-name ${DB_NAME} \
+                        --db-user ${DB_USER} \
+                        --db-password ${DB_PASSWORD} \
+                        --admin-password ${ADMIN_PASSWORD} \
+                        --install-app erpnext \
+                        --install-app frappe \
+                        --set-default \
+                        --force \
+                        --verbose" 2>&1
+                else
+                    log "[BG] Using root credentials for bench new-site..."
+                    su - frappe -c "cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
+                        --db-host ${DB_HOST} \
+                        --db-port ${DB_PORT:-3306} \
+                        --db-root-username ${DB_ROOT_USER} \
+                        --db-root-password '${DB_ROOT_PASS}' \
+                        --db-name ${DB_NAME} \
+                        --db-user ${DB_USER} \
+                        --db-password ${DB_PASSWORD} \
+                        --admin-password ${ADMIN_PASSWORD} \
+                        --install-app erpnext \
+                        --install-app frappe \
+                        --set-default \
+                        --force \
+                        --verbose" 2>&1
+                fi
 
                 SITE_RESULT=$?
                 if [ $SITE_RESULT -ne 0 ]; then
