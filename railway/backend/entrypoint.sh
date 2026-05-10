@@ -2,16 +2,11 @@
 # ============================================================
 # ERP Pro — ERPNext Backend Entrypoint for Railway
 # ============================================================
-# هذا السكربت يُنفَّذ عند كل تشغيل للحاوية ويقوم بـ:
+# استراتيجية سريعة: لا ننتظر الخدمات — نكتب الإعدادات فقط
+# ونبدأ supervisor فوراً. gunicorn و workers سيعيدون الاتصال تلقائياً.
 #
-#   1. التحقق من اتصال قاعدة البيانات (MariaDB)
-#   2. التحقق من اتصال Redis (عبر Python — بدون redis-cli)
-#   3. إنشاء موقع Frappe جديد إذا لم يكن موجوداً
-#   4. تحديث إعدادات الموقع (db_host, redis, إلخ)
-#   5. تشغيل migrate إذا طُلب ذلك
-#   6. تعيين الموقع كافتراضي (default)
-#   7. تسليم التحكم إلى CMD (supervisord)
-#
+# هذا يضمن إن gunicorn يبدأ خلال ثواني (وليس دقائق)
+# وبكذا healthcheck ينجح قبل الـ timeout
 # ============================================================
 
 set -e
@@ -24,73 +19,6 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [ENTRYPOINT] $*"
 }
 
-wait_for_db() {
-    local max_retries=60
-    local retry=0
-    local db_host="${DB_HOST}"
-    local db_port="${DB_PORT:-3306}"
-
-    if [ -z "$db_host" ]; then
-        log "WARNING: DB_HOST is not set — skipping DB wait check"
-        return 0
-    fi
-
-    log "Waiting for MariaDB at ${db_host}:${db_port} ..."
-    while ! mysqladmin ping -h "$db_host" -P "$db_port" -u "$DB_USER" -p"$DB_PASSWORD" --silent 2>/dev/null; do
-        retry=$((retry + 1))
-        if [ $retry -ge $max_retries ]; then
-            log "ERROR: MariaDB not available after ${max_retries} retries — exiting"
-            exit 1
-        fi
-        log "  Attempt ${retry}/${max_retries} — MariaDB not ready, waiting 5s ..."
-        sleep 5
-    done
-    log "MariaDB is ready!"
-}
-
-# فحص Redis عبر Python (متوفر في صورة ERPNext)
-# لأن redis-cli غير مثبت في الصورة الافتراضية
-wait_for_redis() {
-    local redis_url="$1"
-    local label="$2"
-    local max_retries=15
-    local retry=0
-
-    if [ -z "$redis_url" ]; then
-        log "WARNING: ${label} is not set — skipping Redis wait check"
-        return 0
-    fi
-
-    # استخراج host و port من URL مثل redis://host:port أو redis://host:port/db
-    local redis_host
-    local redis_port
-    redis_host=$(echo "$redis_url" | sed -E 's#^redis://([^:/]+).*#\1#')
-    redis_port=$(echo "$redis_url" | sed -E 's#^redis://[^:/]+:([0-9]+).*#\1#')
-    redis_port="${redis_port:-6379}"
-
-    log "Waiting for Redis (${label}) at ${redis_host}:${redis_port} ..."
-    while ! python3 -c "
-import socket, sys
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.settimeout(3)
-try:
-    s.connect(('${redis_host}', ${redis_port}))
-    s.close()
-    sys.exit(0)
-except:
-    sys.exit(1)
-" 2>/dev/null; do
-        retry=$((retry + 1))
-        if [ $retry -ge $max_retries ]; then
-            log "WARNING: Redis (${label}) not available after ${max_retries} retries — continuing anyway"
-            return 0
-        fi
-        log "  Attempt ${retry}/${max_retries} — Redis (${label}) not ready, waiting 3s ..."
-        sleep 3
-    done
-    log "Redis (${label}) is ready!"
-}
-
 # ----------------------------------------------------------
 # بداية التنفيذ
 # ----------------------------------------------------------
@@ -98,27 +26,19 @@ except:
 log "============================================"
 log "ERP Pro — ERPNext Backend (Railway)"
 log "============================================"
-log "Site Name : ${SITE_NAME}"
-log "DB Host   : ${DB_HOST:-<not set>}"
-log "DB Port   : ${DB_PORT:-3306}"
-log "DB Name   : ${DB_NAME}"
-log "DB User   : ${DB_USER}"
-log "Redis Cache   : ${REDIS_CACHE:-<not set>}"
-log "Redis Queue   : ${REDIS_QUEUE:-<not set>}"
-log "Redis Socketio: ${REDIS_SOCKETIO:-<not set>}"
+log "Site Name      : ${SITE_NAME}"
+log "DB Host        : ${DB_HOST:-<not set>}"
+log "DB Port        : ${DB_PORT:-3306}"
+log "DB Name        : ${DB_NAME}"
+log "DB User        : ${DB_USER}"
+log "PORT (Railway) : ${PORT:-8000}"
+log "Redis Cache    : ${REDIS_CACHE:-<not set>}"
+log "Redis Queue    : ${REDIS_QUEUE:-<not set>}"
+log "Redis Socketio : ${REDIS_SOCKETIO:-<not set>}"
 log "============================================"
 
 # ----------------------------------------------------------
-# 1. الانتظار حتى تكون الخدمات جاهزة
-# ----------------------------------------------------------
-
-wait_for_db
-wait_for_redis "$REDIS_CACHE"   "cache"
-wait_for_redis "$REDIS_QUEUE"   "queue"
-wait_for_redis "$REDIS_SOCKETIO" "socketio"
-
-# ----------------------------------------------------------
-# 2. إعداد common_site_config.json
+# 1. إعداد common_site_config.json (سريع — بدون انتظار)
 # ----------------------------------------------------------
 
 BENCH_DIR="/home/frappe/frappe-bench"
@@ -127,13 +47,12 @@ COMMON_CONFIG="${SITES_DIR}/common_site_config.json"
 
 log "Configuring common_site_config.json ..."
 
+cd "$BENCH_DIR"
+
 # إنشاء الملف إذا لم يكن موجوداً
 if [ ! -f "$COMMON_CONFIG" ]; then
     echo '{}' > "$COMMON_CONFIG"
 fi
-
-# تحديث الإعدادات عبر bench (أو مباشرة عبر Python)
-cd "$BENCH_DIR"
 
 # تعيين قاعدة البيانات
 if [ -n "$DB_HOST" ]; then
@@ -160,69 +79,97 @@ bench set-config -g socketio_port "${SOCKETIO_PORT:-9000}" 2>/dev/null || true
 log "common_site_config.json updated."
 
 # ----------------------------------------------------------
-# 3. إنشاء الموقع إذا لم يكن موجوداً
+# 2. إنشاء الموقع إذا لم يكن موجوداً (في الخلفية بعد أول تشغيل)
 # ----------------------------------------------------------
 
 SITE_DIR="${SITES_DIR}/${SITE_NAME}"
-
-if [ ! -d "$SITE_DIR" ]; then
-    log "Site '${SITE_NAME}' does not exist — creating new site ..."
-
-    bench new-site "$SITE_NAME" \
-        --db-host "$DB_HOST" \
-        --db-port "${DB_PORT:-3306}" \
-        --db-name "$DB_NAME" \
-        --db-user "$DB_USER" \
-        --db-password "$DB_PASSWORD" \
-        --admin-password "$ADMIN_PASSWORD" \
-        --install-app erpnext \
-        --install-app frappe \
-        --set-default \
-        --verbose 2>&1 || {
-            log "WARNING: Failed to create site '${SITE_NAME}'"
-            log "This could be because the database already has data."
-            log "Attempting to proceed with existing database ..."
-        }
-
-    log "Site '${SITE_NAME}' creation attempt completed!"
-else
-    log "Site '${SITE_NAME}' already exists — skipping creation."
-fi
-
-# ----------------------------------------------------------
-# 4. تعيين الموقع كافتراضي
-# ----------------------------------------------------------
-
 DEFAULT_SITE_FILE="${SITES_DIR}/currentsite.txt"
 
-echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
-log "Default site set to '${SITE_NAME}'."
+if [ ! -d "$SITE_DIR" ]; then
+    log "Site '${SITE_NAME}' does not exist — will create after services start ..."
 
-# ----------------------------------------------------------
-# 5. تشغيل migrate إذا طُلب ذلك
-# ----------------------------------------------------------
+    # إنشاء الموقع في الخلفية حتى لا نوقف gunicorn
+    # supervisor سيعمل وجunicorn سيستجيب للـ healthcheck
+    (
+        # انتظر قاعدة البيانات أولاً
+        log "[BG] Waiting for MariaDB at ${DB_HOST}:${DB_PORT:-3306} ..."
+        for i in $(seq 1 60); do
+            if mysqladmin ping -h "$DB_HOST" -P "${DB_PORT:-3306}" -u "$DB_USER" -p"$DB_PASSWORD" --silent 2>/dev/null; then
+                log "[BG] MariaDB is ready!"
+                break
+            fi
+            if [ $i -eq 60 ]; then
+                log "[BG] ERROR: MariaDB not available after 60 retries"
+                exit 1
+            fi
+            sleep 5
+        done
 
-if [ "${FORCE_SITE_MIGRATE}" = "true" ]; then
-    log "Running bench migrate (FORCE_SITE_MIGRATE=true) ..."
-    bench --site "$SITE_NAME" migrate 2>&1 || {
-        log "WARNING: Migration had warnings/errors but continuing ..."
-    }
-    log "Migration completed."
+        log "[BG] Creating site '${SITE_NAME}' ..."
+        bench new-site "$SITE_NAME" \
+            --db-host "$DB_HOST" \
+            --db-port "${DB_PORT:-3306}" \
+            --db-name "$DB_NAME" \
+            --db-user "$DB_USER" \
+            --db-password "$DB_PASSWORD" \
+            --admin-password "$ADMIN_PASSWORD" \
+            --install-app erpnext \
+            --install-app frappe \
+            --set-default \
+            --verbose 2>&1 || {
+                log "[BG] WARNING: Site creation had errors — database may already exist"
+            }
+
+        echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
+        chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
+        log "[BG] Site '${SITE_NAME}' setup completed!"
+    ) &
+    SITE_CREATE_PID=$!
+    log "Site creation running in background (PID: ${SITE_CREATE_PID})"
+else
+    log "Site '${SITE_NAME}' already exists — skipping creation."
+    echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
 fi
 
 # ----------------------------------------------------------
-# 6. تنظيم الصلاحيات
+# 3. تعيين الموقع كافتراضي
+# ----------------------------------------------------------
+
+if [ -f "$DEFAULT_SITE_FILE" ]; then
+    log "Default site already set."
+else
+    echo "$SITE_NAME" > "$DEFAULT_SITE_FILE"
+    log "Default site set to '${SITE_NAME}'."
+fi
+
+# ----------------------------------------------------------
+# 4. تشغيل migrate إذا طُلب ذلك (في الخلفية أيضاً)
+# ----------------------------------------------------------
+
+if [ "${FORCE_SITE_MIGRATE}" = "true" ] && [ -d "$SITE_DIR" ]; then
+    log "Running bench migrate in background (FORCE_SITE_MIGRATE=true) ..."
+    (
+        bench --site "$SITE_NAME" migrate 2>&1 || {
+            log "[BG] WARNING: Migration had warnings/errors"
+        }
+        log "[BG] Migration completed."
+    ) &
+fi
+
+# ----------------------------------------------------------
+# 5. تنظيم الصلاحيات
 # ----------------------------------------------------------
 
 chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
 chown -R frappe:frappe "${BENCH_DIR}/logs" 2>/dev/null || true
 
 log "============================================"
-log "Entrypoint complete — handing off to CMD"
+log "Entrypoint complete — starting supervisor NOW"
+log "(site setup continues in background if needed)"
 log "============================================"
 
 # ----------------------------------------------------------
-# 7. تنفيذ الأمر المُمرَّر (CMD)
+# 6. تنفيذ الأمر المُمرَّر (CMD = supervisord)
 # ----------------------------------------------------------
 
 exec "$@"

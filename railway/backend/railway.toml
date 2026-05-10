@@ -1,16 +1,11 @@
 # ============================================================
 # ERP Pro — Railway Backend Configuration
 # ============================================================
-# هذا الملف يُخبر Railway كيف يبني ويُشغّل خدمة ERPNext Backend
-# ملاحظة: Railway قد يستخدم railway.toml الجذر بدلاً من هذا الملف
-# لذلك تأكد إن railway.toml الجذر يحتوي نفس إعدادات healthcheck
-# ============================================================
 
 [build]
 builder = "dockerfile"
 
 [deploy]
-# فحص الصحة — Frappe يوفر /api/method/ping
 healthcheckPath = "/api/method/ping"
 healthcheckTimeout = 600
 restartPolicyType = "on_failure"

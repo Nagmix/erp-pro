@@ -2,7 +2,7 @@
 # ERP Pro — ERPNext Backend for Railway
 # ============================================================
 # صورة واحدة تُشغّل جميع خدمات Frappe/ERPNext v16 عبر supervisor:
-#   - gunicorn (API server)      → port 8000
+#   - gunicorn (API server)      → PORT env variable (Railway standard)
 #   - scheduler                  → background jobs
 #   - worker-default             → default queue
 #   - worker-long                → long-running queue
@@ -14,6 +14,7 @@
 #   - MariaDB و Redis كخدمات مُدارة من Railway
 #   - الإدخال عبر entrypoint.sh الذي يُهيئ الموقع عند أول تشغيل
 #   - مسارات COPY نسبية من جذر المستودع (Railway build context = repo root)
+#   - gunicorn يستمع على PORT (الذي Railway يعيّنه تلقائياً)
 # ============================================================
 
 FROM frappe/erpnext:v16
@@ -51,27 +52,17 @@ RUN mkdir -p /home/frappe/frappe-bench/sites \
 # ------------------------------------------------------------------
 # المنافذ
 # ------------------------------------------------------------------
-# 8000 → gunicorn (Frappe/ERPNext API) — Railway healthcheck target
+# Railway يعيّن PORT تلقائياً — gunicorn يستمع عليه
 # 9000 → socketio (WebSocket للتحديثات الفورية)
 EXPOSE 8000 9000
 
 # ------------------------------------------------------------------
-# متغيرات البيئة الافتراضية
+# فحص الصحة داخل Docker (أكثر موثوقية من railway.toml)
+# يعطي 120 ثانية قبل أول فحص (start-period)
+# ثم يفحص كل 10 ثوان
 # ------------------------------------------------------------------
-ENV SITE_NAME="erppro" \
-    DB_HOST="" \
-    DB_PORT="3306" \
-    DB_NAME="erpnext" \
-    DB_USER="root" \
-    DB_PASSWORD="" \
-    ADMIN_PASSWORD="admin" \
-    REDIS_CACHE="" \
-    REDIS_QUEUE="" \
-    REDIS_SOCKETIO="" \
-    SOCKETIO_PORT="9000" \
-    FRAPPE_WORKER_TIMEOUT="120" \
-    GUNICORN_WORKERS="2" \
-    FORCE_SITE_MIGRATE="false"
+HEALTHCHECK --interval=10s --timeout=5s --start-period=120s --retries=6 \
+    CMD curl -f http://localhost:${PORT:-8000}/api/method/ping || exit 1
 
 # ------------------------------------------------------------------
 # نقطة الإدخال — تهيئة الموقع + تشغيل supervisor
