@@ -2,8 +2,8 @@
  * إعدادات تهيئة النظام
  *
  * يُدير هذا الملف تكوين إعدادات تهيئة النظام المخزَّنة في localStorage.
- * يشمل ذلك الشركة الافتراضية، والفروع المفعلة، والوحدات النمطية،
- * والعملة، والدولة، واللغة.
+ * يشمل ذلك الشركة الافتراضية، والوحدات النمطية، والعملة، والدولة، واللغة،
+ * وبيانات العلامة التجارية للشركة.
  */
 
 // ---------------------------------------------------------------------------
@@ -27,7 +27,7 @@ export interface SetupConfig {
   /** اسم الشركة الافتراضية */
   defaultCompany: string;
 
-  /** هل الفروع مفعلة */
+  /** هل الفروع مفعلة — يُحفظ دائماً كـ false (نظام شركة واحدة) */
   branchesEnabled: boolean;
 
   /** الوحدات المفعلة - قائمة بأسماء الوحدات النمطية المُفعَّلة */
@@ -41,6 +41,21 @@ export interface SetupConfig {
 
   /** اللغة (مثل: ar, en) */
   language: string;
+
+  /** شعار الشركة (base64) */
+  companyLogo?: string;
+
+  /** شعار الشركة / الوصف */
+  companyTagline?: string;
+
+  /** هاتف الشركة */
+  companyPhone?: string;
+
+  /** عنوان الشركة */
+  companyAddress?: string;
+
+  /** الرقم الضريبي */
+  companyTaxId?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -81,7 +96,6 @@ export function getSetupConfig(): SetupConfig | null {
       typeof parsed === 'object' &&
       parsed !== null &&
       'defaultCompany' in parsed &&
-      'branchesEnabled' in parsed &&
       'enabledModules' in parsed &&
       'currency' in parsed &&
       'country' in parsed &&
@@ -111,11 +125,16 @@ export function getSetupConfig(): SetupConfig | null {
  * ```ts
  * setSetupConfig({
  *   defaultCompany: 'شركة النور',
- *   branchesEnabled: true,
+ *   branchesEnabled: false,
  *   enabledModules: ['المحاسبة', 'المبيعات', 'المشتريات'],
  *   currency: 'YER',
  *   country: 'السعودية',
  *   language: 'ar',
+ *   companyLogo: 'data:image/png;base64,...',
+ *   companyTagline: 'الريادة في التجارة',
+ *   companyPhone: '+966123456789',
+ *   companyAddress: 'الرياض، المملكة العربية السعودية',
+ *   companyTaxId: '300000000000003',
  * });
  * ```
  */
@@ -139,16 +158,9 @@ export function setSetupConfig(config: SetupConfig): void {
 /**
  * يتحقق مما إذا كانت الفروع مفعلة في إعدادات التهيئة.
  *
- * يُرجع `false` إذا لم تكن هناك إعدادات محفوظة.
+ * يُرجع `false` دائماً لأن النظام يدعم شركة واحدة فقط.
  *
  * @returns `true` إذا كانت الفروع مفعلة، `false` بخلاف ذلك
- *
- * @example
- * ```ts
- * if (isBranchesEnabled()) {
- *   // عرض حقل اختيار الفرع
- * }
- * ```
  */
 export function isBranchesEnabled(): boolean {
   const config = getSetupConfig();
@@ -165,8 +177,7 @@ export function isBranchesEnabled(): boolean {
  * @example
  * ```ts
  * const modules = getEnabledModules();
- * // ["المحاسبة", "المبيعات", "المشتريات"]
- * if (modules.includes('المبيعات')) {
+ * if (modules.includes('sales')) {
  *   // عرض قائمة المبيعات
  * }
  * ```

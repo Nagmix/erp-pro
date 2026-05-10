@@ -4,6 +4,8 @@ import { jwtVerify } from 'jose';
 import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 import { canAccessPath } from '@/lib/auth/route-access';
 import { CSRF_COOKIE, CSRF_HEADER } from '@/lib/auth/csrf-constants';
+import fs from 'fs';
+import path from 'path';
 
 // ============================================================
 // Next.js 16+ proxy (edge gateway — export named `proxy`).
@@ -50,19 +52,6 @@ function isStaticAssetPath(pathname: string): boolean {
   return staticExts.includes(ext);
 }
 
-function decodeJwtPayloadUnsafe(token: string): { userId?: string; roles?: string[]; exp?: number } | null {
-  const parts = token.split('.');
-  if (parts.length !== 3) return null;
-  try {
-    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const pad = (4 - (b64.length % 4)) % 4;
-    const json = atob(b64 + '='.repeat(pad));
-    return JSON.parse(json) as { userId?: string; roles?: string[]; exp?: number };
-  } catch {
-    return null;
-  }
-}
-
 // Legacy token support removed for security — all sessions must use signed JWT
 
 async function verifySessionCookie(token: string): Promise<{ userId: string; roles: string[] } | null> {
@@ -99,6 +88,36 @@ function redirectToForbidden(request: NextRequest): NextResponse {
 
 const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
+// ─── فحص اكتمال الإعداد ──────────────────────────────────────
+// تخزين مؤقت لحالة الإعداد لتقليل قراءات الملف
+let _setupCompleteCache: boolean | null = null;
+let _setupCheckTime = 0;
+const SETUP_CHECK_TTL = 10_000; // 10 ثوانٍ
+
+function isSetupComplete(): boolean {
+  const now = Date.now();
+  if (_setupCompleteCache !== null && (now - _setupCheckTime) < SETUP_CHECK_TTL) {
+    return _setupCompleteCache;
+  }
+  try {
+    const dir = process.env.ERP_PRO_DATA_DIR || path.join(process.cwd(), 'data');
+    const configPath = path.join(dir, 'app-config.json');
+    const raw = fs.readFileSync(configPath, 'utf8');
+    const config = JSON.parse(raw) as { setupComplete?: boolean };
+    _setupCompleteCache = config.setupComplete === true;
+    _setupCheckTime = now;
+    return _setupCompleteCache;
+  } catch {
+    _setupCompleteCache = false;
+    _setupCheckTime = now;
+    return false;
+  }
+}
+
+function redirectToSetup(request: NextRequest): NextResponse {
+  return NextResponse.redirect(new URL('/setup', request.url));
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -119,7 +138,25 @@ export async function proxy(request: NextRequest) {
       return NextResponse.next();
     }
 
+    // ─── حارس الإعداد ────────────────────────────────────────
+    // إذا لم يكن الإعداد مكتملاً، أعد التوجيه إلى صفحة الإعداد
+    // المسارات المعفاة: /api/*, /_next/*, /setup, /login, /forbidden, الملفات الثابتة
     const isApiRoute = pathname === '/api' || pathname.startsWith('/api/');
+    const setupDone = isSetupComplete();
+
+    if (!setupDone) {
+      if (!isApiRoute) {
+        return redirectToSetup(request);
+      }
+      // لطلبات API: إذا كان الإعداد غير مكتمل، اسمح فقط بمسارات الإعداد العامة
+      if (!isPublicApiPath(pathname)) {
+        return NextResponse.json(
+          { success: false, error: 'الإعداد غير مكتمل. يرجى إكمال الإعداد أولاً.' },
+          { status: 503 }
+        );
+      }
+    }
+
     if (isApiRoute) {
       if (isPublicApiPath(pathname)) {
         return NextResponse.next();
