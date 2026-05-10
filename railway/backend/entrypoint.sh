@@ -106,31 +106,48 @@ if db_port:
 #   2. REDIS_HOST + REDIS_PORT + REDIS_PASSWORD
 #   3. REDIS_CACHE + REDIS_QUEUE + REDIS_SOCKETIO (فردية)
 # ----------------------------------------------------------
-redis_url = os.environ.get('REDIS_URL', '')
-redis_host = os.environ.get('REDIS_HOST', '')
-redis_port = os.environ.get('REDIS_PORT', '6379')
-redis_password = os.environ.get('REDIS_PASSWORD', '')
+redis_url = os.environ.get('REDIS_URL', '').strip()
+redis_host = os.environ.get('REDIS_HOST', '').strip()
+redis_port = os.environ.get('REDIS_PORT', '6379').strip()
+redis_password = os.environ.get('REDIS_PASSWORD', '').strip()
 
-redis_cache = os.environ.get('REDIS_CACHE', '')
-redis_queue = os.environ.get('REDIS_QUEUE', '')
-redis_socketio = os.environ.get('REDIS_SOCKETIO', '')
+redis_cache_env = os.environ.get('REDIS_CACHE', '').strip()
+redis_queue_env = os.environ.get('REDIS_QUEUE', '').strip()
+redis_socketio_env = os.environ.get('REDIS_SOCKETIO', '').strip()
 
-if redis_url:
+print(f"[CONFIG] REDIS_URL = '{redis_url}'")
+print(f"[CONFIG] REDIS_HOST = '{redis_host}'")
+print(f"[CONFIG] REDIS_CACHE env = '{redis_cache_env}'")
+print(f"[CONFIG] REDIS_QUEUE env = '{redis_queue_env}'")
+print(f"[CONFIG] REDIS_SOCKETIO env = '{redis_socketio_env}'")
+
+# ----------------------------------------------------------
+# دالة مساعدة: بناء 3 Redis URLs من base URL
+# نضيف أرقام قاعدة بيانات مختلفة:
+#   redis_cache    -> DB 0
+#   redis_queue    -> DB 1
+#   redis_socketio -> DB 2
+# ----------------------------------------------------------
+def build_redis_urls(base):
+    """Build 3 Redis URLs with different DB numbers from a base URL."""
+    # إزالة رقم DB الموجود في النهاية إن وُجد
+    clean = re.sub(r'/\d+$', '', base)
+    # إزالة الـ slash في النهاية إن وُجد
+    clean = clean.rstrip('/')
+    return {
+        'redis_cache': clean + '/0',
+        'redis_queue': clean + '/1',
+        'redis_socketio': clean + '/2',
+    }
+
+if redis_url and redis_url.startswith('redis://'):
     # REDIS_URL من Railway: redis://default:PASSWORD@HOST:PORT
-    # نزيل أي رقم قاعدة بيانات في النهاية ثم نضيف أرقام مختلفة
-    # redis_cache   -> DB 0
-    # redis_queue   -> DB 1
-    # redis_socketio -> DB 2
-    base_url = re.sub(r'/\d+$', '', redis_url)
-
-    config['redis_cache'] = base_url + '/0'
-    config['redis_queue'] = base_url + '/1'
-    config['redis_socketio'] = base_url + '/2'
-
+    urls = build_redis_urls(redis_url)
+    config.update(urls)
     print(f"[CONFIG] Built Redis URLs from REDIS_URL:")
-    print(f"  redis_cache    = {config['redis_cache']}")
-    print(f"  redis_queue    = {config['redis_queue']}")
-    print(f"  redis_socketio = {config['redis_socketio']}")
+    print(f"  redis_cache    = {urls['redis_cache']}")
+    print(f"  redis_queue    = {urls['redis_queue']}")
+    print(f"  redis_socketio = {urls['redis_socketio']}")
 
 elif redis_host:
     # بناء من REDIS_HOST + REDIS_PORT + REDIS_PASSWORD
@@ -140,27 +157,49 @@ elif redis_host:
         auth = ''
 
     base = f'redis://{auth}{redis_host}:{redis_port}'
-
-    config['redis_cache'] = base + '/0'
-    config['redis_queue'] = base + '/1'
-    config['redis_socketio'] = base + '/2'
-
+    urls = build_redis_urls(base)
+    config.update(urls)
     print(f"[CONFIG] Built Redis URLs from REDIS_HOST/PORT:")
+    print(f"  redis_cache    = {urls['redis_cache']}")
+    print(f"  redis_queue    = {urls['redis_queue']}")
+    print(f"  redis_socketio = {urls['redis_socketio']}")
+
+elif redis_cache_env and redis_queue_env and redis_socketio_env:
+    # استخدام الروابط الفردية — نضيف أرقام DB مختلفة
+    # لأن Railway Redis يعطي نفس URL لكل الثلاثة
+    # نضيف /0 و /1 و /2 لكل واحد
+    if '/0' not in redis_cache_env and '/1' not in redis_cache_env and '/2' not in redis_cache_env:
+        config['redis_cache'] = redis_cache_env.rstrip('/') + '/0'
+    else:
+        config['redis_cache'] = redis_cache_env
+
+    if '/0' not in redis_queue_env and '/1' not in redis_queue_env and '/2' not in redis_queue_env:
+        config['redis_queue'] = redis_queue_env.rstrip('/') + '/1'
+    else:
+        config['redis_queue'] = redis_queue_env
+
+    if '/0' not in redis_socketio_env and '/1' not in redis_socketio_env and '/2' not in redis_socketio_env:
+        config['redis_socketio'] = redis_socketio_env.rstrip('/') + '/2'
+    else:
+        config['redis_socketio'] = redis_socketio_env
+
+    print(f"[CONFIG] Built Redis URLs from individual env vars:")
     print(f"  redis_cache    = {config['redis_cache']}")
     print(f"  redis_queue    = {config['redis_queue']}")
     print(f"  redis_socketio = {config['redis_socketio']}")
 
+elif redis_cache_env:
+    # فقط REDIS_CACHE متوفر — نبني الثلاثة منه
+    urls = build_redis_urls(redis_cache_env)
+    config.update(urls)
+    print(f"[CONFIG] Built all Redis URLs from REDIS_CACHE:")
+    print(f"  redis_cache    = {urls['redis_cache']}")
+    print(f"  redis_queue    = {urls['redis_queue']}")
+    print(f"  redis_socketio = {urls['redis_socketio']}")
+
 else:
-    # استخدام الروابط الفردية إن وُجدت
-    if redis_cache:
-        config['redis_cache'] = redis_cache
-        print(f"[CONFIG] Set redis_cache = {redis_cache}")
-    if redis_queue:
-        config['redis_queue'] = redis_queue
-        print(f"[CONFIG] Set redis_queue = {redis_queue}")
-    if redis_socketio:
-        config['redis_socketio'] = redis_socketio
-        print(f"[CONFIG] Set redis_socketio = {redis_socketio}")
+    print("[CONFIG] WARNING: No Redis configuration found! Services will fail.")
+    print("[CONFIG] Set REDIS_URL or REDIS_CACHE/QUEUE/SOCKETIO or REDIS_HOST environment variables.")
 
 # ----------------------------------------------------------
 # إعدادات إضافية
