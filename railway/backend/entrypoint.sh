@@ -338,11 +338,24 @@ fi
 # 6. إنشاء الموقع في الخلفية — كمستخدم frappe
 # ----------------------------------------------------------
 
-# نتحقق هل الموقع فعلاً أنشئ (نحتاج مجلد private + قاعدة بيانات)
+# نتحقق هل الموقع فعلاً أنشئ بشكل كامل
+# الطريقة الوحيدة الموثوقة: نتحقق من وجود جدول tabDocType في قاعدة البيانات
 SITE_INITIALIZED=false
-if [ -d "${SITE_DIR}/private" ] && [ -d "${SITE_DIR}/public" ]; then
-    SITE_INITIALIZED=true
-    log "Site '${SITE_NAME}' appears to be already initialized."
+if command -v mysql &>/dev/null; then
+    # تحقق من وجود الجداول الأساسية في قاعدة البيانات
+    if mysql -h "${DB_HOST}" -P "${DB_PORT:-3306}" -u "${DB_USER}" -p"${DB_PASSWORD}" "${DB_NAME}" \
+        -e "SELECT name FROM tabDocType LIMIT 1;" 2>/dev/null | grep -q "name"; then
+        SITE_INITIALIZED=true
+        log "Site '${SITE_NAME}' is fully initialized (tabDocType exists)."
+    else
+        log "Site '${SITE_NAME}' database exists but tables are missing — needs setup."
+    fi
+else
+    # بدون mysql، نتحقق من مجلد private فقط
+    if [ -d "${SITE_DIR}/private" ] && [ -d "${SITE_DIR}/public" ]; then
+        SITE_INITIALIZED=true
+        log "Site '${SITE_NAME}' appears to be already initialized (file check)."
+    fi
 fi
 
 if [ "$SITE_INITIALIZED" = "false" ]; then
@@ -395,13 +408,30 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
             mkdir -p "/home/frappe/frappe-bench/sites/${SITE_NAME}/locks"
             chown -R frappe:frappe "/home/frappe/frappe-bench/sites/${SITE_NAME}" 2>/dev/null || true
 
-            # تحقق من إن قاعدة البيانات موجودة
-            log "[BG] Checking if database '${DB_NAME}' exists ..."
-            mysql -h "${DB_HOST}" -P "${DB_PORT:-3306}" -u "${DB_USER}" -p"${DB_PASSWORD}" -e "USE ${DB_NAME};" 2>&1 && {
-                log "[BG] Database '${DB_NAME}' already exists! Skipping new-site, running migrate instead..."
+            # تحقق من إن قاعدة البيانات موجودة ولديها جداول
+            log "[BG] Checking if database '${DB_NAME}' has Frappe tables..."
+            DB_HAS_TABLES=false
+            if mysql -h "${DB_HOST}" -P "${DB_PORT:-3306}" -u "${DB_USER}" -p"${DB_PASSWORD}" "${DB_NAME}" \
+                -e "SELECT name FROM tabDocType LIMIT 1;" 2>/dev/null | grep -q "name"; then
+                DB_HAS_TABLES=true
+            fi
+
+            if [ "$DB_HAS_TABLES" = "true" ]; then
+                log "[BG] Database '${DB_NAME}' has Frappe tables! Running migrate..."
                 su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} migrate" 2>&1 || log "[BG] Migration had errors"
-            } || {
-                log "[BG] Database '${DB_NAME}' does not exist. Creating new site..."
+            else
+                log "[BG] Database '${DB_NAME}' is empty or missing tables."
+
+                # حذف قاعدة البيانات الفارغة إن وجدت
+                mysql -h "${DB_HOST}" -P "${DB_PORT:-3306}" -u root -p"${MYSQL_ROOT_PASSWORD:-${DB_PASSWORD}}" \
+                    -e "DROP DATABASE IF EXISTS \`${DB_NAME}\`; CREATE DATABASE \`${DB_NAME}\`;" 2>/dev/null || {
+                    # لو ما نقدر كـ root، نحاول كـ المستخدم العادي
+                    log "[BG] Could not recreate DB as root, trying as user..."
+                    mysql -h "${DB_HOST}" -P "${DB_PORT:-3306}" -u "${DB_USER}" -p"${DB_PASSWORD}" \
+                        -e "DROP DATABASE IF EXISTS \`${DB_NAME}\`; CREATE DATABASE \`${DB_NAME}\`;" 2>/dev/null || log "[BG] Could not recreate DB, will try new-site anyway"
+                }
+
+                log "[BG] Creating new site '${SITE_NAME}'..."
 
                 # إنشاء الموقع كمستخدم frappe (مو root!)
                 su - frappe -c "cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
@@ -424,7 +454,7 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
                 else
                     log "[BG] Site '${SITE_NAME}' created successfully!"
                 fi
-            }
+            fi
 
             echo "$SITE_NAME" > "${SITES_DIR}/currentsite.txt"
             chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
