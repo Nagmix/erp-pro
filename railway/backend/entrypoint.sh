@@ -57,6 +57,18 @@ if [ ! -L "/home/frappe/frappe-bench/env/bin/node" ] && [ ! -f "/home/frappe/fra
     log "Created node symlink -> ${NODE_REAL}"
 fi
 
+# ----------------------------------------------------------
+# 1.2 ★ تطبيق إصلاحات أخطاء ERPNext (patches)
+# ----------------------------------------------------------
+PATCHES_DIR="${BENCH_DIR}/patches"
+if [ -f "${PATCHES_DIR}/fix_erpnext_bugs.py" ]; then
+    log "Applying ERPNext bug patches..."
+    cd "$BENCH_DIR"
+    python3 "${PATCHES_DIR}/fix_erpnext_bugs.py" 2>&1 || log "WARNING: Some patches failed (non-fatal)"
+else
+    log "WARNING: Patches directory not found at ${PATCHES_DIR}"
+fi
+
 log "Directories and symlinks verified."
 
 # ----------------------------------------------------------

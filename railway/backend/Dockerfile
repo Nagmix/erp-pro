@@ -59,6 +59,12 @@ COPY railway/backend/healthcheck.sh  /usr/local/bin/healthcheck.sh
 COPY railway/backend/wsgi_wrapper.py /home/frappe/frappe-bench/wsgi_wrapper.py
 COPY railway/backend/wsgi_wrapper.py /home/frappe/frappe-bench/sites/wsgi_wrapper.py
 
+# ------------------------------------------------------------------
+# نسخ ملفات إصلاح الأخطاء (patches)
+# ------------------------------------------------------------------
+COPY railway/backend/patches/ /home/frappe/frappe-bench/patches/
+RUN chmod +x /home/frappe/frappe-bench/patches/*.py
+
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     && chmod +x /usr/local/bin/healthcheck.sh
 
