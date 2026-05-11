@@ -886,3 +886,30 @@ Stage Summary:
 - ZERO mock/dummy/seed data remaining
 - ALL 188 pages connected to real ERPNext API
 - Completion rate: ~97%
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix setup wizard 500 error - ERPNext v16 compatibility and authentication fixes
+
+Work Log:
+- Tested ERPNext backend API directly (login, ping, createDoc for various doctypes)
+- Identified that Warehouse Type uses "Prompt" naming in v16, requiring `__newname` field
+- Identified error response format inconsistency (using `message` instead of `error` field)
+- Identified that ensureSystemSession skips re-login when API keys exist, even if they're invalid (401)
+- Identified that test-connection doesn't save admin credentials to connection file properly
+- Fixed Warehouse Type creation to use `{ __newname: wt }` for v16 Prompt naming
+- Fixed error response in Company creation to use `error` field instead of `message`
+- Fixed ensureSystemSession to accept `forceLogin` parameter for 401 recovery
+- Fixed 401 handler in internalRequest to fall back to session login when API keys fail
+- Fixed test-connection to always save admin credentials to frappe-backend.json
+- Fixed User creation to skip when email is "Administrator" (system user)
+- Fixed API key generation to save to connection file (not just .env.local)
+- Improved error handling for duplicate detection patterns
+- Added detailed console logging for setup step failures
+- Cleaned up test data from ERPNext backend
+- Pushed all changes to GitHub
+
+Stage Summary:
+- Root causes of 500 error: (1) Warehouse Type v16 Prompt naming, (2) error response format mismatch, (3) API key auth failure without recovery
+- All fixes committed and pushed to main branch
+- TypeScript compilation passes with no errors
