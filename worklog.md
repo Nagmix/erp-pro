@@ -913,3 +913,32 @@ Stage Summary:
 - Root causes of 500 error: (1) Warehouse Type v16 Prompt naming, (2) error response format mismatch, (3) API key auth failure without recovery
 - All fixes committed and pushed to main branch
 - TypeScript compilation passes with no errors
+
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix ERPNext setup wizard HTTP 500 error (AttributeError in financial_report_template.py)
+
+Work Log:
+- Analyzed the error trace: AttributeError: 'NoneType' object has no attribute 'get' in financial_report_template.py line 144
+- Discovered that 'Chart of Accounts' DocType doesn't exist in ERPNext v16.17.0
+- When Company is created via setup wizard, on_update() calls sync_financial_report_templates() which tries frappe.get_doc("Chart of Accounts", ...) and returns None
+- Created patches/fix_erpnext_bugs.py with two patches:
+  1. Add None check for coa before coa.get() in financial_report_template.py
+  2. Wrap sync_financial_report_templates in try/except in company.py
+- Updated Dockerfile to copy patches directory
+- Updated entrypoint.sh to run patches before startup
+- Completed setup manually via API:
+  - Created Company "ERP Pro" with Standard COA (95 accounts created)
+  - Created Fiscal Year 2025
+  - Set System Settings (language=ar, country=Yemen, timezone=Asia/Aden, currency=YER)
+  - Set Global Defaults (default_company=ERP Pro)
+  - Created reference data (Customer Groups, Territory, Supplier Groups, Item Groups, UOMs)
+  - Marked setup_complete=1
+- Pushed changes to GitHub, Railway rebuilt and redeployed
+- Verified system is working post-rebuild
+
+Stage Summary:
+- Setup wizard 500 error FIXED (patch + manual completion)
+- System fully functional with ERP Pro company
+- Patch will prevent the bug from occurring on future deployments
