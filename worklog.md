@@ -20,3 +20,24 @@ Stage Summary:
 - المشروع محمل بالكامل ومتصل بالخادم الخلفي بنجاح
 - ERPNext v16.17.0 يعمل على Railway
 - النظام جاهز لاستقبال التعليمات من المستخدم
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: إصلاح مشكلة فشل الإعداد - "فشل الاتصال بالخادم" على Railway
+
+Work Log:
+- تحليل شامل لسير الإعداد من الواجهة حتى ERPNext
+- اكتشاف أن frappe-connection-store يقرأ من frappe-backend.json (gitignored) وليس frappe-connection.json
+- اكتشاف أن isBackendAvailable() يعتمد على getResolvedBackendHost() الذي قد لا يقرأ الملف المحفوظ حديثاً
+- اكتشاف أن ensureJwtSecret() و updateEnvFile() قد تفشل على Railway لأن filesystem للقراءة فقط
+- إضافة fallback في frappe-connection-store لقراءة frappe-connection.json عند عدم وجود frappe-backend.json
+- تعديل execute route لاستخدام Ping مباشر بدلاً من isBackendAvailable()
+- جعل ensureJwtSecret و updateEnvFile آمنتين عند عدم القدرة على الكتابة
+- تحديث Dockerfile بنسخ data/ وإضافة متغيرات بيئة افتراضية وتوليد AUTH_JWT_SECRET
+- دفع التغييرات إلى GitHub (commit 99a2c00)
+
+Stage Summary:
+- تم إصلاح 4 مشاكل مترابطة تسبب فشل الإعداد على Railway
+- التغييرات ستكون فعالة بعد إعادة نشر Railway تلقائياً من GitHub
+- يجب على المستخدم إعادة محاولة الإعداد بعد اكتمال النشر
