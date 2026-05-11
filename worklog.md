@@ -942,3 +942,27 @@ Stage Summary:
 - Setup wizard 500 error FIXED (patch + manual completion)
 - System fully functional with ERP Pro company
 - Patch will prevent the bug from occurring on future deployments
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix IndentationError caused by previous company.py patch
+
+Work Log:
+- Previous patch replaced sync_financial_report_templates() with try/except using hardcoded indentation
+- This caused IndentationError because the try: was placed at column 0 instead of the correct indentation level
+- Rewrote patches/fix_erpnext_bugs.py with:
+  - Line-by-line processing that detects original indentation
+  - Handles fixing previously broken patches (try: at wrong indent)
+  - Context-aware indentation detection from surrounding code
+  - Python syntax validation (compile()) before writing the file
+  - Fallback indentation of 8 spaces (class body → method body)
+- Tested locally with both "broken state" and "original state" scenarios - both passed
+- Pushed to GitHub, Railway rebuilt successfully
+- Verified: Company creation works without IndentationError
+- Verified: Setup wizard endpoint works (only MandatoryError for existing user - expected)
+
+Stage Summary:
+- IndentationError FIXED - company.py patch now preserves correct indentation
+- Company creation works correctly (tested with multiple companies)
+- The patch will work correctly on fresh deployments too
