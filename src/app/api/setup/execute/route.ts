@@ -10,7 +10,7 @@ import {
   buildEmployeeCreate,
 } from '@/lib/erp/erpnext-payloads';
 import { setupTaxPackage } from '@/lib/server/tax-setup';
-import { getBackendVersion, isBackendV16OrLater, saveFrappeConnectionFile, clearFrappeConnectionCache } from '@/lib/server/frappe-connection-store';
+import { getBackendVersion, isBackendV16OrLater, saveFrappeConnectionFile, clearFrappeConnectionCache, getResolvedBackendHost } from '@/lib/server/frappe-connection-store';
 import fs from 'fs';
 import path from 'path';
 import { randomBytes } from 'crypto';
@@ -68,39 +68,51 @@ function ensureJwtSecret(): void {
   process.env.AUTH_JWT_SECRET = generated;
 
   // حفظ في .env.local للاستخدام بعد إعادة التشغيل
-  const envPath = path.join(process.cwd(), '.env.local');
-  let content = '';
-  try { content = fs.readFileSync(envPath, 'utf8'); } catch { /* لا يوجد */ }
+  // على Railway وبيئات Docker، قد لا يكون الملف قابلاً للكتابة — لا مشكلة
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    let content = '';
+    try { content = fs.readFileSync(envPath, 'utf8'); } catch { /* لا يوجد */ }
 
-  const varName = 'AUTH_JWT_SECRET';
-  const regex = new RegExp(`^${varName}=.*$`, 'm');
-  if (regex.test(content)) {
-    content = content.replace(regex, `${varName}=${generated}`);
-  } else {
-    content += `\n${varName}=${generated}`;
+    const varName = 'AUTH_JWT_SECRET';
+    const regex = new RegExp(`^${varName}=.*$`, 'm');
+    if (regex.test(content)) {
+      content = content.replace(regex, `${varName}=${generated}`);
+    } else {
+      content += `\n${varName}=${generated}`;
+    }
+    fs.writeFileSync(envPath, content, 'utf8');
+    console.log('[Setup] Generated AUTH_JWT_SECRET and saved to .env.local');
+  } catch (writeErr) {
+    // على Railway أو Docker، الملف قد لا يكون قابل للكتابة
+    // المهم أن المتغير مضبوط في الذاكرة (process.env) لجلسة الحالية
+    console.warn('[Setup] Could not save AUTH_JWT_SECRET to .env.local (expected on Railway/Docker):', (writeErr as Error).message);
   }
-  fs.writeFileSync(envPath, content, 'utf8');
-  console.log('[Setup] Generated AUTH_JWT_SECRET and saved to .env.local');
 }
 
-/** تحديث ملف .env.local بمفاتيح API */
+/** تحديث ملف .env.local بمفاتيح API — آمنة عند عدم القدرة على الكتابة */
 function updateEnvFile(apiKey: string, apiSecret: string): void {
-  const envPath = path.join(process.cwd(), '.env.local');
-  let content = '';
-  try { content = fs.readFileSync(envPath, 'utf8'); } catch { /* لا يوجد */ }
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    let content = '';
+    try { content = fs.readFileSync(envPath, 'utf8'); } catch { /* لا يوجد */ }
 
-  const setVar = (name: string, value: string) => {
-    const regex = new RegExp(`^${name}=.*$`, 'm');
-    if (regex.test(content)) {
-      content = content.replace(regex, `${name}=${value}`);
-    } else {
-      content += `\n${name}=${value}`;
-    }
-  };
+    const setVar = (name: string, value: string) => {
+      const regex = new RegExp(`^${name}=.*$`, 'm');
+      if (regex.test(content)) {
+        content = content.replace(regex, `${name}=${value}`);
+      } else {
+        content += `\n${name}=${value}`;
+      }
+    };
 
-  setVar('BACKEND_API_KEY', apiKey);
-  setVar('BACKEND_API_SECRET', apiSecret);
-  fs.writeFileSync(envPath, content, 'utf8');
+    setVar('BACKEND_API_KEY', apiKey);
+    setVar('BACKEND_API_SECRET', apiSecret);
+    fs.writeFileSync(envPath, content, 'utf8');
+  } catch (writeErr) {
+    // على Railway أو Docker، الملف قد لا يكون قابل للكتابة
+    console.warn('[Setup] Could not save API keys to .env.local (expected on Railway/Docker):', (writeErr as Error).message);
+  }
 }
 
 type SetupStepResult = { step: string; status: 'ok' | 'skip' | 'error'; message: string; name?: string };
@@ -187,9 +199,23 @@ export async function POST(request: NextRequest) {
       clearFrappeConnectionCache();
     }
 
-    // التحقق من توفر الخادم
-    const available = await isBackendAvailable().catch(() => false);
-    if (!available) {
+    // التحقق من توفر الخادم — نستخدم Ping مباشرة بدلاً من isBackendAvailable()
+    // لأن isBackendAvailable() يعتمد على getResolvedBackendHost() الذي قد لا يقرأ
+    // الملف المحفوظ حديثاً في بعض البيئات (مثل Railway)
+    let backendReachable = false;
+    try {
+      const pingHost = backendHost || getResolvedBackendHost();
+      const pingResponse = await fetch(`${pingHost}/api/method/ping`, {
+        method: 'GET',
+        headers: { Accept: 'application/json', 'X-Frappe-Site-Name': 'erppro' },
+        signal: AbortSignal.timeout(15000),
+      });
+      backendReachable = pingResponse.ok;
+    } catch {
+      backendReachable = false;
+    }
+
+    if (!backendReachable) {
       return NextResponse.json({
         success: false,
         error: 'تعذر الاتصال بالخادم. تأكد من أن عنوان الخادم صحيح وأنه قيد التشغيل، ثم أعد المحاولة.',

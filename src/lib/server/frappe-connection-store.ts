@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 
 const FILE_NAME = 'frappe-backend.json';
+const LEGACY_FILE_NAME = 'frappe-connection.json'; // ملف قديم — نقرأ منه كـ fallback
 
 type FileShape = {
   backendHost?: string;
@@ -29,6 +30,11 @@ function filePath(): string {
   return path.join(dir, FILE_NAME);
 }
 
+function legacyFilePath(): string {
+  const dir = process.env.ERP_PRO_DATA_DIR || path.join(process.cwd(), 'data');
+  return path.join(dir, LEGACY_FILE_NAME);
+}
+
 function readFile(): FileShape {
   const fp = filePath();
   try {
@@ -39,7 +45,16 @@ function readFile(): FileShape {
     cache = { mtime: st.mtimeMs, data };
     return data;
   } catch {
-    return {};
+    // الملف الرئيسي غير موجود — جرب الملف القديم
+    try {
+      const legacyFp = legacyFilePath();
+      const raw = fs.readFileSync(legacyFp, 'utf8');
+      const data = JSON.parse(raw) as FileShape;
+      cache = { mtime: 0, data };
+      return data;
+    } catch {
+      return {};
+    }
   }
 }
 

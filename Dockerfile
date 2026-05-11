@@ -68,7 +68,8 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy data directory for app config
-RUN mkdir -p /app/data && chown nextjs:nodejs /app/data
+COPY --from=builder /app/data ./data
+RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
 
 USER nextjs
 
@@ -76,5 +77,16 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# Default backend connection for Railway deployment
+# Can be overridden via Railway environment variables
+ARG BACKEND_HOST_DEFAULT=https://erpnext-backend-production-cde7.up.railway.app
+ENV BACKEND_HOST=$BACKEND_HOST_DEFAULT
+ARG BACKEND_SITE_NAME=erppro
+ENV BACKEND_SITE_NAME=$BACKEND_SITE_NAME
+ARG BACKEND_ADMIN_USER=Administrator
+ENV BACKEND_ADMIN_USER=$BACKEND_ADMIN_USER
+# Generate a default JWT secret at build time
+RUN echo "AUTH_JWT_SECRET=$(openssl rand -base64 32)" >> /app/.env.local 2>/dev/null || true
 
 CMD ["node", "server.js"]
