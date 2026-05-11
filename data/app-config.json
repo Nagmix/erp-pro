@@ -17,7 +17,5 @@
   "taxEnabled": true,
   "taxRate": 5,
   "taxName": "ضريبة المبيعات",
-  "erpnextVersion": "v15",
-  "setupComplete": true,
-  "setupDate": "2026-05-04T19:19:33.789Z"
+  "erpnextVersion": "v15"
 }

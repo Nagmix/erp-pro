@@ -138,13 +138,15 @@ export async function POST(request: NextRequest) {
       // فشل توليد المفاتيح — ليس حرجاً
     }
 
-    // حفظ المضيف وبيانات الدخول على الأقل
-    if (!apiKey || !apiSecret) {
-      saveFrappeConnectionFile({ backendHost: host });
-      clearFrappeConnectionCache();
-      process.env.BACKEND_ADMIN_USER = adminUser;
-      process.env.BACKEND_ADMIN_PASSWORD = adminPassword;
-    }
+    // حفظ المضيف وبيانات الدخول — دائماً نحفظ بيانات الدخول لضمان عمل ensureSystemSession
+    saveFrappeConnectionFile({
+      backendHost: host,
+      adminUser: adminUser,
+      adminPassword: adminPassword,
+      backendSiteName: 'erppro',
+      ...(apiKey && apiSecret ? { apiKey, apiSecret } : {}),
+    });
+    clearFrappeConnectionCache();
 
     return NextResponse.json({
       success: true,

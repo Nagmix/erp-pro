@@ -246,15 +246,25 @@ export async function POST(request: NextRequest) {
 
     // ── 0.5 إنشاء الأنواع الأساسية المطلوبة لإنشاء الشركة ─────
     // ERPNext v15+ يتطلب وجود Warehouse Types قبل إنشاء الشركة
+    // v16: Warehouse Type يستخدم Prompt naming ويتطلب حقل __newname
     try {
       const requiredWarehouseTypes = ['Transit', 'Store', 'Manufacturing'];
       for (const wt of requiredWarehouseTypes) {
         try {
-          await createDoc('Warehouse Type', { name: wt });
-        } catch { /* قد يكون موجوداً بالفعل */ }
+          // v16 compat: استخدام __newname لأن Warehouse Type يستخدم Prompt autonaming
+          await createDoc('Warehouse Type', { __newname: wt });
+        } catch (e) {
+          const em = e instanceof Error ? e.message : '';
+          if (em.includes('already exists') || em.includes('Duplicate') || em.includes('duplicate')) {
+            // موجود بالفعل — لا مشكلة
+          } else {
+            console.warn(`[Setup] Warehouse Type "${wt}" warning:`, em);
+          }
+        }
       }
       results.push({ step: 'warehouseTypes', status: 'ok', message: 'تم التأكد من وجود أنواع المستودعات المطلوبة' });
-    } catch {
+    } catch (e) {
+      console.warn('[Setup] Warehouse Types step failed:', e instanceof Error ? e.message : e);
       results.push({ step: 'warehouseTypes', status: 'skip', message: 'تم تخطي إنشاء أنواع المستودعات' });
     }
 
@@ -287,12 +297,13 @@ export async function POST(request: NextRequest) {
       results.push({ step: 'company', status: 'ok', message: 'تم إنشاء الشركة بنجاح', name: companyDocName });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'فشل إنشاء الشركة';
-      if (msg.includes('already exists') || msg.includes('Duplicate')) {
+      console.error('[Setup] Company creation error:', msg);
+      if (msg.includes('already exists') || msg.includes('Duplicate') || msg.includes('duplicate')) {
         companyDocName = companyName;
         results.push({ step: 'company', status: 'skip', message: 'الشركة موجودة بالفعل', name: companyDocName });
       } else {
         results.push({ step: 'company', status: 'error', message: msg });
-        return NextResponse.json({ success: false, message: 'فشل إنشاء الشركة', data: { results } }, { status: 500 });
+        return NextResponse.json({ success: false, error: `فشل إنشاء الشركة: ${msg}`, data: { results } }, { status: 500 });
       }
     }
 
@@ -460,19 +471,36 @@ export async function POST(request: NextRequest) {
     try {
       // إنشاء سجلات الجنس (Gender) — مطلوبة في ERPNext v15+
       for (const g of ['Male', 'Female']) {
-        try { await createDoc('Gender', { gender: g }); } catch { /* موجود */ }
+        try { await createDoc('Gender', { gender: g }); } catch (e) {
+          const em = e instanceof Error ? e.message : '';
+          if (!em.includes('already exists') && !em.includes('Duplicate')) {
+            console.warn(`[Setup] Gender "${g}" warning:`, em);
+          }
+        }
       }
 
       // إنشاء المسمى الوظيفي
       try {
         await createDoc('Designation', { designation_name: finalDesignation });
-      } catch { /* قد يكون موجوداً بالفعل */ }
+      } catch (e) {
+        const em = e instanceof Error ? e.message : '';
+        if (!em.includes('already exists') && !em.includes('Duplicate')) {
+          console.warn(`[Setup] Designation "${finalDesignation}" warning:`, em);
+        }
+      }
 
-      // إنشاء القسم
+      // إنشاء القسم — company حقل إلزامي في v16
       try {
         await createDoc('Department', { department_name: finalDepartment, company: companyDocName, is_group: 1 });
-      } catch { /* قد يكون موجوداً بالفعل */ }
-    } catch { /* تجاهل */ }
+      } catch (e) {
+        const em = e instanceof Error ? e.message : '';
+        if (!em.includes('already exists') && !em.includes('Duplicate')) {
+          console.warn(`[Setup] Department "${finalDepartment}" warning:`, em);
+        }
+      }
+    } catch (e) {
+      console.warn('[Setup] Reference records step warning:', e instanceof Error ? e.message : e);
+    }
 
     // ── 8. إنشاء موظف الإدارة ──────────────────────────────
     let employeeDocName = '';
@@ -522,6 +550,11 @@ export async function POST(request: NextRequest) {
 
     if (adminEmail && adminPassword) {
       try {
+        // تجنب إنشاء مستخدم بنفس بريد Administrator
+        const isSystemAdmin = adminEmail.toLowerCase() === 'administrator';
+        if (isSystemAdmin) {
+          results.push({ step: 'adminUser', status: 'skip', message: 'تم تخطي إنشاء المستخدم الإداري لأن البريد هو Administrator — يتم استخدام الحساب الافتراضي' });
+        } else {
         // إنشاء المستخدم
         const userPayload: Record<string, unknown> = {
           doctype: 'User',
@@ -546,18 +579,22 @@ export async function POST(request: NextRequest) {
           results.push({ step: 'adminUser', status: 'ok', message: `تم إنشاء المستخدم الإداري: ${adminEmail}` });
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'فشل إنشاء المستخدم';
-          if (msg.includes('already exists') || msg.includes('Duplicate')) {
+          if (msg.includes('already exists') || msg.includes('Duplicate') || msg.includes('duplicate')) {
             results.push({ step: 'adminUser', status: 'skip', message: `المستخدم موجود بالفعل: ${adminEmail}` });
           } else {
+            console.error('[Setup] User creation error:', msg);
             results.push({ step: 'adminUser', status: 'error', message: msg });
           }
         }
+        } // end of else (not Administrator)
 
         // توليد مفاتيح API للمستخدم
+        // استخدام adminEmail أو Administrator حسب نوع الحساب
+        const keysTargetUser = isSystemAdmin ? 'Administrator' : adminEmail;
         try {
           const keyResult = await callMethod(
             'frappe.core.doctype.user.user.generate_keys',
-            { user: adminEmail }
+            { user: keysTargetUser }
           ) as Record<string, unknown>;
 
           apiKey = String(keyResult?.api_key || keyResult?.name || '');
@@ -565,8 +602,11 @@ export async function POST(request: NextRequest) {
           apiSecret = String(keyResult?.api_secret || keyResult?.secret || '');
 
           if (apiKey) {
+            // تحديث ملف الاتصال بمفاتيح API الجديدة
+            saveFrappeConnectionFile({ apiKey, apiSecret });
             // تحديث ملف .env.local
             updateEnvFile(apiKey, apiSecret);
+            clearFrappeConnectionCache();
             results.push({
               step: 'apiKey',
               status: 'ok',
@@ -577,7 +617,8 @@ export async function POST(request: NextRequest) {
           }
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'فشل توليد مفاتيح API';
-          results.push({ step: 'apiKey', status: 'error', message: `تعذرت توليد مفاتيح API: ${msg}` });
+          console.warn('[Setup] API key generation warning:', msg);
+          results.push({ step: 'apiKey', status: 'skip', message: `تعذرت توليد مفاتيح API: ${msg}` });
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'فشل إعداد المستخدم الإداري';
@@ -701,7 +742,7 @@ export async function POST(request: NextRequest) {
       data: { results },
     });
   } catch (error) {
-    console.error('[Setup Execute] Error:', error);
+    console.error('[Setup Execute] Unhandled error:', error);
     const msg = error instanceof Error ? error.message : 'فشل تنفيذ الإعداد';
     return NextResponse.json({
       success: false,

@@ -20,6 +20,7 @@ import {
   getBackendVersion,
   isBackendV16OrLater,
   loadFrappeConnectionFile,
+  clearFrappeConnectionCache,
 } from '@/lib/server/frappe-connection-store';
 
 // Backend server configuration - SERVER SIDE ONLY
@@ -291,11 +292,19 @@ async function internalRequest(
         body: body ? JSON.stringify(body) : undefined,
       });
 
-      if (response.status === 401 && !userSession && !usesFrappeTokenAuth()) {
+      if (response.status === 401 && !userSession) {
+        // إذا كانت مفاتيح API لا تعمل، نحاول تسجيل الدخول بالكلمة السرية بدلاً منها
+        if (usesFrappeTokenAuth()) {
+          console.warn('[Internal API] API token auth returned 401, falling back to session login');
+        }
         systemSession = null;
-        await ensureSystemSession();
+        // مسح cache حتى نقرأ ملف الاتصال المحدث
+        clearFrappeConnectionCache();
+        // forceLogin=true لتخطي فحص usesFrappeTokenAuth وتسجيل الدخول بالكلمة السرية
+        await ensureSystemSession(true);
         if (systemSession) {
           headers['Cookie'] = `sid=${systemSession}`;
+          delete headers['Authorization'];
           const ms = Date.now() - t0;
           logBackendRequest(method, path, ms, false, '401→reauth');
           continue;
@@ -342,9 +351,10 @@ async function internalRequest(
 // System Authentication (for background tasks / initial setup)
 // ============================================================
 
-async function ensureSystemSession(): Promise<void> {
-  if (usesFrappeTokenAuth()) return;
-  if (systemSession && Date.now() < sessionExpiry) return;
+async function ensureSystemSession(forceLogin: boolean = false): Promise<void> {
+  // إذا تم طلب تسجيل دخول قسري (مثلاً بعد فشل API keys) نتخطى فحص token
+  if (!forceLogin && usesFrappeTokenAuth()) return;
+  if (!forceLogin && systemSession && Date.now() < sessionExpiry) return;
 
   // قراءة بيانات الدخول من متغيرات البيئة أو من ملف الاتصال المحلي
   const connectionFile = loadFrappeConnectionFile();
