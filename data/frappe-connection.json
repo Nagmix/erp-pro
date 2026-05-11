@@ -1,6 +1,7 @@
 {
-  "backendHost": "http://localhost:8081",
-  "apiKey": "b4535ac3d16ed15",
-  "apiSecret": "bd243ad47a85466",
-  "updatedAt": "2026-05-03T22:40:00.000Z"
+  "backendHost": "https://erpnext-backend-production-cde7.up.railway.app",
+  "adminUser": "Administrator",
+  "adminPassword": "ErpPro2025Admin!",
+  "backendSiteName": "erppro",
+  "updatedAt": "2026-05-12T00:00:00.000Z"
 }
