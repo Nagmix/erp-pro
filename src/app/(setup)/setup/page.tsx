@@ -56,7 +56,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { apiExecuteSetup } from '@/lib/client/api';
+import { apiExecuteSetup, apiCheckSetupStatus } from '@/lib/client/api';
 import { setSetupConfig } from '@/lib/core/setup-config';
 
 // ─── أنواع ────────────────────────────────────────────────────
@@ -400,8 +400,29 @@ export default function SetupWizardPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [credentialsCopied, setCredentialsCopied] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [checkingSetup, setCheckingSetup] = useState(true);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ── التحقق من اكتمال الإعداد عند فتح الصفحة ────────────────
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const status = await apiCheckSetupStatus();
+        if (!cancelled && status.configured) {
+          // الإعداد مكتمل بالفعل — تحويل للداشبورد
+          router.replace('/');
+          return;
+        }
+      } catch {
+        // فشل الفحص — ربما الخادم غير متاح، نعرض المعالج
+      } finally {
+        if (!cancelled) setCheckingSetup(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [router]);
 
   const [form, setForm] = useState<FormData>({
     backendHost: '',
@@ -747,6 +768,21 @@ export default function SetupWizardPage() {
   // ── علامة التقدم ──────────────────────────────────────────
 
   const progressPercent = ((currentStep + 1) / STEPS.length) * 100;
+
+  // ════════════════════════════════════════════════════════════
+  // شاشة التحقق من حالة الإعداد
+  // ════════════════════════════════════════════════════════════
+
+  if (checkingSetup) {
+    return (
+      <div className="min-h-screen bg-gradient-to-bl from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center" dir="rtl">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mx-auto" />
+          <p className="text-lg text-muted-foreground">جاري التحقق من حالة الإعداد...</p>
+        </div>
+      </div>
+    );
+  }
 
   // ════════════════════════════════════════════════════════════
   // شاشة النجاح

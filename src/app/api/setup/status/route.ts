@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCount, isBackendAvailable } from '@/lib/server/backend';
+import { getCount, callMethod, isBackendAvailable } from '@/lib/server/backend';
 import fs from 'fs';
 import path from 'path';
 
@@ -26,13 +26,13 @@ function isSetupFlagSet(): boolean {
 /**
  * GET /api/setup/status
  * التحقق من حالة إعداد النظام — هل الشركة والسنة المالية ومركز التكلفة موجودة؟
+ * يفحص أولاً الملف المحلي، ثم ERPNext نفسه
  */
 export async function GET() {
   try {
     const available = await isBackendAvailable().catch(() => false);
 
     if (!available) {
-      // الخادم غير متاح — نُبلغ أن الإعداد مطلوب
       return NextResponse.json({
         success: true,
         data: {
@@ -55,17 +55,25 @@ export async function GET() {
       });
     }
 
-    // فحص ERPNext مباشرة
-    const [companyCount, fiscalYearCount, costCenterCount] = await Promise.all([
+    // فحص ERPNext مباشرة — نتأكد من وجود شركة + سنة مالية + مركز تكلفة
+    // وكذلك نتحقق من System Settings.setup_complete
+    const [companyCount, fiscalYearCount, costCenterCount, setupCompleteValue] = await Promise.all([
       getCount('Company').catch(() => 0),
       getCount('Fiscal Year', [['disabled', '=', '0']] as string[][]).catch(() => 0),
       getCount('Cost Center', [['is_group', '=', '0']] as string[][]).catch(() => 0),
+      callMethod('frappe.client.get_value', {
+        doctype: 'System Settings',
+        fieldname: 'setup_complete',
+      }).catch(() => ({ setup_complete: 0 })),
     ]);
 
     const company = companyCount > 0;
     const fiscalYear = fiscalYearCount > 0;
     const costCenter = costCenterCount > 0;
-    const configured = company && fiscalYear && costCenter;
+    const erpSetupComplete = Boolean(
+      (setupCompleteValue as Record<string, unknown>)?.setup_complete
+    );
+    const configured = (company && fiscalYear && costCenter) || erpSetupComplete;
 
     return NextResponse.json({
       success: true,
