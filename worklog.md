@@ -47,3 +47,24 @@ Stage Summary:
 - Key fix: Mobile chart-of-accounts now shows account names properly with min-width and flex distribution
 - Key fix: Real charts using recharts instead of CSS divs
 - Key fix: Settings page now shows live ERPNext data (company, FY, account counts)
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix setup wizard - check for existing company after successful connection test
+
+Work Log:
+- Analyzed current flow: connection test only checked ping/login/api-keys, company check was at execute time
+- Modified /api/setup/test-connection/route.ts to query ERPNext Company list after successful login
+- Added existingCompany field (name, abbr, default_currency, country) to API response
+- Modified setup page to auto-fill company data when existing company detected
+- Added visual indicators: badge "شركة مسجلة" and detailed blue alert box
+- TypeScript check passed with no errors
+- Pushed to GitHub (commit 3b9b200)
+
+Stage Summary:
+- 2 files modified: test-connection/route.ts, setup/page.tsx
+- +74/-1 lines changed
+- Key feature: After successful connection test, system immediately checks for existing company on ERPNext server
+- Auto-fills company name, abbr, currency, and country from existing data
+- Shows clear visual feedback to user about detected company
