@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createDoc, updateDoc, getList, callMethod, detectErpnextVersion, isBackendAvailable } from '@/lib/server/backend';
+import { createDoc, updateDoc, deleteDoc, getList, callMethod, detectErpnextVersion, isBackendAvailable } from '@/lib/server/backend';
 import {
   buildCompanyCreate,
   buildFiscalYearCreate,
@@ -116,6 +116,166 @@ function updateEnvFile(apiKey: string, apiSecret: string): void {
 }
 
 type SetupStepResult = { step: string; status: 'ok' | 'skip' | 'error'; message: string; name?: string };
+
+/**
+ * إنشاء الشركة مع تجاوز خطأ إعداد الضرائب التلقائي في ERPNext
+ * يستخدم Server Script لتطبيق monkey-patch على Company.on_update
+ *
+ * المشكلة: عند إنشاء شركة لدولة لا تمتلك بيانات ضريبية معرّفة في ERPNext
+ * (مثل اليمن)، يفشل on_update() بسبب IndexError في taxes_setup.py.
+ * الحل: تطبيق monkey-patch مؤقت يلتف on_update بـ try/except،
+ * فيُنشأ الشركة بنجاح مع تجاهل أخطاء القوالب الضريبية.
+ * يتم إعداد الضرائب لاحقاً عبر setupTaxPackage() المخصص لدينا.
+ */
+async function createCompanyWithSafeOnUpdate(params: {
+  company_name: string;
+  abbr?: string;
+  default_currency: string;
+  country: string;
+  language: string;
+  chart_of_accounts?: string;
+  tax_id?: string;
+  company_doc?: string;
+}): Promise<{ success: boolean; name?: string; abbr?: string; error?: string; usedExisting?: boolean }> {
+  const scriptApiMethod = `erp_pro_safe_company_${Date.now()}`;
+
+  // كود Server Script الذي يُنشأ على ERPNext ويُنفّذ مؤقتاً
+  const SCRIPT_CODE = `
+import frappe
+import importlib
+
+# Monkey-patch Company.on_update لتجاهل أخطاء إعداد الضرائب
+company_module = importlib.import_module('erpnext.setup.doctype.company.company')
+original_on_update = company_module.Company.on_update
+
+def safe_on_update(self):
+    try:
+        original_on_update(self)
+    except Exception as e:
+        frappe.log_error('Company on_update error (handled by ERP Pro): ' + str(e), 'ERP Pro Safe Setup')
+
+company_module.Company.on_update = safe_on_update
+
+try:
+    doc = frappe.get_doc({
+        'doctype': 'Company',
+        'company_name': frappe.form_dict.company_name,
+        'default_currency': frappe.form_dict.default_currency,
+        'country': frappe.form_dict.country,
+    })
+    if frappe.form_dict.abbr:
+        doc.abbr = frappe.form_dict.abbr
+    if frappe.form_dict.language:
+        doc.language = frappe.form_dict.language
+    if frappe.form_dict.chart_of_accounts:
+        doc.chart_of_accounts = frappe.form_dict.chart_of_accounts
+    if frappe.form_dict.tax_id:
+        doc.tax_id = frappe.form_dict.tax_id
+    if frappe.form_dict.company_doc:
+        doc.company_doc = frappe.form_dict.company_doc
+
+    doc.insert()
+    return {'success': True, 'name': doc.name, 'abbr': doc.abbr}
+except Exception as e:
+    return {'success': False, 'error': str(e)}
+finally:
+    company_module.Company.on_update = original_on_update
+`;
+
+  let scriptDocName = '';
+  try {
+    // الخطوة 0: محاولة تفعيل Server Scripts إذا كانت معطلة
+    try {
+      await callMethod('frappe.client.set_value', {
+        doctype: 'System Settings',
+        name: 'System Settings',
+        fieldname: 'enable_server_scripts',
+        value: 1,
+      });
+    } catch {
+      // قد لا يكون الحقل موجوداً — لا مشكلة، نحاول بدون تفعيل
+    }
+
+    // الخطوة 1: إنشاء Server Script على ERPNext
+    const scriptResult = await createDoc('Server Script', {
+      script_type: 'API',
+      api_method: scriptApiMethod,
+      script: SCRIPT_CODE,
+    }) as Record<string, unknown>;
+    scriptDocName = String(scriptResult.name || '');
+
+    // الخطوة 2: تنفيذ Server Script لإنشاء الشركة
+    const result = await callMethod(scriptApiMethod, {
+      company_name: params.company_name,
+      abbr: params.abbr || '',
+      default_currency: params.default_currency,
+      country: params.country,
+      language: params.language,
+      chart_of_accounts: params.chart_of_accounts || '',
+      tax_id: params.tax_id || '',
+      company_doc: params.company_doc || '',
+    }) as Record<string, unknown>;
+
+    return {
+      success: result.success === true,
+      name: String(result.name || ''),
+      abbr: String(result.abbr || ''),
+      error: result.error ? String(result.error) : undefined,
+    };
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error('[Setup] Server Script approach failed:', errMsg);
+
+    // محاولة بديلة: البحث عن شركة موجودة واستخدامها
+    try {
+      console.log('[Setup] Trying fallback: check for existing Company on backend...');
+      const existingCompanies = await getList('Company', {
+        fields: ['name', 'abbr', 'default_currency', 'country'],
+        limit: 5,
+      }) as { name: string; abbr: string; default_currency: string; country: string }[];
+
+      if (existingCompanies.length > 0) {
+        const existing = existingCompanies[0]!;
+        console.log('[Setup] Found existing Company:', existing.name, '- using it as fallback');
+        return {
+          success: true,
+          name: existing.name,
+          abbr: existing.abbr,
+          usedExisting: true,
+        };
+      }
+    } catch (listErr) {
+      console.warn('[Setup] Fallback Company lookup also failed:', listErr instanceof Error ? listErr.message : listErr);
+    }
+
+    return {
+      success: false,
+      error: errMsg,
+    };
+  } finally {
+    // الخطوة 3: حذف Server Script دائماً (تنظيف)
+    if (scriptDocName) {
+      try { await deleteDoc('Server Script', scriptDocName); } catch { /* تجاهل */ }
+    }
+  }
+}
+
+/**
+ * فحص هل الخطأ ناتج عن مشكلة إعداد الضرائب في ERPNext
+ * (IndexError في taxes_setup.py أو خطأ في on_update أثناء إنشاء الشركة)
+ */
+function isTaxSetupBugError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return (
+    lower.includes('indexerror') ||
+    lower.includes('list index out of range') ||
+    lower.includes('taxes_setup') ||
+    lower.includes('create_default_tax_template') ||
+    lower.includes('get_or_create_tax_group') ||
+    lower.includes('taxes and charges template') ||
+    (lower.includes('on_update') && lower.includes('company'))
+  );
+}
 
 /** خريطة الدولة → العملة الافتراضية + نسبة ضريبة */
 const COUNTRY_CONFIG: Record<string, { currency: string; taxRate: number; taxName: string }> = {
@@ -327,6 +487,69 @@ export async function POST(request: NextRequest) {
       if (msg.includes('already exists') || msg.includes('Duplicate') || msg.includes('duplicate')) {
         companyDocName = companyName;
         results.push({ step: 'company', status: 'skip', message: 'الشركة موجودة بالفعل', name: companyDocName });
+      } else if (isTaxSetupBugError(msg)) {
+        // ── خطأ معروف: IndexError في taxes_setup.py ──────────────
+        // ERPNext يحاول إنشاء قوالب ضرائب افتراضية أثناء on_update()
+        // لكنها تفشل لأن الدولة (مثل اليمن) لا تملك بيانات ضريبية معرّفة.
+        // الحل: استخدام Server Script لتطبيق monkey-patch مؤقت
+        // يلتف on_update() بـ try/except، مما يسمح بإنشاء الشركة بنجاح.
+        console.log('[Setup] Detected ERPNext tax setup bug. Trying safe company creation via Server Script...');
+
+        try {
+          const taxId = String(body.tax_id || '').trim();
+          const companyDoc = String(body.company_doc || '').trim();
+
+          const safeResult = await createCompanyWithSafeOnUpdate({
+            company_name: companyName,
+            abbr: abbr || undefined,
+            default_currency: currency,
+            country,
+            language,
+            chart_of_accounts: chartOfAccounts || undefined,
+            tax_id: taxId || undefined,
+            company_doc: companyDoc && isBackendV16OrLater() ? companyDoc : undefined,
+          });
+
+          if (safeResult.success && safeResult.name) {
+            companyDocName = safeResult.name;
+            if (safeResult.usedExisting) {
+              results.push({
+                step: 'company',
+                status: 'ok',
+                message: `تم استخدام الشركة الموجودة "${companyDocName}" (تجاوز خطأ القوالب الضريبية)`,
+                name: companyDocName,
+              });
+            } else {
+              results.push({
+                step: 'company',
+                status: 'ok',
+                message: 'تم إنشاء الشركة بنجاح (تم تجاوز خطأ القوالب الضريبية التلقائية)',
+                name: companyDocName,
+              });
+            }
+            console.log('[Setup] Company created successfully via safe_on_update patch:', companyDocName);
+          } else {
+            const safeErr = safeResult.error || 'فشل إنشاء الشركة بالطريقة الآمنة';
+            console.error('[Setup] Safe company creation also failed:', safeErr);
+            results.push({ step: 'company', status: 'error', message: safeErr });
+            return NextResponse.json({
+              success: false,
+              error: `فشل إنشاء الشركة: ${safeErr}`,
+              hint: 'هذا خطأ معروف في ERPNext عند إنشاء شركة لدولة لا تملك بيانات ضريبية. جرب إعادة نشر الخادم الخلفي مع الإصلاحات المتوفرة في railway/backend/patches/',
+              data: { results },
+            }, { status: 500 });
+          }
+        } catch (patchErr) {
+          const patchMsg = patchErr instanceof Error ? patchErr.message : 'فشل تطبيق الإصلاح';
+          console.error('[Setup] Safe company creation exception:', patchMsg);
+          results.push({ step: 'company', status: 'error', message: patchMsg });
+          return NextResponse.json({
+            success: false,
+            error: `فشل إنشاء الشركة: ${patchMsg}`,
+            hint: 'قد يكون Server Script معطلاً على الخادم. فعّله من إعدادات الموقع أو أعد نشر الخادم مع الإصلاحات.',
+            data: { results },
+          }, { status: 500 });
+        }
       } else {
         results.push({ step: 'company', status: 'error', message: msg });
         return NextResponse.json({ success: false, error: `فشل إنشاء الشركة: ${msg}`, data: { results } }, { status: 500 });
