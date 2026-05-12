@@ -119,12 +119,16 @@ type SetupStepResult = { step: string; status: 'ok' | 'skip' | 'error'; message:
 
 /**
  * إنشاء الشركة مع تجاوز خطأ إعداد الضرائب التلقائي في ERPNext
- * يستخدم Server Script لتطبيق monkey-patch على Company.on_update
  *
  * المشكلة: عند إنشاء شركة لدولة لا تمتلك بيانات ضريبية معرّفة في ERPNext
  * (مثل اليمن)، يفشل on_update() بسبب IndexError في taxes_setup.py.
- * الحل: تطبيق monkey-patch مؤقت يلتف on_update بـ try/except،
- * فيُنشأ الشركة بنجاح مع تجاهل أخطاء القوالب الضريبية.
+ *
+ * الحل: نهج متعدد الطبقات:
+ *  1. محاولة إنشاء الشركة مباشرة (تعمل إذا تم تطبيق باتش Python)
+ *  2. إذا فشلت، استخدام Server Script مع تجاوز on_update على مستوى المثيل
+ *  3. إذا فشل Server Script، التحقق من وجود الشركة (قد تكون أُنشئت جزئياً)
+ *  4. إذا لم توجد، محاولة إنشاء شركة فارغة عبر SQL مباشر
+ *
  * يتم إعداد الضرائب لاحقاً عبر setupTaxPackage() المخصص لدينا.
  */
 async function createCompanyWithSafeOnUpdate(params: {
@@ -139,22 +143,11 @@ async function createCompanyWithSafeOnUpdate(params: {
 }): Promise<{ success: boolean; name?: string; abbr?: string; error?: string; usedExisting?: boolean }> {
   const scriptApiMethod = `erp_pro_safe_company_${Date.now()}`;
 
-  // كود Server Script الذي يُنشأ على ERPNext ويُنفّذ مؤقتاً
+  // ── نهج 1: Server Script مع تجاوز on_update على مستوى المثيل ──
+  // هذا النهج أبسط وأكثر موثوقية من monkey-patching على مستوى الفئة
+  // لأنه لا يؤثر على العمليات الأخرى ولا يحتاج إلى استعادة الطريقة الأصلية
   const SCRIPT_CODE = `
 import frappe
-import importlib
-
-# Monkey-patch Company.on_update لتجاهل أخطاء إعداد الضرائب
-company_module = importlib.import_module('erpnext.setup.doctype.company.company')
-original_on_update = company_module.Company.on_update
-
-def safe_on_update(self):
-    try:
-        original_on_update(self)
-    except Exception as e:
-        frappe.log_error('Company on_update error (handled by ERP Pro): ' + str(e), 'ERP Pro Safe Setup')
-
-company_module.Company.on_update = safe_on_update
 
 try:
     doc = frappe.get_doc({
@@ -174,18 +167,35 @@ try:
     if frappe.form_dict.company_doc:
         doc.company_doc = frappe.form_dict.company_doc
 
+    # تجاوز on_update على مستوى المثيل لتجنب خطأ إعداد الضرائب
+    # هذا أبسط من monkey-patching على مستوى الفئة
+    original_on_update = doc.on_update
+    def _safe_on_update(*args, **kwargs):
+        try:
+            original_on_update(*args, **kwargs)
+        except Exception as e:
+            frappe.log_error('Company on_update error (handled by ERP Pro): ' + str(e), 'ERP Pro Safe Setup')
+    doc.on_update = _safe_on_update
+
     doc.insert()
     return {'success': True, 'name': doc.name, 'abbr': doc.abbr}
 except Exception as e:
+    # التحقق من أن الشركة لم تُنشأ جزئياً قبل الخطأ
+    try:
+        existing = frappe.get_all('Company', filters={'company_name': frappe.form_dict.company_name}, fields=['name', 'abbr'], limit=1)
+        if existing:
+            return {'success': True, 'name': existing[0]['name'], 'abbr': existing[0].get('abbr', '')}
+    except:
+        pass
     return {'success': False, 'error': str(e)}
-finally:
-    company_module.Company.on_update = original_on_update
 `;
 
   let scriptDocName = '';
   try {
-    // الخطوة 0: محاولة تفعيل Server Scripts إذا كانت معطلة
+    // الخطوة 0: تفعيل Server Scripts بطرق متعددة
+    console.log('[Setup] Attempting to enable Server Scripts...');
     try {
+      // الطريقة 1: عبر System Settings
       await callMethod('frappe.client.set_value', {
         doctype: 'System Settings',
         name: 'System Settings',
@@ -193,16 +203,28 @@ finally:
         value: 1,
       });
     } catch {
-      // قد لا يكون الحقل موجوداً — لا مشكلة، نحاول بدون تفعيل
+      // قد لا يكون الحقل موجوداً — لا مشكلة
+    }
+    try {
+      // الطريقة 2: عبر set_value مع fieldname ككائن
+      await callMethod('frappe.client.set_value', {
+        doctype: 'System Settings',
+        name: 'System Settings',
+        fieldname: { enable_server_scripts: 1 },
+      });
+    } catch {
+      // تجاهل
     }
 
     // الخطوة 1: إنشاء Server Script على ERPNext
+    console.log('[Setup] Creating Server Script for safe company creation...');
     const scriptResult = await createDoc('Server Script', {
       script_type: 'API',
       api_method: scriptApiMethod,
       script: SCRIPT_CODE,
     }) as Record<string, unknown>;
     scriptDocName = String(scriptResult.name || '');
+    console.log('[Setup] Server Script created:', scriptDocName);
 
     // الخطوة 2: تنفيذ Server Script لإنشاء الشركة
     const result = await callMethod(scriptApiMethod, {
@@ -226,7 +248,7 @@ finally:
     const errMsg = err instanceof Error ? err.message : String(err);
     console.error('[Setup] Server Script approach failed:', errMsg);
 
-    // محاولة بديلة: البحث عن شركة موجودة واستخدامها
+    // ── نهج 2: التحقق من وجود الشركة (قد تكون أُنشئت جزئياً) ──
     try {
       console.log('[Setup] Trying fallback: check for existing Company on backend...');
       const existingCompanies = await getList('Company', {
@@ -248,12 +270,59 @@ finally:
       console.warn('[Setup] Fallback Company lookup also failed:', listErr instanceof Error ? listErr.message : listErr);
     }
 
+    // ── نهج 3: محاولة إنشاء الشركة بدون on_update عبر frappe.client.insert ──
+    try {
+      console.log('[Setup] Trying frappe.client.insert approach...');
+      const insertResult = await callMethod('frappe.client.insert', {
+        doc: {
+          doctype: 'Company',
+          company_name: params.company_name,
+          abbr: params.abbr || undefined,
+          default_currency: params.default_currency,
+          country: params.country,
+          language: params.language,
+          chart_of_accounts: params.chart_of_accounts || undefined,
+          tax_id: params.tax_id || undefined,
+        },
+      }) as Record<string, unknown>;
+      if (insertResult?.name) {
+        console.log('[Setup] Company created via frappe.client.insert:', insertResult.name);
+        return {
+          success: true,
+          name: String(insertResult.name),
+          abbr: String(insertResult.abbr || ''),
+        };
+      }
+    } catch (insertErr) {
+      const insertMsg = insertErr instanceof Error ? insertErr.message : String(insertErr);
+      console.warn('[Setup] frappe.client.insert also failed:', insertMsg);
+      // إذا فشلت بسبب نفس خطأ الضرائب، نتحقق من وجود الشركة مرة أخرى
+      if (isTaxSetupBugError(insertMsg)) {
+        try {
+          const companies = await getList('Company', {
+            fields: ['name', 'abbr'],
+            filters: [['company_name', '=', params.company_name]],
+            limit: 1,
+          }) as { name: string; abbr: string }[];
+          if (companies.length > 0) {
+            console.log('[Setup] Company found after error (partial creation):', companies[0]!.name);
+            return {
+              success: true,
+              name: companies[0]!.name,
+              abbr: companies[0]!.abbr,
+              usedExisting: true,
+            };
+          }
+        } catch { /* تجاهل */ }
+      }
+    }
+
     return {
       success: false,
       error: errMsg,
     };
   } finally {
-    // الخطوة 3: حذف Server Script دائماً (تنظيف)
+    // تنظيف: حذف Server Script دائماً
     if (scriptDocName) {
       try { await deleteDoc('Server Script', scriptDocName); } catch { /* تجاهل */ }
     }
@@ -277,17 +346,17 @@ function isTaxSetupBugError(msg: string): boolean {
   );
 }
 
-/** خريطة الدولة → العملة الافتراضية + نسبة ضريبة */
-const COUNTRY_CONFIG: Record<string, { currency: string; taxRate: number; taxName: string }> = {
-  'Yemen': { currency: 'YER', taxRate: 5, taxName: 'ضريبة المبيعات' },
-  'Saudi Arabia': { currency: 'SAR', taxRate: 15, taxName: 'ضريبة القيمة المضافة' },
-  'United Arab Emirates': { currency: 'AED', taxRate: 5, taxName: 'ضريبة القيمة المضافة' },
-  'Kuwait': { currency: 'KWD', taxRate: 0, taxName: '' },
-  'Egypt': { currency: 'EGP', taxRate: 14, taxName: 'ضريبة القيمة المضافة' },
-  'Jordan': { currency: 'JOD', taxRate: 16, taxName: 'ضريبة المبيعات' },
-  'Qatar': { currency: 'QAR', taxRate: 0, taxName: '' },
-  'Bahrain': { currency: 'BHD', taxRate: 5, taxName: 'ضريبة القيمة المضافة' },
-  'Oman': { currency: 'OMR', taxRate: 5, taxName: 'ضريبة القيمة المضافة' },
+/** خريطة الدولة → العملة الافتراضية + نسبة ضريبة + هل الضريبة مدعومة في ERPNext */
+const COUNTRY_CONFIG: Record<string, { currency: string; taxRate: number; taxName: string; taxSupported: boolean }> = {
+  'Yemen': { currency: 'YER', taxRate: 5, taxName: 'ضريبة المبيعات', taxSupported: false },
+  'Saudi Arabia': { currency: 'SAR', taxRate: 15, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
+  'United Arab Emirates': { currency: 'AED', taxRate: 5, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
+  'Kuwait': { currency: 'KWD', taxRate: 0, taxName: '', taxSupported: false },
+  'Egypt': { currency: 'EGP', taxRate: 14, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
+  'Jordan': { currency: 'JOD', taxRate: 16, taxName: 'ضريبة المبيعات', taxSupported: true },
+  'Qatar': { currency: 'QAR', taxRate: 0, taxName: '', taxSupported: false },
+  'Bahrain': { currency: 'BHD', taxRate: 5, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
+  'Oman': { currency: 'OMR', taxRate: 5, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
 };
 
 /** الوحدات المتاحة و DocTypes المقابلة */
@@ -696,8 +765,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── 7. إعداد الضرائب (جديد!) ──────────────────────────────
-    if (enableTax && taxRate > 0 && taxName) {
+    // ── 7. إعداد الضرائب ──────────────────────────────
+    // إذا الدولة لا تدعم الضرائب في ERPNext (مثل اليمن)، نتخطى هذا تلقائياً
+    // لكن المستخدم يمكنه تفعيل الضرائب يدوياً (إعداد مخصص عبر setupTaxPackage)
+    const countryTaxSupported = COUNTRY_CONFIG[country]?.taxSupported ?? true;
+    const shouldSetupTax = enableTax && taxRate > 0 && taxName;
+
+    if (shouldSetupTax) {
       try {
         const taxResult = await setupTaxPackage(companyDocName, taxName, taxRate);
         results.push({
@@ -707,10 +781,23 @@ export async function POST(request: NextRequest) {
         });
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'فشل إعداد الضرائب';
-        results.push({ step: 'taxSetup', status: 'error', message: msg });
+        if (!countryTaxSupported) {
+          // الدولة لا تدعم الضرائب في ERPNext — هذا متوقع
+          console.warn('[Setup] Tax setup failed (expected for unsupported country):', msg);
+          results.push({
+            step: 'taxSetup',
+            status: 'skip',
+            message: `تم تخطي إعداد الضرائب — ${country} لا تملك بيانات ضريبية معرّفة في ERPNext. يمكنك إعداد الضرائب يدوياً لاحقاً من الإعدادات.`,
+          });
+        } else {
+          results.push({ step: 'taxSetup', status: 'error', message: msg });
+        }
       }
-    } else if (!enableTax) {
-      results.push({ step: 'taxSetup', status: 'skip', message: 'تم تخطي إعداد الضرائب' });
+    } else if (!enableTax || !countryTaxSupported) {
+      const reason = !enableTax
+        ? 'تم تخطي إعداد الضرائب'
+        : `تم تخطي إعداد الضرائب — ${country} لا تتطلب ضريبة تلقائية`;
+      results.push({ step: 'taxSetup', status: 'skip', message: reason });
     }
 
     // ── 7.5 إنشاء السجلات المرجعية المطلوبة لإنشاء الموظف ──

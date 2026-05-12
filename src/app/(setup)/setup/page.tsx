@@ -155,16 +155,16 @@ const STEPS: StepDef[] = [
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-const COUNTRY_CURRENCY_MAP: Record<string, { currency: string; taxRate: number; taxName: string }> = {
-  'Yemen': { currency: 'YER', taxRate: 5, taxName: 'ضريبة المبيعات' },
-  'Saudi Arabia': { currency: 'SAR', taxRate: 15, taxName: 'ضريبة القيمة المضافة' },
-  'United Arab Emirates': { currency: 'AED', taxRate: 5, taxName: 'ضريبة القيمة المضافة' },
-  'Kuwait': { currency: 'KWD', taxRate: 0, taxName: '' },
-  'Egypt': { currency: 'EGP', taxRate: 14, taxName: 'ضريبة القيمة المضافة' },
-  'Jordan': { currency: 'JOD', taxRate: 16, taxName: 'ضريبة المبيعات' },
-  'Qatar': { currency: 'QAR', taxRate: 0, taxName: '' },
-  'Bahrain': { currency: 'BHD', taxRate: 5, taxName: 'ضريبة القيمة المضافة' },
-  'Oman': { currency: 'OMR', taxRate: 5, taxName: 'ضريبة القيمة المضافة' },
+const COUNTRY_CURRENCY_MAP: Record<string, { currency: string; taxRate: number; taxName: string; taxSupported: boolean }> = {
+  'Yemen': { currency: 'YER', taxRate: 5, taxName: 'ضريبة المبيعات', taxSupported: false },
+  'Saudi Arabia': { currency: 'SAR', taxRate: 15, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
+  'United Arab Emirates': { currency: 'AED', taxRate: 5, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
+  'Kuwait': { currency: 'KWD', taxRate: 0, taxName: '', taxSupported: false },
+  'Egypt': { currency: 'EGP', taxRate: 14, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
+  'Jordan': { currency: 'JOD', taxRate: 16, taxName: 'ضريبة المبيعات', taxSupported: true },
+  'Qatar': { currency: 'QAR', taxRate: 0, taxName: '', taxSupported: false },
+  'Bahrain': { currency: 'BHD', taxRate: 5, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
+  'Oman': { currency: 'OMR', taxRate: 5, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
 };
 
 const DEFAULT_MODULES: ModuleEntry[] = [
@@ -441,7 +441,7 @@ export default function SetupWizardPage() {
     fiscalYearName: String(CURRENT_YEAR),
     warehouses: [...DEFAULT_WAREHOUSES],
     paymentMethods: [...DEFAULT_PAYMENT_METHODS],
-    enableTax: true,
+    enableTax: false,  // معطّل افتراضياً لليمن — المستخدم يمكنه تفعيله
     taxRate: 5,
     taxName: 'ضريبة المبيعات',
     adminEmail: '',
@@ -492,8 +492,12 @@ export default function SetupWizardPage() {
         updateForm('currency', config.currency);
         updateForm('taxRate', config.taxRate);
         updateForm('taxName', config.taxName || '');
-        if (config.taxRate > 0) {
+        // إذا الدولة لا تدعم الضرائب في ERPNext (مثل اليمن)، عطّل الضريبة افتراضياً
+        // لكن المستخدم يمكنه تفعيلها يدوياً إذا أراد
+        if (config.taxSupported && config.taxRate > 0) {
           updateForm('enableTax', true);
+        } else {
+          updateForm('enableTax', false);
         }
       } else {
         updateForm('country', country);
@@ -1762,6 +1766,17 @@ export default function SetupWizardPage() {
             {/* ── الخطوة 8: الضرائب ─────────────────────── */}
             {currentStep === 8 && (
               <div className="space-y-5">
+                {/* تنبيه إذا الدولة لا تدعم الضرائب في ERPNext */}
+                {!COUNTRY_CURRENCY_MAP[form.country]?.taxSupported && (
+                  <Alert className="border-amber-300 bg-amber-50">
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                    <AlertTitle className="text-amber-800">الدولة لا تدعم الضرائب تلقائياً</AlertTitle>
+                    <AlertDescription className="text-amber-700">
+                      {form.country} لا تملك بيانات ضريبية معرّفة في ERPNext. يمكنك تفعيل الضريبة يدوياً وسيتولى ERP Pro إنشاء حسابات وقوالب ضريبية مخصصة، أو يمكنك تخطي هذه الخطوة وإعداد الضرائب لاحقاً من الإعدادات.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="flex items-center justify-between gap-4 rounded-xl border p-4">
                   <div className="space-y-1">
                     <Label className="text-sm font-medium">تفعيل الضريبة</Label>
@@ -2194,9 +2209,22 @@ export default function SetupWizardPage() {
                       {form.enableTax ? (
                         <>
                           <div><span className="text-muted-foreground">الضريبة:</span> {form.taxName} ({form.taxRate}%)</div>
+                          {!COUNTRY_CURRENCY_MAP[form.country]?.taxSupported && (
+                            <div className="text-amber-600 text-xs flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              إعداد مخصص — {form.country} لا تملك بيانات ضريبية في ERPNext
+                            </div>
+                          )}
                         </>
                       ) : (
-                        <div className="text-muted-foreground">الضريبة غير مفعلة</div>
+                        <div className="text-muted-foreground">
+                          الضريبة غير مفعلة
+                          {!COUNTRY_CURRENCY_MAP[form.country]?.taxSupported && (
+                            <span className="text-amber-600 text-xs block mt-1">
+                              {form.country} لا تتطلب ضريبة تلقائية — يمكنك تفعيلها يدوياً
+                            </span>
+                          )}
+                        </div>
                       )}
                       <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(8); setStepErrors({}); }}>
                         تعديل ←

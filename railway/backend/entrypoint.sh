@@ -434,6 +434,12 @@ if root_password:
 else:
     print(f"[SITE_CONFIG] WARNING: MYSQL_ROOT_PASSWORD not set! bench new-site will fail!")
 
+# ★ تفعيل Server Scripts — ضروري لعملية إنشاء الشركة
+# بدون هذا الإعداد، يفشل معالج الإعداد عند إنشاء شركة لدولة
+# لا تملك بيانات ضريبية معرّفة (مثل اليمن)
+site_config['server_script_enabled'] = 1
+print(f"[SITE_CONFIG] Enabled server_script_enabled=1")
+
 config_path = '${SITE_CONFIG}'
 with open(config_path, 'w') as f:
     json.dump(site_config, f, indent=2)
@@ -441,9 +447,29 @@ with open(config_path, 'w') as f:
 print(f"[SITE_CONFIG] Written: {json.dumps(site_config, indent=2)}")
 PYTHON_SITE_CONFIG
     chown -R frappe:frappe "$SITE_DIR" 2>/dev/null || true
-    log "site_config.json created for '${SITE_NAME}'."
+    log "site_config.json created for '${SITE_NAME}' with server_script_enabled=1."
 else
-    log "site_config.json already exists for '${SITE_NAME}'."
+    log "site_config.json already exists for '${SITE_NAME}' — ensuring server_script_enabled is set..."
+    # تحديث الملف الموجود لإضافة server_script_enabled إن لم يكن موجوداً
+    python3 << PYTHON_UPDATE_CONFIG
+import json
+
+config_path = '${SITE_CONFIG}'
+try:
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+    if config.get('server_script_enabled') != 1:
+        config['server_script_enabled'] = 1
+        with open(config_path, 'w') as f:
+            json.dump(config, f, indent=2)
+            f.write('\n')
+        print(f"[SITE_CONFIG] Updated: added server_script_enabled=1")
+    else:
+        print(f"[SITE_CONFIG] Already has server_script_enabled=1")
+except Exception as e:
+    print(f"[SITE_CONFIG] WARNING: Could not update: {e}")
+PYTHON_UPDATE_CONFIG
+    chown -R frappe:frappe "$SITE_DIR" 2>/dev/null || true
 fi
 
 # ----------------------------------------------------------
