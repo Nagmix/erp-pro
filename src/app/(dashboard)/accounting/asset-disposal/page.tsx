@@ -3,9 +3,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { KpiCard } from '@/components/erp/kpi-card';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -232,12 +231,6 @@ export default function AssetDisposalPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={3}>
-        <KpiCard title="أصول مباعة" value={soldCount} icon={DollarSign} accent="success" compact />
-        <KpiCard title="أصول مستهلكة" value={scrappedCount} icon={TrendingDown} accent="destructive" compact />
-        <KpiCard title="إجمالي قيمة التصرّف" value={formatCurrency(totalDisposalValue)} icon={HandCoins} accent="warning" compact />
-      </KpiStrip>
-
       {/* DataTable */}
       <DataTable
         data={disposedAssets}

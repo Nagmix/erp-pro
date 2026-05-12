@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -653,39 +652,6 @@ export default function UsersManagementPage() {
   />
 
   {/* ---- Stats Cards ---- */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="إجمالي المستخدمين"
-   value={stats.total}
-   icon={Users}
-   accent="info"
-   description="جميع المستخدمين المسجلين في النظام"
-  />
-  <KpiCard
-   title="مستخدمين نشطين"
-   value={stats.active}
-   icon={UserCheck}
-   accent="success"
-   change={stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}
-   changeType="positive"
-   description="مستخدمون مفعّلون حالياً"
-  />
-  <KpiCard
-   title="المديرون"
-   value={stats.admins}
-   icon={Shield}
-   accent="destructive"
-   description="مديرو النظام والمسؤولون"
-  />
-  <KpiCard
-   title="جدد هذا الشهر"
-   value={stats.thisMonth}
-   icon={UserPlus}
-   accent="warning"
-   description="المستخدمون المضافون هذا الشهر"
-  />
-  </KpiStrip>
-
   {/* ---- Search & Filters ---- */}
   <Card className="border-border/40 shadow-sm">
   <CardContent className="p-4">

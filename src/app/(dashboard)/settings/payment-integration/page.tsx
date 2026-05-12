@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -225,33 +224,6 @@ export default function PaymentIntegrationPage() {
   <ListQueryAlert error={methodsError ? methodsErr : null} onRetry={() => refetchMethods()} />
 
   {/* KPI Strip */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="طرق الدفع المفعّلة"
-   value={activeMethods}
-   icon={CreditCard}
-   accent="success"
-  />
-  <KpiCard
-   title="بوابات الدفع النشطة"
-   value={activeGateways}
-   icon={Globe}
-   accent="info"
-  />
-  <KpiCard
-   title="مدفوعات هذا الشهر"
-   value={onlinePaymentsMonth}
-   icon={Receipt}
-   accent="primary"
-  />
-  <KpiCard
-   title="معاملات فاشلة"
-   value={failedTransactions}
-   icon={XCircle}
-   accent="destructive"
-  />
-  </KpiStrip>
-
   <Tabs defaultValue="methods" dir="rtl">
   <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/35 p-1">
    <TabsTrigger value="methods" className="text-xs gap-1.5 data-[state=active]:bg-background">

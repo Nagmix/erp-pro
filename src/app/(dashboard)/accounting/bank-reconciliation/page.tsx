@@ -2,9 +2,8 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { KpiCard } from '@/components/erp/kpi-card';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -354,20 +353,7 @@ export default function BankReconciliationPage() {
       />
 
       {/* KPI Strip - Summary */}
-      <KpiStrip cols={3}>
-        <KpiCard title="رصيد البنك" value={formatCurrency(bankBalance)} icon={Landmark} accent="primary" compact />
-        <KpiCard title="رصيد النظام" value={formatCurrency(systemPayments)} icon={ArrowLeftRight} accent="info" compact />
-        <KpiCard title="الفرق" value={formatCurrency(Math.abs(difference))} icon={XCircle} accent={Math.abs(difference) > 0.01 ? 'destructive' : 'success'} compact />
-      </KpiStrip>
-
       {/* KPI Strip - Reconciliation Status */}
-      <KpiStrip cols={4}>
-        <KpiCard title="مطابق" value={matchedCount} description={filteredBankTx.length > 0 ? `من أصل ${filteredBankTx.length} حركة` : undefined} icon={CheckCircle2} accent="success" compact />
-        <KpiCard title="غير مطابق" value={pendingCount} description={pendingCount > 0 ? `مبلغ: ${formatCurrency(totalUnmatchedAmount)}` : undefined} icon={FileWarning} accent="warning" compact />
-        <KpiCard title="إجمالي المبلغ المسوّى" value={formatCurrency(totalReconciledAmount)} icon={CircleDollarSign} accent="info" compact />
-        <KpiCard title="معلّق للتسوية" value={formatCurrency(totalUnmatchedAmount)} icon={Handshake} accent={pendingCount > 0 ? 'destructive' : 'success'} compact />
-      </KpiStrip>
-
       {/* Bank Account & Date Filter */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-end gap-3">

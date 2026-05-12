@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Button } from '@/components/ui/button';
@@ -453,30 +452,6 @@ export default function VaultPermissionsPage() {
       <ListQueryAlert error={permError} onRetry={() => refetchPermissions()} />
 
       {/* KPI Strip */}
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="إجمالي الصلاحيات"
-          value={totalPermissions}
-          icon={ShieldCheck}
-          accent="warning"
-          description="عدد سجلات الصلاحيات المسجّلة"
-        />
-        <KpiCard
-          title="موظفين مفوّضين"
-          value={authorizedEmployees}
-          icon={Users}
-          accent="primary"
-          description="موظفون لديهم صلاحيات وصول"
-        />
-        <KpiCard
-          title="خزائن محمية"
-          value={protectedVaults}
-          icon={Lock}
-          accent="success"
-          description="خزائن لها صلاحيات محددة"
-        />
-      </KpiStrip>
-
       {/* View Toggle */}
       <div className="flex items-center gap-2">
         <div className="rounded-xl border border-border/40 bg-card p-1 flex items-center gap-1">

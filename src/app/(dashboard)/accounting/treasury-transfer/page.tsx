@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { ErpListDateStatusFilters } from '@/components/erp/erp-list-date-status-filters';
@@ -22,8 +22,6 @@ import { toast } from 'sonner';
 import { ArrowLeftRight, ArrowRightLeft, Send, Wallet, Banknote, DollarSign, Clock, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
-import { KpiCard } from '@/components/erp/kpi-card';
-
 type TransferRow = {
   name: string;
   posting_date: string;
@@ -188,12 +186,6 @@ export default function TreasuryTransferPage() {
         accent="info"
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'التحويل بين الخزائن' }]}
       />
-
-      <KpiStrip>
-        <KpiCard title="إجمالي التحويلات" value={formatCurrency(totalTransferred)} icon={DollarSign} accent="info" />
-        <KpiCard title="قيد الانتظار" value={pendingCount} icon={Clock} accent="warning" />
-        <KpiCard title="تم التحويل" value={submittedCount} icon={CheckCircle2} accent="success" />
-      </KpiStrip>
 
       {/* Transfer Form */}
       <Card className="border-primary/20">

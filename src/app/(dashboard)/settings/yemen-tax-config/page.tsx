@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -156,8 +155,6 @@ export default function YemenTaxConfigPage() {
  if (defaultCompany && !company) queueMicrotask(() => setCompany(defaultCompany));
  }, [defaultCompany, company]);
 
-
-
  const companyFilter = effectiveCompany ? [['company', '=', effectiveCompany] as [string, string, string]] : undefined;
 
  /* ──── ERPNext data hooks ──── */
@@ -292,33 +289,6 @@ export default function YemenTaxConfigPage() {
   <ListQueryAlert error={accountsError ? accountsErr : null} onRetry={() => refetchAccounts()} />
 
   {/* KPI Strip */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="حسابات الضريبة النشطة"
-   value={activeTaxAccounts}
-   icon={Percent}
-   accent="success"
-  />
-  <KpiCard
-   title="قوالب الضريبة"
-   value={totalTemplates}
-   icon={FileText}
-   accent="info"
-  />
-  <KpiCard
-   title="ضريبة المبيعات هذا الشهر"
-   value={formatCurrency(salesTaxThisMonth)}
-   icon={Calculator}
-   accent="primary"
-  />
-  <KpiCard
-   title="ضريبة المشتريات هذا الشهر"
-   value={formatCurrency(purchaseTaxThisMonth)}
-   icon={Building2}
-   accent="warning"
-  />
-  </KpiStrip>
-
   <Tabs defaultValue="rates" dir="rtl">
   <TabsList className="flex flex-wrap h-auto gap-1 bg-muted/35 p-1">
    <TabsTrigger value="rates" className="text-xs gap-1.5 data-[state=active]:bg-background">

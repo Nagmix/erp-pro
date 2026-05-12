@@ -4,17 +4,13 @@ import { useState, useCallback, useMemo } from "react";
 import { useDocList, useDeleteDoc } from "@/lib/client/hooks";
 import { apiCreateDoc } from "@/lib/client/api";
 import { ListQueryAlert } from "@/components/erp/list-query-alert";
-import { PageHeader,  } from "@/components/erp/page-header";
-import { KpiCard } from "@/components/erp/kpi-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from "@/components/erp/data-table";
 import {
   Wallet,
-  Banknote,
   PlusCircle,
   RefreshCw,
   Trash2,
-  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -318,29 +314,17 @@ export default function TreasuriesPage() {
         }
       />
 
-      <Card>
-        <CardHeader className="py-3">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Wallet className="h-4 w-4 text-emerald-600" />
-            الخزائن النقدية
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            data={vaultAccounts}
-            columns={vaultCols}
-            pageSize={10}
-            searchable
-            loading={isLoading}
-            error={isError ? error : null}
-            onRetry={() => void refetch()}
-            tableId="accounting-treasuries"
-            exportFileName="treasuries.csv"
-            printTitle="تقرير الخزائن النقدية"
-            getRowId={(row, i) => (row as VaultRow).name || String(i)}
-          />
-        </CardContent>
-      </Card>
+      <DataTable
+        data={vaultAccounts}
+        columns={vaultCols}
+        pageSize={10}
+        searchable
+        loading={isLoading}
+        tableId="accounting-treasuries"
+        exportFileName="treasuries.csv"
+        printTitle="تقرير الخزائن النقدية"
+        getRowId={(row, i) => (row as VaultRow).name || String(i)}
+      />
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

@@ -37,7 +37,7 @@ import { useCreateDoc, useUpdateDoc, useDocList, useSubmitDoc, useCancelDoc, use
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { buildLeaveAllocationCreate, buildLeavePolicyCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
-import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { toast } from 'sonner';
 
@@ -492,37 +492,6 @@ export default function LeavePoliciesPage() {
       />
 
       {/* ── KPI Cards ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي السياسات"
-          value={kpiTotalPolicies}
-          icon={FileText}
-          accent="info"
-          description="عدد السياسات المسجلة"
-        />
-        <KpiCard
-          title="السياسات النشطة"
-          value={kpiActivePolicies}
-          icon={Check}
-          accent="success"
-          description="سياسات مفعّلة حالياً"
-        />
-        <KpiCard
-          title="التخصيصات"
-          value={kpiWithAllocations}
-          icon={Briefcase}
-          accent="warning"
-          description="تخصيصات أرصدة الإجازات"
-        />
-        <KpiCard
-          title="إجمالي الأرصدة"
-          value={kpiTotalAllocated}
-          icon={Send}
-          accent="primary"
-          description="مجموع أيام الإجازات المخصصة"
-        />
-      </KpiStrip>
-
       {/* ── Filters ── */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

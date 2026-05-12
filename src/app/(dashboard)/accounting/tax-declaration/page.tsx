@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -571,37 +570,6 @@ export default function TaxDeclarationPage() {
         {/* ─── Tab 1: Tax Declaration ─── */}
         <TabsContent value="declaration" className="space-y-5">
           {/* KPIs */}
-          <KpiStrip cols={4}>
-            <KpiCard
-              title="ضريبة المبيعات"
-              value={formatCurrency(totalSalesTax)}
-              icon={TrendingUp}
-              accent="success"
-              change={totalSalesTax > 0 ? 12 : 0}
-              changeType={totalSalesTax > 0 ? 'positive' : 'neutral'}
-            />
-            <KpiCard
-              title="ضريبة المشتريات"
-              value={formatCurrency(totalPurchaseTax)}
-              icon={TrendingDown}
-              accent="info"
-              change={totalPurchaseTax > 0 ? 8 : 0}
-              changeType={totalPurchaseTax > 0 ? 'negative' : 'neutral'}
-            />
-            <KpiCard
-              title="صافي المستحق"
-              value={formatCurrency(netTaxPayable)}
-              icon={Calculator}
-              accent={netTaxPayable >= 0 ? 'destructive' : 'success'}
-            />
-            <KpiCard
-              title="الإقرارات المقدمة"
-              value={submittedDeclarations}
-              icon={ClipboardCheck}
-              accent="primary"
-            />
-          </KpiStrip>
-
           {/* Create Declaration Form */}
           <Card className="border-border/40 bg-card">
             <CardContent className="p-5 space-y-4">

@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
-import { KpiStrip } from '@/components/erp/page-header';
+
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ExportButton } from '@/components/erp/export-button';
 import { formatCurrency, CHART_PALETTE } from '@/lib/core/helpers';
@@ -357,13 +356,6 @@ export default function CashFlowPage() {
       </div>
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard title="صافي التدفق التشغيلي" value={formatCurrency(operatingNet)} icon={TrendingUp} accent={operatingNet >= 0 ? 'success' : 'destructive'} />
-        <KpiCard title="صافي التدفق الاستثماري" value={formatCurrency(investingNet)} icon={Building2} accent={investingNet >= 0 ? 'info' : 'warning'} />
-        <KpiCard title="صافي التدفق التمويلي" value={formatCurrency(financingNet)} icon={Landmark} accent={financingNet >= 0 ? 'primary' : 'destructive'} />
-        <KpiCard title="صافي التغير النقدي" value={formatCurrency(netChange)} icon={DollarSign} accent={netChange >= 0 ? 'success' : 'destructive'} />
-      </KpiStrip>
-
       {/* Three Sections */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Operating */}

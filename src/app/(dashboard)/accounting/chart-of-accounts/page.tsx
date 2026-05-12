@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -40,7 +40,6 @@ import {
   FolderTree,
   FileText,
   ChevronDown,
-  ChevronLeft,
   Edit,
   Trash2,
   Search,
@@ -199,69 +198,79 @@ function AccountTreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 h-9 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
-        style={{ paddingRight: `${level * 1.25 + 1}rem` }}
+        className="grid items-center h-9 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
+        style={{
+          paddingRight: `${level * 1.25 + 1}rem`,
+          gridTemplateColumns: '1fr 96px 112px 110px 64px',
+        }}
       >
-        {hasChildren ? (
-          <Collapsible open={isOpen} onOpenChange={setIsOpen} className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <CollapsibleTrigger asChild>
-                <button className="h-5 w-5 rounded flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground transition-colors">
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-150 ${isOpen ? '' : '-rotate-90'}`} />
-                </button>
-              </CollapsibleTrigger>
-              <FolderOpen className={`h-4 w-4 shrink-0 ${config?.accent || 'text-muted-foreground'}`} />
-              <span className="font-medium truncate">{displayName}</span>
-              {children.length > 0 && (
-                <span className="text-[10px] text-muted-foreground/70 tabular-nums shrink-0">({children.length})</span>
-              )}
-            </div>
-          </Collapsible>
-        ) : (
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+        {/* Column 1: Account Name + expand arrow + icon + group badge */}
+        <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+          {hasChildren ? (
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="h-5 w-5 rounded flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-150 ${isOpen ? '' : '-rotate-90'}`} />
+            </button>
+          ) : (
             <span className="w-5 shrink-0" />
+          )}
+          {isGroup ? (
+            <FolderOpen className={`h-4 w-4 shrink-0 ${config?.accent || 'text-muted-foreground'}`} />
+          ) : (
             <FileText className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
-            <span className="truncate">{displayName}</span>
-          </div>
-        )}
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-muted-foreground font-mono text-[11px] tabular-nums w-24 text-center" dir="ltr">
-            {account.account_number}
-          </span>
-          <span className="w-28 text-center">
-            {account.account_type ? (
-              <Badge variant="secondary" className="text-[10px] font-normal px-1.5 py-0">
-                {accountTypeOptions.find(o => o.value === account.account_type)?.label || translateDoctype(account.account_type)}
-              </Badge>
-            ) : isGroup ? (
-              <Badge variant="outline" className="text-[10px] font-normal px-1.5 py-0 text-muted-foreground">
-                مجموعة
-              </Badge>
-            ) : null}
-          </span>
-          <span className="tabular-nums min-w-[110px] text-start text-xs" dir="ltr">
-            {isGroup ? (
-              <span className="text-muted-foreground/40">—</span>
-            ) : (
-              <span className={balance >= 0 ? 'text-foreground' : 'text-destructive font-medium'}>
-                {formatCurrency(balance)}
-              </span>
-            )}
-          </span>
-          <div className="flex gap-0.5 w-16 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={() => onEdit(account)}
-              className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            >
-              <Edit className="h-3 w-3" />
-            </button>
-            <button
-              onClick={() => onDelete(account)}
-              className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-            >
-              <Trash2 className="h-3 w-3" />
-            </button>
-          </div>
+          )}
+          <span className={`truncate ${isGroup ? 'font-semibold' : ''}`}>{displayName}</span>
+          {isGroup && (
+            <Badge variant="outline" className="text-[9px] font-normal px-1.5 py-0 shrink-0 text-muted-foreground border-muted-foreground/20">
+              مجموعة
+            </Badge>
+          )}
+          {hasChildren && children.length > 0 && (
+            <span className="text-[10px] text-muted-foreground/70 tabular-nums shrink-0">({children.length})</span>
+          )}
+        </div>
+
+        {/* Column 2: Account Number */}
+        <span className="text-muted-foreground font-mono text-[11px] tabular-nums text-center truncate" dir="ltr">
+          {account.account_number}
+        </span>
+
+        {/* Column 3: Account Type */}
+        <span className="flex justify-center">
+          {account.account_type ? (
+            <Badge variant="secondary" className="text-[10px] font-normal px-1.5 py-0">
+              {accountTypeOptions.find(o => o.value === account.account_type)?.label || translateDoctype(account.account_type)}
+            </Badge>
+          ) : null}
+        </span>
+
+        {/* Column 4: Balance */}
+        <span className="tabular-nums text-start text-xs truncate" dir="ltr">
+          {isGroup ? (
+            <span className="text-muted-foreground/40">—</span>
+          ) : (
+            <span className={balance >= 0 ? 'text-foreground' : 'text-destructive font-medium'}>
+              {formatCurrency(balance)}
+            </span>
+          )}
+        </span>
+
+        {/* Column 5: Actions */}
+        <div className="flex gap-0.5 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => onEdit(account)}
+            className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          >
+            <Edit className="h-3 w-3" />
+          </button>
+          <button
+            onClick={() => onDelete(account)}
+            className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
         </div>
       </div>
       <AnimatePresence initial={false}>
@@ -810,44 +819,6 @@ export default function ChartOfAccountsPage() {
         }
       />
 
-      {/* ─── KPI Summary ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {Object.entries(rootTypeConfig).map(([key, config]) => {
-          const count = accounts.filter(a => a.root_type === key).length;
-          return (
-            <motion.div
-              key={key}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -2, transition: { duration: 0.2 } }}
-            >
-              <Card
-                className={`relative overflow-hidden border cursor-pointer transition-all duration-300 hover:shadow-lg ${config.border} ${filterRoot === key ? 'ring-2 ring-offset-1 ring-primary/30 shadow-md' : ''}`}
-                onClick={() => setFilterRoot(filterRoot === key ? 'all' : key)}
-              >
-                <div className={`absolute inset-0 bg-gradient-to-bl ${config.gradient} pointer-events-none`} />
-                <CardContent className="p-4 relative">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-2 min-w-0">
-                      <p className="text-[11px] font-semibold text-muted-foreground tracking-wide">{config.label}</p>
-                      <p className={`text-lg font-bold tabular-nums ${config.accent}`} dir="ltr">
-                        {formatCurrency(summaryByRootType[key] || 0)}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {count} حساب
-                      </p>
-                    </div>
-                    <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-lg ${config.icon}`}>
-                      <Layers className="h-4.5 w-4.5" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
-      </div>
-
       {/* ─── Toolbar: Search + Filters ─── */}
       <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-[var(--shadow-xs-ui)] p-3" dir="rtl">
         {/* Row 1: Search + Stats */}
@@ -923,23 +894,29 @@ export default function ChartOfAccountsPage() {
       {/* ─── Tree View ─── */}
       <Card className="overflow-hidden border-border/40">
         {/* Table Header */}
-        <div className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-4 py-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none">
-          <span className="flex-1">الحساب</span>
-          <span className="w-24 text-center">الرقم</span>
-          <span className="w-28 text-center">التصنيف</span>
-          <span className="w-[110px] text-start" dir="ltr">الرصيد</span>
-          <span className="w-16" />
+        <div
+          className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-4 py-2 grid items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none"
+          style={{ gridTemplateColumns: '1fr 96px 112px 110px 64px' }}
+        >
+          <span>الحساب</span>
+          <span className="text-center">الرقم</span>
+          <span className="text-center">التصنيف</span>
+          <span className="text-start" dir="ltr">الرصيد</span>
+          <span />
         </div>
 
         {isLoading ? (
           <div className="divide-y divide-border/20">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 h-9 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem` }}>
-                <div className="h-3.5 w-3.5 rounded bg-muted" />
-                <div className="h-3.5 rounded bg-muted flex-1 max-w-[180px]" />
-                <div className="h-3 rounded bg-muted w-14" />
-                <div className="h-3 rounded bg-muted w-16" />
+              <div key={i} className="grid items-center h-9 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem`, gridTemplateColumns: '1fr 96px 112px 110px 64px' }}>
+                <div className="flex items-center gap-1.5">
+                  <div className="h-3.5 w-3.5 rounded bg-muted shrink-0" />
+                  <div className="h-3.5 rounded bg-muted flex-1 max-w-[180px]" />
+                </div>
+                <div className="h-3 rounded bg-muted w-14 mx-auto" />
+                <div className="h-3 rounded bg-muted w-16 mx-auto" />
                 <div className="h-3 rounded bg-muted w-20" />
+                <div />
               </div>
             ))}
           </div>

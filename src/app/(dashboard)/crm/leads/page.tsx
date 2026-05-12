@@ -49,8 +49,7 @@ import {
   Tag,
   Eye,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useErpMethodCall } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { StatusBadge } from '@/components/erp/status-badge';
@@ -550,46 +549,6 @@ export default function LeadsPage() {
       />
 
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
-
-      {/* ─── KPI Strip ─── */}
-      <KpiStrip cols={5}>
-        <KpiCard
-          title="إجمالي العملاء المحتملين"
-          value={totalLeads}
-          icon={Users}
-          accent="primary"
-          description="جميع السجلات"
-        />
-        <KpiCard
-          title="عملاء ساخنون"
-          value={hotLeads}
-          icon={Flame}
-          accent="destructive"
-          description="مهتمون وفرص"
-        />
-        <KpiCard
-          title="عملاء دافئون"
-          value={warmLeads}
-          icon={Sun}
-          accent="warning"
-          description="تم الرد / عرض سعر"
-        />
-        <KpiCard
-          title="عملاء باردون"
-          value={coldLeads}
-          icon={Snowflake}
-          accent="info"
-          description="جدد / مفتوحون"
-        />
-        <KpiCard
-          title="تم التحويل"
-          value={convertedLeads}
-          icon={ArrowRightLeft}
-          accent="success"
-          description={totalLeads > 0 ? `${Math.round((convertedLeads / totalLeads) * 100)}% معدل التحويل` : 'لا بيانات بعد'}
-        />
-      </KpiStrip>
-
       {/* ─── Filters Bar ─── */}
       <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-3 space-y-3">
         <div className="flex items-center gap-3 flex-wrap">

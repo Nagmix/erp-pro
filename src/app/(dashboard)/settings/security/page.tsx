@@ -15,8 +15,7 @@ import {
  SelectValue,
 } from '@/components/ui/select';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+
 import { useDocList } from '@/lib/client/hooks';
 import { toast } from 'sonner';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
@@ -210,37 +209,6 @@ export default function SecuritySettingsPage() {
   />
 
   {/* ── Overview KPIs ── */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="قوة كلمة المرور"
-   value={strengthLabel}
-   icon={Key}
-   accent={passwordStrength <= 2 ? 'destructive' : passwordStrength <= 4 ? 'warning' : 'success'}
-   description={`${settings.minPasswordLength} أحرف كحد أدنى`}
-  />
-  <KpiCard
-   title="مدة الجلسة"
-   value={`${settings.sessionHours} ساعة`}
-   icon={Clock}
-   accent="info"
-   description={`${settings.simultaneousSessions} جلسات متزامنة`}
-  />
-  <KpiCard
-   title="المصادقة الثنائية"
-   value={settings.twoFactorEnabled ? 'مفعّلة' : 'معطّلة'}
-   icon={Smartphone}
-   accent={settings.twoFactorEnabled ? 'success' : 'warning'}
-   description={settings.twoFactorEnabled ? settings.twoFactorMethod : 'غير مفعّلة'}
-  />
-  <KpiCard
-   title="تقييد IP"
-   value={settings.ipRestriction ? 'مفعّل' : 'معطّل'}
-   icon={Globe}
-   accent={settings.ipRestriction ? 'success' : 'primary'}
-   description={settings.ipRestriction ? 'حماية إضافية' : 'غير مقيّد'}
-  />
-  </KpiStrip>
-
   {/* ── Password Policy ── */}
   <PageShell>
   <div className="space-y-4">

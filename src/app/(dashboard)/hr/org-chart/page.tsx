@@ -42,7 +42,7 @@ import {
 } from 'lucide-react';
 import { useDocList } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { cn } from '@/lib/utils';
 
 // ── Types ────────────────────────────────────────────────────
@@ -461,38 +461,6 @@ export default function OrgChartPage() {
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
       {/* ── KPI Strip ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="موظفون نشطون"
-          value={totalEmployees}
-          icon={Users}
-          accent="primary"
-          compact
-        />
-        <KpiCard
-          title="جذور تنظيمية"
-          value={totalRoots}
-          icon={Network}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="الأقسام"
-          value={departmentsCount}
-          icon={Building2}
-          accent="info"
-          compact
-        />
-        <KpiCard
-          title="بدون مدير مباشر"
-          value={unmatchedCount}
-          icon={UserCircle}
-          accent="warning"
-          compact
-          description="موظفون لم يحدد لهم مدير مباشر"
-        />
-      </KpiStrip>
-
       {/* ── Search & Filters ── */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

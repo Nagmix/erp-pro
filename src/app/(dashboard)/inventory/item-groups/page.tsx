@@ -51,8 +51,7 @@ import {
   Tag,
   Layers,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
@@ -437,39 +436,6 @@ export default function ItemGroupsPage() {
           </div>
         }
       />
-
-      {/* ─── KPI Strip ─── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المجموعات"
-          value={totalGroups}
-          icon={Layers}
-          accent="primary"
-          description="جميع مجموعات الأصناف"
-        />
-        <KpiCard
-          title="مجموعات جذرية"
-          value={rootGroups}
-          icon={TreePine}
-          accent="info"
-          description="مجموعات بدون أب"
-        />
-        <KpiCard
-          title="مجموعات رئيسية"
-          value={parentGroupCount}
-          icon={FolderOpen}
-          accent="warning"
-          description="تحتوي على فروع"
-        />
-        <KpiCard
-          title="معطّلة"
-          value={disabledCount}
-          icon={Package}
-          accent={disabledCount > 0 ? 'destructive' : 'success'}
-          description={disabledCount > 0 ? `${disabledCount} مجموعة معطّلة` : 'جميع المجموعات نشطة'}
-        />
-      </KpiStrip>
-
       {/* ─── Filters Bar ─── */}
       <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-3 space-y-3">
         <div className="flex items-center gap-3 flex-wrap">

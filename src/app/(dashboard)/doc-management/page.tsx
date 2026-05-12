@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -361,34 +360,6 @@ export default function DocManagementPage() {
       <ListQueryAlert error={error} onRetry={() => refetch()} />
 
       {/* ── KPI Strip ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الملفات"
-          value={kpiTotal}
-          icon={FileText}
-          accent="info"
-        />
-        <KpiCard
-          title="الملفات هذا الشهر"
-          value={kpiThisMonth}
-          icon={Clock}
-          accent="success"
-        />
-        <KpiCard
-          title="سعة التخزين المستخدمة"
-          value={kpiStorage}
-          icon={HardDrive}
-          accent="warning"
-          description="إجمالي حجم الملفات"
-        />
-        <KpiCard
-          title="ملفات خاصة"
-          value={kpiPrivate}
-          icon={Folder}
-          accent="destructive"
-        />
-      </KpiStrip>
-
       {/* ── Split Layout ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* ── Folder Tree ── */}

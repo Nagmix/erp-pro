@@ -14,8 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { useRunReport } from '@/lib/client/hooks';
@@ -200,51 +199,6 @@ export default function AgingReportPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={6}>
-        <KpiCard
-          title="إجمالي المستحقات"
-          value={formatCurrency(kpis.totalOutstanding, 'YER')}
-          icon={Users}
-          accent="primary"
-          compact
-        />
-        <KpiCard
-          title="حالي"
-          value={formatCurrency(kpis.totalRange0, 'YER')}
-          icon={Clock}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="1-30 يوم"
-          value={formatCurrency(kpis.totalRange1, 'YER')}
-          icon={Clock}
-          accent="info"
-          compact
-        />
-        <KpiCard
-          title="31-60 يوم"
-          value={formatCurrency(kpis.totalRange2, 'YER')}
-          icon={AlertTriangle}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="61-90 يوم"
-          value={formatCurrency(kpis.totalRange3, 'YER')}
-          icon={AlertTriangle}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="أكثر من 90 يوم"
-          value={formatCurrency(kpis.totalRange4, 'YER')}
-          icon={AlertTriangle}
-          accent="destructive"
-          compact
-        />
-      </KpiStrip>
-
       {/* Filter Card */}
       <Card className="border-border/40 print:hidden">
         <CardHeader className="pb-3">

@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -358,37 +357,6 @@ export default function ModuleSettingsHubPage() {
   {/* ════════════════════════════════════════════════════════
    System Health KPIs
    ════════════════════════════════════════════════════════ */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="العملاء المسجلون"
-   value={healthCounts.customers}
-   icon={Users}
-   accent="primary"
-   description="إجمالي العملاء في النظام"
-  />
-  <KpiCard
-   title="الموردون"
-   value={healthCounts.suppliers}
-   icon={Truck}
-   accent="warning"
-   description="إجمالي الموردين المسجلين"
-  />
-  <KpiCard
-   title="الأصناف النشطة"
-   value={healthCounts.items}
-   icon={Package}
-   accent="success"
-   description="أصناف غير معطّلة"
-  />
-  <KpiCard
-   title="تهيئة النظام"
-   value={`${totalConfigured}/6`}
-   icon={Activity}
-   accent={totalConfigured >= 4 ? 'success' : totalConfigured >= 2 ? 'warning' : 'destructive'}
-   description="عدد الكيانات المهيأة من أصل 6"
-  />
-  </KpiStrip>
-
   {/* ════════════════════════════════════════════════════════
    Quick Setup Section
    ════════════════════════════════════════════════════════ */}

@@ -35,8 +35,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Plus, Trash2, Ticket, CheckCircle, XCircle, Hash, Filter, ChevronDown, Send, Undo2 } from 'lucide-react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -381,37 +380,6 @@ export default function CouponCodesPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الكوبونات"
-          value={totalCoupons}
-          icon={Ticket}
-          accent="primary"
-          description="جميع أكواد الخصم"
-        />
-        <KpiCard
-          title="الكوبونات النشطة"
-          value={activeCoupons}
-          icon={CheckCircle}
-          accent="success"
-          description="أكواد غير معطلة"
-        />
-        <KpiCard
-          title="إجمالي الاستخدام"
-          value={totalUsage}
-          icon={Hash}
-          accent="info"
-          description="عدد مرات الاستخدام الكلي"
-        />
-        <KpiCard
-          title="كوبونات مسودة"
-          value={draftCoupons}
-          icon={Ticket}
-          accent="warning"
-          description="بانتظار الترحيل"
-        />
-      </KpiStrip>
-
       {/* Filters */}
       <div className="space-y-3">
         <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>

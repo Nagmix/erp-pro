@@ -49,9 +49,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency } from '@/lib/core/helpers';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
-
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 interface PLRow {
   name: string;
   currency: string;
@@ -355,36 +353,6 @@ export default function PriceListsPage() {
           </Button>
         }
       />
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي القوائم"
-          value={rows.length}
-          icon={ListTree}
-          accent="primary"
-          description="كل قوائم الأسعار"
-        />
-        <KpiCard
-          title="شراء"
-          value={rows.filter((r) => chk(r.buying)).length}
-          icon={Plus}
-          accent="warning"
-          description="قوائم شراء مفعلة"
-        />
-        <KpiCard
-          title="بيع"
-          value={rows.filter((r) => chk(r.selling)).length}
-          icon={Plus}
-          accent="success"
-          description="قوائم بيع مفعلة"
-        />
-        <KpiCard
-          title="مفعّلة"
-          value={rows.filter((r) => chk(r.enabled)).length}
-          icon={CheckCircle}
-          accent="info"
-          description="قوائم مفعلة حالياً"
-        />
-      </KpiStrip>
       <PageShell padded={false}>
         <DataTable
           data={rows}

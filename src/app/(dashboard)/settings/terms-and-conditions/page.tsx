@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ConfirmationDialog } from '@/components/erp/confirmation-dialog';
@@ -426,41 +425,6 @@ export default function TermsSettingsPage() {
   />
 
   {/* KPI Strip */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="إجمالي النشطة"
-   value={totalActive}
-   icon={CheckCircle2}
-   accent="success"
-   compact
-   description="شروط وأحكام مفعّلة قيد الاستخدام"
-  />
-  <KpiCard
-   title="إجمالي المعطلة"
-   value={totalDisabled}
-   icon={XCircle}
-   accent="destructive"
-   compact
-   description="شروط وأحكام معطّلة غير مستخدمة"
-  />
-  <KpiCard
-   title="للمشتريات"
-   value={totalBuying}
-   icon={ShoppingCart}
-   accent="info"
-   compact
-   description="شروط مخصّصة لعمليات الشراء"
-  />
-  <KpiCard
-   title="للمبيعات"
-   value={totalSelling}
-   icon={Store}
-   accent="primary"
-   compact
-   description="شروط مخصّصة لعمليات البيع"
-  />
-  </KpiStrip>
-
   {/* Filters bar */}
   <Card className="border-border/40 bg-card">
   <CardContent className="p-3 flex flex-wrap items-center gap-3">

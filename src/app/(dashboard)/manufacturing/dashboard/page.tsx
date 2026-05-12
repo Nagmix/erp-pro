@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -380,76 +379,7 @@ export default function ManufacturingDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
-      <KpiStrip>
-        <KpiCard
-          title="أوامر العمل النشطة"
-          value={isLoading ? '…' : String(activeWorkOrders)}
-          icon={Factory}
-          accent="warning"
-          description="لم يبدأ + قيد التنفيذ"
-        />
-        <KpiCard
-          title="أوامر العمل المكتملة"
-          value={isLoading ? '…' : String(completedWorkOrders)}
-          icon={CheckCircle2}
-          accent="success"
-        />
-        <KpiCard
-          title="إجمالي قوائم المواد"
-          value={isLoading ? '…' : String(totalBoms)}
-          icon={Package}
-          accent="info"
-          description="قوائم مرحّلة"
-        />
-        <KpiCard
-          title="محطات العمل"
-          value={isLoading ? '…' : String(totalWorkstations)}
-          icon={Wrench}
-          accent="primary"
-          description={`سعة إجمالية: ${totalProductionCapacity}`}
-        />
-      </KpiStrip>
-
       {/* ── KPI Row 2 ── */}
-      <KpiStrip cols={5}>
-        <KpiCard
-          title="خطط الإنتاج"
-          value={String(totalProductionPlans)}
-          icon={ClipboardList}
-          compact
-          accent="info"
-          description={`${activeProductionPlans} نشطة`}
-        />
-        <KpiCard
-          title="أوامر متوقفة"
-          value={String(stoppedWorkOrders)}
-          icon={StopCircle}
-          compact
-          accent={stoppedWorkOrders > 0 ? 'destructive' : 'success'}
-        />
-        <KpiCard
-          title="مسودات أوامر العمل"
-          value={String(draftWorkOrders)}
-          icon={FileText}
-          compact
-          accent="primary"
-        />
-        <KpiCard
-          title="معدل الإنجاز %"
-          value={`${avgCompletionRate}%`}
-          icon={TrendingUp}
-          compact
-          accent={avgCompletionRate >= 80 ? 'success' : avgCompletionRate >= 50 ? 'warning' : 'destructive'}
-        />
-        <KpiCard
-          title="مكتمل هذا الشهر"
-          value={String(completedThisMonth)}
-          icon={Activity}
-          compact
-          accent="success"
-        />
-      </KpiStrip>
-
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -678,39 +677,6 @@ export default function MultiCurrencyPage() {
       <ListQueryAlert error={error} onRetry={() => { refetchCurrencies(); refetchExchange(); }} />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="العملات المفعّلة"
-          value={activeCurrenciesCount}
-          icon={DollarSign}
-          accent="success"
-          change={activeCurrenciesCount > 0 ? 9 : 0}
-          changeType={activeCurrenciesCount > 0 ? 'positive' : 'neutral'}
-          description={`من إجمالي ${currencies.length} عملات مسجلة`}
-        />
-        <KpiCard
-          title="آخر تحديث للأسعار"
-          value={lastRateUpdate}
-          icon={RefreshCw}
-          accent="info"
-          description="آخر تحديث من ERPNext"
-        />
-        <KpiCard
-          title="إجمالي أرباح التحويل"
-          value={formatCurrency(totalGains)}
-          icon={TrendingUp}
-          accent="success"
-          description="أرباح فروق أسعار الصرف"
-        />
-        <KpiCard
-          title="إجمالي خسائر التحويل"
-          value={formatCurrency(totalLosses)}
-          icon={TrendingDown}
-          accent="destructive"
-          description="خسائر فروق أسعار الصرف"
-        />
-      </KpiStrip>
-
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full max-w-md grid-cols-3">

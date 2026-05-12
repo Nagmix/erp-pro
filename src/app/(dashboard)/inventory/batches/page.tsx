@@ -24,8 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Plus, Filter, ChevronDown, X, Layers, CheckCircle, AlertTriangle } from 'lucide-react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -176,12 +175,6 @@ export default function BatchesPage() {
           </Button>
         }
       />
-
-      <KpiStrip cols={3}>
-        <KpiCard title="إجمالي الدفعات" value={totalCount} icon={Layers} accent="warning" description="كل سجلات الدفعات" />
-        <KpiCard title="صالحة" value={validCount} icon={CheckCircle} accent="success" description="دفعات لم تنتهِ صلاحيتها" />
-        <KpiCard title="منتهية الصلاحية" value={expiredCount} icon={AlertTriangle} accent="destructive" description="انتهى تاريخ الصلاحية" />
-      </KpiStrip>
 
       {/* شريط البحث والفلاتر */}
       <div className="space-y-3">

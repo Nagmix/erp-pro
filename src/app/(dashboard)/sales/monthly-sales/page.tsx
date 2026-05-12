@@ -48,8 +48,7 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from '@/components/ui/chart';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ExportButton } from '@/components/erp/export-button';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import {
@@ -362,49 +361,6 @@ export default function MonthlySalesReportPage() {
       {data && !loading && (
         <>
           {/* ─── Summary KPI cards ─── */}
-          <KpiStrip cols={6}>
-            <KpiCard
-              title="إجمالي مبيعات الشهر"
-              value={`${fmt(summary?.totalSales || 0)} ر.ي`}
-              icon={TrendingUp}
-              accent="success"
-              description={`${summary?.invoiceCount || 0} فاتورة`}
-            />
-            <KpiCard
-              title="إجمالي المرتجعات"
-              value={`${fmt(summary?.totalReturns || 0)} ر.ي`}
-              icon={TrendingDown}
-              accent="destructive"
-              description={`${summary?.returnCount || 0} فاتورة مرتجع`}
-            />
-            <KpiCard
-              title="صافي المبيعات"
-              value={`${fmt(summary?.netSales || 0)} ر.ي`}
-              icon={DollarSign}
-              accent="primary"
-            />
-            <KpiCard
-              title="إجمالي المحصّل"
-              value={`${fmt(summary?.totalCollected || 0)} ر.ي`}
-              icon={Banknote}
-              accent="success"
-            />
-            <KpiCard
-              title="المستحقات المعلقة"
-              value={`${fmt(summary?.outstanding || 0)} ر.ي`}
-              icon={CreditCard}
-              accent="warning"
-            />
-            <KpiCard
-              title="نسبة النمو"
-              value={`${(summary?.growthPercent || 0).toFixed(1)}%`}
-              icon={Percent}
-              accent={summary && summary.growthPercent >= 0 ? 'success' : 'destructive'}
-              change={summary?.growthPercent || 0}
-              changeType={summary && summary.growthPercent >= 0 ? 'positive' : 'negative'}
-            />
-          </KpiStrip>
-
           {/* ─── Daily trend chart with previous month ─── */}
           <Card className="border-border/40">
             <CardHeader className="pb-2">

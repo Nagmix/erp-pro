@@ -31,8 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { useDocList, useCreateDoc, useSubmitDoc } from '@/lib/client/hooks';
@@ -353,38 +352,6 @@ export default function PosSessionsListPage() {
       <ListQueryAlert error={isError ? error : null} onRetry={() => void refetch()} />
 
       {/* ── بطاقات KPI ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الجلسات"
-          value={formatNumber(kpis.total)}
-          icon={Clock}
-          accent="info"
-          description="عدد سجلات الورديات المسجّلة"
-        />
-        <KpiCard
-          title="جلسات مفتوحة"
-          value={formatNumber(kpis.open)}
-          icon={Play}
-          accent="warning"
-          description="ورديات نشطة لم تُغلق بعد"
-          change={kpis.open > 0 ? undefined : undefined}
-        />
-        <KpiCard
-          title="جلسات مغلقة"
-          value={formatNumber(kpis.closed)}
-          icon={Square}
-          accent="success"
-          description="ورديات أُغلقت وتم ترحيلها"
-        />
-        <KpiCard
-          title="إجمالي النقدية"
-          value={formatCurrency(kpis.totalCash)}
-          icon={Banknote}
-          accent="primary"
-          description="مجموع الأرصدة (افتتاحية + ختامية)"
-        />
-      </KpiStrip>
-
       {/* ── شريط الفلاتر ── */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

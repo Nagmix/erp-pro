@@ -47,8 +47,7 @@ import {
   LinkIcon,
 } from 'lucide-react';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDoc, useDocList } from '@/lib/client/hooks';
 import { useCreatePosInvoice } from '@/lib/client/pos-hooks';
 import { buildPosInvoiceReturn, type BuildPosInvoiceReturnOpts } from '@/lib/erp/erpnext-payloads';
@@ -304,39 +303,6 @@ export default function PosReturnsPage() {
       />
 
       <ListQueryAlert error={isError ? error : null} onRetry={() => { void origRefetch(); void retRefetch(); }} />
-
-      {/* ── شريط مؤشرات الأداء ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المرتجعات"
-          value={totalReturnsCount}
-          icon={Undo2}
-          accent="warning"
-          description="عدد فواتير المرتجع المرحّلة"
-        />
-        <KpiCard
-          title="إجمالي مبالغ المرتجعات"
-          value={formatCurrency(totalReturnsAmount)}
-          icon={TrendingDown}
-          accent="destructive"
-          description="مجموع مبالغ المرتجعات (ريال يمني)"
-        />
-        <KpiCard
-          title="مرتجعات اليوم"
-          value={returnsTodayCount}
-          icon={CalendarDays}
-          accent="info"
-          description={`مبلغ: ${formatCurrency(returnsTodayAmount)}`}
-        />
-        <KpiCard
-          title="متوسط قيمة المرتجع"
-          value={formatCurrency(avgReturnValue)}
-          icon={BarChart3}
-          accent="primary"
-          description="متوسط مبلغ المرتجع لكل فاتورة"
-        />
-      </KpiStrip>
-
       {/* ── فلاتر التاريخ والعميل ── */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">

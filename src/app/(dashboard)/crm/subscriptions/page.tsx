@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { useState, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -518,33 +517,6 @@ export default function CrmSubscriptionsPage() {
       />
 
       {/* KPI Cards */}
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="الاشتراكات النشطة"
-          value={activeSubs}
-          icon={CreditCard}
-          accent="success"
-          description={`من إجمالي ${(subs.data || []).length} اشتراك`}
-          compact
-        />
-        <KpiCard
-          title="الباقات المتاحة"
-          value={totalPlans}
-          icon={Layers}
-          accent="info"
-          description="باقات اشتراك مسجلة"
-          compact
-        />
-        <KpiCard
-          title="إجمالي قيمة الباقات (ر.ي)"
-          value={formatCurrency(totalRevenue)}
-          icon={TrendingUp}
-          accent="primary"
-          description="مجموع أسعار الباقات بالريال"
-          compact
-        />
-      </KpiStrip>
-
       {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab} className="space-y-4">
         <TabsList className="flex-wrap h-auto gap-1 p-1">

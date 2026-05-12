@@ -11,8 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import {
   Loader2,
   Key,
@@ -359,37 +358,6 @@ export default function DeveloperApiPage() {
       />
 
       {/* ── KPI Cards ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="مفاتيح نشطة"
-          value={activeKeys}
-          icon={Key}
-          accent="success"
-          description={`${revokedKeys} مُلغى من ${keys.length} إجمالي`}
-        />
-        <KpiCard
-          title="خطافات الويب"
-          value={totalWebhooks}
-          icon={Webhook}
-          accent="primary"
-          description={`${totalLocalWebhooks} محلي · ${totalErpWebhooks} ERPNext`}
-        />
-        <KpiCard
-          title="سجلات التسليم"
-          value={recentDeliveries}
-          icon={FileText}
-          accent="warning"
-          description="محاولات إرسال"
-        />
-        <KpiCard
-          title="نقاط النهاية"
-          value={API_ENDPOINTS.length}
-          icon={Zap}
-          accent="info"
-          description="نقاط متاحة للوصول"
-        />
-      </KpiStrip>
-
       <Tabs defaultValue="keys" dir="rtl" className="space-y-4">
         <TabsList className="flex flex-wrap gap-1 w-full">
           <TabsTrigger value="keys" className="gap-1.5 text-xs">

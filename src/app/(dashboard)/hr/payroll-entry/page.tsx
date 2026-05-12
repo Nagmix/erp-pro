@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge, StatusBadge } from '@/components/erp/status-badge';
-import { KpiCard, KpiStrip, PageHeader } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -455,45 +455,6 @@ export default function PayrollEntryPage() {
       />
 
       {/* ── KPI Strip ── */}
-      <KpiStrip cols={5}>
-        <KpiCard
-          title="إجمالي المسيرات"
-          value={totalEntries}
-          icon={FileText}
-          accent="primary"
-          compact
-        />
-        <KpiCard
-          title="مسودات"
-          value={draftCount}
-          icon={Wallet}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="مُقدّمة"
-          value={submittedCount}
-          icon={FileCheck}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="ملغاة"
-          value={cancelledCount}
-          icon={Ban}
-          accent="destructive"
-          compact
-        />
-        <KpiCard
-          title="إجمالي الرواتب الصافية"
-          value={formatCurrency(totalGrossPay)}
-          icon={DollarSign}
-          accent="info"
-          compact
-          description={`${totalEmployees} موظف مرّحل`}
-        />
-      </KpiStrip>
-
       {/* ── Status Filter Pills ── */}
       <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-[var(--shadow-xs-ui)] p-3">
         <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 overflow-x-auto">

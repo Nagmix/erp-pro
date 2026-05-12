@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { StatusBadge } from '@/components/erp/status-badge';
@@ -610,13 +609,6 @@ export default function SmsGatewayPage() {
 
   {/* ─── Tab 2: SMS Gateways ─── */}
   <TabsContent value="gateways">
-   <KpiStrip cols={4}>
-   <KpiCard title="إجمالي البوابات" value={totalGateways} icon={Send} accent="info" />
-   <KpiCard title="بوابات POST" value={activeGateways} icon={MessageSquare} accent="success" />
-   <KpiCard title="رسائل مرسلة اليوم" value={smsSentToday} icon={Send} accent="primary" />
-   <KpiCard title="فاشلة اليوم" value={smsFailedToday} icon={MessageSquare} accent="destructive" />
-   </KpiStrip>
-
    <ListQueryAlert error={gatewaysIsError ? gatewaysError : null} onRetry={() => refetchGateways()} />
 
    <DataTable

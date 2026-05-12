@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Trash2, Send, Undo2, BarChart3, Check, FileText, Filter, Calendar, Package, Building2 } from 'lucide-react';
-import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatDate, formatNumber } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -370,37 +370,6 @@ export default function ProductionPlansPage() {
       />
 
       {/* ── KPI Cards ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="خطط الإنتاج"
-          value={kpiTotal}
-          icon={BarChart3}
-          accent="warning"
-          description="إجمالي الخطط"
-        />
-        <KpiCard
-          title="مسودات"
-          value={kpiDraft}
-          icon={FileText}
-          accent="info"
-          description="بانتظار الترحيل"
-        />
-        <KpiCard
-          title="مُرحّلة"
-          value={kpiSubmitted}
-          icon={Send}
-          accent="success"
-          description="خطط معتمدة"
-        />
-        <KpiCard
-          title="مكتملة"
-          value={kpiCompleted}
-          icon={Check}
-          accent="primary"
-          description={`كمية مخططة: ${formatNumber(totalPlannedQty)}`}
-        />
-      </KpiStrip>
-
       {/* ── Filters ── */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

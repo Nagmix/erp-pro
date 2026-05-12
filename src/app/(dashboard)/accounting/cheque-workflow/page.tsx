@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Button } from '@/components/ui/button';
@@ -528,44 +527,6 @@ export default function ChequeWorkflowPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={5}>
-        <KpiCard
-          title="شيكات مصدرة"
-          value={issuedCount}
-          icon={FileText}
-          accent="info"
-          compact
-        />
-        <KpiCard
-          title="قيد الإيداع"
-          value={depositedCount}
-          icon={Building2}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="مقاصة"
-          value={clearedCount}
-          icon={CheckCircle2}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="مرتدة"
-          value={bouncedCount}
-          icon={XCircle}
-          accent="destructive"
-          compact
-        />
-        <KpiCard
-          title="إجمالي القيمة"
-          value={formatCurrency(totalValue)}
-          icon={Banknote}
-          accent="primary"
-          compact
-        />
-      </KpiStrip>
-
       {/* Visual Lifecycle Flow */}
       {renderLifecycleFlow()}
 

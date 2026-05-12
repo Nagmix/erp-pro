@@ -2,8 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -240,75 +239,9 @@ export default function RentalsDashboardPage() {
       {/* ════════════════════════════════════════════════════════
           KPI Cards
           ════════════════════════════════════════════════════════ */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الوحدات"
-          value={stats.totalUnits}
-          icon={Building2}
-          accent="info"
-          description="جميع الأصناف المسجلة في النظام"
-        />
-        <KpiCard
-          title="عقود نشطة"
-          value={stats.activeContracts}
-          icon={FileText}
-          accent="success"
-          description="عقود موقّعة أو سارية"
-        />
-        <KpiCard
-          title="حجوزات هذا الشهر"
-          value={stats.bookingsThisMonth}
-          icon={Calendar}
-          accent="warning"
-          description={`منذ ${formatDate(firstOfMonth)}`}
-        />
-        <KpiCard
-          title="إيرادات الشهر"
-          value={formatCurrency(stats.revenueThisMonth)}
-          icon={DollarSign}
-          accent="primary"
-          description="إجمالي فواتير المبيعات المرحّلة"
-        />
-      </KpiStrip>
-
       {/* ════════════════════════════════════════════════════════
           Secondary Stats Row
           ════════════════════════════════════════════════════════ */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="الوحدات المتاحة"
-          value={stats.available}
-          icon={Home}
-          accent="success"
-          description="وحدات غير محجوزة متاحة للإيجار"
-          compact
-        />
-        <KpiCard
-          title="الوحدات المحجوزة"
-          value={stats.booked}
-          icon={Layers}
-          accent="warning"
-          description="وحدات مشغولة حالياً"
-          compact
-        />
-        <KpiCard
-          title="عقود مسودة"
-          value={stats.draftContracts}
-          icon={Clock}
-          accent="info"
-          description="عقود بانتظار التوقيع"
-          compact
-        />
-        <KpiCard
-          title="عقود منتهية"
-          value={stats.expiredContracts}
-          icon={AlertTriangle}
-          accent="destructive"
-          description="عقود بحاجة للتجديد"
-          compact
-        />
-      </KpiStrip>
-
       {/* ════════════════════════════════════════════════════════
           Quick Links Grid
           ════════════════════════════════════════════════════════ */}

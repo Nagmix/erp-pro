@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -311,32 +310,6 @@ export default function UnitTypesPage() {
       <ListQueryAlert error={list.isError ? (list.error as Error) : null} onRetry={() => void list.refetch()} />
 
       {/* KPI Strip */}
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="إجمالي الأنواع"
-          value={stats.total}
-          icon={Layers}
-          accent="info"
-          compact
-        />
-        <KpiCard
-          title="مجموعات"
-          value={stats.groups}
-          icon={Layers}
-          accent="warning"
-          compact
-          description="أنواع تحتوي على أنواع فرعية"
-        />
-        <KpiCard
-          title="فرعية"
-          value={stats.leaf}
-          icon={Layers}
-          accent="success"
-          compact
-          description="أنواع نهائية بدون أنواع فرعية"
-        />
-      </KpiStrip>
-
       {/* Filter Pills */}
       <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-[var(--shadow-xs-ui)] p-3">
         <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 overflow-x-auto">

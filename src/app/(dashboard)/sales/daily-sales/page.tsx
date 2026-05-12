@@ -38,8 +38,7 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart';
 import { DatePicker } from '@/components/ui/date-picker';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ExportButton } from '@/components/erp/export-button';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import {
@@ -307,47 +306,6 @@ export default function DailySalesReportPage() {
       {data && !loading && (
         <>
           {/* ─── Summary KPI cards ─── */}
-          <KpiStrip cols={6}>
-            <KpiCard
-              title="إجمالي المبيعات"
-              value={`${fmt(summary?.totalSales || 0)} ر.ي`}
-              icon={TrendingUp}
-              accent="success"
-              description={`${summary?.invoiceCount || 0} فاتورة`}
-            />
-            <KpiCard
-              title="إجمالي المرتجعات"
-              value={`${fmt(summary?.totalReturns || 0)} ر.ي`}
-              icon={TrendingDown}
-              accent="destructive"
-              description={`${summary?.returnCount || 0} فاتورة مرتجع`}
-            />
-            <KpiCard
-              title="صافي المبيعات"
-              value={`${fmt(summary?.netSales || 0)} ر.ي`}
-              icon={DollarSign}
-              accent="primary"
-            />
-            <KpiCard
-              title="إجمالي النقدي المحصّل"
-              value={`${fmt(summary?.totalCashReceived || 0)} ر.ي`}
-              icon={Banknote}
-              accent="success"
-            />
-            <KpiCard
-              title="إجمالي الآجل"
-              value={`${fmt(summary?.totalCredit || 0)} ر.ي`}
-              icon={CreditCard}
-              accent="warning"
-            />
-            <KpiCard
-              title="متوسط قيمة الفاتورة"
-              value={`${fmt(summary?.avgInvoiceValue || 0)} ر.ي`}
-              icon={Receipt}
-              accent="info"
-            />
-          </KpiStrip>
-
           {/* ─── Charts row ─── */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             {/* Hourly sales chart */}

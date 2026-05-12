@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
@@ -165,8 +164,6 @@ function formatDelay(delayType: string, delayValue: number): string {
  if (delayValue === 2) return `بعد ${unit.two}`;
  return `بعد ${delayValue} ${unit.many}`;
 }
-
-
 
 /* ─── Main Component ─── */
 export default function EmailAutoRulesPage() {
@@ -591,13 +588,6 @@ export default function EmailAutoRulesPage() {
   />
 
   {/* ─── KPI Cards ─── */}
-  <KpiStrip cols={4}>
-  <KpiCard title="إجمالي القواعد" value={totalRules} icon={Zap} accent="primary" description="جميع قواعد الإرسال المسجلة" />
-  <KpiCard title="قواعد مفعّلة" value={activeRules} icon={CheckCircle2} accent="success" description="قواعد تعمل حالياً" />
-  <KpiCard title="رسائل اليوم" value={emailsSentToday} icon={Send} accent="info" description="بريد مرسل اليوم" />
-  <KpiCard title="بريد الشهر" value={emailsSentThisMonth} icon={Activity} accent="warning" description="إجمالي بريد الشهر الحالي" />
-  </KpiStrip>
-
   {/* ─── Tabs ─── */}
   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
   <TabsList>

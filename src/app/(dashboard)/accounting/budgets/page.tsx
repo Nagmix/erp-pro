@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -532,39 +531,6 @@ export default function BudgetsPage() {
       />
 
       <ListQueryAlert error={budgetsError} onRetry={() => refetchBudgets()} />
-
-      {/* ─── KPI Strip ─── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الميزانيات"
-          value={totalBudgets}
-          icon={Wallet}
-          accent="info"
-          change={totalBudgets > 0 ? 5 : 0}
-          changeType={totalBudgets > 0 ? 'positive' : 'neutral'}
-        />
-        <KpiCard
-          title="الميزانيات النشطة"
-          value={activeBudgets}
-          icon={CheckCircle}
-          accent="success"
-          change={activeBudgets > 0 ? 10 : 0}
-          changeType={activeBudgets > 0 ? 'positive' : 'neutral'}
-        />
-        <KpiCard
-          title="إجمالي المخصص"
-          value={formatCurrency(totalAllocated)}
-          icon={TrendingUp}
-          accent="primary"
-        />
-        <KpiCard
-          title="إجمالي المصروف الفعلي"
-          value={formatCurrency(totalSpent)}
-          icon={TrendingDown}
-          accent={totalSpent > totalAllocated ? 'destructive' : 'warning'}
-        />
-      </KpiStrip>
-
       {/* ─── Tabs ─── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>

@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -429,37 +428,6 @@ export default function ExpensesByPeriodPage() {
       />
 
       {/* ─── KPI Cards ─── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المصروفات"
-          value={formatCurrency(totalExpenses)}
-          icon={DollarSign}
-          accent="warning"
-          description={`خلال ${daysDiff} يوم`}
-        />
-        <KpiCard
-          title="المتوسط اليومي"
-          value={formatCurrency(avgDaily)}
-          icon={Calculator}
-          accent="info"
-          description="متوسط المصروفات في اليوم"
-        />
-        <KpiCard
-          title="أعلى فترة"
-          value={formatCurrency(highestPeriod.total)}
-          icon={TrendingUp}
-          accent="destructive"
-          description={highestPeriod.period}
-        />
-        <KpiCard
-          title="مقارنة بالفترة السابقة"
-          value={vsPreviousPeriod !== null ? `${vsPreviousPeriod > 0 ? '+' : ''}${vsPreviousPeriod}%` : '—'}
-          icon={vsPreviousPeriod !== null ? (vsPreviousPeriod > 0 ? TrendingUp : TrendingDown) : Minus}
-          accent={vsPreviousPeriod !== null ? (vsPreviousPeriod > 0 ? 'destructive' : 'success') : 'primary'}
-          description={vsPreviousPeriod !== null ? (vsPreviousPeriod > 0 ? 'زيادة عن الفترة السابقة' : 'انخفاض عن الفترة السابقة') : 'لا توجد مقارنة'}
-        />
-      </KpiStrip>
-
       {/* ─── Filters ─── */}
       <Card className="border-border/40">
         <CardContent className="p-4">

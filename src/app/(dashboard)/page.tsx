@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { KpiCard } from '@/components/erp/kpi-card';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/erp/status-badge';
@@ -10,6 +9,7 @@ import { DashboardWidgetBoard } from '@/components/erp/dashboard-widget-board';
 import { useContextRail } from '@/components/erp/context-rail';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/erp/page-header';
+import { KpiCard } from '@/components/erp/kpi-card';
 import {
   DollarSign,
   TrendingUp,
@@ -226,22 +226,6 @@ export default function DashboardPage() {
           <ListQueryAlert error={kpisError ? kpisErr : null} onRetry={() => refetchKpis()} />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <KpiCard
-              title="إجمالي الإيرادات"
-              value={kpisLoading ? '…' : formatCurrency(kpiData.totalRevenue)}
-              icon={DollarSign}
-              description="فواتير مبيعات مرحّلة"
-              accent="success"
-              sparkline={kpisLoading ? undefined : kpiData.revenueSparkline}
-            />
-            <KpiCard
-              title="إجمالي المصروفات"
-              value={kpisLoading ? '…' : formatCurrency(kpiData.totalExpenses)}
-              icon={TrendingUp}
-              description="فواتير مشتريات مرحّلة"
-              accent="warning"
-              sparkline={kpisLoading ? undefined : kpiData.expensesSparkline}
-            />
-            <KpiCard
               title="صافي الربح"
               value={kpisLoading ? '…' : formatCurrency(kpiData.netProfit)}
               icon={kpisLoading ? Sparkles : (kpiData.netProfit >= 0 ? TrendingUp : TrendingDown)}
@@ -250,10 +234,26 @@ export default function DashboardPage() {
               sparkline={kpisLoading ? undefined : kpiData.revenueSparkline}
             />
             <KpiCard
-              title="المدينون"
+              title="إجمالي الإيرادات"
+              value={kpisLoading ? '…' : formatCurrency(kpiData.totalRevenue)}
+              icon={DollarSign}
+              description="إجمالي مبيعات الفترة"
+              accent="primary"
+              sparkline={kpisLoading ? undefined : kpiData.revenueSparkline}
+            />
+            <KpiCard
+              title="إجمالي المصروفات"
+              value={kpisLoading ? '…' : formatCurrency(kpiData.totalExpenses)}
+              icon={Wallet}
+              description="إجمالي مصروفات الفترة"
+              accent="warning"
+              sparkline={kpisLoading ? undefined : kpiData.expensesSparkline}
+            />
+            <KpiCard
+              title="الذمم المستحقة"
               value={kpisLoading ? '…' : formatCurrency(kpiData.outstandingReceivables)}
               icon={ArrowUpLeft}
-              description="مجموع غير المحصّل"
+              description="مبالغ مستحقة القبض"
               accent="info"
               sparkline={kpisLoading ? undefined : kpiData.receivablesSparkline}
             />
@@ -263,11 +263,41 @@ export default function DashboardPage() {
       kpi_secondary: (
         <div className="p-4 md:p-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            <KpiCard title="الدائنون" value={kpisLoading ? '…' : formatCurrency(kpiData.outstandingPayables)} icon={ArrowDownLeft} compact accent="destructive" description="مجموع غير المدفوع للموردين" />
-            <KpiCard title="مخزون منخفض" value={String(kpiData.lowStockItems)} icon={AlertTriangle} compact accent="warning" />
-            <KpiCard title="العملاء" value={String(kpiData.totalCustomers)} icon={Users} compact accent="primary" />
-            <KpiCard title="الموردين" value={String(kpiData.totalSuppliers)} icon={Briefcase} compact accent="info" />
-            <KpiCard title="أوامر بيع مفتوحة" value={String(kpiData.openSalesOrders)} icon={ShoppingCart} compact accent="success" />
+            <KpiCard
+              title="العملاء"
+              value={kpisLoading ? '…' : kpiData.totalCustomers}
+              icon={Users}
+              description="إجمالي العملاء"
+              accent="primary"
+            />
+            <KpiCard
+              title="الموردون"
+              value={kpisLoading ? '…' : kpiData.totalSuppliers}
+              icon={Briefcase}
+              description="إجمالي الموردين"
+              accent="info"
+            />
+            <KpiCard
+              title="الأصناف"
+              value={kpisLoading ? '…' : kpiData.totalItems}
+              icon={Package}
+              description="أصناف المنتجات"
+              accent="success"
+            />
+            <KpiCard
+              title="الموظفون"
+              value={kpisLoading ? '…' : kpiData.totalEmployees}
+              icon={Users}
+              description="إجمالي الموظفين"
+              accent="info"
+            />
+            <KpiCard
+              title="مخزون منخفض"
+              value={kpisLoading ? '…' : kpiData.lowStockItems}
+              icon={AlertTriangle}
+              description="أصناف تحت حد إعادة الطلب"
+              accent={kpiData.lowStockItems > 0 ? 'destructive' : 'success'}
+            />
           </div>
         </div>
       ),

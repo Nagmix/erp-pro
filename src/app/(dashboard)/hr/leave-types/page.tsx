@@ -3,8 +3,7 @@
 import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -378,37 +377,6 @@ export default function LeaveTypesPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الأنواع"
-          value={totalCount}
-          icon={TreePalm}
-          accent="primary"
-          description="كل أنواع الإجازات"
-        />
-        <KpiCard
-          title="مدفوعة الراتب"
-          value={paidCount}
-          icon={DollarSign}
-          accent="success"
-          description="إجازات بدون خصم"
-        />
-        <KpiCard
-          title="بدون راتب"
-          value={unpaidCount}
-          icon={CalendarCheck}
-          accent="warning"
-          description="إجازات LWP"
-        />
-        <KpiCard
-          title="تعويضية"
-          value={compOffCount}
-          icon={RotateCcw}
-          accent="info"
-          description="إجازات Comp Off"
-        />
-      </KpiStrip>
-
       {/* Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

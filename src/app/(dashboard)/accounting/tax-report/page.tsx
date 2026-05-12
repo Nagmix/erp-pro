@@ -20,8 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -262,45 +261,6 @@ export default function TaxReportPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={5}>
-        <KpiCard
-          title="المبيعات (بدون ضريبة)"
-          value={formatCurrency(taxKpis.totalSalesExclTax, 'YER')}
-          icon={TrendingUp}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="المشتريات (بدون ضريبة)"
-          value={formatCurrency(taxKpis.totalPurchaseExclTax, 'YER')}
-          icon={TrendingDown}
-          accent="info"
-          compact
-        />
-        <KpiCard
-          title="ضريبة المبيعات"
-          value={formatCurrency(taxKpis.totalSalesTax, 'YER')}
-          icon={Receipt}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="ضريبة المشتريات"
-          value={formatCurrency(taxKpis.totalPurchaseTax, 'YER')}
-          icon={Receipt}
-          accent="info"
-          compact
-        />
-        <KpiCard
-          title="صافي الضريبة المستحقة"
-          value={formatCurrency(taxKpis.netTaxPayable, 'YER')}
-          icon={Calculator}
-          accent={taxKpis.netTaxPayable >= 0 ? 'destructive' : 'success'}
-          description={taxKpis.netTaxPayable >= 0 ? 'مبلغ واجب الدفع' : 'مبلغ مسترد'}
-          compact
-        />
-      </KpiStrip>
-
       {/* Filter Card */}
       <Card className="border-border/40 print:hidden">
         <CardHeader className="pb-3">

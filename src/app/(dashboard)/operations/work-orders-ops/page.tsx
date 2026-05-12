@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
-import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -380,39 +379,6 @@ export default function AppointmentsPage() {
       />
 
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
-
-      {/* شريط مؤشرات الأداء */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المواعيد"
-          value={totalAppointments}
-          icon={Calendar}
-          accent="primary"
-          description="جميع المواعيد المسجلة"
-        />
-        <KpiCard
-          title="مواعيد اليوم"
-          value={todayAppointments}
-          icon={CalendarDays}
-          accent="warning"
-          description="المواعيد المجدولة اليوم"
-        />
-        <KpiCard
-          title="هذا الأسبوع"
-          value={thisWeekAppointments}
-          icon={Clock}
-          accent="info"
-          description="المواعيد خلال هذا الأسبوع"
-        />
-        <KpiCard
-          title="مكتملة"
-          value={completedAppointments}
-          icon={CalendarCheck}
-          accent="success"
-          description="مواعيد تم إغلاقها"
-        />
-      </KpiStrip>
-
       {/* ملخص مواعيد اليوم */}
       {todayList.length > 0 && (
         <div className="rounded-xl border border-border/40 bg-card p-4">

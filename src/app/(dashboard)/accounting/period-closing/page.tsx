@@ -11,8 +11,7 @@ import {
   useCancelDoc,
 } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -330,13 +329,6 @@ export default function PeriodClosingPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard title="إجمالي القسائم" value={rows.length} icon={FileCheck} accent="primary" compact />
-        <KpiCard title="مسودات" value={draftCount} icon={Clock} accent="warning" compact />
-        <KpiCard title="مرحّلة" value={submittedCount} icon={CheckCircle2} accent="success" compact />
-        <KpiCard title="ملغاة" value={cancelledCount} icon={FileX2} accent={cancelledCount > 0 ? 'destructive' : 'info'} compact />
-      </KpiStrip>
-
       {/* Warning about period closing */}
       {draftCount > 0 && (
         <div className="rounded-lg border border-warning/30 bg-warning/[0.04] px-4 py-3">

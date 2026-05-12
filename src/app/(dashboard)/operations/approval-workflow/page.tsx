@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -445,37 +444,6 @@ export default function ApprovalWorkflowPage() {
           </div>
         }
       />
-
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="بانتظار موافقتي"
-          value={pendingItems.length}
-          icon={Clock}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="موافقات اليوم"
-          value={approvedToday}
-          icon={CheckCircle2}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="مرفوضات اليوم"
-          value={rejectedToday}
-          icon={XCircle}
-          accent="destructive"
-          compact
-        />
-        <KpiCard
-          title="إجمالي سير العمل النشط"
-          value={totalActiveWorkflows}
-          icon={Shield}
-          accent="info"
-          compact
-        />
-      </KpiStrip>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
         <TabsList className="flex flex-wrap gap-1 w-full">

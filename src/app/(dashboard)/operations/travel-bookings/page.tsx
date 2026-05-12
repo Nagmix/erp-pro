@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -429,36 +428,6 @@ export default function TravelBookingsPage() {
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
       {/* ── KPI Strip ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الطلبات"
-          value={kpis.total}
-          icon={FileText}
-          accent="primary"
-        />
-        <KpiCard
-          title="مسودات"
-          value={kpis.drafts}
-          icon={Plane}
-          accent="warning"
-          description="طلبات بانتظار الترحيل"
-        />
-        <KpiCard
-          title="مُعتمدة"
-          value={kpis.approved}
-          icon={CheckCircle}
-          accent="success"
-          description="طلبات تمت الموافقة عليها"
-        />
-        <KpiCard
-          title="إجمالي السلف"
-          value={formatCurrency(kpis.totalAdvance)}
-          icon={DollarSign}
-          accent="info"
-          description="مبالغ السلف المطلوبة"
-        />
-      </KpiStrip>
-
       {/* ── Status Tabs ── */}
       <Tabs value={filter} onValueChange={setFilter}>
         <TabsList className="bg-muted/35">

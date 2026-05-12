@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -467,37 +466,6 @@ export default function AttendanceSummaryPage() {
       />
 
       {/* ─── KPI Cards ─── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="متوسط نسبة الحضور"
-          value={`${avgAttendanceRate}%`}
-          icon={TrendingUp}
-          accent={avgAttendanceRate >= 85 ? 'success' : avgAttendanceRate >= 70 ? 'warning' : 'destructive'}
-          description="متوسط نسبة الحضور لجميع الموظفين"
-        />
-        <KpiCard
-          title="إجمالي الموظفين"
-          value={totalEmployees}
-          icon={Users}
-          accent="info"
-          description={`ضمن ${departmentFilter !== 'all' ? 'القسم المحدد' : 'جميع الأقسام'}`}
-        />
-        <KpiCard
-          title="حضور مثالي"
-          value={perfectAttendance}
-          icon={CheckCircle2}
-          accent="success"
-          description="بدون غياب أو تأخير"
-        />
-        <KpiCard
-          title="غياب مزمن"
-          value={chronicAbsentees}
-          icon={AlertTriangle}
-          accent={chronicAbsentees > 0 ? 'destructive' : 'success'}
-          description="أكثر من 20% غياب"
-        />
-      </KpiStrip>
-
       {/* ─── Filters ─── */}
       <Card className="border-border/40">
         <CardContent className="p-4">

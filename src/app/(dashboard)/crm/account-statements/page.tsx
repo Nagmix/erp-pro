@@ -27,8 +27,7 @@ import {
 } from '@/components/ui/select';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { useDocList, useDoc } from '@/lib/client/hooks';
@@ -410,37 +409,6 @@ export default function CustomerAccountStatementPage() {
       />
 
       {/* ===== KPI Strip ===== */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المدين"
-          value={formatCurrency(summary.totalDebit, 'YER')}
-          icon={TrendingUp}
-          accent="destructive"
-          compact
-        />
-        <KpiCard
-          title="إجمالي الدائن"
-          value={formatCurrency(summary.totalCredit, 'YER')}
-          icon={TrendingDown}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="صافي الرصيد"
-          value={formatCurrency(summary.netBalance, 'YER')}
-          icon={Calculator}
-          accent="primary"
-          compact
-        />
-        <KpiCard
-          title="المبالغ المتأخرة"
-          value={formatCurrency(summary.overdueAmount, 'YER')}
-          icon={AlertTriangle}
-          accent="warning"
-          compact
-        />
-      </KpiStrip>
-
       {/* ===== Filter Card ===== */}
       <Card className="border-border/40 print:hidden">
         <CardHeader className="pb-3">

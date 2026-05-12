@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -353,30 +352,6 @@ export default function CalendarPage() {
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
       {/* Mini Statistics */}
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="فعاليات هذا الشهر"
-          value={totalThisMonth}
-          icon={Calendar}
-          accent="primary"
-          compact
-        />
-        <KpiCard
-          title="مواعيد اليوم"
-          value={todayEvents.length}
-          icon={CalendarDays}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="قادمة هذا الأسبوع"
-          value={upcomingThisWeek}
-          icon={Clock}
-          accent="info"
-          compact
-        />
-      </KpiStrip>
-
       {/* View Mode Toggle + Navigation */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">

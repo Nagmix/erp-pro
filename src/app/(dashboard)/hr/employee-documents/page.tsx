@@ -4,8 +4,7 @@ import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -457,41 +456,6 @@ export default function EmployeeDocumentsPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المستندات"
-          value={totalCount}
-          icon={FileText}
-          accent="primary"
-          description="كل المستندات المرفقة"
-        />
-        <KpiCard
-          title="موظفون لديهم مستندات"
-          value={uniqueEmployees}
-          icon={Users}
-          accent="info"
-          description="مستندات مرتبطة"
-        />
-        <KpiCard
-          title="آخر رفع"
-          value={docs[0]?.creation ? formatDate(docs[0].creation) : '—'}
-          icon={Clock}
-          accent="success"
-          description="تاريخ آخر مستند"
-        />
-        <KpiCard
-          title="أنواع الملفات"
-          value={Object.keys(typeBreakdown).length}
-          icon={FolderOpen}
-          accent="warning"
-          description={
-            topTypes.length > 0
-              ? topTypes.map(([t, c]) => `${t}: ${c}`).join(' | ')
-              : 'لا توجد أنواع بعد'
-          }
-        />
-      </KpiStrip>
-
       {/* Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

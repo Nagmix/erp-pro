@@ -8,8 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { ErpListDateStatusFilters } from '@/components/erp/erp-list-date-status-filters';
@@ -209,13 +208,6 @@ export default function FinancialRegisterPage() {
         accent="info"
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'السجل المالي الموحد' }]}
       />
-
-      <KpiStrip>
-        <KpiCard title="إجمالي المدين" value={formatCurrency(totalDebit)} icon={BookOpen} accent="info" />
-        <KpiCard title="إجمالي الدائن" value={formatCurrency(totalCredit)} icon={Landmark} accent="warning" />
-        <KpiCard title="الرصيد الصافي" value={formatCurrency(netBalance)} icon={Scale} accent={netBalance >= 0 ? 'success' : 'destructive'} />
-        <KpiCard title="إجمالي القبض" value={formatCurrency(totalReceipts)} icon={ArrowUpLeft} accent="success" />
-      </KpiStrip>
 
       {/* Filters */}
       <ErpListDateStatusFilters

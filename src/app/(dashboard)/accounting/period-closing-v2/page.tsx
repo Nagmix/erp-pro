@@ -9,8 +9,7 @@ import {
   useDeleteDoc,
 } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -731,40 +730,6 @@ export default function PeriodClosingV2Page() {
       />
 
       {/* ── Stats KPIs ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="فترات مقفلة"
-          value={submittedCount}
-          icon={Lock}
-          accent="success"
-          compact
-          description="إجمالي الفترات المقفلة"
-        />
-        <KpiCard
-          title="حالة الفترة الحالية"
-          value={currentPeriodStatus === 'open' ? 'مفتوحة' : 'مقفلة'}
-          icon={currentPeriodStatus === 'open' ? Unlock : Lock}
-          accent={currentPeriodStatus === 'open' ? 'success' : 'destructive'}
-          compact
-          description={currentPeriodStatus === 'open' ? 'يمكن تسجيل حركات' : 'لا يمكن تسجيل حركات'}
-        />
-        <KpiCard
-          title="مسودات قيد الإقفال"
-          value={draftCount}
-          icon={Clock}
-          accent={draftCount > 0 ? 'warning' : 'info'}
-          compact
-          description="بانتظار الترحيل"
-        />
-        <KpiCard
-          title="تاريخ الإقفال القادم"
-          value={formatDate(nextClosingDate)}
-          icon={CalendarCheck}
-          accent="info"
-          compact
-        />
-      </KpiStrip>
-
       {/* ── Closed Period Warning ── */}
       {currentPeriodStatus === 'closed' && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/[0.04] px-4 py-3">

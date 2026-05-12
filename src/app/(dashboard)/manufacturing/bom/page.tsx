@@ -21,7 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, Trash2, Send, Undo2, PackageCheck } from 'lucide-react';
-import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
@@ -201,11 +201,6 @@ export default function BOMPage() {
           </Button>
         }
       />
-      <KpiStrip cols={3}>
-        <KpiCard title="قوائم المواد" value={rows.length} icon={PackageCheck} accent="warning" description="إجمالي القوائم" />
-        <KpiCard title="مسودات" value={rows.filter((r) => Number(r.docstatus) === 0).length} icon={Plus} accent="info" description="بانتظار الترحيل" />
-        <KpiCard title="مُرحّلة" value={rows.filter((r) => Number(r.docstatus) === 1).length} icon={Send} accent="success" description="معتمدة" />
-      </KpiStrip>
       <DataTable data={rows} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
       <AlertDialog open={!!deleteName} onOpenChange={() => setDeleteName(null)}>
         <AlertDialogContent dir="rtl">

@@ -10,9 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Banknote,
   Landmark,
-  CreditCard,
   RefreshCw,
   PlusCircle,
   ArrowLeftRight,

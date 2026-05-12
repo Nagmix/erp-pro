@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -330,69 +329,7 @@ export default function AccountingDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
-      <KpiStrip>
-        <KpiCard
-          title="إجمالي الإيرادات"
-          value={isLoading ? '…' : formatCurrency(totalRevenue)}
-          icon={TrendingUp}
-          accent="success"
-          description="إيرادات الشهر الحالي"
-        />
-        <KpiCard
-          title="إجمالي المصروفات"
-          value={isLoading ? '…' : formatCurrency(totalExpenses)}
-          icon={TrendingDown}
-          accent="warning"
-          description="مصروفات الشهر الحالي"
-        />
-        <KpiCard
-          title="صافي الربح"
-          value={isLoading ? '…' : formatCurrency(netProfit)}
-          icon={netProfit >= 0 ? TrendingUp : TrendingDown}
-          accent={netProfit >= 0 ? 'success' : 'destructive'}
-          description="الإيرادات ناقص المصروفات"
-        />
-        <KpiCard
-          title="الرصيد النقدي"
-          value={isLoading ? '…' : formatCurrency(cashBalance)}
-          icon={Wallet}
-          accent="info"
-          description="صافي التدفقات النقدية"
-        />
-      </KpiStrip>
-
       {/* ── KPI Row 2 ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="المدينون المستحقون"
-          value={isLoading ? '…' : formatCurrency(outstandingReceivables)}
-          icon={ArrowUpLeft}
-          compact
-          accent="info"
-        />
-        <KpiCard
-          title="الدائنون المستحقون"
-          value={isLoading ? '…' : formatCurrency(outstandingPayables)}
-          icon={ArrowDownLeft}
-          compact
-          accent="destructive"
-        />
-        <KpiCard
-          title="فواتير متأخرة"
-          value={String(overdueInvoices)}
-          icon={AlertTriangle}
-          compact
-          accent="warning"
-        />
-        <KpiCard
-          title="مدفوعات غير مسوّاة"
-          value={String(unreconciledPayments)}
-          icon={Clock}
-          compact
-          accent="primary"
-        />
-      </KpiStrip>
-
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

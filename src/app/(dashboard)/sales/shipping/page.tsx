@@ -66,8 +66,7 @@ import {
   Receipt,
   TrendingUp,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -592,37 +591,6 @@ export default function ShippingCompaniesPage() {
       />
 
       {/* ── KPI Strip ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الشركات"
-          value={totalCompanies}
-          icon={Truck}
-          accent="primary"
-          description="جميع شركات الشحن المسجلة"
-        />
-        <KpiCard
-          title="الشركات النشطة"
-          value={activeCompanies}
-          icon={CheckCircle}
-          accent="success"
-          description="شركات شحن مفعّلة حالياً"
-        />
-        <KpiCard
-          title="الدفع عند الاستلام"
-          value={codEnabledCount}
-          icon={CreditCard}
-          accent="warning"
-          description="شركات تدعم COD"
-        />
-        <KpiCard
-          title="شحنات هذا الشهر"
-          value={totalShipmentsMonth}
-          icon={Package}
-          accent="info"
-          description="شركات أُضيفت هذا الشهر"
-        />
-      </KpiStrip>
-
       {/* ── Shipping Fees Distribution Settings ── */}
       {settingsOpen && (
         <PageShell className="space-y-4">

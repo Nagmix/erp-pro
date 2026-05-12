@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { Card, CardContent } from '@/components/ui/card';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,6 +35,7 @@ import { PageHeader } from '@/components/erp/page-header';
 import { toast } from 'sonner';
 import { useCreateDoc, useDeleteDoc, useDocList } from '@/lib/client/hooks';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
+import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 
 interface Branch {
  name: string;
@@ -74,14 +75,14 @@ export default function BranchesPage() {
  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
  const [selected, setSelected] = useState<BranchRow | null>(null);
  const [formData, setFormData] = useState(emptyForm);
- const branchesQuery = useDocList<Branch>('Branch', {
+ const { data: branchesData, isLoading, isError, error, refetch } = useDocList<Branch>('Branch', {
  fields: ['name', 'branch', 'company', 'address', 'phone', 'manager', 'status'],
  limit: 400,
  order_by: 'modified desc',
  });
  const createMutation = useCreateDoc('Branch');
  const deleteMutation = useDeleteDoc('Branch');
- const branches = branchesQuery.data || [];
+ const branches = branchesData || [];
 
  const handleCreate = () => {
  if (!formData.name) {
@@ -120,6 +121,7 @@ export default function BranchesPage() {
 
  return (
  <div dir="rtl" className="erp-page-enter space-y-5">
+  <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
   <PageHeader
   title="الفروع"
   description="إدارة فروع الشركة ومواقعها وأرقام الاتصال والمسؤولين"
@@ -134,20 +136,14 @@ export default function BranchesPage() {
   }
   />
 
-  <div className="hidden">
-  <Card><CardContent className="p-3 flex items-center gap-3">
-   <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center shrink-0"><Building2 className="h-4 w-4 text-muted-foreground" /></div>
-   <div><p className="text-[10px] text-muted-foreground">غير نشط</p><p className="text-sm font-bold mt-0.5">{branches.filter(b => b.status !== 'Active').length}</p></div>
-  </CardContent></Card>
-  </div>
-
   <DataTable
   data={branches}
   columns={columns}
   searchable
-  onView={(row) => toast.success('عرض الفرع', { description: row.name })}
-  onEdit={(row) => toast.success('تعديل الفرع', { description: row.name })}
+  loading={isLoading}
   onDelete={(row) => { setSelected(row); setDeleteDialogOpen(true); }}
+  tableId="settings-branches"
+  exportFileName="branches.csv"
   />
 
   {/* Create Dialog */}
@@ -162,7 +158,12 @@ export default function BranchesPage() {
     </div>
     <div className="space-y-2">
     <Label className="text-sm font-medium">الشركة</Label>
-    <Input placeholder="اسم الشركة" value={formData.company} onChange={e => setFormData(prev => ({ ...prev, company: e.target.value }))} />
+    <ErpLinkCombobox
+      doctype="Company"
+      value={formData.company}
+      onChange={(v) => setFormData((prev) => ({ ...prev, company: v }))}
+      placeholder="اختر الشركة..."
+    />
     </div>
    </div>
    <div className="space-y-2">

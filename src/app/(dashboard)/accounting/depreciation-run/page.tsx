@@ -2,9 +2,8 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { KpiCard } from '@/components/erp/kpi-card';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -262,13 +261,6 @@ export default function DepreciationRunPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard title="أصول قابلة للإهلاك" value={depreciableAssets.length} icon={Package} accent="primary" compact />
-        <KpiCard title="إهلاك مستحق" value={pendingSchedules.length} icon={Clock} accent="warning" compact />
-        <KpiCard title="إهلاك مُرحّل" value={postedSchedules.length} icon={CheckCircle2} accent="success" compact />
-        <KpiCard title="إجمالي مبلغ الإهلاك" value={formatCurrency(totalPendingAmount)} icon={Calculator} accent="info" compact />
-      </KpiStrip>
-
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="border-warning/30 bg-warning/[0.03]">

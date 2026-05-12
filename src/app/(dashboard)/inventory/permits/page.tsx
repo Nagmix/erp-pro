@@ -69,8 +69,7 @@ import {
   Receipt,
   Settings2,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -625,37 +624,6 @@ export default function InventoryPermitsPage() {
       />
 
       {/* ── KPI Strip ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الأذون"
-          value={totalPermits}
-          icon={ClipboardList}
-          accent="primary"
-          description="جميع الأذون المخزنية"
-        />
-        <KpiCard
-          title="بانتظار الاعتماد"
-          value={pendingApproval}
-          icon={AlertTriangle}
-          accent="warning"
-          description="أذون مسودة غير مؤكدة"
-        />
-        <KpiCard
-          title="مؤكدة"
-          value={confirmedPermits}
-          icon={CheckCircle2}
-          accent="success"
-          description="أذون تم ترحيلها"
-        />
-        <KpiCard
-          title="إجمالي القيمة"
-          value={formatCurrency(totalValue)}
-          icon={Receipt}
-          accent="info"
-          description="قيمة جميع الأذون"
-        />
-      </KpiStrip>
-
       {/* ── Filters ── */}
       <div className="space-y-3">
         <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>

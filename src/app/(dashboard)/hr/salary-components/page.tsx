@@ -3,8 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -259,30 +258,6 @@ export default function SalaryComponentsPage() {
         accent="purple"
         breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'مكوّنات الرواتب' }]}
       />
-
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="إجمالي المكوّنات"
-          value={totalCount}
-          icon={Layers}
-          accent="primary"
-          description="جميع المكوّنات"
-        />
-        <KpiCard
-          title="استحقاقات"
-          value={earningCount}
-          icon={TrendingUp}
-          accent="success"
-          description="مكوّنات نوع Earning"
-        />
-        <KpiCard
-          title="استقطاعات"
-          value={deductionCount}
-          icon={TrendingDown}
-          accent="destructive"
-          description="مكوّنات نوع Deduction"
-        />
-      </KpiStrip>
 
       <Tabs value={tab} onValueChange={setTab}>
         <div className="flex flex-wrap justify-between gap-3">

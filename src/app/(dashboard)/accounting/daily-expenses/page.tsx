@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
@@ -22,7 +22,6 @@ import { toast } from 'sonner';
 import { Plus, Receipt, Send, CheckCircle2, XCircle, Filter, ChevronDown, Upload, X, DollarSign, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
-import { KpiCard } from '@/components/erp/kpi-card';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -245,7 +244,6 @@ export default function DailyExpensesPage() {
   );
   const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setSearch(''); };
 
-
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
@@ -257,12 +255,6 @@ export default function DailyExpensesPage() {
         accent="warning"
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'المصاريف اليومية' }]}
       />
-
-      <KpiStrip>
-        <KpiCard title="إجمالي المصروفات" value={formatCurrency(totalExpensesAmount)} icon={DollarSign} accent="warning" />
-        <KpiCard title="مسودات" value={draftCount} icon={FileText} accent="primary" />
-        <KpiCard title="معتمدة" value={approvedCount} icon={CheckCircle2} accent="success" />
-      </KpiStrip>
 
       {/* شريط البحث والفلاتر */}
       <div className="space-y-3">
@@ -314,7 +306,6 @@ export default function DailyExpensesPage() {
           </CollapsibleContent>
         </Collapsible>
       </div>
-
 
       {/* New Expense Form */}
       <Card className="border-warning/20">

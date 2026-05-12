@@ -5,8 +5,7 @@ import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import Link from 'next/link';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
-import { KpiCard } from '@/components/erp/kpi-card';
-import { KpiStrip } from '@/components/erp/page-header';
+
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { Button } from '@/components/ui/button';
 import {
@@ -370,41 +369,6 @@ export default function JournalEntryPage() {
       />
 
       {/* ── شريط مؤشرات الأداء (KPI Strip) ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي القيود"
-          value={kpis.total}
-          icon={FileSpreadsheet}
-          accent="info"
-          compact
-          description="جميع القيود في الفترة"
-        />
-        <KpiCard
-          title="إجمالي المدين"
-          value={formatCurrency(kpis.totalDebit)}
-          icon={Plus}
-          accent="success"
-          compact
-          description="مجموع حركة المدين"
-        />
-        <KpiCard
-          title="إجمالي الدائن"
-          value={formatCurrency(kpis.totalCredit)}
-          icon={Minus}
-          accent="warning"
-          compact
-          description="مجموع حركة الدائن"
-        />
-        <KpiCard
-          title="مسودة / مرحّل"
-          value={`${kpis.draftCount} / ${kpis.submittedCount}`}
-          icon={Send}
-          accent="primary"
-          compact
-          description="عدد القيود مسودة مقابل المرحّلة"
-        />
-      </KpiStrip>
-
       {/* ── فلاتر التاريخ والحالة والنوع والفرع ── */}
       <ErpListDateStatusFilters
         dateFrom={dateFrom}

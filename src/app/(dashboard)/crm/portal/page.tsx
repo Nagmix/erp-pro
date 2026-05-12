@@ -3,8 +3,7 @@
 import { useState, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -332,40 +331,6 @@ export default function CrmPortalPage() {
 
       {/* Customer info card */}
       <CustomerInfoCard customer={customerDoc ?? null} />
-
-      {/* KPI strip */}
-      {customer && (
-        <KpiStrip cols={4}>
-          <KpiCard
-            title="إجمالي الفواتير"
-            value={invoiceData.length}
-            icon={Receipt}
-            accent="primary"
-            compact
-          />
-          <KpiCard
-            title="إجمالي المستحقات"
-            value={formatCurrency(totalOutstanding)}
-            icon={AlertCircle}
-            accent={totalOutstanding > 0 ? 'destructive' : 'success'}
-            compact
-          />
-          <KpiCard
-            title="عروض الأسعار"
-            value={quoteData.length}
-            icon={FileText}
-            accent="info"
-            compact
-          />
-          <KpiCard
-            title="الفرص المفتوحة"
-            value={openOpportunities}
-            icon={Target}
-            accent="warning"
-            compact
-          />
-        </KpiStrip>
-      )}
 
       {/* Tabs for document types */}
       {customer ? (

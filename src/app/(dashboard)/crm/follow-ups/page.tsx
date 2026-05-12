@@ -37,8 +37,7 @@ import {
   Flag,
   Loader2,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -348,39 +347,6 @@ export default function FollowUpsPage() {
       />
 
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
-
-      {/* ─── KPI Strip ─── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المهام"
-          value={totalTasks}
-          icon={ListChecks}
-          accent="primary"
-          description="جميع مهام المتابعة"
-        />
-        <KpiCard
-          title="مفتوحة"
-          value={openTasks}
-          icon={Circle}
-          accent="info"
-          description="مهام بانتظار التنفيذ"
-        />
-        <KpiCard
-          title="مكتملة"
-          value={closedTasks}
-          icon={CheckCircle2}
-          accent="success"
-          description="مهام منتهية"
-        />
-        <KpiCard
-          title="متأخرة"
-          value={overdueTasks}
-          icon={AlertTriangle}
-          accent="destructive"
-          description={overdueTasks > 0 ? 'تحتاج اهتمام فوري' : 'لا توجد مهام متأخرة'}
-        />
-      </KpiStrip>
-
       {/* ─── Filters ─── */}
       <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-3 space-y-3">
         <div className="flex items-center gap-3 flex-wrap">

@@ -4,8 +4,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -914,37 +913,6 @@ export default function WorkflowStudioPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip>
-        <KpiCard
-          title="إجمالي سير العمل"
-          value={totalWorkflows}
-          icon={Workflow}
-          accent="primary"
-          compact
-        />
-        <KpiCard
-          title="نشطة"
-          value={activeWorkflows}
-          icon={ToggleLeft}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="غير نشطة"
-          value={inactiveWorkflows}
-          icon={Square}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="أنواع المستندات"
-          value={uniqueDocTypes}
-          icon={Layers}
-          accent="info"
-          compact
-        />
-      </KpiStrip>
-
       {/* Existing workflows table */}
       <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-3">
         <DataTable

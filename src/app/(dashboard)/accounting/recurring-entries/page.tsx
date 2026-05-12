@@ -3,9 +3,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { KpiCard } from '@/components/erp/kpi-card';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -265,13 +264,6 @@ export default function RecurringEntriesPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard title="إجمالي القيود" value={data.length} icon={CalendarClock} accent="primary" compact />
-        <KpiCard title="نشطة" value={activeCount} icon={Activity} accent="success" compact />
-        <KpiCard title="متوقفة" value={disabledCount} icon={Ban} accent="destructive" compact />
-        <KpiCard title="تكرار يومي" value={dailyCount} icon={Clock} accent="info" compact />
-      </KpiStrip>
-
       {/* DataTable */}
       <DataTable
         data={data}

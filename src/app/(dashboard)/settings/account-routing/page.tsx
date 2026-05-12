@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -394,37 +393,6 @@ export default function AccountRoutingPage() {
   />
 
   {/* ── Stats ── */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="إجمالي القواعد"
-   value={stats.total}
-   icon={Route}
-   accent="primary"
-   description="قواعد التوجيه المسجلة"
-  />
-  <KpiCard
-   title="أنواع المستندات"
-   value={stats.docTypes}
-   icon={FileText}
-   accent="info"
-   description="مستندات مغطاة بالقواعد"
-  />
-  <KpiCard
-   title="الشركات"
-   value={stats.companiesCount}
-   icon={Settings2}
-   accent="success"
-   description="شركات ذات توجيه"
-  />
-  <KpiCard
-   title="تغطية المستندات"
-   value={`${stats.coveredDocTypes}/${DOCUMENT_TYPES.length}`}
-   icon={CheckCircle2}
-   accent={stats.coveredDocTypes === DOCUMENT_TYPES.length ? 'success' : 'warning'}
-   description="من إجمالي أنواع المستندات"
-  />
-  </KpiStrip>
-
   {/* ── Search & Filters ── */}
   <Card className="border-border/40 shadow-sm">
   <CardContent className="p-4">

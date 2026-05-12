@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -253,66 +252,7 @@ export default function InventoryDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
-      <KpiStrip>
-        <KpiCard
-          title="إجمالي الأصناف"
-          value={isLoading ? '…' : String(totalItems)}
-          icon={Package}
-          accent="primary"
-          description="أصناف مخزنية"
-        />
-        <KpiCard
-          title="إجمالي قيمة المخزون"
-          value={isLoading ? '…' : formatCurrency(totalStockValue)}
-          icon={BarChart3}
-          accent="success"
-        />
-        <KpiCard
-          title="عدد المستودعات"
-          value={isLoading ? '…' : String(warehousesCount)}
-          icon={Warehouse}
-          accent="info"
-        />
-        <KpiCard
-          title="حركات المخزون هذا الشهر"
-          value={String(stockEntriesThisMonth)}
-          icon={ArrowRightLeft}
-          accent="warning"
-        />
-      </KpiStrip>
-
       {/* ── KPI Row 2 ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="أصناف منخفضة المخزون"
-          value={String(lowStockItems.length)}
-          icon={AlertTriangle}
-          compact
-          accent="warning"
-        />
-        <KpiCard
-          title="أصناف نفدت"
-          value={String(outOfStockItems)}
-          icon={CircleAlert}
-          compact
-          accent="destructive"
-        />
-        <KpiCard
-          title="تحويلات معلّقة"
-          value={String(pendingTransfers)}
-          icon={ArrowUpDown}
-          compact
-          accent="primary"
-        />
-        <KpiCard
-          title="يحتاج إعادة طلب"
-          value={String(reorderRequired)}
-          icon={ShoppingBag}
-          compact
-          accent={reorderRequired > 0 ? 'destructive' : 'success'}
-        />
-      </KpiStrip>
-
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

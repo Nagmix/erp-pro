@@ -4,8 +4,7 @@ import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -454,30 +453,6 @@ export default function ContractsPage() {
           </Button>
         }
       />
-
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="إجمالي العقود"
-          value={totalCount}
-          icon={FileText}
-          accent="primary"
-          description="كل عقود الموظفين"
-        />
-        <KpiCard
-          title="مسودات"
-          value={draftCount}
-          icon={Edit}
-          accent="warning"
-          description="عقود قابلة للتعديل"
-        />
-        <KpiCard
-          title="معتمدة"
-          value={submittedCount}
-          icon={Send}
-          accent="success"
-          description="عقود مرّحلة"
-        />
-      </KpiStrip>
 
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

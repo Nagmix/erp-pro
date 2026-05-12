@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -272,68 +271,7 @@ export default function SalesDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
-      <KpiStrip>
-        <KpiCard
-          title="إجمالي المبيعات"
-          value={isLoading ? '…' : formatCurrency(totalSales)}
-          icon={ShoppingCart}
-          accent="success"
-          description="مبيعات الشهر الحالي"
-        />
-        <KpiCard
-          title="متوسط قيمة الطلب"
-          value={isLoading ? '…' : formatCurrency(avgOrderValue)}
-          icon={Target}
-          accent="primary"
-          description="متوسط قيمة الفاتورة"
-        />
-        <KpiCard
-          title="العملاء النشطون"
-          value={isLoading ? '…' : String(activeCustomers)}
-          icon={Users}
-          accent="info"
-        />
-        <KpiCard
-          title="أوامر بيع مفتوحة"
-          value={String(openOrders)}
-          icon={ClipboardList}
-          accent="warning"
-        />
-      </KpiStrip>
-
       {/* ── KPI Row 2 ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="عروض أسعار معلّقة"
-          value={String(pendingQuotations)}
-          icon={FileText}
-          compact
-          accent="primary"
-        />
-        <KpiCard
-          title="فواتير متأخرة"
-          value={String(overdueCount)}
-          icon={AlertTriangle}
-          compact
-          accent="destructive"
-          description={overdueAmount > 0 ? formatCurrency(overdueAmount) : undefined}
-        />
-        <KpiCard
-          title="المرتجعات هذا الشهر"
-          value={String(returnsThisMonth)}
-          icon={RotateCcw}
-          compact
-          accent="warning"
-        />
-        <KpiCard
-          title="نسبة التحصيل %"
-          value={`${collectionRate}%`}
-          icon={CircleDollarSign}
-          compact
-          accent={collectionRate >= 80 ? 'success' : collectionRate >= 50 ? 'warning' : 'destructive'}
-        />
-      </KpiStrip>
-
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

@@ -25,8 +25,7 @@ import {
   ArrowUpRight,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList } from '@/lib/client/hooks';
 import { formatCurrency } from '@/lib/core/helpers';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -199,39 +198,6 @@ export default function PosReportsHubPage() {
           {invoicesLoading ? 'جاري التحميل...' : `${filteredInvoices.length} فترة فاتورة`}
         </div>
       </div>
-
-      {/* ── شريط مؤشرات الأداء ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="مبيعات اليوم"
-          value={formatCurrency(todaySales)}
-          icon={TrendingUp}
-          accent="success"
-          description={`${todayInvoices.length} فاتورة اليوم`}
-        />
-        <KpiCard
-          title="مبيعات الأسبوع"
-          value={formatCurrency(weekSales)}
-          icon={BarChart3}
-          accent="primary"
-          description={`${weekInvoices.length} فاتورة هذا الأسبوع`}
-        />
-        <KpiCard
-          title="مبيعات الشهر"
-          value={formatCurrency(monthSales)}
-          icon={ShoppingCart}
-          accent="info"
-          description={`${monthInvoices.length} فاتورة هذا الشهر`}
-        />
-        <KpiCard
-          title="متوسط قيمة الفاتورة"
-          value={formatCurrency(avgTransaction)}
-          icon={Receipt}
-          accent="warning"
-          description="متوسط مبلغ الفاتورة في الفترة"
-        />
-      </KpiStrip>
-
       {/* ── ملخص سريع ببطاقات ── */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* صافي المبيعات */}

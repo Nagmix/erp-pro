@@ -2,9 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { KpiCard } from '@/components/erp/kpi-card';
 import { EmptyState } from '@/components/erp/empty-state';
 import { useCreateDoc, useDeleteDoc, useDocList } from '@/lib/client/hooks';
 import { DocStatusBadge } from '@/components/erp/status-badge';
@@ -228,13 +227,6 @@ export default function ChequeBooksPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard title="إجمالي الدفاتر" value={totalBooks} icon={Notebook} accent="primary" compact />
-        <KpiCard title="مسودات" value={draftCount} icon={BookOpen} accent="warning" compact />
-        <KpiCard title="مرحّلة" value={submittedCount} icon={Notebook} accent="success" compact />
-        <KpiCard title="إجمالي الشيكات" value={totalCheques} icon={BookOpen} accent="info" compact />
-      </KpiStrip>
-
       <div className="flex max-w-md gap-2">
         <input
           className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-xs"

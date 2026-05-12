@@ -42,7 +42,7 @@ import {
   Landmark,
   Package,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatDate, formatNumber, formatCurrency } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -408,37 +408,6 @@ export default function LandedCostVoucherPage() {
       />
 
       {/* ── KPI Cards ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="مستندات التكلفة"
-          value={kpiTotal}
-          icon={Receipt}
-          accent="warning"
-          description="إجمالي المستندات"
-        />
-        <KpiCard
-          title="مسودات"
-          value={kpiDraft}
-          icon={FileText}
-          accent="info"
-          description="بانتظار الترحيل"
-        />
-        <KpiCard
-          title="مُرحّلة"
-          value={kpiSubmitted}
-          icon={Send}
-          accent="success"
-          description="مستندات معتمدة"
-        />
-        <KpiCard
-          title="إجمالي التكاليف"
-          value={formatCurrency(totalCost)}
-          icon={Coins}
-          accent="primary"
-          description="جميع التكاليف الإضافية"
-        />
-      </KpiStrip>
-
       {/* ── Filters ── */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

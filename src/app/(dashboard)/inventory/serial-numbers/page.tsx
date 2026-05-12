@@ -25,8 +25,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Plus, Filter, ChevronDown, X, Hash, CheckCircle, AlertTriangle, Send } from 'lucide-react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -199,12 +198,6 @@ export default function SerialNumbersPage() {
           </Button>
         }
       />
-
-      <KpiStrip cols={3}>
-        <KpiCard title="إجمالي الأرقام التسلسلية" value={totalCount} icon={Hash} accent="info" description="كل سجلات الأرقام التسلسلية" />
-        <KpiCard title="نشطة" value={activeCount} icon={CheckCircle} accent="success" description="أرقام تسلسلية نشطة" />
-        <KpiCard title="ضمان منتهي" value={expiredWarrantyCount} icon={AlertTriangle} accent="destructive" description="انتهت فترة الضمان" />
-      </KpiStrip>
 
       {/* شريط البحث والفلاتر */}
       <div className="space-y-3">

@@ -48,8 +48,7 @@ import {
   Undo2,
   Loader2,
 } from 'lucide-react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatDate, formatCurrency } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -434,37 +433,6 @@ export default function RentalPricingRulesPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي القواعد"
-          value={totalRules}
-          icon={Tag}
-          accent="primary"
-          description="جميع قواعد التسعير"
-        />
-        <KpiCard
-          title="قواعد يومية"
-          value={dailyRules}
-          icon={Calendar}
-          accent="success"
-          description="أسعار الإيجار اليومي"
-        />
-        <KpiCard
-          title="قواعد ساعية"
-          value={hourlyRules}
-          icon={Clock}
-          accent="warning"
-          description="أسعار الإيجار بالساعة"
-        />
-        <KpiCard
-          title="قواعد موسمية"
-          value={seasonalRules}
-          icon={Calendar}
-          accent="info"
-          description="أسعار حسب الموسم"
-        />
-      </KpiStrip>
-
       {/* Filters */}
       <div className="space-y-3">
         <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>

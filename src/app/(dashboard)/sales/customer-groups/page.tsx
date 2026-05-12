@@ -52,8 +52,7 @@ import {
   ToggleLeft,
   ToggleRight,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
@@ -463,44 +462,6 @@ export default function CustomerGroupsPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={5}>
-        <KpiCard
-          title="إجمالي المجموعات"
-          value={totalGroups}
-          icon={Users}
-          accent="primary"
-          description="جميع مجموعات العملاء"
-        />
-        <KpiCard
-          title="المجموعات الرئيسية"
-          value={rootGroups}
-          icon={FolderTree}
-          accent="success"
-          description="مجموعات يمكن أن تحتوي فرعية"
-        />
-        <KpiCard
-          title="المجموعات الفرعية"
-          value={subGroups}
-          icon={Folder}
-          accent="info"
-          description="مجموعات فرعية (أوراق)"
-        />
-        <KpiCard
-          title="إجمالي العملاء"
-          value={totalCustomers}
-          icon={Users}
-          accent="warning"
-          description="جميع العملاء المسجلين"
-        />
-        <KpiCard
-          title="معطّلة"
-          value={disabledGroups}
-          icon={XCircle}
-          accent="destructive"
-          description={disabledGroups > 0 ? 'مجموعات غير مفعّلة' : 'لا توجد مجموعات معطّلة'}
-        />
-      </KpiStrip>
-
       {/* Filters */}
       <div className="space-y-3">
         <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>

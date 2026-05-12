@@ -2,8 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -441,37 +440,6 @@ export default function DebtReschedulePage() {
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المستحقات"
-          value={formatCurrency(totalOutstanding)}
-          icon={DollarSign}
-          accent="warning"
-          description={partyType === 'customer' ? 'ديون العملاء' : 'ديون الموردين'}
-        />
-        <KpiCard
-          title="عدد المدينين"
-          value={numDebtors}
-          icon={Users}
-          accent="primary"
-          description={partyType === 'customer' ? 'عملاء لديهم مستحقات' : 'موردين لديهم مستحقات'}
-        />
-        <KpiCard
-          title="متوسط التأخير"
-          value={`${avgDaysOverdue} يوم`}
-          icon={Clock}
-          accent={avgDaysOverdue > 30 ? 'destructive' : 'info'}
-          description="متوسط أيام التأخير"
-        />
-        <KpiCard
-          title="أعيد جدولتها هذا الشهر"
-          value={rescheduledThisMonth}
-          icon={RefreshCcw}
-          accent="success"
-          description="قيد إعادة جدولة"
-        />
-      </KpiStrip>
-
       {/* Toggle Customer / Supplier */}
       <Tabs value={partyType} onValueChange={(v) => setPartyType(v as 'customer' | 'supplier')}>
         <TabsList className="bg-muted/35">

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -936,39 +935,6 @@ export default function FleetManagementPage() {
       )}
 
       {/* ── KPI Strip ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المركبات"
-          value={totalVehicles}
-          icon={Car}
-          accent="primary"
-          changeType="neutral"
-        />
-        <KpiCard
-          title="مركبات نشطة"
-          value={activeVehicles}
-          icon={Car}
-          accent="success"
-          changeType="positive"
-          change={totalVehicles ? Math.round((activeVehicles / totalVehicles) * 100) : 0}
-          description="نسبة النشاط من إجمالي الأسطول"
-        />
-        <KpiCard
-          title="قيد الصيانة"
-          value={maintenanceVehicles}
-          icon={Wrench}
-          accent="warning"
-          description="مركبات تحت الصيانة حالياً"
-        />
-        <KpiCard
-          title="إجمالي تكاليف الشهر"
-          value={formatCurrency(monthlyTotalCost)}
-          icon={DollarSign}
-          accent="info"
-          description="صيانة + وقود الشهر الحالي"
-        />
-      </KpiStrip>
-
       {/* ── Tabs ── */}
       <Tabs defaultValue="vehicles" dir="rtl" className="space-y-4">
         <TabsList className="flex flex-wrap gap-1 w-full">

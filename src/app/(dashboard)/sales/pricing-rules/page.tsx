@@ -35,8 +35,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Plus, Trash2, Tag, Send, Undo2, CheckCircle, XCircle, Percent, Filter, ChevronDown } from 'lucide-react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -386,37 +385,6 @@ export default function PricingRulesPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي القواعد"
-          value={totalRules}
-          icon={Tag}
-          accent="primary"
-          description="جميع قواعد التسعير"
-        />
-        <KpiCard
-          title="القواعد النشطة"
-          value={activeRules}
-          icon={CheckCircle}
-          accent="success"
-          description="قواعد غير معطلة"
-        />
-        <KpiCard
-          title="قواعد الخصم"
-          value={discountRules}
-          icon={Percent}
-          accent="warning"
-          description="قواعد من نوع خصم"
-        />
-        <KpiCard
-          title="القواعد المرحّلة"
-          value={submittedRules}
-          icon={Send}
-          accent="info"
-          description="قواعد تم ترحيلها"
-        />
-      </KpiStrip>
-
       {/* Filters */}
       <div className="space-y-3">
         <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>

@@ -6,8 +6,7 @@ import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateDoc, useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -276,12 +275,6 @@ export default function FiscalYearPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={3}>
-        <KpiCard title="إجمالي السنوات" value={rows.length} icon={Info} accent="primary" compact />
-        <KpiCard title="سنوات نشطة" value={activeCount} icon={CalendarCheck} accent="success" compact />
-        <KpiCard title="سنوات مقفلة" value={closedCount} icon={CalendarX2} accent={closedCount > 0 ? 'warning' : 'info'} compact />
-      </KpiStrip>
-
       <Card>
         <CardHeader className="py-3">
           <CardTitle className="text-sm">السنوات المالية</CardTitle>

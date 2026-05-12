@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
@@ -452,13 +451,6 @@ export default function SmsTemplatesPage() {
   />
 
   {/* ─── KPI Cards ─── */}
-  <KpiStrip cols={4}>
-  <KpiCard title="إجمالي القوالب" value={totalTemplates} icon={FileText} accent="primary" />
-  <KpiCard title="قوالب الفواتير" value={invoiceTemplates} icon={Hash} accent="info" />
-  <KpiCard title="قوالب التذكير" value={reminderTemplates} icon={AlertTriangle} accent="warning" />
-  <KpiCard title="قوالب عامة" value={generalTemplates} icon={Type} accent="success" />
-  </KpiStrip>
-
   <ListQueryAlert error={list.isError ? list.error : null} onRetry={() => list.refetch()} />
 
   {/* ─── DataTable ─── */}

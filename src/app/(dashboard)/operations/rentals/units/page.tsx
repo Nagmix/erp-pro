@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Button } from '@/components/ui/button';
@@ -464,13 +463,6 @@ export default function RentalUnitsPage() {
       <ListQueryAlert error={list.isError ? (list.error as Error) : null} onRetry={() => void list.refetch()} />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard title="إجمالي الوحدات" value={stats.total} icon={Home} accent="info" compact />
-        <KpiCard title="متاحة" value={stats.available} icon={Home} accent="success" compact description="وحدات جاهزة للإيجار" />
-        <KpiCard title="محجوزة" value={stats.booked} icon={Home} accent="warning" compact description="وحدات مشغولة حالياً" />
-        <KpiCard title="صيانة" value={stats.maintenance} icon={Home} accent="destructive" compact description="وحدات تحت الصيانة" />
-      </KpiStrip>
-
       {/* Search & Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

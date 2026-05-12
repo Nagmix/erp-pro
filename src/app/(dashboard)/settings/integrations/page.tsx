@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -421,41 +420,6 @@ export default function SettingsIntegrationsPage() {
   )}
 
   {/* KPI Strip */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="تكاملات مُعدّة"
-   value={kpis.configured}
-   icon={Zap}
-   accent="success"
-   compact
-   description="تكاملات تم إعدادها"
-  />
-  <KpiCard
-   title="متصلة"
-   value={kpis.connected}
-   icon={Wifi}
-   accent="info"
-   compact
-   description="تعمل بشكل طبيعي"
-  />
-  <KpiCard
-   title="غير متصلة"
-   value={kpis.disconnected}
-   icon={WifiOff}
-   accent="destructive"
-   compact
-   description="بحاجة إلى إعداد"
-  />
-  <KpiCard
-   title="أخطاء"
-   value={kpis.errors}
-   icon={AlertTriangle}
-   accent="warning"
-   compact
-   description="مشاكل اتصال"
-  />
-  </KpiStrip>
-
   {/* Integration Cards Grid */}
   {loading ? (
   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -21,8 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { ExportButton } from '@/components/erp/export-button';
 import {
   Package,
@@ -413,37 +412,6 @@ export default function StockLevelsPage() {
       />
 
       {/* ── بطاقات KPI ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الأصناف"
-          value={formatNumber(kpis.totalItems)}
-          icon={Package}
-          accent="info"
-          description="عدد الأصناف الفريدة في المستودعات"
-        />
-        <KpiCard
-          title="إجمالي قيمة المخزون"
-          value={formatCurrency(kpis.totalStockValue)}
-          icon={DollarSign}
-          accent="primary"
-          description="مجموع قيم المخزون لجميع الأصناف"
-        />
-        <KpiCard
-          title="أصناف منخفضة"
-          value={formatNumber(kpis.lowStockItems)}
-          icon={TrendingDown}
-          accent="warning"
-          description={`أصناف بكمية أقل من ${LOW_STOCK_THRESHOLD} وحدة`}
-        />
-        <KpiCard
-          title="أصناف نفذت"
-          value={formatNumber(kpis.outOfStockItems)}
-          icon={XCircle}
-          accent="destructive"
-          description="أصناف بكمية صفر أو سالبة"
-        />
-      </KpiStrip>
-
       {/* ── شريط البحث والفلاتر ── */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

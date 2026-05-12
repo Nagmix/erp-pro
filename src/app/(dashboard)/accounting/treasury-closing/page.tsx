@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { useDocList, useCreateDoc } from '@/lib/client/hooks';
@@ -253,13 +252,6 @@ export default function TreasuryClosingPage() {
           </div>
         }
       />
-
-      <KpiStrip>
-        <KpiCard title="رصيد الافتتاح" value={formatCurrency(openingBalance)} icon={DoorOpen} accent="primary" />
-        <KpiCard title="إجمالي القبض" value={formatCurrency(totalReceipts)} icon={ArrowUpLeft} accent="success" />
-        <KpiCard title="إجمالي الصرف" value={formatCurrency(totalPayments)} icon={ArrowDownLeft} accent="destructive" />
-        <KpiCard title="رصيد الإغلاق" value={formatCurrency(totalBalance)} icon={Scale} accent={totalBalance >= 0 ? 'info' : 'destructive'} />
-      </KpiStrip>
 
       {/* Treasury Balance Table */}
       <Card>

@@ -37,8 +37,7 @@ import {
  Landmark,
  Loader2,
 } from 'lucide-react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { toast } from 'sonner';
 
@@ -442,32 +441,6 @@ export default function CompaniesPage() {
   />
 
   {/* Stats KPIs */}
-  <KpiStrip cols={3}>
-  <KpiCard
-   title="إجمالي الشركات"
-   value={totalCompanies}
-   icon={Building2}
-   accent="primary"
-   compact
-  />
-  <KpiCard
-   title="الشركة الافتراضية"
-   value={resolvedDefault || '—'}
-   icon={Star}
-   accent="warning"
-   compact
-   description={resolvedDefault ? 'الشركة النشطة حالياً' : 'لم يتم تعيين شركة'}
-  />
-  <KpiCard
-   title="الدول"
-   value={uniqueCountries}
-   icon={Globe}
-   accent="info"
-   compact
-   description="عدد الدول المسجلة"
-  />
-  </KpiStrip>
-
   {/* Loading state */}
   {isLoading && (
   <div className="flex items-center justify-center py-20 gap-3 text-muted-foreground">

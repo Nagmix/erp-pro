@@ -835,54 +835,36 @@ export default function ReportsDashboardPage() {
         {/* ════════════════════════════════════════════════════ */}
         <TabsContent value="overview" className="space-y-5">
           {/* KPI Strip */}
-          <KpiStrip cols={5}>
+          <KpiStrip cols={4}>
             <KpiCard
               title="إجمالي المبيعات"
               value={formatCurrency(financialKPIs.totalSales)}
-              icon={DollarSign}
+              icon={ShoppingCart}
               accent="primary"
-              change={financialKPIs.totalSales > 0 ? 12.5 : 0}
-              changeType={financialKPIs.totalSales > 0 ? 'positive' : 'neutral'}
-              description="إجمالي فواتير المبيعات"
+              description="إجمالي فواتير البيع"
             />
             <KpiCard
               title="إجمالي المشتريات"
               value={formatCurrency(financialKPIs.totalPurchases)}
-              icon={ShoppingCart}
-              accent="warning"
-              change={financialKPIs.totalPurchases > 0 ? 8.3 : 0}
-              changeType={financialKPIs.totalPurchases > 0 ? 'negative' : 'neutral'}
-              description="إجمالي فواتير المشتريات"
+              icon={Package}
+              accent="info"
+              description="إجمالي فواتير الشراء"
             />
             <KpiCard
               title="صافي الربح"
               value={formatCurrency(financialKPIs.netProfit)}
-              icon={TrendingUp}
-              accent="success"
-              change={financialKPIs.netProfit > 0 ? 15.2 : -5.1}
-              changeType={financialKPIs.netProfit > 0 ? 'positive' : 'negative'}
+              icon={financialKPIs.netProfit >= 0 ? TrendingUp : TrendingDown}
+              accent={financialKPIs.netProfit >= 0 ? 'success' : 'destructive'}
               description="المبيعات - المشتريات - المصروفات"
-            />
-            <KpiCard
-              title="المصروفات"
-              value={formatCurrency(financialKPIs.totalExpenses)}
-              icon={Receipt}
-              accent="destructive"
-              change={3.7}
-              changeType="negative"
-              description="إجمالي المطالبات النقدية"
             />
             <KpiCard
               title="الرصيد المتاح"
               value={formatCurrency(financialKPIs.availableBalance)}
               icon={Wallet}
-              accent={financialKPIs.availableBalance >= 0 ? 'info' : 'destructive'}
-              change={financialKPIs.availableBalance > 0 ? 6.8 : -3.2}
-              changeType={financialKPIs.availableBalance > 0 ? 'positive' : 'negative'}
-              description="إجمالي الدائن - إجمالي المدين"
+              accent={financialKPIs.availableBalance >= 0 ? 'success' : 'destructive'}
+              description="الرصيد الدائن - المدين"
             />
           </KpiStrip>
-
           {/* Charts Row 1 */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Monthly Revenue Bar Chart */}
@@ -1160,44 +1142,6 @@ export default function ReportsDashboardPage() {
         {/* ════════════════════════════════════════════════════ */}
         <TabsContent value="sales" className="space-y-5">
           {/* KPIs */}
-          <KpiStrip cols={4}>
-            <KpiCard
-              title="إجمالي المبيعات"
-              value={formatCurrency(financialKPIs.totalSales)}
-              icon={DollarSign}
-              accent="primary"
-              compact
-            />
-            <KpiCard
-              title="عدد فواتير البيع"
-              value={safeSales.filter((s) => s.status !== 'Cancelled').length}
-              icon={Receipt}
-              accent="info"
-              compact
-            />
-            <KpiCard
-              title="عدد العملاء"
-              value={new Set(
-                safeSales.filter((s) => s.status !== 'Cancelled').map((s) => s.customer)
-              ).size}
-              icon={Users}
-              accent="success"
-              compact
-            />
-            <KpiCard
-              title="متوسط قيمة الفاتورة"
-              value={formatCurrency(
-                safeSales.filter((s) => s.status !== 'Cancelled').length > 0
-                  ? financialKPIs.totalSales /
-                      safeSales.filter((s) => s.status !== 'Cancelled').length
-                  : 0
-              )}
-              icon={TrendingUp}
-              accent="warning"
-              compact
-            />
-          </KpiStrip>
-
           {/* Charts Row 1 */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Top Customers Horizontal Bar */}
@@ -1347,37 +1291,6 @@ export default function ReportsDashboardPage() {
         {/* ════════════════════════════════════════════════════ */}
         <TabsContent value="inventory" className="space-y-5">
           {/* KPIs */}
-          <KpiStrip cols={4}>
-            <KpiCard
-              title="إجمالي قيمة المخزون"
-              value={formatCurrency(safeBins.reduce((sum, b) => sum + Number(b.stock_value || 0), 0))}
-              icon={BoxesIcon}
-              accent="primary"
-              compact
-            />
-            <KpiCard
-              title="عدد الأصناف"
-              value={safeItems.length}
-              icon={Package}
-              accent="info"
-              compact
-            />
-            <KpiCard
-              title="المستودعات"
-              value={(warehouses ?? []).length}
-              icon={Building2}
-              accent="success"
-              compact
-            />
-            <KpiCard
-              title="تنبيهات إعادة الطلب"
-              value={reorderAlerts.length}
-              icon={AlertTriangle}
-              accent={reorderAlerts.length > 0 ? 'destructive' : 'success'}
-              compact
-            />
-          </KpiStrip>
-
           {/* Charts Row 1 */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Stock Value by Warehouse Bar */}
@@ -1515,47 +1428,6 @@ export default function ReportsDashboardPage() {
         {/* ════════════════════════════════════════════════════ */}
         <TabsContent value="hr" className="space-y-5">
           {/* KPIs */}
-          <KpiStrip cols={4}>
-            <KpiCard
-              title="إجمالي الموظفين"
-              value={safeEmployees.filter((e) => e.status === 'Active').length}
-              icon={Users}
-              accent="primary"
-              compact
-            />
-            <KpiCard
-              title="إجمالي الرواتب"
-              value={formatCurrency(
-                safeSalarySlips.reduce((sum, s) => sum + Number(s.net_pay || 0), 0)
-              )}
-              icon={DollarSign}
-              accent="success"
-              compact
-            />
-            <KpiCard
-              title="معدل الحضور"
-              value={
-                safeAttendance.length > 0
-                  ? `${Math.round(
-                      (safeAttendance.filter((a) => a.status === 'Present').length /
-                        safeAttendance.length) *
-                        100
-                    )}%`
-                  : '0%'
-              }
-              icon={UserCheck}
-              accent="info"
-              compact
-            />
-            <KpiCard
-              title="طلبات الإجازة"
-              value={safeLeaveApps.length}
-              icon={Calendar}
-              accent="warning"
-              compact
-            />
-          </KpiStrip>
-
           {/* Charts Row 1 */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Headcount by Department Bar */}

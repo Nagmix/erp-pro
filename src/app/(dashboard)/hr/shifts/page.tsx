@@ -42,8 +42,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { buildShiftTypeCreate, buildShiftAssignmentCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { toast } from 'sonner';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -363,32 +362,6 @@ export default function ShiftsPage() {
         accent="info"
         breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الورديات' }]}
       />
-
-      {/* ═══ بطاقات مؤشرات الأداء ═══ */}
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="إجمالي الورديات"
-          value={totalShifts}
-          icon={Clock}
-          accent="primary"
-          description="جميع أنواع الورديات المسجّلة"
-        />
-        <KpiCard
-          title="ورديات نشطة"
-          value={activeShifts}
-          icon={Sun}
-          accent="success"
-          description="ورديات مفعّلة قيد الاستخدام"
-        />
-        <KpiCard
-          title="ورديات افتراضية"
-          value={defaultCount}
-          icon={Workflow}
-          accent="info"
-          description="ورديات نظام افتراضية"
-        />
-      </KpiStrip>
-
       {/* ═══ التبويبات ═══ */}
       <Tabs value={tab} onValueChange={setTab}>
         <div className="flex flex-wrap items-center justify-between gap-3">

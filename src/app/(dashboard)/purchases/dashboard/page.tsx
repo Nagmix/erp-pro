@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -219,68 +218,7 @@ export default function PurchasesDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
-      <KpiStrip>
-        <KpiCard
-          title="إجمالي المشتريات"
-          value={isLoading ? '…' : formatCurrency(totalPurchases)}
-          icon={Truck}
-          accent="warning"
-          description="مشتريات الشهر الحالي"
-        />
-        <KpiCard
-          title="أوامر شراء مفتوحة"
-          value={String(openPurchaseOrders)}
-          icon={ClipboardList}
-          accent="primary"
-        />
-        <KpiCard
-          title="الموردون النشطون"
-          value={isLoading ? '…' : String(activeSuppliers)}
-          icon={Users}
-          accent="info"
-        />
-        <KpiCard
-          title="متوسط وقت التوريد"
-          value="—"
-          icon={Clock}
-          accent="success"
-          description="يحسب من بيانات الاستلام"
-        />
-      </KpiStrip>
-
       {/* ── KPI Row 2 ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="استلامات معلّقة"
-          value={String(pendingReceipts)}
-          icon={Package}
-          compact
-          accent="warning"
-        />
-        <KpiCard
-          title="فواتير غير مدفوعة"
-          value={String(unpaidInvoices.length)}
-          icon={FileText}
-          compact
-          accent="destructive"
-          description={unpaidAmount > 0 ? formatCurrency(unpaidAmount) : undefined}
-        />
-        <KpiCard
-          title="المرتجعات هذا الشهر"
-          value={String(returnsThisMonth)}
-          icon={RotateCcw}
-          compact
-          accent="warning"
-        />
-        <KpiCard
-          title="نسبة الصرف %"
-          value={`${supplierPaymentSummary.paidRatio}%`}
-          icon={CircleDollarSign}
-          compact
-          accent={supplierPaymentSummary.paidRatio >= 80 ? 'success' : 'warning'}
-        />
-      </KpiStrip>
-
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

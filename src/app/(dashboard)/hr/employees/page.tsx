@@ -41,8 +41,7 @@ import {
   RefreshCw,
   MapPin,
 } from 'lucide-react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -622,39 +621,6 @@ export default function EmployeesPage() {
           </Dialog>
         }
       />
-
-      {/* ═══ بطاقات مؤشرات الأداء ═══ */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الموظفين"
-          value={totalCount}
-          icon={Users}
-          accent="primary"
-          description="جميع الموظفين المسجّلين في النظام"
-        />
-        <KpiCard
-          title="نشطون"
-          value={activeCount}
-          icon={UserCheck}
-          accent="success"
-          description="موظفون في الخدمة حالياً"
-        />
-        <KpiCard
-          title="غير نشط / مغادر"
-          value={inactiveCount}
-          icon={UserX}
-          accent="destructive"
-          description="موظفون غير نشطين أو غادروا"
-        />
-        <KpiCard
-          title="جدد هذا الشهر"
-          value={newThisMonth}
-          icon={UserPlus}
-          accent="info"
-          description="التحقوا خلال الشهر الحالي"
-        />
-      </KpiStrip>
-
       {/* ═══ شريط البحث والفلاتر ═══ */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

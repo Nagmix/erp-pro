@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
@@ -181,8 +180,6 @@ function formatSendViaLabel(via: string): string {
 function formatTargetLabel(target: string): string {
  return getTargetInfo(target).label;
 }
-
-
 
 /* ─── Main Component ─── */
 export default function SmsAutoRulesPage() {
@@ -511,8 +508,6 @@ export default function SmsAutoRulesPage() {
  [toggleActive, getTemplateName, openEdit, updateMut.isPending]
  );
 
-
-
  /* ─── Selected template preview ─── */
  const selectedTemplate = useMemo(() => {
  if (!formTemplate) return null;
@@ -530,13 +525,6 @@ export default function SmsAutoRulesPage() {
   />
 
   {/* ─── KPI Cards ─── */}
-  <KpiStrip cols={4}>
-  <KpiCard title="إجمالي القواعد" value={totalRules} icon={Zap} accent="primary" description="جميع قواعد الإرسال المسجلة" />
-  <KpiCard title="قواعد مفعّلة" value={activeRules} icon={CheckCircle2} accent="success" description="قواعد تعمل حالياً" />
-  <KpiCard title="رسائل اليوم" value={messagesSentToday} icon={Send} accent="info" description="رسائل مرسلة اليوم" />
-  <KpiCard title="رسائل الشهر" value={messagesSentThisMonth} icon={Activity} accent="warning" description="إجمالي رسائل الشهر الحالي" />
-  </KpiStrip>
-
   {/* ─── Tabs ─── */}
   <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
   <TabsList>

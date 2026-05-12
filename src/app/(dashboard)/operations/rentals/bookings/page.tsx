@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -363,14 +362,6 @@ export default function BookingsPage() {
       <ListQueryAlert error={list.isError ? (list.error as Error) : null} onRetry={() => void list.refetch()} />
 
       {/* KPI Strip */}
-      <KpiStrip cols={5}>
-        <KpiCard title="إجمالي الحجوزات" value={stats.total} icon={Calendar} accent="info" compact />
-        <KpiCard title="مؤكدة" value={stats.confirmed} icon={CheckCircle2} accent="success" compact />
-        <KpiCard title="قيد الانتظار" value={stats.pending} icon={Calendar} accent="warning" compact />
-        <KpiCard title="ملغاة" value={stats.cancelled} icon={Ban} accent="destructive" compact />
-        <KpiCard title="مكتملة" value={stats.completed} icon={CheckCircle2} accent="primary" compact />
-      </KpiStrip>
-
       {/* Search & Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

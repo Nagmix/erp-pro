@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -509,13 +508,6 @@ export default function RentalContractsPage() {
       <ListQueryAlert error={list.isError ? (list.error as Error) : null} onRetry={() => void list.refetch()} />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard title="إجمالي العقود" value={stats.total} icon={FileText} accent="info" compact />
-        <KpiCard title="سارية" value={stats.active} icon={FileText} accent="success" compact description="عقود موقّعة ونشطة" />
-        <KpiCard title="منتهية" value={stats.expired} icon={FileText} accent="warning" compact description="عقود انتهت مدتها" />
-        <KpiCard title="ملغاة" value={stats.cancelled} icon={FileText} accent="destructive" compact />
-      </KpiStrip>
-
       {/* Search & Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

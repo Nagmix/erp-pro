@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -265,32 +264,6 @@ export default function CrmLoyaltyPage() {
           </Button>
         }
       />
-
-      {/* شريط مؤشرات الأداء */}
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="إجمالي البرامج"
-          value={totalPrograms}
-          icon={Star}
-          accent="primary"
-          description="عدد برامج الولاء المسجلة"
-        />
-        <KpiCard
-          title="إجمالي معامل التجميع"
-          value={totalCollectionFactor.toLocaleString('ar-YE')}
-          icon={Zap}
-          accent="warning"
-          description="مجموع معاملات تجميع النقاط"
-        />
-        <KpiCard
-          title="برامج محسّنة تلقائياً"
-          value={activeWithOptimize}
-          icon={Users}
-          accent="success"
-          description="برامج بتحسين تلقائي مفعّل"
-        />
-      </KpiStrip>
-
       {/* رابط التقرير */}
       <Card className="border-border/40">
         <CardContent className="p-4 flex flex-wrap items-center gap-3 justify-between">

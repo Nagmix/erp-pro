@@ -64,8 +64,7 @@ import {
   Sparkles,
   Inbox,
 } from 'lucide-react';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useDeleteDoc } from '@/lib/client/hooks';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -782,37 +781,6 @@ export default function ItemVariantsPage() {
       />
 
       {/* ─── بطاقات الإحصائيات ─── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="مجموعات التبديلات"
-          value={formatNumber(totalGroups)}
-          icon={Boxes}
-          accent="warning"
-          description="أصناف القالب المفعّلة للتبديلات"
-        />
-        <KpiCard
-          title="المجموعات النشطة"
-          value={formatNumber(totalActiveGroups)}
-          icon={Package}
-          accent="success"
-          description="مجموعات عاملة وغير معطّلة"
-        />
-        <KpiCard
-          title="السمات المستخدمة"
-          value={formatNumber(totalAttributes)}
-          icon={Tag}
-          accent="info"
-          description="سمات الأصناف المسجلة (اللون، المقاس...)"
-        />
-        <KpiCard
-          title="التبديلات التقريبية"
-          value={formatNumber(estimatedVariants)}
-          icon={Grid3X3}
-          accent="primary"
-          description="عدد تقريبي للتبديلات المولّدة"
-        />
-      </KpiStrip>
-
       {/* ─── شريط البحث والفلاتر ─── */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

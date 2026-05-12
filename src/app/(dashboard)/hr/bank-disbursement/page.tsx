@@ -2,8 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -239,30 +238,6 @@ export default function BankDisbursementPage() {
           </Button>
         }
       />
-
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="إجمالي الصافي للصرف"
-          value={formatCurrency(totalNetPay)}
-          icon={Banknote}
-          accent="success"
-          description="مجموع صافي الرواتب المعروضة"
-        />
-        <KpiCard
-          title="عدد الموظفين"
-          value={employeeCount}
-          icon={Users}
-          accent="primary"
-          description="موظفون في القائمة"
-        />
-        <KpiCard
-          title="عدد البنوك"
-          value={bankCount}
-          icon={Building2}
-          accent="info"
-          description="بنوك مختلفة"
-        />
-      </KpiStrip>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>

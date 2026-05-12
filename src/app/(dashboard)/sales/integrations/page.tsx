@@ -27,9 +27,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatDate, formatCurrency } from '@/lib/core/helpers';
 import { toast } from 'sonner';
 import { Truck, Percent, Gift, CalendarClock, Sparkles, Users, RefreshCw, Plus, CreditCard, Package, Tag } from 'lucide-react';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
-
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 type GenericRow = Record<string, string | number | boolean | null | undefined>;
 
 const termsCols: Column<GenericRow>[] = [
@@ -224,37 +222,6 @@ export default function SalesIntegrationsPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="قوالب شروط الدفع"
-          value={totalTerms}
-          icon={CreditCard}
-          accent="primary"
-          description="قوالب الدفع والأقساط"
-        />
-        <KpiCard
-          title="اشتراكات نشطة"
-          value={activeSubs}
-          icon={CalendarClock}
-          accent="success"
-          description={`من أصل ${totalSubs} اشتراك`}
-        />
-        <KpiCard
-          title="مندوبو المبيعات"
-          value={totalSP}
-          icon={Users}
-          accent="info"
-          description={`${totalTeams} فريق مبيعات`}
-        />
-        <KpiCard
-          title="قواعد الشحن"
-          value={totalShipRules}
-          icon={Truck}
-          accent="warning"
-          description={`${totalLoyalty} برنامج ولاء`}
-        />
-      </KpiStrip>
-
       <PageShell className="space-y-4" padded={false}>
         <div className="px-4 pt-4">
           <Tabs defaultValue="install" className="w-full">

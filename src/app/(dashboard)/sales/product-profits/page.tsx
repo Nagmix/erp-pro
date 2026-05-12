@@ -48,8 +48,7 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ExportButton } from '@/components/erp/export-button';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import {
@@ -362,35 +361,6 @@ export default function ProductProfitsReportPage() {
       {data && !loading && (
         <>
           {/* ─── Stats KPI cards ─── */}
-          <KpiStrip cols={4}>
-            <KpiCard
-              title="إجمالي الإيرادات"
-              value={`${fmt(summary?.totalRevenue || 0)} ر.ي`}
-              icon={TrendingUp}
-              accent="success"
-            />
-            <KpiCard
-              title="إجمالي التكلفة"
-              value={`${fmt(summary?.totalCost || 0)} ر.ي`}
-              icon={DollarSign}
-              accent="warning"
-            />
-            <KpiCard
-              title="إجمالي الربح"
-              value={`${fmt(summary?.totalProfit || 0)} ر.ي`}
-              icon={Calculator}
-              accent={summary && summary.totalProfit >= 0 ? 'success' : 'destructive'}
-            />
-            <KpiCard
-              title="متوسط هامش الربح"
-              value={`${(summary?.avgMargin || 0).toFixed(1)}%`}
-              icon={Percent}
-              accent={summary && summary.avgMargin >= 0 ? 'primary' : 'destructive'}
-              change={summary?.avgMargin || 0}
-              changeType={summary && summary.avgMargin >= 20 ? 'positive' : summary && summary.avgMargin < 10 ? 'negative' : 'neutral'}
-            />
-          </KpiStrip>
-
           {/* ─── Charts row ─── */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {/* Profit by category */}

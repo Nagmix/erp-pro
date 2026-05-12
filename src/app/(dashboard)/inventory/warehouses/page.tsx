@@ -49,8 +49,7 @@ import {
   Loader2,
   Trash2,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
@@ -195,13 +194,21 @@ export default function WarehousesPage() {
 
   const filteredRows = useMemo(() => {
     let result = rows;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      result = result.filter(r =>
+        r.warehouse_name?.toLowerCase().includes(q) ||
+        r.name?.toLowerCase().includes(q) ||
+        r.company?.toLowerCase().includes(q)
+      );
+    }
     if (filterCompany !== 'all') result = result.filter(r => r.company === filterCompany);
     if (filterIsGroup === 'yes') result = result.filter(r => Number(r.is_group) === 1 || r.is_group === true);
     if (filterIsGroup === 'no') result = result.filter(r => Number(r.is_group) !== 1 && r.is_group !== true);
     if (filterDisabled === 'yes') result = result.filter(r => Number(r.disabled) === 1 || r.disabled === true);
     if (filterDisabled === 'no') result = result.filter(r => Number(r.disabled) !== 1 && r.disabled !== true);
     return result;
-  }, [rows, filterCompany, filterIsGroup, filterDisabled]);
+  }, [rows, search, filterCompany, filterIsGroup, filterDisabled]);
 
   /* ── KPI calculations ── */
   const totalWarehouses = rows.length;
@@ -380,39 +387,6 @@ export default function WarehousesPage() {
           </div>
         }
       />
-
-      {/* ─── KPI Strip ─── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المستودعات"
-          value={totalWarehouses}
-          icon={Warehouse}
-          accent="info"
-          description="جميع المستودعات المسجلة"
-        />
-        <KpiCard
-          title="مستودعات جذرية"
-          value={rootWarehouses}
-          icon={MapPin}
-          accent="primary"
-          description="مستودعات بدون أب"
-        />
-        <KpiCard
-          title="مستودعات مجموعة"
-          value={parentWarehouses}
-          icon={TreePine}
-          accent="warning"
-          description="تحتوي على مستودعات فرعية"
-        />
-        <KpiCard
-          title="معطّلة"
-          value={disabledCount}
-          icon={Package}
-          accent={disabledCount > 0 ? 'destructive' : 'success'}
-          description={disabledCount > 0 ? `${disabledCount} مستودع معطّل` : 'جميع المستودعات نشطة'}
-        />
-      </KpiStrip>
-
       {/* ─── Filters Bar ─── */}
       <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-3 space-y-3">
         <div className="flex items-center gap-3 flex-wrap">

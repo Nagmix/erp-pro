@@ -36,7 +36,7 @@ import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc, useDoc } from '@/
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { buildHolidayListCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { toast } from 'sonner';
-import { PageHeader, KpiStrip, KpiCard } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 
 /* ──────────────── Types ──────────────── */
 
@@ -322,37 +322,6 @@ export default function HolidaysPage() {
       />
 
       {/* ── KPI Cards ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="قوائم العطلات"
-          value={kpiTotalLists}
-          icon={Calendar}
-          accent="warning"
-          description="إجمالي القوائم المسجلة"
-        />
-        <KpiCard
-          title="عطلات السنة الحالية"
-          value={kpiTotalHolidaysThisYear}
-          icon={Clock}
-          accent="info"
-          description={`عطلات عام ${currentYear}`}
-        />
-        <KpiCard
-          title="إجمالي أيام العطلات"
-          value={kpiGrandTotal}
-          icon={Calendar}
-          accent="success"
-          description="مجموع كل القوائم"
-        />
-        <KpiCard
-          title="العطلة القادمة"
-          value={kpiNextHoliday ? formatDate(kpiNextHoliday.date.toISOString()) : '—'}
-          icon={Clock}
-          accent="warning"
-          description={kpiNextHoliday?.description || 'لا توجد عطلات قادمة'}
-        />
-      </KpiStrip>
-
       {/* ── Filters ── */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

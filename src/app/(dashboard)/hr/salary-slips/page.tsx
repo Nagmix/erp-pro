@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
-import { KpiCard, KpiStrip, PageHeader } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -443,44 +443,6 @@ export default function SalarySlipsPage() {
       />
 
       {/* ── KPI Strip ── */}
-      <KpiStrip cols={5}>
-        <KpiCard
-          title="إجمالي القسائم"
-          value={totalSlips}
-          icon={FileText}
-          accent="primary"
-          compact
-        />
-        <KpiCard
-          title="مسودات"
-          value={draftCount}
-          icon={Wallet}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="مُقدّمة"
-          value={submittedCount}
-          icon={FileCheck}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="ملغاة"
-          value={cancelledCount}
-          icon={Ban}
-          accent="destructive"
-          compact
-        />
-        <KpiCard
-          title="صافي الرواتب الإجمالي"
-          value={formatCurrency(totalNetPay)}
-          icon={DollarSign}
-          accent="info"
-          compact
-        />
-      </KpiStrip>
-
       {/* ── Search & Filters ── */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

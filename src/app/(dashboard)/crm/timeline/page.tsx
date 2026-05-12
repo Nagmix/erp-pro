@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { StatusBadge } from '@/components/erp/status-badge';
@@ -500,37 +499,6 @@ export default function CrmTimelinePage() {
       />
 
       {/* ── KPI Summary ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي التفاعلات"
-          value={totalCount}
-          icon={Sparkles}
-          accent="primary"
-          compact
-        />
-        <KpiCard
-          title="الاتصالات"
-          value={commCount}
-          icon={MessageSquare}
-          accent="info"
-          compact
-        />
-        <KpiCard
-          title="الأحداث"
-          value={eventCount}
-          icon={CalendarDays}
-          accent="warning"
-          compact
-        />
-        <KpiCard
-          title="المهام"
-          value={todoCount}
-          icon={CheckSquare}
-          accent="success"
-          compact
-        />
-      </KpiStrip>
-
       {/* ── Filters Bar ── */}
       <Card className="border-border/40 shadow-none">
         <CardContent className="p-4">

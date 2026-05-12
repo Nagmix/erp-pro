@@ -3,8 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -317,67 +316,7 @@ export default function HrDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
-      <KpiStrip>
-        <KpiCard
-          title="إجمالي الموظفين"
-          value={isLoading ? '…' : String(totalEmployees)}
-          icon={Users}
-          accent="primary"
-          description="الموظفون النشطون"
-        />
-        <KpiCard
-          title="الحاضرون اليوم"
-          value={String(presentToday)}
-          icon={UserCheck}
-          accent="success"
-        />
-        <KpiCard
-          title="في إجازة"
-          value={String(onLeaveToday)}
-          icon={PlaneTakeoff}
-          accent="info"
-        />
-        <KpiCard
-          title="الوظائف الشاغرة"
-          value={String(openPositions)}
-          icon={Briefcase}
-          accent="warning"
-        />
-      </KpiStrip>
-
       {/* ── KPI Row 2 ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="الرواتب هذا الشهر"
-          value={isLoading ? '…' : formatCurrency(payrollThisMonth)}
-          icon={DollarSign}
-          compact
-          accent="success"
-          description={`صافي ${salaryBreakdown.slipCount} كشف`}
-        />
-        <KpiCard
-          title="طلبات إجازة معلّقة"
-          value={String(pendingLeaveRequests)}
-          icon={Clock}
-          compact
-          accent="warning"
-        />
-        <KpiCard
-          title="عقود تنتهي قريباً"
-          value={String(contractsExpiring)}
-          icon={FileText}
-          compact
-          accent="destructive"
-        />
-        <KpiCard
-          title="معدل الحضور %"
-          value={`${avgAttendanceRate}%`}
-          icon={ClipboardCheck}
-          compact
-          accent={avgAttendanceRate >= 90 ? 'success' : avgAttendanceRate >= 70 ? 'warning' : 'destructive'}
-        />
-      </KpiStrip>
-
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

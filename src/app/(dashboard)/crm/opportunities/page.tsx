@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -349,32 +348,6 @@ export default function OpportunitiesPage() {
       />
 
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
-
-      {/* شريط مؤشرات الأداء */}
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="إجمالي الفرص"
-          value={totalOpportunities}
-          icon={Target}
-          accent="warning"
-          description="جميع الفرص المسجلة"
-        />
-        <KpiCard
-          title="إجمالي القيمة"
-          value={formatCurrency(totalValue)}
-          icon={Wallet}
-          accent="primary"
-          description="مجموع قيم الفرص"
-        />
-        <KpiCard
-          title="معدل التحويل"
-          value={`${conversionRate}%`}
-          icon={Percent}
-          accent="success"
-          description={`${convertedCount} محوّل من ${totalOpportunities}`}
-        />
-      </KpiStrip>
-
       {/* ملخص خط المبيعات */}
       <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-4 gap-3">
         {[

@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -310,27 +309,6 @@ export default function PaymentGatewaysPage() {
   />
 
   {/* KPI Strip */}
-  <KpiStrip cols={3}>
-  <KpiCard
-   title="إجمالي البوابات"
-   value={totalGateways}
-   icon={CreditCard}
-   accent="info"
-  />
-  <KpiCard
-   title="بوابات مفعّلة"
-   value={activeGateways}
-   icon={Shield}
-   accent="success"
-  />
-  <KpiCard
-   title="البوابة الافتراضية"
-   value={defaultGateway?.name || '—'}
-   icon={Star}
-   accent="warning"
-  />
-  </KpiStrip>
-
   <ListQueryAlert error={gatewaysIsError ? gatewaysError : null} onRetry={() => refetchGateways()} />
 
   {/* Gateway Cards Grid */}

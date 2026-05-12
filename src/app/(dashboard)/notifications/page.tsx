@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -578,37 +577,6 @@ export default function NotificationsPage() {
       <ListQueryAlert error={error} onRetry={() => refetch()} />
 
       {/* شريط KPI */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الإشعارات"
-          value={kpis.total}
-          icon={Bell}
-          accent="info"
-          description="جميع الإشعارات في النظام"
-        />
-        <KpiCard
-          title="غير مقروء"
-          value={kpis.unread}
-          icon={AlertCircle}
-          accent="destructive"
-          description="إشعارات لم يتم قراءتها"
-        />
-        <KpiCard
-          title="مقروء"
-          value={kpis.read}
-          icon={CheckCheck}
-          accent="success"
-          description="إشعارات تم قراءتها"
-        />
-        <KpiCard
-          title="إشعارات اليوم"
-          value={kpis.today}
-          icon={Clock}
-          accent="warning"
-          description="إشعارات وردت اليوم"
-        />
-      </KpiStrip>
-
       {/* شريط التصفية */}
       <div className="flex flex-wrap items-end gap-3 p-4 rounded-xl border border-border/40 bg-card">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">

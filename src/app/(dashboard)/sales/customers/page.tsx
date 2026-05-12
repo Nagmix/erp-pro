@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Select,
   SelectContent,
@@ -37,14 +36,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
-import { Plus, Users, Building2, User, Filter, ChevronDown, Upload, X, Eye, Pencil, Loader2, Hash, Mail, Phone, MapPin, CreditCard, TrendingUp } from 'lucide-react';
+import { Plus, Users, Building2, User, Eye, Pencil, Loader2, Hash, Mail, Phone, MapPin, CreditCard, TrendingUp } from 'lucide-react';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc, useDoc } from '@/lib/client/hooks';
 import { buildCustomerCreate } from '@/lib/erp/erpnext-payloads';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency } from '@/lib/core/helpers';
@@ -101,9 +98,6 @@ export default function CustomersPage() {
   const [viewingCustomer, setViewingCustomer] = useState<CustomerRow | null>(null);
   const [formData, setFormData] = useState(emptyForm);
   const [editFormData, setEditFormData] = useState(emptyForm);
-  const [search, setSearch] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [customerTypeFilter, setCustomerTypeFilter] = useState('all');
   useEffect(() => {
     consumeCreateQueryParam(() => setDialogOpen(true));
   }, []);
@@ -134,30 +128,15 @@ export default function CustomersPage() {
 
   const customers = data || [];
 
-  // ── Apply filters (search + advanced type filter) ──
+  // ── Apply filters ──
   const filteredData = useMemo(() => {
-    let result = typeFilter === 'all' ? customers : customers.filter(c => c.customer_type === typeFilter);
-    if (customerTypeFilter !== 'all') {
-      result = result.filter(c => c.customer_type === customerTypeFilter);
-    }
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      result = result.filter(c =>
-        c.customer_name?.toLowerCase().includes(q) ||
-        c.name?.toLowerCase().includes(q) ||
-        c.email_id?.toLowerCase().includes(q) ||
-        c.mobile_no?.toLowerCase().includes(q) ||
-        c.tax_id?.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [customers, typeFilter, customerTypeFilter, search]);
+    return typeFilter === 'all' ? customers : customers.filter(c => c.customer_type === typeFilter);
+  }, [customers, typeFilter]);
 
   // ── KPIs ──
   const totalCustomers = customers.length;
   const companiesCount = customers.filter(c => c.customer_type === 'Company').length;
   const individualsCount = customers.filter(c => c.customer_type === 'Individual').length;
-  const withOutstanding = customers.filter(c => Number(c.outstanding_amount) > 0).length;
 
   const handleCreate = () => {
     if (!formData.customer_name) {
@@ -249,8 +228,6 @@ export default function CustomersPage() {
       onError: () => toast.error('خطأ', { description: 'حدث خطأ أثناء حذف العميل' })});
   };
 
-  const clearFilters = () => { setSearch(''); setCustomerTypeFilter('all'); };
-
   // ── Columns ──
   const columns: Column<CustomerRow>[] = useMemo(() => [
     { key: 'customer_name', header: 'اسم العميل', sortable: true, render: (_, row) => (
@@ -306,81 +283,6 @@ export default function CustomersPage() {
           </Button>
         }
       />
-
-      {/* شريط مؤشرات الأداء */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي العملاء"
-          value={totalCustomers}
-          icon={Users}
-          accent="primary"
-          description="جميع العملاء المسجلين"
-        />
-        <KpiCard
-          title="الشركات"
-          value={companiesCount}
-          icon={Building2}
-          accent="info"
-          description="عملاء من نوع شركة"
-        />
-        <KpiCard
-          title="الأفراد"
-          value={individualsCount}
-          icon={User}
-          accent="success"
-          description="عملاء من نوع فرد"
-        />
-        <KpiCard
-          title="عملاء بمستحقات"
-          value={withOutstanding}
-          icon={TrendingUp}
-          accent="warning"
-          description="عملاء لديهم رصيد مستحق"
-        />
-      </KpiStrip>
-
-      {/* شريط البحث والفلاتر */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* بحث سريع */}
-          <div className="flex-1 min-w-[200px]">
-            <Input placeholder="بحث باسم العميل أو البريد أو الهاتف..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
-          </div>
-        </div>
-
-        {/* فلاتر متقدمة (قابلة للطي) */}
-        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-                <Filter className="h-3 w-3" /> فلاتر متقدمة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            {(customerTypeFilter !== 'all' || search) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-                <X className="h-3 w-3" /> مسح الفلاتر
-              </Button>
-            )}
-          </div>
-          <CollapsibleContent>
-            <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-            <Label className="text-xs">النوع</Label>
-            <Select value={customerTypeFilter} onValueChange={setCustomerTypeFilter}>
-              <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="Company">شركة</SelectItem>
-                <SelectItem value="Individual">فرد</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-
       <PageShell className="space-y-4" padded={false}>
         <div className="px-4 pt-4">
           <Tabs value={typeFilter} onValueChange={setTypeFilter}>

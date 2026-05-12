@@ -1,8 +1,7 @@
 'use client';
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -285,13 +284,6 @@ export default function ApprovalsPage() {
         accent="success"
         breadcrumbs={[{ label: 'التشغيل' }, { label: 'سير الموافقات' }]}
       />
-
-      <KpiStrip>
-        <KpiCard title="بانتظار موافقتي" value={kpiAwaiting} icon={Clock} accent="warning" compact change={kpiAwaiting > 5 ? 12 : -5} changeType={kpiAwaiting > 5 ? 'negative' : 'positive'} />
-        <KpiCard title="موافقات اليوم" value={kpiToday} icon={CheckCircle2} accent="success" compact />
-        <KpiCard title="مرفوضات" value={kpiRejected} icon={XCircle} accent="destructive" compact />
-        <KpiCard title="إجمالي المعالجة" value={logEntries.length} icon={AlertCircle} accent="info" compact />
-      </KpiStrip>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl">
         <TabsList className="flex flex-wrap gap-1 w-full">

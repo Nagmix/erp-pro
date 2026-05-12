@@ -46,20 +46,16 @@ import {
   Filter,
   ChevronDown,
   X,
-  Search,
   RefreshCw,
   ToggleLeft,
   ToggleRight,
-  DollarSign,
   Tag,
-  AlertTriangle,
 } from 'lucide-react';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { buildSupplierCreate } from '@/lib/erp/erpnext-payloads';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -202,7 +198,6 @@ export default function PurchasesSuppliersPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selected, setSelected] = useState<SupplierRow | null>(null);
   const [formData, setFormData] = useState(emptyForm);
-  const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [onHoldFilter, setOnHoldFilter] = useState('all');
   const [countryFilter, setCountryFilter] = useState('all');
@@ -273,7 +268,6 @@ export default function PurchasesSuppliersPage() {
     setOnHoldFilter('all');
     setCountryFilter('all');
     setGroupFilter('all');
-    setSearch('');
   };
 
   /* ── إنشاء مورد ── */
@@ -362,53 +356,9 @@ export default function PurchasesSuppliersPage() {
           </Button>
         }
       />
-
-      {/* ═══ بطاقات مؤشرات الأداء ═══ */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الموردين"
-          value={totalCount}
-          icon={Truck}
-          accent="primary"
-          description="جميع الموردين المسجّلين"
-        />
-        <KpiCard
-          title="نشطون"
-          value={activeCount}
-          icon={Building2}
-          accent="success"
-          description="موردون غير معلّقين"
-        />
-        <KpiCard
-          title="معلّقون"
-          value={onHoldCount}
-          icon={AlertTriangle}
-          accent="destructive"
-          description="موردون على حالة تعليق"
-        />
-        <KpiCard
-          title="المستحقات"
-          value={outstandingTotal > 0 ? outstandingTotal.toLocaleString('ar-YE') : '0'}
-          icon={DollarSign}
-          accent="warning"
-          description="إجمالي المبالغ المستحقّة"
-        />
-      </KpiStrip>
-
-      {/* ═══ شريط البحث والفلاتر ═══ */}
+      {/* ═══ شريط الفلاتر ═══ */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <Search className="pointer-events-none absolute end-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="بحث باسم المورد..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-8 text-xs pe-8"
-              />
-            </div>
-          </div>
           <Button
             variant="outline"
             size="sm"

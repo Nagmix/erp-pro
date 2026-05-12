@@ -45,8 +45,7 @@ import {
   FileText,
   Wrench,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc, useDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
@@ -279,39 +278,6 @@ export default function WorkstationsPage() {
           </Button>
         }
       />
-
-      {/* ── شريط مؤشرات الأداء ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المحطات"
-          value={totalWorkstations}
-          icon={Server}
-          accent="primary"
-          description="جميع محطات العمل المسجلة"
-        />
-        <KpiCard
-          title="إجمالي السعة الإنتاجية"
-          value={totalCapacity}
-          icon={Gauge}
-          accent="info"
-          description="مجموع سعة جميع المحطات"
-        />
-        <KpiCard
-          title="متوسط سعر الساعة"
-          value={formatCurrency(avgHourRate)}
-          icon={DollarSign}
-          accent="warning"
-          description="متوسط تكلفة الساعة لجميع المحطات"
-        />
-        <KpiCard
-          title="المحطات النشطة"
-          value={activeWorkstations}
-          icon={CheckCircle2}
-          accent="success"
-          description="محطات غير معطّلة"
-        />
-      </KpiStrip>
-
       <PageShell className="space-y-4" padded={false}>
         <DataTable
           data={rows}

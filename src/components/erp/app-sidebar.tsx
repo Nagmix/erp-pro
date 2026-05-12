@@ -8,14 +8,6 @@ import {
   X,
   PanelRightClose,
   PanelRightOpen,
-  Building2,
-  CreditCard,
-  Percent,
-  Users,
-  Shield,
-  HardDrive,
-  Printer,
-  Hash,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SYSTEM_MODULES } from '@/lib/core/helpers';
@@ -50,8 +42,9 @@ const iconMap: Record<string, string> = {
   Users: 'solar:users-group-two-rounded-bold-duotone',
   Factory: 'solar:buildings-2-bold-duotone',
   Truck: 'solar:delivery-bold-duotone',
-  Wrench: 'solar:settings-bold-duotone',
+  Cog: 'solar:cog-bold-duotone',
   Heart: 'solar:heart-bold-duotone',
+  BarChart3: 'solar:chart-2-bold-duotone',
 };
 
 function SidebarSectionLabel({ collapsed, label }: { collapsed: boolean; label: string }) {
@@ -202,7 +195,6 @@ export function AppSidebar() {
     () => SYSTEM_MODULES.filter((m) => canAccessPath(m.path, roles)),
     [roles]
   );
-  const showReports = canAccessPath('/reports', roles);
   const showAudit = canAccessPath('/audit-log', roles);
   const showSettingsBlock = canAccessPath('/settings', roles);
   const [openModules, setOpenModules] = useState<Record<string, boolean>>({});
@@ -218,8 +210,6 @@ export function AppSidebar() {
 
   const isModuleActive = (mod: SystemModule) => {
     if (pathname.startsWith(mod.path)) return true;
-    // Check settingsLinks (deprecated but backward compat)
-    if (mod.settingsLinks?.some((s) => pathname === s.path || pathname.startsWith(`${s.path}/`))) return true;
     // Check settingsGroups items
     if (mod.settingsGroups?.some((g) =>
       (g.path && (pathname === g.path || pathname.startsWith(`${g.path}/`))) ||
@@ -361,33 +351,9 @@ export function AppSidebar() {
                           <span className="truncate">{sub.nameAr}</span>
                         </Link>
                       ))}
-                      {/* Settings: new settingsGroups (nested, collapsible) */}
+                      {/* Settings groups (nested, collapsible) */}
                       {module.settingsGroups && module.settingsGroups.length > 0 && (
                         <SettingsGroupsRenderer groups={module.settingsGroups} pathname={pathname} />
-                      )}
-                      {/* Legacy: flat settingsLinks backward compat */}
-                      {!module.settingsGroups && module.settingsLinks && module.settingsLinks.length > 0 && (
-                        <>
-                          <p className="px-2 pt-2.5 pb-0.5 text-[10px] font-semibold text-sidebar-muted">
-                            إعدادات الوحدة
-                          </p>
-                          {module.settingsLinks.map((s) => (
-                            <Link
-                              key={s.id}
-                              href={s.path}
-                              data-active={
-                                pathname === s.path || pathname.startsWith(`${s.path}/`) ? 'true' : 'false'
-                              }
-                              className="erp-nav-sub"
-                            >
-                              <span
-                                className="me-2 inline-block h-1 w-1 rounded-full bg-primary/60"
-                                aria-hidden
-                              />
-                              <span className="truncate">{s.nameAr}</span>
-                            </Link>
-                          ))}
-                        </>
                       )}
                     </div>
                   </CollapsibleContent>
@@ -396,19 +362,10 @@ export function AppSidebar() {
             })}
           </div>
 
-          {(showReports || showAudit || showSettingsBlock) && (
+          {(showAudit || showSettingsBlock) && (
             <>
               <SidebarSectionLabel collapsed={collapsed} label="الإدارة" />
               <div className="px-1 space-y-0.5">
-                {showReports && (
-                  <SidebarNavLeaf
-                    collapsed={collapsed}
-                    href="/reports"
-                    iconify="solar:chart-2-bold-duotone"
-                    label="التقارير"
-                    active={pathname === '/reports'}
-                  />
-                )}
                 {showAudit && (
                   <SidebarNavLeaf
                     collapsed={collapsed}
@@ -439,80 +396,44 @@ export function AppSidebar() {
                           <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
                           عام
                         </Link>
-                        <Link
-                          href="/settings/module-settings"
-                          className="erp-nav-sub"
-                          data-active={pathname.startsWith('/settings/module-settings') ? 'true' : 'false'}
-                        >
-                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
-                          إعدادات الوحدات
-                        </Link>
                         <Link href="/settings/naming-series" className="erp-nav-sub" data-active={pathname === '/settings/naming-series' ? 'true' : 'false'}>
-                          <Hash className="me-2 h-3 w-3 opacity-80" />
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
                           الترقيم المتسلسل
                         </Link>
-                        <Link href="/settings/account-routing" className="erp-nav-sub" data-active={pathname === '/settings/account-routing' ? 'true' : 'false'}>
+                        <Link href="/settings/companies" className="erp-nav-sub" data-active={pathname === '/settings/companies' ? 'true' : 'false'}>
                           <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
-                          توجيه الحسابات
-                        </Link>
-                        <Link href="/settings/erp-backend" className="erp-nav-sub" data-active={pathname === '/settings/erp-backend' ? 'true' : 'false'}>
-                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
-                          إعداد الخادم
+                          الشركات
                         </Link>
                         <Link href="/settings/branches" className="erp-nav-sub" data-active={pathname === '/settings/branches' ? 'true' : 'false'}>
-                          <Building2 className="me-2 h-3 w-3 opacity-80" />
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
                           الفروع
                         </Link>
-                        <Link href="/settings/payment-methods" className="erp-nav-sub" data-active={pathname === '/settings/payment-methods' ? 'true' : 'false'}>
-                          <CreditCard className="me-2 h-3 w-3 opacity-80" />
-                          طرق الدفع
-                        </Link>
-                        <Link href="/settings/tax-rules" className="erp-nav-sub" data-active={pathname.startsWith('/settings/tax-') ? 'true' : 'false'}>
-                          <Percent className="me-2 h-3 w-3 opacity-80" />
-                          قواعد الضرائب
-                        </Link>
-                        <Link href="/settings/sms-templates" className="erp-nav-sub" data-active={pathname === '/settings/sms-templates' ? 'true' : 'false'}>
+                        <Link href="/settings/users" className="erp-nav-sub" data-active={pathname === '/settings/users' ? 'true' : 'false'}>
                           <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
-                          قوالب الرسائل
+                          المستخدمين
                         </Link>
-                        <Link href="/settings/sms-rules" className="erp-nav-sub" data-active={pathname === '/settings/sms-rules' ? 'true' : 'false'}>
+                        <Link href="/settings/role-permissions" className="erp-nav-sub" data-active={pathname === '/settings/role-permissions' ? 'true' : 'false'}>
                           <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
-                          قواعد SMS الآلية
-                        </Link>
-                        <Link href="/settings/email-rules" className="erp-nav-sub" data-active={pathname === '/settings/email-rules' ? 'true' : 'false'}>
-                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
-                          قواعد البريد الآلي
-                        </Link>
-                        <Link href="/settings/integrations" className="erp-nav-sub" data-active={pathname === '/settings/integrations' ? 'true' : 'false'}>
-                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
-                          التكاملات
-                        </Link>
-                        <Link href="/settings/email-smtp" className="erp-nav-sub" data-active={pathname === '/settings/email-smtp' ? 'true' : 'false'}>
-                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
-                          بريد SMTP
+                          صلاحيات الأدوار
                         </Link>
                         <Link href="/settings/security" className="erp-nav-sub" data-active={pathname === '/settings/security' ? 'true' : 'false'}>
                           <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
                           الأمان
                         </Link>
-                        <Link href="/settings/users" className="erp-nav-sub" data-active={pathname === '/settings/users' ? 'true' : 'false'}>
-                          <Users className="me-2 h-3 w-3 opacity-80" />
-                          المستخدمين
-                        </Link>
-                        <Link href="/settings/companies" className="erp-nav-sub" data-active={pathname === '/settings/companies' ? 'true' : 'false'}>
-                          <Building2 className="me-2 h-3 w-3 opacity-80" />
-                          الشركات
-                        </Link>
-                        <Link href="/settings/role-permissions" className="erp-nav-sub" data-active={pathname === '/settings/role-permissions' ? 'true' : 'false'}>
-                          <Shield className="me-2 h-3 w-3 opacity-80" />
-                          صلاحيات الأدوار
+                        <Link href="/settings/erp-backend" className="erp-nav-sub" data-active={pathname === '/settings/erp-backend' ? 'true' : 'false'}>
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
+                          إعداد الخادم
                         </Link>
                         <Link href="/settings/backup" className="erp-nav-sub" data-active={pathname === '/settings/backup' ? 'true' : 'false'}>
-                          <HardDrive className="me-2 h-3 w-3 opacity-80" />
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
                           النسخ الاحتياطي
                         </Link>
+                        <Link href="/settings/integrations" className="erp-nav-sub" data-active={pathname === '/settings/integrations' ? 'true' : 'false'}>
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
+                          التكاملات
+                        </Link>
                         <Link href="/settings/print-format-builder" className="erp-nav-sub" data-active={pathname === '/settings/print-format-builder' ? 'true' : 'false'}>
-                          <Printer className="me-2 h-3 w-3 opacity-80" />
+                          <span className="me-2 inline-block h-1 w-1 rounded-full bg-[color:var(--sidebar-muted)]" aria-hidden />
                           منشئ التنسيقات
                         </Link>
                       </div>

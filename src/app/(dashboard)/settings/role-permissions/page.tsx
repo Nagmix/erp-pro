@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { CHART_PALETTE } from '@/lib/core/helpers';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -688,39 +687,6 @@ export default function RolePermissionsPage() {
   />
 
   {/* ---- KPI Strip ---- */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="إجمالي الأدوار"
-   value={kpiData.totalRoles}
-   icon={Shield}
-   accent="destructive"
-   description="عدد الأدوار المسجلة في النظام"
-  />
-  <KpiCard
-   title="أدوار مفعّلة"
-   value={kpiData.active}
-   icon={UserCheck}
-   accent="success"
-   change={kpiData.totalRoles > 0 ? Math.round((kpiData.active / kpiData.totalRoles) * 100) : 0}
-   changeType="positive"
-   description="أدوار نشطة حالياً"
-  />
-  <KpiCard
-   title="أنواع المستندات"
-   value={kpiData.doctypeCount}
-   icon={Key}
-   accent="info"
-   description="أنواع المستندات المتاحة للصلاحيات"
-  />
-  <KpiCard
-   title="صلاحيات مفعّلة"
-   value={kpiData.totalPermCount}
-   icon={Lock}
-   accent="warning"
-   description="صلاحيات مفعّلة للدور المحدد"
-  />
-  </KpiStrip>
-
   {/* ---- Main Content ---- */}
   <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
   {/* ---- Roles Panel (Right in RTL = start) ---- */}

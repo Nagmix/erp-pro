@@ -12,8 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge, DocStatusBadge } from '@/components/erp/status-badge';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import {
@@ -459,37 +458,6 @@ export default function MobileExpensesPage() {
       />
 
       {/* ── KPI Cards ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المطالبات"
-          value={formatNumber(totalExpenses)}
-          icon={FileText}
-          accent="primary"
-          description="جميع مطالبات المصروفات"
-        />
-        <KpiCard
-          title="بانتظار الموافقة"
-          value={formatNumber(pendingCount)}
-          icon={Clock}
-          accent="warning"
-          description="مطالبات لم تُراجع بعد"
-        />
-        <KpiCard
-          title="تمت الموافقة"
-          value={formatNumber(approvedCount)}
-          icon={CheckCircle2}
-          accent="success"
-          description="مطالبات معتمدة"
-        />
-        <KpiCard
-          title="إجمالي المبالغ"
-          value={formatCurrency(totalAmount)}
-          icon={DollarSign}
-          accent="info"
-          description="مجموع المبالغ المطالب بها"
-        />
-      </KpiStrip>
-
       {/* ── فلاتر ── */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border/40 bg-card p-4 hover:border-border/60 transition-colors">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">

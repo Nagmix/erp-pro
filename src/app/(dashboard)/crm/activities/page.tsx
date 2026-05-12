@@ -37,8 +37,7 @@ import {
   User,
   ChevronDown,
 } from 'lucide-react';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -340,46 +339,6 @@ export default function ActivitiesPage() {
       />
 
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
-
-      {/* ─── KPI Strip ─── */}
-      <KpiStrip cols={5}>
-        <KpiCard
-          title="إجمالي الأنشطة"
-          value={totalActivities}
-          icon={Activity}
-          accent="primary"
-          description="جميع سجلات التواصل"
-        />
-        <KpiCard
-          title="مكالمات"
-          value={callsCount}
-          icon={Phone}
-          accent="success"
-          description="اتصالات هاتفية"
-        />
-        <KpiCard
-          title="اجتماعات"
-          value={meetingsCount}
-          icon={Users}
-          accent="warning"
-          description="اجتماعات مسجّلة"
-        />
-        <KpiCard
-          title="زيارات"
-          value={visitsCount}
-          icon={MapPin}
-          accent="info"
-          description="زيارات ميدانية"
-        />
-        <KpiCard
-          title="رسائل بريد"
-          value={emailsCount}
-          icon={Mail}
-          accent="destructive"
-          description="بريد إلكتروني"
-        />
-      </KpiStrip>
-
       {/* ─── Tabs ─── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <div className="flex items-center gap-3 flex-wrap">

@@ -2,8 +2,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { KpiCard } from '@/components/erp/kpi-card';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -639,37 +638,6 @@ export default function RecurringInvoicesPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الفواتير الدورية"
-          value={totalRecurring}
-          icon={Repeat}
-          accent="primary"
-          description="جميع الفواتير الدورية المسجلة"
-        />
-        <KpiCard
-          title="الفواتير النشطة"
-          value={activeRecurring}
-          icon={CheckCircle}
-          accent="success"
-          description="فواتير تعمل حالياً"
-        />
-        <KpiCard
-          title="إجمالي القيمة الشهرية"
-          value={formatCurrency(totalMonthlyValue)}
-          icon={DollarSign}
-          accent="warning"
-          description="القيمة التقديرية الشهرية"
-        />
-        <KpiCard
-          title="توليد قادم (7 أيام)"
-          value={nextGenerationCount}
-          icon={Clock}
-          accent="info"
-          description="فواتير ستولّد هذا الأسبوع"
-        />
-      </KpiStrip>
-
       {/* Filters */}
       <div className="space-y-3">
         <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>

@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -438,37 +437,6 @@ export default function NamingSeriesPage() {
   />
 
   {/* ── Stats ── */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="أنواع المستندات"
-   value={stats.totalDoctypes}
-   icon={FileText}
-   accent="primary"
-   description="مستندات تدعم الترقيم"
-  />
-  <KpiCard
-   title="إجمالي التسلسلات"
-   value={stats.totalSeries}
-   icon={ListOrdered}
-   accent="info"
-   description="تسلسلات ترقيم مسجلة"
-  />
-  <KpiCard
-   title="تسلسلات متعددة"
-   value={stats.doctypesWithMultiple}
-   icon={Tag}
-   accent="success"
-   description="مستندات بعدة خيارات"
-  />
-  <KpiCard
-   title="عدادات نشطة"
-   value={stats.totalActiveCounters}
-   icon={Hash}
-   accent="warning"
-   description="تسلسلات مستخدمة"
-  />
-  </KpiStrip>
-
   {/* ── Search & Filters ── */}
   <Card className="border-border/40 shadow-sm">
   <CardContent className="p-4">

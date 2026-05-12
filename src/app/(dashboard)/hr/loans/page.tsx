@@ -4,8 +4,7 @@ import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge, DocStatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -481,37 +480,6 @@ export default function EmployeeLoansPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي القروض"
-          value={totalCount}
-          icon={HandCoins}
-          accent="primary"
-          description="كل قروض الموظفين"
-        />
-        <KpiCard
-          title="مفتوحة"
-          value={openCount}
-          icon={CircleDot}
-          accent="warning"
-          description="قروض بمسودة أو معتمدة"
-        />
-        <KpiCard
-          title="مسدّدة بالكامل"
-          value={fullyPaidCount}
-          icon={BadgeCheck}
-          accent="success"
-          description="قروض تم سدادها"
-        />
-        <KpiCard
-          title="إجمالي المبلغ"
-          value={formatCurrency(totalAmount)}
-          icon={Banknote}
-          accent="info"
-          description="مجموع مبالغ القروض"
-        />
-      </KpiStrip>
-
       {/* Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

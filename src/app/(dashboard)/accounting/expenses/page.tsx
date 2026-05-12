@@ -88,15 +88,13 @@ type ExpenseFormOutput = z.output<typeof expenseSchema>;
 
 export default function ExpensesPage() {
   const router = useRouter();
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const expenseImportRef = useRef<HTMLInputElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [expenseStatusFilter, setExpenseStatusFilter] = useState('all');
   const [selected, setSelected] = useState<ExpenseRow | null>(null);
   const [items, setItems] = useState<ExpenseItem[]>(() => [emptyItem(new Date().toISOString().split('T')[0]!)]);
 
@@ -144,23 +142,14 @@ export default function ExpensesPage() {
   const expenses = data || [];
   const filteredData = useMemo(() => {
     let list = expenses;
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter((row: any) =>
-        ['name', 'employee_name', 'remark', 'description'].some(key => String(row[key] ?? '').toLowerCase().includes(q))
-      );
-    }
     if (dateFrom || dateTo) {
       list = list.filter((e) => rowInDateRangeISO(e.posting_date, dateFrom, dateTo));
     }
     if (statusFilter !== 'all') {
-      list = list.filter((e) => e.status === statusFilter);
+      list = list.filter((row: any) => String(row.status) === statusFilter);
     }
-    
-    if (expenseStatusFilter !== 'all') {
-      list = list.filter((row: any) => String(row.docstatus) === expenseStatusFilter);
-    }return list;
-  }, [expenses, dateFrom, dateTo, statusFilter, expenseStatusFilter, search]);
+    return list;
+  }, [expenses, dateFrom, dateTo, statusFilter]);
 
   const expenseStatusTabs = useMemo(
     () => [
@@ -289,7 +278,7 @@ export default function ExpensesPage() {
       },
       onError: () => toast.error('حدث خطأ أثناء الحذف')});
   };
-  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setSearch(''); setExpenseStatusFilter('all'); };
+  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
 
 
   return (
@@ -339,15 +328,8 @@ export default function ExpensesPage() {
         }
       />
 
-      {/* شريط البحث والفلاتر */}
+      {/* شريط الفلاتر */}
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* بحث سريع */}
-          <div className="flex-1 min-w-[200px]">
-            <Input placeholder="بحث بالرقم أو الموظف..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
-          </div>
-        </div>
-
         {/* فلاتر متقدمة (قابلة للطي) */}
         <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -357,7 +339,7 @@ export default function ExpensesPage() {
                 <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
               </Button>
             </CollapsibleTrigger>
-            {(dateFrom || dateTo || expenseStatusFilter !== 'all' || search) && (
+            {(dateFrom || dateTo || statusFilter !== 'all') && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
                 <X className="h-3 w-3" /> مسح الفلاتر
               </Button>
@@ -366,26 +348,26 @@ export default function ExpensesPage() {
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
               <div className="space-y-1">
-            <Label className="text-xs">من تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">إلى تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">الحالة</Label>
-            <Select value={expenseStatusFilter} onValueChange={setExpenseStatusFilter}>
-              <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="Draft">مسودة</SelectItem>
-                <SelectItem value="Approved">موافق</SelectItem>
-                <SelectItem value="Rejected">مرفوض</SelectItem>
-                <SelectItem value="Paid">مدفوع</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                <Label className="text-xs">من تاريخ</Label>
+                <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">إلى تاريخ</Label>
+                <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">الحالة</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">الكل</SelectItem>
+                    <SelectItem value="Draft">مسودة</SelectItem>
+                    <SelectItem value="Approved">موافق</SelectItem>
+                    <SelectItem value="Rejected">مرفوض</SelectItem>
+                    <SelectItem value="Paid">مدفوع</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CollapsibleContent>
         </Collapsible>

@@ -3,8 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -584,46 +583,6 @@ export default function CreditsPage() {
           </div>
         }
       />
-
-      {/* شريط مؤشرات الأداء */}
-      <KpiStrip cols={5}>
-        <KpiCard
-          title="إجمالي الأرصدة المشحونة"
-          value={formatCurrency(totalCredits)}
-          icon={TrendingUp}
-          accent="success"
-          description="مبالغ الاستلام المرحّلة"
-        />
-        <KpiCard
-          title="إجمالي المصروف"
-          value={formatCurrency(totalSpent)}
-          icon={TrendingDown}
-          accent="destructive"
-          description="مبالغ الصرف المرحّلة"
-        />
-        <KpiCard
-          title="صافي الرصيد"
-          value={formatCurrency(netBalance)}
-          icon={Wallet}
-          accent={netBalance >= 0 ? 'primary' : 'destructive'}
-          description="الفرق بين الاستلام والصرف"
-        />
-        <KpiCard
-          title="إجمالي المستحقات"
-          value={formatCurrency(totalOutstanding)}
-          icon={AlertTriangle}
-          accent={totalOutstanding > 0 ? 'warning' : 'success'}
-          description="فواتير مبيعات غير مسددة"
-        />
-        <KpiCard
-          title="عدد العمليات"
-          value={totalTransactions}
-          icon={Receipt}
-          accent="info"
-          description="جميع قيود العملاء"
-        />
-      </KpiStrip>
-
       {/* ملخص تقادم المستحقات */}
       {totalOutstanding > 0 && (
         <Card className="border-border/40">

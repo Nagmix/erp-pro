@@ -28,8 +28,7 @@ import { toast } from 'sonner';
 import { buildStockReconciliation } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -184,11 +183,6 @@ export default function StockCountPage() {
           </Button>
         }
       />
-      <KpiStrip cols={3}>
-        <KpiCard title="إجمالي الجرد" value={rows.length} icon={Plus} accent="warning" description="كل سجلات الجرد" />
-        <KpiCard title="مسودات" value={rows.filter((r) => Number(r.docstatus) === 0).length} icon={Undo2} accent="info" description="بانتظار الترحيل" />
-        <KpiCard title="مرحّل" value={rows.filter((r) => Number(r.docstatus) === 1).length} icon={Send} accent="success" description="مطبّق على الأرصدة" />
-      </KpiStrip>
       <PageShell padded={false}>
         <DataTable data={rows} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
       </PageShell>

@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -652,23 +651,6 @@ export default function ExcelImportPage() {
    {/* Summary */}
    <div className="rounded-xl border border-border/40 bg-card p-4 lg:p-5">
    <h3 className="text-sm font-bold mb-3">ملخص الاستيراد</h3>
-   <KpiStrip cols={3}>
-    <KpiCard title="عدد الصفوف" value={fileData.length} icon={FileSpreadsheet} accent="primary" compact />
-    <KpiCard
-    title="الحقول المطلوبة المتطابقة"
-    value={`${requiredMatched} / ${doctypeConfig?.requiredFields.length || 0}`}
-    icon={CheckCircle2}
-    accent={requiredMatched === doctypeConfig?.requiredFields.length ? 'success' : 'warning'}
-    compact
-    />
-    <KpiCard
-    title="الحقول الاختيارية"
-    value={`${optionalMatched} / ${doctypeConfig?.optionalFields.length || 0}`}
-    icon={FileText}
-    accent="info"
-    compact
-    />
-   </KpiStrip>
    </div>
 
    {/* Validation warnings */}
@@ -713,22 +695,6 @@ export default function ExcelImportPage() {
    {importDone && (
    <div className="rounded-xl border border-border/40 bg-card p-4 lg:p-5 space-y-3">
     <h3 className="text-sm font-bold">نتائج الاستيراد</h3>
-    <KpiStrip cols={2}>
-    <KpiCard
-     title="نجاح"
-     value={importResults.success}
-     icon={CheckCircle2}
-     accent="success"
-     compact
-    />
-    <KpiCard
-     title="فشل"
-     value={importResults.failed}
-     icon={XCircle}
-     accent="destructive"
-     compact
-    />
-    </KpiStrip>
     {importResults.errors.length > 0 && (
     <div className="mt-3 space-y-1 max-h-48 overflow-y-auto">
      {importResults.errors.slice(0, 20).map((err, i) => (

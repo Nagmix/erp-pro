@@ -20,8 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -242,37 +241,6 @@ export default function ProfitLossMonthlyPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الإيرادات"
-          value={formatCurrency(summaryKpis.totalRevenue, 'YER')}
-          icon={TrendingUp}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="إجمالي المصروفات"
-          value={formatCurrency(summaryKpis.totalExpenses, 'YER')}
-          icon={TrendingDown}
-          accent="destructive"
-          compact
-        />
-        <KpiCard
-          title="صافي الربح"
-          value={formatCurrency(summaryKpis.netProfit, 'YER')}
-          icon={summaryKpis.netProfit >= 0 ? TrendingUp : TrendingDown}
-          accent={summaryKpis.netProfit >= 0 ? 'success' : 'destructive'}
-          compact
-        />
-        <KpiCard
-          title="هامش الربح %"
-          value={`${summaryKpis.profitMargin.toFixed(1)}%`}
-          icon={Percent}
-          accent={summaryKpis.profitMargin >= 0 ? 'info' : 'destructive'}
-          compact
-        />
-      </KpiStrip>
-
       {/* Filter Card */}
       <Card className="border-border/40 print:hidden">
         <CardHeader className="pb-3">

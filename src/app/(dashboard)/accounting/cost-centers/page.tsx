@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +29,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Plus, FolderTree, FileText, Trash2, Edit, ChevronDown, Search, X, Hash, Filter, Upload } from 'lucide-react';
+import { Plus, FolderTree, FileText, Trash2, Edit, ChevronDown, Search, X } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -42,7 +42,6 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { useRouter } from 'next/navigation';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
-import { formatCurrency } from '@/lib/core/helpers';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -171,8 +170,6 @@ export default function CostCentersPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selected, setSelected] = useState<CostCenterRow | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [search, setSearch] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const router = useRouter();
   const { company: defaultCompany } = useDefaultCompanyName();
   const { data, isLoading, isError, error, refetch } = useDocList<CostCenterRow>('Cost Center', {

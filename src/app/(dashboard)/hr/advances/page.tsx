@@ -4,8 +4,7 @@ import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge, DocStatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -470,37 +469,6 @@ export default function EmployeeAdvancesPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي السلف"
-          value={totalCount}
-          icon={Wallet}
-          accent="primary"
-          description="كل سلف الموظفين"
-        />
-        <KpiCard
-          title="مفتوحة"
-          value={openCount}
-          icon={CircleDot}
-          accent="warning"
-          description="سلف بمسودة أو غير مدفوعة"
-        />
-        <KpiCard
-          title="مطالَبة"
-          value={claimedCount}
-          icon={CheckCircle2}
-          accent="success"
-          description="مطالبة كلياً أو جزئياً"
-        />
-        <KpiCard
-          title="إجمالي المبلغ"
-          value={formatCurrency(totalAmount)}
-          icon={DollarSign}
-          accent="info"
-          description="مجموع مبالغ السلف"
-        />
-      </KpiStrip>
-
       {/* Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

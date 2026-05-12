@@ -4,8 +4,7 @@ import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { StatusBadge } from '@/components/erp/status-badge';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { useCreateDoc, useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { formatDate, formatNumber } from '@/lib/core/helpers';
@@ -333,37 +332,6 @@ export default function AutoRepeatPage() {
       />
 
       {/* ── KPI Cards ── */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي الجداول"
-          value={formatNumber(totalRepeats)}
-          icon={Repeat}
-          accent="primary"
-          description="جميع جداول التكرار التلقائي"
-        />
-        <KpiCard
-          title="نشطة"
-          value={formatNumber(activeRepeats)}
-          icon={CheckCircle2}
-          accent="success"
-          description="جداول تعمل حالياً"
-        />
-        <KpiCard
-          title="معطّلة"
-          value={formatNumber(disabledRepeats)}
-          icon={XCircle}
-          accent="destructive"
-          description="جداول متوقفة مؤقتاً"
-        />
-        <KpiCard
-          title="الجولة القادمة"
-          value={nextScheduleDate}
-          icon={CalendarClock}
-          accent="warning"
-          description="أقرب تاريخ تنفيذ"
-        />
-      </KpiStrip>
-
       {/* ── فلاتر ── */}
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border/40 bg-card p-4 hover:border-border/60 transition-colors">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">

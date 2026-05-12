@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -407,13 +406,6 @@ export default function ProjectsManagementPage() {
         breadcrumbs={[{ label: 'التشغيل' }, { label: 'إدارة المشاريع' }]}
         actions={<Button size="sm" className="gap-1.5" onClick={() => openProjectDialog()}><Plus className="h-3.5 w-3.5" />مشروع جديد</Button>}
       />
-
-      <KpiStrip cols={4}>
-        <KpiCard title="إجمالي المشاريع" value={kpis.total} icon={FolderKanban} accent="primary" change={12} changeType="positive" />
-        <KpiCard title="مشاريع جارية" value={kpis.inProgress} icon={Play} accent="info" description="المشاريع قيد التنفيذ حالياً" />
-        <KpiCard title="المشاريع المكتملة" value={kpis.completed} icon={CheckCircle2} accent="success" change={8} changeType="positive" />
-        <KpiCard title="إجمالي ميزانية المشاريع" value={formatCurrency(kpis.totalBudget)} icon={DollarSign} accent="warning" description="إجمالي الميزانيات المعتمدة" />
-      </KpiStrip>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-4 max-w-xl">

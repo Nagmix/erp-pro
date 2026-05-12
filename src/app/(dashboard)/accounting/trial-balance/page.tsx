@@ -14,8 +14,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -202,38 +201,6 @@ export default function TrialBalanceDetailPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي المدين"
-          value={formatCurrency(kpis.closingDebit, 'YER')}
-          icon={ArrowUpDown}
-          accent="info"
-          compact
-        />
-        <KpiCard
-          title="إجمالي الدائن"
-          value={formatCurrency(kpis.closingCredit, 'YER')}
-          icon={Scale}
-          accent="success"
-          compact
-        />
-        <KpiCard
-          title="الفرق (مدين - دائن)"
-          value={formatCurrency(kpis.difference, 'YER')}
-          icon={ArrowUpDown}
-          accent={Math.abs(kpis.difference) < 1 ? 'success' : 'destructive'}
-          description={Math.abs(kpis.difference) < 1 ? 'الميزان متوازن ✓' : 'الميزان غير متوازن!'}
-          compact
-        />
-        <KpiCard
-          title="عدد الحسابات"
-          value={kpis.accountCount}
-          icon={Hash}
-          accent="primary"
-          compact
-        />
-      </KpiStrip>
-
       {/* Filter Card */}
       <Card className="border-border/40 print:hidden">
         <CardHeader className="pb-3">

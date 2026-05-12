@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
-import { PageHeader, PageShell, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -379,37 +378,6 @@ export default function RichTemplatesPage() {
   />
 
   {/* ── Stats ── */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="إجمالي القوالب"
-   value={stats.total}
-   icon={LayoutTemplate}
-   accent="info"
-   description="جميع القوالب المسجلة"
-  />
-  <KpiCard
-   title="قوالب HTML"
-   value={stats.htmlCount}
-   icon={CodeXml}
-   accent="warning"
-   description="قوالب بتنسيق HTML"
-  />
-  <KpiCard
-   title="الوحدات المغطاة"
-   value={stats.modules}
-   icon={BookOpen}
-   accent="success"
-   description="وحدات ذات قوالب"
-  />
-  <KpiCard
-   title="معدّلة مؤخراً"
-   value={stats.recentCount}
-   icon={Calendar}
-   accent="primary"
-   description="خلال آخر 7 أيام"
-  />
-  </KpiStrip>
-
   {/* ── Search & Filter ── */}
   <Card className="border-border/40 shadow-sm">
   <CardContent className="p-4">

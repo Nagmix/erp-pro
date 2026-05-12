@@ -2,8 +2,7 @@
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { KpiCard } from '@/components/erp/kpi-card';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -799,37 +798,6 @@ export default function SalesCommissionsPage() {
       />
 
       {/* KPI Strip */}
-      <KpiStrip cols={4}>
-        <KpiCard
-          title="إجمالي القواعد"
-          value={totalRules}
-          icon={Award}
-          accent="primary"
-          description="جميع قواعد العمولات"
-        />
-        <KpiCard
-          title="القواعد النشطة"
-          value={activeRulesCount}
-          icon={CheckCircle}
-          accent="success"
-          description="قواعد تعمل حالياً"
-        />
-        <KpiCard
-          title="عمولات هذا الشهر"
-          value={formatCurrency(totalCommissionsThisMonth)}
-          icon={DollarSign}
-          accent="warning"
-          description="إجمالي العمولات المحسوبة"
-        />
-        <KpiCard
-          title="أعلى كاسب"
-          value={topEarner}
-          icon={Trophy}
-          accent="info"
-          description="الموظف الأعلى عمولة"
-        />
-      </KpiStrip>
-
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-3 max-w-md">

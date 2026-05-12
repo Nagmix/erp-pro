@@ -49,8 +49,7 @@ import { toast } from 'sonner';
 import { buildSupplierQuotation } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
-import { PageHeader, KpiStrip, PageShell } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -325,30 +324,6 @@ export default function SupplierQuotationsPage() {
           </Button>
         }
       />
-
-      <KpiStrip cols={3}>
-        <KpiCard
-          title="إجمالي العروض"
-          value={totalCount}
-          icon={FileText}
-          accent="primary"
-          description="كل عروض الأسعار"
-        />
-        <KpiCard
-          title="مسودات"
-          value={draftCount}
-          icon={ShoppingCart}
-          accent="warning"
-          description="عروض قابلة للترحيل"
-        />
-        <KpiCard
-          title="معتمدة"
-          value={submittedCount}
-          icon={Send}
-          accent="success"
-          description="عروض مرّحلة"
-        />
-      </KpiStrip>
 
       {/* شريط البحث والفلاتر */}
       <div className="space-y-3">

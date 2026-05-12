@@ -8,8 +8,7 @@ import {
   useDeleteDoc,
 } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { PageHeader, KpiStrip } from '@/components/erp/page-header';
-import { KpiCard } from '@/components/erp/kpi-card';
+import { PageHeader } from '@/components/erp/page-header';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -1210,20 +1209,6 @@ export default function OpeningBalancesPage() {
       />
 
       {/* ── KPI Strip ── */}
-      <KpiStrip cols={4}>
-        <KpiCard title="إجمالي أرصدة العملاء" value={formatNumber(totalCustomerBalance)} icon={Users} accent="primary" compact />
-        <KpiCard title="إجمالي أرصدة الموردين" value={formatNumber(totalSupplierBalance)} icon={Landmark} accent="info" compact />
-        <KpiCard
-          title="فرق التوازن"
-          value={formatNumber(balanceDiff)}
-          icon={Scale}
-          accent={isBalanced ? 'success' : 'destructive'}
-          compact
-          description={isBalanced ? 'الأرصدة متوازنة ✓' : 'الأرصدة غير متوازنة!'}
-        />
-        <KpiCard title="قيود افتتاحية" value={jeRows.length} icon={FileCheck} accent={jeRows.length > 0 ? 'success' : 'warning'} compact />
-      </KpiStrip>
-
       {/* ── Summary Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="border-s-[3px] border-s-emerald-500/50">

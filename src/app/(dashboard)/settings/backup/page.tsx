@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ConfirmationDialog } from '@/components/erp/confirmation-dialog';
-import { PageHeader, PageShell, KpiStrip, KpiCard } from '@/components/erp/page-header';
+import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useBackups, useCreateBackup, useDeleteBackup, useUpdateBackupSettings } from '@/lib/client/hooks';
 import type { BackupRecord, BackupSettings } from '@/lib/client/api';
 import { toast } from 'sonner';
@@ -298,37 +298,6 @@ export default function BackupPage() {
   />
 
   {/* ── Summary KPIs ── */}
-  <KpiStrip cols={4}>
-  <KpiCard
-   title="إجمالي النسخ"
-   value={String(totalBackups)}
-   icon={HardDrive}
-   description={`${completedBackups} مكتملة`}
-   accent="primary"
-  />
-  <KpiCard
-   title="آخر نسخة"
-   value={lastBackupDate ? formatDateAr(lastBackupDate).split('،')[0] : 'لا توجد'}
-   icon={Clock}
-   description={lastBackupDate ? formatDateAr(lastBackupDate).split('،')[1]?.trim() || '' : ''}
-   accent="info"
-  />
-  <KpiCard
-   title="الحجم الإجمالي"
-   value={formatBytes(totalSize)}
-   icon={Shield}
-   description={`${completedBackups} نسخة مكتملة`}
-   accent="success"
-  />
-  <KpiCard
-   title="النسخ التلقائي"
-   value={settings.autoBackupEnabled ? 'مفعّل' : 'معطّل'}
-   icon={Settings2}
-   description={settings.autoBackupEnabled ? frequencyLabel(settings.autoBackupFrequency) : ''}
-   accent="warning"
-  />
-  </KpiStrip>
-
   {/* ── Backup table ── */}
   <DataTable<BackupRecord>
   data={backups}
