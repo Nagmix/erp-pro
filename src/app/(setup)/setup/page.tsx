@@ -394,6 +394,7 @@ export default function SetupWizardPage() {
     ping?: boolean;
     login?: boolean;
     apiKeys?: boolean;
+    existingCompany?: { name: string; abbr: string; default_currency: string; country: string } | null;
   } | null>(null);
   const [stepErrors, setStepErrors] = useState<FieldError>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -649,9 +650,28 @@ export default function SetupWizardPage() {
       });
       const data = await response.json();
       if (data.success) {
-        setConnectionResult({ success: true, message: data.message, ping: data.ping, login: data.login, apiKeys: data.apiKeys });
+        setConnectionResult({ success: true, message: data.message, ping: data.ping, login: data.login, apiKeys: data.apiKeys, existingCompany: data.existingCompany || null });
         updateForm('serverConnectionTested', true);
         updateForm('serverConnectionOk', true);
+
+        // ── إذا وُجدت شركة مسجلة مسبقاً، نعبّء بياناتها تلقائياً ──
+        if (data.existingCompany) {
+          const ec = data.existingCompany as { name: string; abbr: string; default_currency: string; country: string };
+          updateForm('companyName', ec.name);
+          updateForm('abbr', ec.abbr || generateAbbr(ec.name));
+          if (ec.default_currency) updateForm('currency', ec.default_currency);
+          if (ec.country) {
+            updateForm('country', ec.country);
+            const config = COUNTRY_CURRENCY_MAP[ec.country];
+            if (config) {
+              if (config.taxSupported && config.taxRate > 0) {
+                updateForm('enableTax', true);
+              } else {
+                updateForm('enableTax', false);
+              }
+            }
+          }
+        }
       } else {
         setConnectionResult({ success: false, message: data.error });
         updateForm('serverConnectionTested', true);
@@ -1380,10 +1400,37 @@ export default function SetupWizardPage() {
                                 <Check className="w-3 h-3" /> مفاتيح API
                               </Badge>
                             )}
+                            {connectionResult.existingCompany && (
+                              <Badge variant="secondary" className="text-xs gap-1 bg-blue-100 text-blue-700 border-blue-200">
+                                <Building2 className="w-3 h-3" /> شركة مسجلة
+                              </Badge>
+                            )}
                           </div>
                         )}
                       </div>
                     </div>
+                    {/* ── تنبيه وجود شركة مسجلة مسبقاً ── */}
+                    {connectionResult.success && connectionResult.existingCompany && (
+                      <div className="mt-3 p-3 rounded-lg border border-blue-200 bg-blue-50">
+                        <div className="flex items-start gap-2">
+                          <Building2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                          <div className="space-y-1">
+                            <p className="text-sm font-semibold text-blue-800">
+                              تم اكتشاف شركة مسجلة مسبقاً على الخادم
+                            </p>
+                            <p className="text-xs text-blue-700">
+                              الشركة: <strong>{connectionResult.existingCompany.name}</strong>
+                              {connectionResult.existingCompany.abbr && <> (اختصار: {connectionResult.existingCompany.abbr})</>}
+                              {connectionResult.existingCompany.default_currency && <> — العملة: {connectionResult.existingCompany.default_currency}</>}
+                              {connectionResult.existingCompany.country && <> — الدولة: {connectionResult.existingCompany.country}</>}
+                            </p>
+                            <p className="text-xs text-blue-600 mt-1">
+                              تم تعبئة بيانات الشركة تلقائياً. يمكنك تعديلها أو استخدامها كما هي.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

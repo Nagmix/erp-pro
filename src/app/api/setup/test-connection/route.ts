@@ -148,11 +148,37 @@ export async function POST(request: NextRequest) {
     });
     clearFrappeConnectionCache();
 
+    // ── التحقق من وجود شركة مسجلة مسبقاً على الخادم ──
+    let existingCompany: { name: string; abbr: string; default_currency: string; country: string } | null = null;
+    try {
+      const companiesRes = await fetch(
+        `${host}/api/resource/Company?fields=["name","abbr","default_currency","country"]&limit_page_length=10`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            Cookie: `sid=${sid}`,
+            ...(apiKey && apiSecret ? { Authorization: `token ${apiKey}:${apiSecret}` } : {}),
+          },
+          signal: AbortSignal.timeout(8000),
+        }
+      );
+      if (companiesRes.ok) {
+        const companiesData = await companiesRes.json() as { data?: { name: string; abbr: string; default_currency: string; country: string }[] };
+        if (companiesData.data && companiesData.data.length > 0) {
+          existingCompany = companiesData.data[0]!;
+        }
+      }
+    } catch {
+      // فشل جلب الشركات — ليس حرجاً
+    }
+
     return NextResponse.json({
       success: true,
       ping: true,
       login: true,
       apiKeys: Boolean(apiKey && apiSecret),
+      existingCompany,
       message: apiKey && apiSecret
         ? 'تم الاتصال بنجاح وتوليد مفاتيح الواجهة البرمجية'
         : 'تم تسجيل الدخول بنجاح. سيتم توليد مفاتيح الواجهة البرمجية أثناء الإعداد.',
