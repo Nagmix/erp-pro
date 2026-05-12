@@ -1,43 +1,29 @@
 ---
 Task ID: 1
-Agent: Main Agent
-Task: قراءة ملف المحادثات السابقة وتحميل المشروع من GitHub واستيعابه بالكامل
+Agent: Main
+Task: Fix Setup Wizard failure - ERPNext IndexError when creating Company for Yemen
 
 Work Log:
-- قراءة ملف richtext_converted_to_markdown.md الذي يحتوي على ملخص محادثتين سابقتين
-- فهم معمارية النظام: Next.js 16 Frontend → backend.ts → ERPNext v16 Backend
-- تحميل المشروع من GitHub باستخدام التوكن (git reset --hard origin/main)
-- استكشاف شامل لهيكل المشروع (209 صفحة، 78 مسار API، 36 مكون ERP، 16 مكون POS)
-- تحديث ملف الاتصال frappe-connection.json للإشارة إلى خادم Railway العام
-- تحديث app-config.json لتعيين erpnextVersion إلى v16
-- تثبيت التبعيات (npm install) وتوليد Prisma Client
-- التحقق من تجميع TypeScript بدون أخطاء (npx tsc --noEmit)
-- اختبار الاتصال بالخادم الخلفي ERPNext على Railway بنجاح
-- التحقق من حالة النظام: setup_complete=1, Company=ERP Pro, Currency=YER, Country=Yemen
-- التحقق من وجود 95 حساب محاسبي، و0 بيانات تجارية (لا عملاء/موردين/أصناف بعد)
+- Read the error traceback: IndexError in taxes_setup.py line 267 (frappe.get_all(...)[0] on empty list)
+- Explored the setup wizard code: 12-step wizard in setup/page.tsx, execute API at /api/setup/execute/route.ts
+- Identified the root cause: ERPNext v16.17.0 bug - when creating a Company for Yemen (no predefined tax data), on_update() calls create_default_tax_template() which crashes
+- The project already has patches in railway/backend/patches/fix_erpnext_bugs.py, but they need to be applied at container startup via entrypoint.sh
+- The running Railway backend doesn't have the patches applied yet (needs redeploy)
+- Implemented a runtime fix using Server Script approach:
+  1. Detect the specific tax-related error (IndexError, taxes_setup, etc.) in the Company creation catch block
+  2. Create a temporary Server Script on ERPNext that monkey-patches Company.on_update with try/except
+  3. Execute the Server Script to create the Company safely
+  4. Clean up the Server Script after use
+  5. Fallback: if Server Scripts are disabled, use existing Company from ERPNext backend
+- Added `deleteDoc` import to the execute route
+- Added `isTaxSetupBugError()` helper function for error detection
+- Added `createCompanyWithSafeOnUpdate()` function for the Server Script approach
+- Modified the Company creation catch block to try the safe approach
+- Verified TypeScript compilation with no errors
+- Committed and pushed to GitHub as Nagmix
 
 Stage Summary:
-- المشروع محمل بالكامل ومتصل بالخادم الخلفي بنجاح
-- ERPNext v16.17.0 يعمل على Railway
-- النظام جاهز لاستقبال التعليمات من المستخدم
-
----
-Task ID: 2
-Agent: Main Agent
-Task: إصلاح مشكلة فشل الإعداد - "فشل الاتصال بالخادم" على Railway
-
-Work Log:
-- تحليل شامل لسير الإعداد من الواجهة حتى ERPNext
-- اكتشاف أن frappe-connection-store يقرأ من frappe-backend.json (gitignored) وليس frappe-connection.json
-- اكتشاف أن isBackendAvailable() يعتمد على getResolvedBackendHost() الذي قد لا يقرأ الملف المحفوظ حديثاً
-- اكتشاف أن ensureJwtSecret() و updateEnvFile() قد تفشل على Railway لأن filesystem للقراءة فقط
-- إضافة fallback في frappe-connection-store لقراءة frappe-connection.json عند عدم وجود frappe-backend.json
-- تعديل execute route لاستخدام Ping مباشر بدلاً من isBackendAvailable()
-- جعل ensureJwtSecret و updateEnvFile آمنتين عند عدم القدرة على الكتابة
-- تحديث Dockerfile بنسخ data/ وإضافة متغيرات بيئة افتراضية وتوليد AUTH_JWT_SECRET
-- دفع التغييرات إلى GitHub (commit 99a2c00)
-
-Stage Summary:
-- تم إصلاح 4 مشاكل مترابطة تسبب فشل الإعداد على Railway
-- التغييرات ستكون فعالة بعد إعادة نشر Railway تلقائياً من GitHub
-- يجب على المستخدم إعادة محاولة الإعداد بعد اكتمال النشر
+- File modified: src/app/api/setup/execute/route.ts (+224 lines)
+- Git commit: d094d94 "fix: handle ERPNext tax setup bug during Company creation"
+- Pushed to: https://github.com/Nagmix/erp-pro.git (main branch)
+- The fix should allow setup to complete even when ERPNext's automatic tax template creation fails
