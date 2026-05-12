@@ -222,15 +222,8 @@ export default function DepreciationRunPage() {
 
         // Update schedule with journal_entry reference
         const jeName = je && typeof je === 'object' && 'name' in je ? String(je.name) : '';
-        if (jeName && sched.name) {
-          try {
-            await apiUpdateDoc('Asset', String(assetDoc.name), {
-              // Trigger recalculation by saving the asset with the JE reference
-            });
-          } catch {
-            // Asset update is optional - the JE is already created
-          }
-        }
+        // Note: The JE reference update on the Asset is handled by ERPNext automatically
+        // when the Depreciation Schedule's journal_entry field is updated
 
         successCount++;
       } catch {

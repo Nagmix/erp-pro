@@ -40,12 +40,16 @@ export async function POST(request: NextRequest) {
     const existing = await getList(DOCTYPE, { fields: ['name'], limit: 500 }, sid);
     
     // Delete all existing
+    const deleteErrors: string[] = [];
     for (const item of (existing || [])) {
-      try { await deleteDoc(DOCTYPE, (item as { name: string }).name, sid); } catch {}
+      try { await deleteDoc(DOCTYPE, (item as { name: string }).name, sid); } catch (e) {
+        deleteErrors.push(`فشل حذف ${(item as { name: string }).name}: ${e instanceof Error ? e.message : 'خطأ غير معروف'}`);
+      }
     }
     
     // Create new ones
     const created: Record<string, unknown>[] = [];
+    const createErrors: string[] = [];
     for (const p of perms) {
       try {
         const doc = await createDoc(DOCTYPE, {
@@ -57,10 +61,17 @@ export async function POST(request: NextRequest) {
           can_view: Boolean(p.canView) ? 1 : 0,
         }, sid);
         created.push(doc as Record<string, unknown>);
-      } catch {}
+      } catch (e) {
+        createErrors.push(`فشل إنشاء صلاحية ${p.employeeId}/${p.vaultId}: ${e instanceof Error ? e.message : 'خطأ غير معروف'}`);
+      }
     }
 
-    return NextResponse.json({ success: true, data: created });
+    const hasErrors = deleteErrors.length > 0 || createErrors.length > 0;
+    return NextResponse.json({ 
+      success: !hasErrors, 
+      data: created,
+      ...(hasErrors && { warnings: [...deleteErrors, ...createErrors] })
+    });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل حفظ الصلاحيات';
     return NextResponse.json({ success: false, error: msg }, { status: 500 });

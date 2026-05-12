@@ -260,6 +260,9 @@ export default function DebtReschedulePage() {
     const partyTypeValue = partyType === 'customer' ? 'Customer' : 'Supplier';
     const remark = `إعادة جدولة ديون ${rescheduleParty.partyName} — ${rescheduleForm.installments} قسط بمبلغ ${formatCurrency(rescheduleForm.installmentAmount)} — السبب: ${rescheduleForm.reason || 'غير محدد'}`;
 
+    const debtorAccount = partyType === 'customer' ? 'Debtors - ' + company : 'Creditors - ' + company;
+    const rescheduleAccount = partyType === 'customer' ? 'Creditors - ' + company : 'Debtors - ' + company;
+
     const doc: Record<string, unknown> = {
       doctype: 'Journal Entry',
       company,
@@ -269,14 +272,14 @@ export default function DebtReschedulePage() {
       user_remark: remark,
       accounts: [
         {
-          account: 'Debtors - ' + company,
+          account: debtorAccount,
           party_type: partyTypeValue,
           party: rescheduleParty.partyId,
           debit_in_account_currency: 0,
           credit_in_account_currency: rescheduleParty.totalOutstanding,
         },
         {
-          account: 'Debtors - ' + company,
+          account: rescheduleAccount,
           party_type: partyTypeValue,
           party: rescheduleParty.partyId,
           debit_in_account_currency: rescheduleParty.totalOutstanding,

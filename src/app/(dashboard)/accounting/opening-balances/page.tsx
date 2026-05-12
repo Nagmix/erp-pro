@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import {
   useDocList,
   useCreateDoc,
+  useUpdateDoc,
   useSubmitDoc,
   useDeleteDoc,
 } from '@/lib/client/hooks';
@@ -278,8 +279,8 @@ export default function OpeningBalancesPage() {
   });
 
   // ── Mutations ──
-  const updateCustomer = useCreateDoc('Customer');
-  const updateSupplier = useCreateDoc('Supplier');
+  const updateCustomer = useUpdateDoc('Customer');
+  const updateSupplier = useUpdateDoc('Supplier');
   const createJournal = useCreateDoc('Journal Entry');
   const submitJournal = useSubmitDoc<JournalEntryRow>('Journal Entry');
   const deleteJournal = useDeleteDoc('Journal Entry');
@@ -345,11 +346,12 @@ export default function OpeningBalancesPage() {
     }
     updateCustomer.mutate(
       {
-        doctype: 'Customer',
         name: custForm.customer,
-        opening_balance: Number(custForm.opening_balance),
-        currency: custForm.currency || 'YER',
-      } as unknown as Record<string, unknown>,
+        doc: {
+          opening_balance: Number(custForm.opening_balance),
+          currency: custForm.currency || 'YER',
+        },
+      },
       {
         onSuccess: () => {
           toast.success('تم حفظ الرصيد الافتتاحي للعميل');
@@ -371,11 +373,12 @@ export default function OpeningBalancesPage() {
     }
     updateSupplier.mutate(
       {
-        doctype: 'Supplier',
         name: suppForm.supplier,
-        opening_balance: Number(suppForm.opening_balance),
-        currency: suppForm.currency || 'YER',
-      } as unknown as Record<string, unknown>,
+        doc: {
+          opening_balance: Number(suppForm.opening_balance),
+          currency: suppForm.currency || 'YER',
+        },
+      },
       {
         onSuccess: () => {
           toast.success('تم حفظ الرصيد الافتتاحي للمورد');

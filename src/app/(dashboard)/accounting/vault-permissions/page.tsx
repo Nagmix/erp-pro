@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -97,7 +97,7 @@ export default function VaultPermissionsPage() {
   const [localInitialized, setLocalInitialized] = useState(false);
 
   // Sync local state with server data
-  useMemo(() => {
+  useEffect(() => {
     if (permissions.length > 0 && !localInitialized) {
       setLocalPerms(permissions);
       setLocalInitialized(true);
@@ -105,11 +105,11 @@ export default function VaultPermissionsPage() {
   }, [permissions, localInitialized]);
 
   // When permissions refetch, update local
-  useMemo(() => {
-    if (permissions.length >= 0 && localInitialized) {
+  useEffect(() => {
+    if (localInitialized) {
       setLocalPerms(permissions);
     }
-  }, [permissions]);
+  }, [permissions, localInitialized]);
 
   // ── Employee view state ──
   const [selectedEmployee, setSelectedEmployee] = useState('');

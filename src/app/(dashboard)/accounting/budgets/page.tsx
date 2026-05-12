@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { formatCurrency } from '@/lib/app-format';
+import { formatCurrency } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
 import {
   useDocList,
@@ -183,12 +183,39 @@ export default function BudgetsPage() {
     limit: 100,
   });
 
+  /* ─── Fetch GL Entries for actual spending calculation ─── */
+  const {
+    data: glEntriesRaw = [],
+  } = useDocList<Record<string, unknown>>('GL Entry', {
+    fields: ['account', 'debit', 'credit', 'posting_date'],
+    filters: [
+      ['docstatus', '=', '1'],
+      ['is_opening', '=', 'No'],
+    ],
+    limit: 2000,
+  });
+
   /* ─── Mutations ─── */
   const createBudgetMutation = useCreateDoc('Budget');
   const updateBudgetMutation = useUpdateDoc('Budget');
   const deleteBudgetMutation = useDeleteDoc('Budget');
 
   /* ─── Map ERPNext rows → UI Budgets ─── */
+  // Build account → total debit map from GL entries for actual spending
+  const accountSpendingMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const gl of glEntriesRaw) {
+      const account = String(gl.account ?? '');
+      const debit = Number(gl.debit ?? 0);
+      // Expense accounts: debit increases the expense
+      const acctInfo = expenseAccountsRaw.find(a => String(a.name) === account);
+      if (acctInfo && debit > 0) {
+        map.set(account, (map.get(account) ?? 0) + debit);
+      }
+    }
+    return map;
+  }, [glEntriesRaw, expenseAccountsRaw]);
+
   const budgets = useMemo(
     () => budgetsRaw.map((row) => {
       let accounts: ErpBudgetAccountRow[] = [];
@@ -200,15 +227,17 @@ export default function BudgetsPage() {
 
       const distribution: BudgetDistribution[] = accounts.map((a) => {
         const acctInfo = accountOptions.find((ao) => ao.code === a.account);
+        const spent = accountSpendingMap.get(a.account) ?? 0;
         return {
           account: a.account,
           accountName: acctInfo?.name ?? a.account,
           amount: a.budget_amount ?? 0,
-          spent: 0,
+          spent,
         };
       });
 
       const allocatedAmount = distribution.reduce((s, d) => s + d.amount, 0);
+      const actualSpent = distribution.reduce((s, d) => s + d.spent, 0);
 
       const statusMap: Record<number, Budget['status']> = {
         0: 'مسودة',
@@ -223,13 +252,13 @@ export default function BudgetsPage() {
         fiscalYear: row.fiscal_year,
         period: 'سنوي' as Budget['period'],
         allocatedAmount,
-        actualSpent: 0,
+        actualSpent,
         status: statusMap[row.docstatus ?? 0] ?? 'مسودة' as Budget['status'],
         distribution,
         createdAt: row.name,
       };
     }),
-    [budgetsRaw, accountOptions]
+    [budgetsRaw, accountOptions, accountSpendingMap]
   );
 
   /* ─── State ─── */

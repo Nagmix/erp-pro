@@ -10,7 +10,7 @@ import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ExportButton } from '@/components/erp/export-button';
 import { formatCurrency, CHART_PALETTE } from '@/lib/core/helpers';
-import { useDocList, useErpMethodCall } from '@/lib/client/hooks';
+import { useDocList } from '@/lib/client/hooks';
 import {
   ArrowUpLeft,
   ArrowDownLeft,
@@ -124,18 +124,15 @@ export default function CashFlowPage() {
     return map;
   }, [accountsRaw]);
 
-  // Get opening balance via method call (bank/cash account balance at dateFrom)
-  const { data: openingBalResult } = useErpMethodCall<{ message: { balance: number } }>(['Account']);
-  // We'll compute opening balance from bank/cash accounts
-
-  // Fetch Account balances for opening balance
-  const { data: bankCashAccounts = [] } = useDocList<Record<string, unknown>>('Account', {
-    fields: ['name', 'account_name', 'account_type'],
-    or_filters: [
-      ['account_type', '=', 'Bank'],
-      ['account_type', '=', 'Cash'],
+  // Fetch all GL Entries before dateFrom to compute opening balance
+  const { data: openingGlEntries = [] } = useDocList<Record<string, unknown>>('GL Entry', {
+    fields: ['account', 'debit', 'credit', 'posting_date'],
+    filters: [
+      ['docstatus', '=', '1'],
+      ['posting_date', '<', dateFrom],
     ],
-    limit: 100,
+    limit: 2000,
+    order_by: 'posting_date asc',
   });
 
   const loading = paymentsLoading || journalsLoading || siLoading || piLoading || glLoading || accountsLoading;
@@ -237,13 +234,19 @@ export default function CashFlowPage() {
   const financingNet = financingInflows - financingOutflows;
   const netChange = operatingNet + investingNet + financingNet;
 
-  // Opening balance: try to get from Account balance method, fallback to 0
+  // Opening balance: compute from GL entries for bank/cash accounts before dateFrom
   const openingBalance = useMemo(() => {
-    // Sum up opening balances from bank/cash accounts if available
-    // This is a simplified approach - the actual balance would need a server-side method
-    // For now, we use 0 as the base but note it in the UI
-    return 0;
-  }, []);
+    const bankCashTypes = new Set(['Bank', 'Cash']);
+    let balance = 0;
+    for (const gl of openingGlEntries) {
+      const account = String(gl.account ?? '');
+      const acctInfo = accountsRaw.find(a => String(a.name) === account);
+      if (acctInfo && bankCashTypes.has(String(acctInfo.account_type ?? ''))) {
+        balance += Number(gl.debit ?? 0) - Number(gl.credit ?? 0);
+      }
+    }
+    return Math.round(balance);
+  }, [openingGlEntries, accountsRaw]);
 
   const closingBalance = openingBalance + netChange;
 

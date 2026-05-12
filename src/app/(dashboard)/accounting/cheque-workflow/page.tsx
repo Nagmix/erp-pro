@@ -270,7 +270,7 @@ export default function ChequeWorkflowPage() {
       setDepositDate('');
       void refetch();
     } catch (e) {
-      toast.success((e as Error).message || 'فشل تحديث حالة الشيك');
+      toast.error((e as Error).message || 'فشل تحديث حالة الشيك');
     } finally {
       setDepositing(false);
     }
@@ -285,7 +285,7 @@ export default function ChequeWorkflowPage() {
       toast.success(clearBounceTarget.action === 'Cleared' ? 'تم تأكيد مقاصة الشيك' : 'تم تسجيل ارتداد الشيك');
       setClearBounceTarget(null);
     } catch (e) {
-      toast.success((e as Error).message || 'فشل التحديث');
+      toast.error((e as Error).message || 'فشل التحديث');
     } finally {
       setProcessing(false);
     }
@@ -317,7 +317,7 @@ export default function ChequeWorkflowPage() {
       setReverseTarget(null);
       void refetch();
     } catch (e) {
-      toast.success((e as Error).message || 'فشل إنشاء قيد العكس');
+      toast.error((e as Error).message || 'فشل إنشاء قيد العكس');
     } finally {
       setReversing(false);
     }
@@ -336,16 +336,16 @@ export default function ChequeWorkflowPage() {
   // ── Create Cheque handler ──
   const handleCreate = useCallback(async () => {
     if (!formParty || !formRefNo || !formRefDate || !formAmount || !formBank) {
-      toast.success('يرجى ملء جميع الحقول المطلوبة');
+      toast.error('يرجى ملء جميع الحقول المطلوبة');
       return;
     }
     const amount = Number(formAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
-      toast.success('يرجى إدخال مبلغ صحيح');
+      toast.error('يرجى إدخال مبلغ صحيح');
       return;
     }
     if (!defaultCompany) {
-      toast.success('يرجى تحديد الشركة');
+      toast.error('يرجى تحديد الشركة');
       return;
     }
 
@@ -376,7 +376,7 @@ export default function ChequeWorkflowPage() {
       resetCreateForm();
       void refetch();
     } catch (e) {
-      toast.success((e as Error).message || 'فشل تسجيل الشيك');
+      toast.error((e as Error).message || 'فشل تسجيل الشيك');
     } finally {
       setCreating(false);
     }

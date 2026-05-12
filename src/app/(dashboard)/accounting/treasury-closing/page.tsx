@@ -19,6 +19,16 @@ import { toast } from 'sonner';
 import { Lock, Wallet, CheckCircle2, AlertTriangle, ArrowUpLeft, ArrowDownLeft, Scale, DoorOpen } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type VaultRow = {
   name: string;
@@ -45,6 +55,7 @@ export default function TreasuryClosingPage() {
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
   const [selectedDate, setSelectedDate] = useState(today);
   const [closingBusy, setClosingBusy] = useState(false);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
 
   // Fetch treasury/vault accounts
   const { data: vaultAccounts = [], isLoading: vaultsLoading } = useDocList<VaultRow>('Account', {
@@ -117,7 +128,11 @@ export default function TreasuryClosingPage() {
       toast.error('يجب ضبط الشركة الافتراضية أولاً');
       return;
     }
-    if (!window.confirm(`هل أنت متأكد من إغلاق الخزينة ليوم ${formatDate(selectedDate)}؟`)) return;
+    setConfirmCloseOpen(true);
+  }, [defaultCompany]);
+
+  const executeCloseTreasury = useCallback(async () => {
+    setConfirmCloseOpen(false);
     setClosingBusy(true);
     try {
       await createJournalEntry.mutateAsync({
@@ -140,7 +155,7 @@ export default function TreasuryClosingPage() {
     } finally {
       setClosingBusy(false);
     }
-  }, [defaultCompany, selectedDate, vaultNames, balanceMap, createJournalEntry, refetch, toast]);
+  }, [defaultCompany, selectedDate, vaultNames, balanceMap, createJournalEntry, refetch]);
 
   // Payment columns
   const paymentColumns: Column<PaymentRow>[] = useMemo(
@@ -295,6 +310,28 @@ export default function TreasuryClosingPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Confirm Close Dialog */}
+      <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-warning" />
+              تأكيد إغلاق الخزينة
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من إغلاق الخزينة ليوم {formatDate(selectedDate)}؟ سيتم إنشاء قيد يومية لإقفال أرصدة الخزائن.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={executeCloseTreasury} disabled={closingBusy} className="gap-1.5">
+              {closingBusy ? <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" /> : <Lock className="h-3.5 w-3.5" />}
+              تأكيد الإغلاق
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
