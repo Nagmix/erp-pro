@@ -8,7 +8,6 @@ import { useCreateDoc, useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader } from '@/components/erp/page-header';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +28,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import {
   Info,
   CalendarCheck,
@@ -60,6 +61,9 @@ export default function FiscalYearPage() {
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
   const [reopenConfirmOpen, setReopenConfirmOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<Row | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const { data, isLoading, isError, error, refetch } = useDocList<Row>('Fiscal Year', {
     fields: ['name', 'year', 'year_start_date', 'year_end_date', 'disabled'],
@@ -80,6 +84,25 @@ export default function FiscalYearPage() {
   const rows = data || [];
   const activeCount = useMemo(() => rows.filter(r => Number(r.disabled) !== 1).length, [rows]);
   const closedCount = useMemo(() => rows.filter(r => Number(r.disabled) === 1).length, [rows]);
+
+  // ── Status tabs ──
+  const statusTabs: ErpStatusTab[] = [
+    { value: 'all', label: 'الكل' },
+    { value: 'active', label: 'نشطة' },
+    { value: 'closed', label: 'مقفلة' },
+  ];
+
+  // ── Filtered data ──
+  const filteredData = useMemo(() => {
+    let list = rows;
+    if (statusFilter === 'active') list = list.filter(r => Number(r.disabled) !== 1);
+    else if (statusFilter === 'closed') list = list.filter(r => Number(r.disabled) === 1);
+    if (dateFrom || dateTo) list = list.filter(r => rowInDateRangeISO(r.year_start_date, dateFrom, dateTo));
+    return list;
+  }, [rows, statusFilter, dateFrom, dateTo]);
+
+  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
+  const hasActiveFilters = dateFrom || dateTo || statusFilter !== 'all';
 
   // ── Close / Reopen handlers ──
   const handleClose = (row: Row) => {
@@ -125,7 +148,7 @@ export default function FiscalYearPage() {
   };
 
   const columns: Column<Row>[] = [
-    { key: 'year', header: 'السنة', sortable: true },
+    { key: 'year', header: 'السنة', sortable: true, filterable: true },
     {
       key: 'year_start_date',
       header: 'بداية',
@@ -274,21 +297,53 @@ export default function FiscalYearPage() {
         }
       />
 
-      {/* KPI Strip */}
-      <Card>
-        <CardHeader className="py-3">
-          <CardTitle className="text-sm">السنوات المالية</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <DataTable
-            data={rows}
-            columns={columns}
-            title="قائمة السنوات المالية"
-            searchable
-            loading={isLoading}
-          />
-        </CardContent>
-      </Card>
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="inline-flex h-5 min-w-5 rounded-full bg-success/12 text-success text-[10px] font-bold items-center justify-center px-1.5">
+                {activeCount}
+              </span>
+              <span>نشطة</span>
+              <span className="inline-flex h-5 min-w-5 rounded-full bg-destructive/12 text-destructive text-[10px] font-bold items-center justify-center px-1.5 ms-2">
+                {closedCount}
+              </span>
+              <span>مقفلة</span>
+            </div>
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs"
+                onClick={clearFilters}
+              >
+                مسح الكل
+              </Button>
+            )}
+          </div>
+        }
+      />
+
+      <DataTable
+        data={filteredData}
+        columns={columns}
+        title="قائمة السنوات المالية"
+        searchable
+        loading={isLoading}
+        columnFilters
+        stickyFirstColumn
+        tableId="accounting-fiscal-year"
+        exportFileName="fiscal-years.csv"
+        printTitle="السنوات المالية"
+      />
 
       {/* Close Confirmation Dialog */}
       <AlertDialog open={closeConfirmOpen} onOpenChange={setCloseConfirmOpen}>

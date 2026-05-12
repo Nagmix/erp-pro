@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
-import { PageHeader } from '@/components/erp/page-header';
+import { PageHeader, KpiStrip } from '@/components/erp/page-header';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -329,7 +330,77 @@ export default function AccountingDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
+      <KpiStrip cols={4}>
+        <KpiCard
+          title="إجمالي الإيرادات"
+          value={formatCurrency(totalRevenue)}
+          icon={TrendingUp}
+          changeType="positive"
+          accent="success"
+          compact
+        />
+        <KpiCard
+          title="إجمالي المصروفات"
+          value={formatCurrency(totalExpenses)}
+          icon={TrendingDown}
+          changeType="negative"
+          accent="warning"
+          compact
+        />
+        <KpiCard
+          title="صافي الربح"
+          value={formatCurrency(netProfit)}
+          icon={DollarSign}
+          changeType={netProfit >= 0 ? 'positive' : 'negative'}
+          accent={netProfit >= 0 ? 'success' : 'destructive'}
+          compact
+        />
+        <KpiCard
+          title="الرصيد النقدي"
+          value={formatCurrency(cashBalance)}
+          icon={Wallet}
+          changeType="neutral"
+          accent="info"
+          compact
+        />
+      </KpiStrip>
+
       {/* ── KPI Row 2 ── */}
+      <KpiStrip cols={4}>
+        <KpiCard
+          title="حسابات مدينة"
+          value={formatCurrency(outstandingReceivables)}
+          icon={ArrowUpLeft}
+          changeType="neutral"
+          accent="warning"
+          compact
+        />
+        <KpiCard
+          title="حسابات دائنة"
+          value={formatCurrency(outstandingPayables)}
+          icon={ArrowDownLeft}
+          changeType="negative"
+          accent="destructive"
+          compact
+        />
+        <KpiCard
+          title="فواتير متأخرة"
+          value={formatNumber(overdueInvoices)}
+          icon={AlertTriangle}
+          changeType="negative"
+          accent="destructive"
+          compact
+        />
+        <KpiCard
+          title="مدفوعات غير مسواة"
+          value={formatNumber(unreconciledPayments)}
+          icon={Clock}
+          changeType="neutral"
+          accent="info"
+          compact
+        />
+      </KpiStrip>
+
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

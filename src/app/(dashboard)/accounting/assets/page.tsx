@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
-import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -61,7 +60,7 @@ interface AssetRow {
   gross_purchase_amount?: number;
   depreciation_method?: string;
   useful_life?: number;
-  location: string;
+  location?: string;
   custodian?: string;
   item_code?: string;
   status: string;
@@ -220,7 +219,7 @@ export default function AssetsPage() {
       list = list.filter(a => String(a.docstatus) === docstatusFilter);
     }
     return list;
-  }, [assets, dateFrom, dateTo, assetStatusFilter, docstatusFilter]);  const createForm = useForm<AssetFormInput, any, AssetFormOutput>({
+  }, [assets, dateFrom, dateTo, assetStatusFilter, docstatusFilter]);  const createForm = useForm<AssetFormInput, unknown, AssetFormOutput>({
     resolver: zodResolver(assetSchema),
     defaultValues: {
       asset_name: '',
@@ -237,7 +236,7 @@ export default function AssetsPage() {
       accumulated_depreciation_account: '',
       depreciation_expense_account: ''}});
 
-  const editForm = useForm<AssetFormInput, any, AssetFormOutput>({
+  const editForm = useForm<AssetFormInput, unknown, AssetFormOutput>({
     resolver: zodResolver(assetSchema),
     defaultValues: {
       asset_name: '',
@@ -406,7 +405,7 @@ export default function AssetsPage() {
     setEditDialogOpen(true);
   };
 
-  const renderAssetFormFields = (form: UseFormReturn<AssetFormInput, any, AssetFormOutput>) => (
+  const renderAssetFormFields = (form: UseFormReturn<AssetFormInput, unknown, AssetFormOutput>) => (
     <div className="space-y-4">
       <div className="space-y-2">
         <Label className="text-sm font-medium">اسم الأصل *</Label>

@@ -8,12 +8,12 @@ import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader } from '@/components/erp/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ErpTabbedForm, type ErpTabDef } from '@/components/erp/erp-tabbed-form';
 import {
   Landmark,
   RefreshCw,
   PlusCircle,
-  ArrowLeftRight,
+  Receipt,
   Upload,
   CheckCircle2,
   XCircle,
@@ -572,273 +572,276 @@ export default function BankAccountsPage() {
       />
 
       
-      <Tabs defaultValue="accounts" dir="rtl" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="accounts" className="gap-1.5">
-            <Landmark className="h-4 w-4" />
-            الحسابات البنكية
-          </TabsTrigger>
-          <TabsTrigger value="transactions" className="gap-1.5">
-            <ArrowLeftRight className="h-4 w-4" />
-            حركات البنك
-          </TabsTrigger>
-        </TabsList>
+      <ErpTabbedForm
+        defaultValue="accounts"
+        tabs={[
+          {
+            value: 'accounts',
+            label: 'الحسابات البنكية',
+            icon: <Landmark className="h-4 w-4" />,
+            content: (
+              <div className="space-y-4">
+                {/* Bank Accounts Table */}
+                <Card>
+                  <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
+                    <CardTitle className="text-sm">الحسابات البنكية</CardTitle>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Dialog open={openBankAccDialog} onOpenChange={setOpenBankAccDialog}>
+                        <DialogTrigger asChild>
+                          <Button type="button" size="sm" variant="outline" className="gap-1.5">
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            حساب بنكي جديد
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent size="lg">
+                          <DialogHeader><DialogTitle>إنشاء حساب بنكي</DialogTitle></DialogHeader>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <Label>البنك *</Label>
+                              <ErpLinkCombobox doctype="Bank" value={accBank} onChange={setAccBank} placeholder="اختر البنك" />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label>الشركة</Label>
+                              <div className="text-sm font-semibold">{accCompany || defaultCompany || '—'}</div>
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label>حساب GL *</Label>
+                              <ErpLinkCombobox doctype="Account" value={accGlAccount} onChange={setAccGlAccount} placeholder="الحساب المحاسبي" />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label>رقم الحساب *</Label>
+                              <Input value={accNumber} onChange={(e) => setAccNumber(e.target.value)} placeholder="SAxxxxxxxx" dir="ltr" />
+                            </div>
+                            <div className="space-y-1.5 md:col-span-2">
+                              <Label>اسم العرض (اختياري)</Label>
+                              <Input value={accLabel} onChange={(e) => setAccLabel(e.target.value)} placeholder="الحساب الجاري - الرئيسي" />
+                            </div>
+                          </div>
+                          <div className="flex justify-end gap-2 mt-4">
+                            <Button type="button" variant="outline" onClick={() => setOpenBankAccDialog(false)}>إلغاء</Button>
+                            <Button type="button" onClick={() => void createBankAccount()} disabled={createBusy === 'account'}>
+                              {createBusy === 'account' ? 'جاري الإنشاء...' : 'إنشاء'}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <DataTable
+                      data={bankAccounts}
+                      columns={aCols}
+                      pageSize={10}
+                      searchable
+                      loading={aLoad}
+                      columnFilters
+                      stickyFirstColumn
+                      tableId="accounting-bank-accounts"
+                      exportFileName="bank-accounts.csv"
+                      printTitle="الحسابات البنكية"
+                    />
+                  </CardContent>
+                </Card>
 
-        {/* ── Tab 1: Bank Accounts ── */}
-        <TabsContent value="accounts" className="space-y-4">
-          {/* Bank Accounts Table */}
-          <Card>
-            <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-sm">الحسابات البنكية</CardTitle>
-              <div className="flex flex-wrap items-center gap-2">
-                <Dialog open={openBankAccDialog} onOpenChange={setOpenBankAccDialog}>
-                  <DialogTrigger asChild>
-                    <Button type="button" size="sm" variant="outline" className="gap-1.5">
-                      <PlusCircle className="h-3.5 w-3.5" />
-                      حساب بنكي جديد
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent size="lg">
-                    <DialogHeader><DialogTitle>إنشاء حساب بنكي</DialogTitle></DialogHeader>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="space-y-1.5">
-                        <Label>البنك *</Label>
-                        <ErpLinkCombobox doctype="Bank" value={accBank} onChange={setAccBank} placeholder="اختر البنك" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>الشركة</Label>
-                        <div className="text-sm font-semibold">{accCompany || defaultCompany || '—'}</div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>حساب GL *</Label>
-                        <ErpLinkCombobox doctype="Account" value={accGlAccount} onChange={setAccGlAccount} placeholder="الحساب المحاسبي" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>رقم الحساب *</Label>
-                        <Input value={accNumber} onChange={(e) => setAccNumber(e.target.value)} placeholder="SAxxxxxxxx" dir="ltr" />
-                      </div>
-                      <div className="space-y-1.5 md:col-span-2">
-                        <Label>اسم العرض (اختياري)</Label>
-                        <Input value={accLabel} onChange={(e) => setAccLabel(e.target.value)} placeholder="الحساب الجاري - الرئيسي" />
-                      </div>
-                    </div>
-                    <div className="flex justify-end gap-2 mt-4">
-                      <Button type="button" variant="outline" onClick={() => setOpenBankAccDialog(false)}>إلغاء</Button>
-                      <Button type="button" onClick={() => void createBankAccount()} disabled={createBusy === 'account'}>
-                        {createBusy === 'account' ? 'جاري الإنشاء...' : 'إنشاء'}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                {/* Banks + Payment Methods */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
+                      <CardTitle className="text-sm">سجل البنوك</CardTitle>
+                      <Dialog open={openBankDialog} onOpenChange={setOpenBankDialog}>
+                        <DialogTrigger asChild>
+                          <Button type="button" size="sm" variant="outline" className="gap-1.5">
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            بنك جديد
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent size="md">
+                          <DialogHeader><DialogTitle>إنشاء بنك</DialogTitle></DialogHeader>
+                          <div className="space-y-3">
+                            <div className="space-y-1.5">
+                              <Label>اسم البنك *</Label>
+                              <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="مثال: البنك الأهلي" />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label>SWIFT (اختياري)</Label>
+                              <Input value={bankSwift} onChange={(e) => setBankSwift(e.target.value)} placeholder="NCBKSARI" dir="ltr" />
+                            </div>
+                            <div className="flex justify-end gap-2">
+                              <Button type="button" variant="outline" onClick={() => setOpenBankDialog(false)}>إلغاء</Button>
+                              <Button type="button" onClick={() => void createBank()} disabled={createBusy === 'bank'}>
+                                {createBusy === 'bank' ? 'جاري الإنشاء...' : 'إنشاء'}
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </CardHeader>
+                    <CardContent>
+                      <DataTable
+                        data={banks}
+                        columns={[
+                          { key: 'name', header: 'اسم البنك', sortable: true },
+                          { key: 'swift_number', header: 'SWIFT' },
+                        ]}
+                        pageSize={5}
+                        searchable
+                        loading={bLoad}
+                        tableId="accounting-bank-accounts-banks"
+                      />
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
+                      <CardTitle className="text-sm">طرق الدفع</CardTitle>
+                      <Dialog open={openModeDialog} onOpenChange={setOpenModeDialog}>
+                        <DialogTrigger asChild>
+                          <Button type="button" size="sm" variant="outline" className="gap-1.5">
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            طريقة دفع جديدة
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent size="md">
+                          <DialogHeader><DialogTitle>إنشاء طريقة دفع</DialogTitle></DialogHeader>
+                          <div className="space-y-3">
+                            <div className="space-y-1.5">
+                              <Label>اسم طريقة الدفع *</Label>
+                              <Input value={modeName} onChange={(e) => setModeName(e.target.value)} placeholder="مثال: تحويل بنكي" />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label>النوع</Label>
+                              <div className="flex gap-3">
+                                {(['Cash', 'Bank', 'General'] as const).map((t) => (
+                                  <label key={t} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                                    <input type="radio" name="modeType" checked={modeType === t} onChange={() => setModeType(t)} className="accent-primary" />
+                                    {t === 'Cash' ? 'نقد' : t === 'Bank' ? 'بنك' : 'عام'}
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                              <Button type="button" variant="outline" onClick={() => setOpenModeDialog(false)}>إلغاء</Button>
+                              <Button type="button" onClick={() => void createMode()} disabled={createBusy === 'mode'}>
+                                {createBusy === 'mode' ? 'جاري الإنشاء...' : 'إنشاء'}
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </CardHeader>
+                    <CardContent>
+                      <DataTable
+                        data={modes}
+                        columns={[
+                          { key: 'name', header: 'طريقة الدفع' },
+                          { key: 'type', header: 'النوع', render: (v) => (String(v) === 'Bank' ? 'بنك' : String(v) === 'Cash' ? 'نقد' : String(v) === 'General' ? 'عام' : String(v || '-')) },
+                        ]}
+                        pageSize={5}
+                        searchable
+                        loading={mLoad}
+                        tableId="accounting-bank-accounts-modes"
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                data={bankAccounts}
-                columns={aCols}
-                pageSize={10}
-                searchable
-                loading={aLoad}
-                columnFilters
-                stickyFirstColumn
-                tableId="accounting-bank-accounts"
-                exportFileName="bank-accounts.csv"
-                printTitle="الحسابات البنكية"
-              />
-            </CardContent>
-          </Card>
-
-          {/* Banks + Payment Methods */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
-                <CardTitle className="text-sm">سجل البنوك</CardTitle>
-                <Dialog open={openBankDialog} onOpenChange={setOpenBankDialog}>
-                  <DialogTrigger asChild>
-                    <Button type="button" size="sm" variant="outline" className="gap-1.5">
-                      <PlusCircle className="h-3.5 w-3.5" />
-                      بنك جديد
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent size="md">
-                    <DialogHeader><DialogTitle>إنشاء بنك</DialogTitle></DialogHeader>
-                    <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <Label>اسم البنك *</Label>
-                        <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="مثال: البنك الأهلي" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>SWIFT (اختياري)</Label>
-                        <Input value={bankSwift} onChange={(e) => setBankSwift(e.target.value)} placeholder="NCBKSARI" dir="ltr" />
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={() => setOpenBankDialog(false)}>إلغاء</Button>
-                        <Button type="button" onClick={() => void createBank()} disabled={createBusy === 'bank'}>
-                          {createBusy === 'bank' ? 'جاري الإنشاء...' : 'إنشاء'}
-                        </Button>
-                      </div>
+            ),
+          },
+          {
+            value: 'transactions',
+            label: 'حركات البنك',
+            icon: <Receipt className="h-4 w-4" />,
+            content: (
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
+                    <CardTitle className="text-sm">حركات البنك</CardTitle>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button type="button" size="sm" variant="outline" className="gap-1.5">
+                            <Upload className="h-3.5 w-3.5" />
+                            استيراد كشف
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent dir="rtl" className="max-w-2xl gap-3">
+                          <DialogHeader><DialogTitle>استيراد حركات كشف بنكي</DialogTitle></DialogHeader>
+                          <div className="space-y-3 text-sm">
+                            <p className="text-muted-foreground">
+                              ملف CSV/نص بالترتيب: <span dir="ltr">date, deposit, withdrawal, description, ref</span> — السطر الأول يُتخطى إن كان عنواناً.
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+                              <div className="space-y-1.5">
+                                <Label>حساب بنكي *</Label>
+                                <ErpLinkCombobox doctype="Bank Account" value={bankAccForImport} onChange={setBankAccForImport} placeholder="مثال: الحساب الجاري" />
+                              </div>
+                              <div className="space-y-1.5">
+                                <Label>ملف</Label>
+                                <Input type="file" accept=".csv,.txt" multiple className="cursor-pointer" disabled={importBusy}
+                                  onChange={(e) => { void onCsvFiles(e.target.files); e.target.value = ''; }}
+                                />
+                              </div>
+                            </div>
+                            {importStats && (
+                              <div className="rounded-md border border-border/40 bg-muted/30 p-2 text-[11px] text-muted-foreground">
+                                آخر عملية: ملفات {importStats.files} | صفوف صالحة {importStats.rows} | أُنشئ {importStats.ok} | متجاوز {importStats.skipped}
+                              </div>
+                            )}
+                            <div className="flex items-center justify-end gap-2">
+                              <Button type="button" variant="ghost" onClick={() => setImportDialogOpen(false)} className="text-muted-foreground">إغلاق</Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                <DataTable
-                  data={banks}
-                  columns={[
-                    { key: 'name', header: 'اسم البنك', sortable: true },
-                    { key: 'swift_number', header: 'SWIFT' },
-                  ]}
-                  pageSize={5}
-                  searchable
-                  loading={bLoad}
-                  tableId="accounting-bank-accounts-banks"
-                />
-              </CardContent>
-            </Card>
+                  </CardHeader>
+                  <CardContent>
+                    <DataTable
+                      data={recentBt}
+                      columns={btCols}
+                      pageSize={15}
+                      searchable
+                      loading={btLoad}
+                      columnFilters
+                      stickyFirstColumn
+                      tableId="accounting-bank-transactions"
+                      exportFileName="bank-transactions.csv"
+                      printTitle="حركات البنك"
+                    />
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
-                <CardTitle className="text-sm">طرق الدفع</CardTitle>
-                <Dialog open={openModeDialog} onOpenChange={setOpenModeDialog}>
-                  <DialogTrigger asChild>
-                    <Button type="button" size="sm" variant="outline" className="gap-1.5">
-                      <PlusCircle className="h-3.5 w-3.5" />
-                      طريقة دفع جديدة
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent size="md">
-                    <DialogHeader><DialogTitle>إنشاء طريقة دفع</DialogTitle></DialogHeader>
-                    <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <Label>اسم طريقة الدفع *</Label>
-                        <Input value={modeName} onChange={(e) => setModeName(e.target.value)} placeholder="مثال: تحويل بنكي" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label>النوع</Label>
-                        <div className="flex gap-3">
-                          {(['Cash', 'Bank', 'General'] as const).map((t) => (
-                            <label key={t} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                              <input type="radio" name="modeType" checked={modeType === t} onChange={() => setModeType(t)} className="accent-primary" />
-                              {t === 'Cash' ? 'نقد' : t === 'Bank' ? 'بنك' : 'عام'}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={() => setOpenModeDialog(false)}>إلغاء</Button>
-                        <Button type="button" onClick={() => void createMode()} disabled={createBusy === 'mode'}>
-                          {createBusy === 'mode' ? 'جاري الإنشاء...' : 'إنشاء'}
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                <DataTable
-                  data={modes}
-                  columns={[
-                    { key: 'name', header: 'طريقة الدفع' },
-                    { key: 'type', header: 'النوع', render: (v) => (String(v) === 'Bank' ? 'بنك' : String(v) === 'Cash' ? 'نقد' : String(v) === 'General' ? 'عام' : String(v || '-')) },
-                  ]}
-                  pageSize={5}
-                  searchable
-                  loading={mLoad}
-                  tableId="accounting-bank-accounts-modes"
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        {/* ── Tab 2: Bank Transactions ── */}
-        <TabsContent value="transactions" className="space-y-4">
-          <Card>
-            <CardHeader className="py-3 flex flex-row flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-sm">حركات البنك</CardTitle>
-              <div className="flex flex-wrap items-center gap-2">
-                <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button type="button" size="sm" variant="outline" className="gap-1.5">
-                      <Upload className="h-3.5 w-3.5" />
-                      استيراد كشف
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent dir="rtl" className="max-w-2xl gap-3">
-                    <DialogHeader><DialogTitle>استيراد حركات كشف بنكي</DialogTitle></DialogHeader>
-                    <div className="space-y-3 text-sm">
-                      <p className="text-muted-foreground">
-                        ملف CSV/نص بالترتيب: <span dir="ltr">date, deposit, withdrawal, description, ref</span> — السطر الأول يُتخطى إن كان عنواناً.
-                      </p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-                        <div className="space-y-1.5">
-                          <Label>حساب بنكي *</Label>
-                          <ErpLinkCombobox doctype="Bank Account" value={bankAccForImport} onChange={setBankAccForImport} placeholder="مثال: الحساب الجاري" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <Label>ملف</Label>
-                          <Input type="file" accept=".csv,.txt" multiple className="cursor-pointer" disabled={importBusy}
-                            onChange={(e) => { void onCsvFiles(e.target.files); e.target.value = ''; }}
-                          />
-                        </div>
-                      </div>
-                      {importStats && (
-                        <div className="rounded-md border border-border/40 bg-muted/30 p-2 text-[11px] text-muted-foreground">
-                          آخر عملية: ملفات {importStats.files} | صفوف صالحة {importStats.rows} | أُنشئ {importStats.ok} | متجاوز {importStats.skipped}
-                        </div>
-                      )}
-                      <div className="flex items-center justify-end gap-2">
-                        <Button type="button" variant="ghost" onClick={() => setImportDialogOpen(false)} className="text-muted-foreground">إغلاق</Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                {/* Reconciliation */}
+                <Card>
+                  <CardHeader className="py-3">
+                    <CardTitle className="text-sm flex items-center gap-2">
+                      <GitCompareArrows className="h-4 w-4" />
+                      المطابقة البنكية
+                      <span className="text-[10px] text-muted-foreground font-normal">
+                        (مقترحات: {reconciliationMatches.length} | مؤكدة: {reconStats.confirmed} | معلّق: {reconStats.pending})
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <DataTable
+                      data={reconciliationMatches}
+                      columns={reconCols}
+                      pageSize={10}
+                      searchable
+                      loading={btLoad}
+                      columnFilters
+                      stickyFirstColumn
+                      tableId="accounting-bank-reconciliation"
+                      exportFileName="reconciliation.csv"
+                      printTitle="المطابقة البنكية"
+                    />
+                  </CardContent>
+                </Card>
               </div>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                data={recentBt}
-                columns={btCols}
-                pageSize={15}
-                searchable
-                loading={btLoad}
-                columnFilters
-                stickyFirstColumn
-                tableId="accounting-bank-transactions"
-                exportFileName="bank-transactions.csv"
-                printTitle="حركات البنك"
-              />
-            </CardContent>
-          </Card>
-
-          {/* Reconciliation */}
-          <Card>
-            <CardHeader className="py-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <GitCompareArrows className="h-4 w-4" />
-                المطابقة البنكية
-                <span className="text-[10px] text-muted-foreground font-normal">
-                  (مقترحات: {reconciliationMatches.length} | مؤكدة: {reconStats.confirmed} | معلّق: {reconStats.pending})
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DataTable
-                data={reconciliationMatches}
-                columns={reconCols}
-                pageSize={10}
-                searchable
-                loading={btLoad}
-                columnFilters
-                stickyFirstColumn
-                tableId="accounting-bank-reconciliation"
-                exportFileName="reconciliation.csv"
-                printTitle="المطابقة البنكية"
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ),
+          },
+        ]}
+      />
 
       {/* Delete Bank Account Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

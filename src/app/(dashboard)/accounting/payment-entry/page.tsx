@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
@@ -32,7 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, ArrowUpLeft, ArrowDownLeft, ArrowLeftRight, Trash2, CreditCard, Send, Undo2, Eye } from 'lucide-react';
+import { Plus, ArrowUpLeft, ArrowDownLeft, ArrowLeftRight, Trash2, CreditCard, Send, Undo2, Eye, CalendarDays, Users, Wallet, ArrowRightLeft, Hash, MessageSquare, Landmark, Receipt, FileText } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PageHeader } from '@/components/erp/page-header';
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
@@ -44,10 +44,114 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ErpTabbedForm, type ErpTabDef } from '@/components/erp/erp-tabbed-form';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Info } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+
+/* ─── Section fieldset header component ─── */
+
+function SectionFieldset({
+  legend,
+  icon: Icon,
+  title,
+  accent = 'primary',
+  children,
+}: {
+  legend: string;
+  icon: React.ElementType;
+  title: string;
+  accent?: 'primary' | 'info' | 'success' | 'warning' | 'destructive';
+  children: ReactNode;
+}) {
+  const accentMap: Record<string, string> = {
+    primary: 'from-primary/[0.04] via-transparent to-transparent',
+    info: 'from-info/[0.04] via-transparent to-transparent',
+    success: 'from-success/[0.04] via-transparent to-transparent',
+    warning: 'from-warning/[0.04] via-transparent to-transparent',
+    destructive: 'from-destructive/[0.04] via-transparent to-transparent',
+  };
+  const iconBgMap: Record<string, string> = {
+    primary: 'bg-primary/10',
+    info: 'bg-info/10',
+    success: 'bg-success/10',
+    warning: 'bg-warning/10',
+    destructive: 'bg-destructive/10',
+  };
+  const iconTextMap: Record<string, string> = {
+    primary: 'text-primary',
+    info: 'text-info',
+    success: 'text-success',
+    warning: 'text-warning',
+    destructive: 'text-destructive',
+  };
+
+  return (
+    <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+      <legend className="sr-only">{legend}</legend>
+      <div className={`bg-gradient-to-l ${accentMap[accent]} px-4 py-2.5 border-b border-border/30`}>
+        <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+          <span className={`h-5 w-5 rounded-md ${iconBgMap[accent]} flex items-center justify-center`}>
+            <Icon className={`h-3 w-3 ${iconTextMap[accent]}`} />
+          </span>
+          {title}
+        </h4>
+      </div>
+      <div className="p-4 space-y-4 bg-card/50">
+        {children}
+      </div>
+    </fieldset>
+  );
+}
+
+/* ─── Form field with icon label ─── */
+
+function FormField({
+  label,
+  icon: Icon,
+  error,
+  children,
+  required,
+  hint,
+}: {
+  label: string;
+  icon: React.ElementType;
+  error?: string;
+  children: ReactNode;
+  required?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+        <span className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        </span>
+        {label}
+        {required && <span className="text-destructive text-xs me-0.5">*</span>}
+      </Label>
+      {children}
+      {hint && !error && (
+        <p className="text-[11px] text-muted-foreground/60 pe-8">{hint}</p>
+      )}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-[11px] text-destructive font-medium flex items-center gap-1 pe-8"
+          >
+            <Info className="h-3 w-3 shrink-0" />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 interface PaymentRow {
   name: string;
@@ -168,7 +272,7 @@ export default function PaymentEntryPage() {
     if (paymentTypeFilter !== 'all') list = list.filter(p => p.payment_type === paymentTypeFilter);
     return list;
   }, [entries, statusFilter, dateFrom, dateTo, paymentTypeFilter]);
-const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
+  const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
   const totalPaid = entries.filter(p => p.payment_type === 'Pay' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
   const totalTransfers = entries.filter(p => p.payment_type === 'Internal Transfer' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
   const totalVouchers = entries.length;
@@ -493,157 +597,162 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(handleCreate)}>
-            <Tabs defaultValue="main" className="w-full">
-              <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/40 p-1 mb-1">
-                <TabsTrigger value="main" className="text-xs">معلومات الدفع</TabsTrigger>
-                <TabsTrigger value="refs" className="text-xs">مراجع الفواتير</TabsTrigger>
-                <TabsTrigger value="summary" className="text-xs">ملخص</TabsTrigger>
-              </TabsList>
+            <ErpTabbedForm
+              tabs={[
+                {
+                  value: 'main',
+                  label: 'معلومات الدفع',
+                  icon: <CreditCard className="h-3.5 w-3.5" />,
+                  content: (
+                    <div className="space-y-5 py-4">
+                      {/* ── Section 1: Basic Payment Info ── */}
+                      <SectionFieldset legend="معلومات الدفع الأساسية" icon={CreditCard} title="معلومات الدفع الأساسية" accent="primary">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="النوع" icon={ArrowRightLeft} error={form.formState.errors.payment_type?.message} required hint="نوع عملية الدفع">
+                            <Select value={watchPaymentType} onValueChange={v => {
+                              form.setValue('payment_type', v);
+                              if (v === 'Internal Transfer') { form.setValue('party_type', ''); form.setValue('party', ''); }
+                              else { form.setValue('party_type', 'Customer'); form.setValue('party', ''); }
+                            }}>
+                              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Receive">تحصيل (سند قبض)</SelectItem>
+                                <SelectItem value="Pay">صرف (سند صرف)</SelectItem>
+                                <SelectItem value="Internal Transfer">تحويل داخلي</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormField>
 
-              <TabsContent value="main" className="space-y-4 py-4 outline-none">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">النوع *</Label>
-                <Select value={watchPaymentType} onValueChange={v => {
-                  form.setValue('payment_type', v);
-                  if (v === 'Internal Transfer') { form.setValue('party_type', ''); form.setValue('party', ''); }
-                  else { form.setValue('party_type', 'Customer'); form.setValue('party', ''); }
-                }}>
-                  <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Receive">تحصيل (سند قبض)</SelectItem>
-                    <SelectItem value="Pay">صرف (سند صرف)</SelectItem>
-                    <SelectItem value="Internal Transfer">تحويل داخلي</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                          <FormField label="طريقة الدفع" icon={Wallet} error={form.formState.errors.mode_of_payment?.message} required hint="كيفية الدفع أو التحصيل">
+                            <ErpLinkCombobox
+                              doctype="Mode of Payment"
+                              value={form.watch('mode_of_payment')}
+                              onChange={(v) => form.setValue('mode_of_payment', v)}
+                              placeholder="اختر طريقة الدفع"
+                            />
+                          </FormField>
+                        </div>
 
-              {watchPaymentType !== 'Internal Transfer' && (
-                <>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">نوع الطرف *</Label>
-                    <Select value={watchPartyType} onValueChange={v => { form.setValue('party_type', v); form.setValue('party', ''); }}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Customer">عميل</SelectItem>
-                        <SelectItem value="Supplier">مورد</SelectItem>
-                        <SelectItem value="Employee">موظف</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">الطرف *</Label>
-                    <ErpLinkCombobox
-                      doctype={watchPartyType === 'Customer' ? 'Customer' : watchPartyType === 'Supplier' ? 'Supplier' : 'Employee'}
-                      value={form.watch('party')}
-                      onChange={(v) => form.setValue('party', v)}
-                      displayKey={watchPartyType === 'Customer' ? 'customer_name' : watchPartyType === 'Supplier' ? 'supplier_name' : 'employee_name'}
-                      placeholder="الطرف"
-                    />
-                  </div>
-                </>
-              )}
+                        {watchPaymentType !== 'Internal Transfer' && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField label="نوع الطرف" icon={Users} hint="عميل أو مورد أو موظف">
+                              <Select value={watchPartyType} onValueChange={v => { form.setValue('party_type', v); form.setValue('party', ''); }}>
+                                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Customer">عميل</SelectItem>
+                                  <SelectItem value="Supplier">مورد</SelectItem>
+                                  <SelectItem value="Employee">موظف</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </FormField>
+                            <FormField label="الطرف" icon={Users} required hint="اسم الجهة الدافعة أو المستلمة">
+                              <ErpLinkCombobox
+                                doctype={watchPartyType === 'Customer' ? 'Customer' : watchPartyType === 'Supplier' ? 'Supplier' : 'Employee'}
+                                value={form.watch('party')}
+                                onChange={(v) => form.setValue('party', v)}
+                                displayKey={watchPartyType === 'Customer' ? 'customer_name' : watchPartyType === 'Supplier' ? 'supplier_name' : 'employee_name'}
+                                placeholder="الطرف"
+                              />
+                            </FormField>
+                          </div>
+                        )}
+                      </SectionFieldset>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">طريقة الدفع *</Label>
-                <ErpLinkCombobox
-                  doctype="Mode of Payment"
-                  value={form.watch('mode_of_payment')}
-                  onChange={(v) => form.setValue('mode_of_payment', v)}
-                  placeholder="اختر طريقة الدفع"
-                />
-              </div>
+                      {/* ── Section 2: Amounts & Accounts ── */}
+                      <SectionFieldset legend="المبالغ والحسابات" icon={Landmark} title="المبالغ والحسابات" accent="info">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="الحساب الدافع (من)" icon={Landmark} hint="الحساب الذي يُخصم منه المبلغ">
+                            <ErpLinkCombobox
+                              doctype="Account"
+                              value={form.watch('paid_from')}
+                              onChange={(v) => form.setValue('paid_from', v)}
+                              placeholder="الحساب المدفوع منه"
+                            />
+                          </FormField>
+                          <FormField label="الحساب المستلم (إلى)" icon={Landmark} hint="الحساب الذي يُضاف إليه المبلغ">
+                            <ErpLinkCombobox
+                              doctype="Account"
+                              value={form.watch('paid_to')}
+                              onChange={(v) => form.setValue('paid_to', v)}
+                              placeholder="الحساب المستلم فيه"
+                            />
+                          </FormField>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="المبلغ المدفوع" icon={Wallet} error={form.formState.errors.paid_amount?.message} required hint="المبلغ الفعلي المدفوع">
+                            <Input type="number" placeholder="0.00" dir="ltr" {...form.register('paid_amount', { valueAsNumber: true })} />
+                          </FormField>
+                          <FormField label="المبلغ المستلم" icon={Wallet} hint="المبلغ المستلم بالعملة المحلية">
+                            <Input type="number" placeholder="0.00" dir="ltr" {...form.register('received_amount', { valueAsNumber: true })} />
+                          </FormField>
+                        </div>
+                      </SectionFieldset>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">الحساب الدافع (من)</Label>
-                  <ErpLinkCombobox
-                    doctype="Account"
-                    value={form.watch('paid_from')}
-                    onChange={(v) => form.setValue('paid_from', v)}
-                    placeholder="الحساب المدفوع منه"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">الحساب المستلم (إلى)</Label>
-                  <ErpLinkCombobox
-                    doctype="Account"
-                    value={form.watch('paid_to')}
-                    onChange={(v) => form.setValue('paid_to', v)}
-                    placeholder="الحساب المستلم فيه"
-                  />
-                </div>
-              </div>
+                      {/* ── Section 3: References & Details ── */}
+                      <SectionFieldset legend="المراجع والتفاصيل" icon={Hash} title="المراجع والتفاصيل" accent="success">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="التاريخ" icon={CalendarDays} error={form.formState.errors.posting_date?.message} required hint="تاريخ ترحيل السند">
+                            <Input type="date" dir="ltr" {...form.register('posting_date')} />
+                          </FormField>
+                          <FormField label="رقم المرجع (شيك/تأكيد)" icon={Hash} hint="رقم الشيك أو رقم التأكيد البنكي">
+                            <Input placeholder="رقم المرجع" dir="ltr" {...form.register('reference_no')} />
+                          </FormField>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="تاريخ المرجع" icon={CalendarDays} hint="تاريخ الشيك أو المستند المرجعي">
+                            <Input type="date" dir="ltr" {...form.register('reference_date')} />
+                          </FormField>
+                          <FormField label="ملاحظات" icon={MessageSquare} hint="ملاحظات إضافية على السند">
+                            <Input placeholder="ملاحظات إضافية" {...form.register('remarks')} />
+                          </FormField>
+                        </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">المبلغ المدفوع *</Label>
-                  <Input type="number" placeholder="0.00" dir="ltr" {...form.register('paid_amount', { valueAsNumber: true })} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">المبلغ المستلم</Label>
-                  <Input type="number" placeholder="0.00" dir="ltr" {...form.register('received_amount', { valueAsNumber: true })} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">التاريخ *</Label>
-                  <Input type="date" dir="ltr" {...form.register('posting_date')} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">رقم المرجع (شيك/تأكيد)</Label>
-                  <Input placeholder="رقم المرجع" dir="ltr" {...form.register('reference_no')} />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">ملاحظات</Label>
-                <Input placeholder="ملاحظات إضافية" {...form.register('remarks')} />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">تاريخ المرجع</Label>
-                <Input type="date" dir="ltr" {...form.register('reference_date')} />
-              </div>
-
-              <div className="space-y-3 rounded-lg border border-border/40 bg-muted/15 p-3">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="pe-fx-unified"
-                    checked={peFxUnified}
-                    onCheckedChange={(c) => {
-                      const on = c === true;
-                      setPeFxUnified(on);
-                      if (on) {
-                        form.setValue('target_exchange_rate', form.getValues('source_exchange_rate'));
-                      }
-                    }}
-                  />
-                  <Label htmlFor="pe-fx-unified" className="text-sm font-medium cursor-pointer">
-                    سعر صرف موحّد (حساب الدفع منه = حساب الدفع إليه بالنسبة لعملة الشركة)
-                  </Label>
-                </div>
-                <div className={`grid gap-3 ${peFxUnified ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">
-                      {peFxUnified ? 'سعر الصرف (مصدر/هدف)' : 'سعر صرف المصدر (paid_from)'}
-                    </Label>
-                    <Input type="number" dir="ltr" step="any" min={0} placeholder="1" {...form.register('source_exchange_rate', { valueAsNumber: true })} />
-                  </div>
-                  {!peFxUnified && (
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">سعر صرف الهدف (paid_to)</Label>
-                      <Input type="number" dir="ltr" step="any" min={0} placeholder="1" {...form.register('target_exchange_rate', { valueAsNumber: true })} />
+                        {/* Exchange Rate Section */}
+                        <div className="rounded-xl border border-border/40 overflow-hidden">
+                          <div className="bg-gradient-to-l from-warning/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                            <div className="flex items-center gap-3">
+                              <Checkbox
+                                id="pe-fx-unified"
+                                checked={peFxUnified}
+                                onCheckedChange={(c) => {
+                                  const on = c === true;
+                                  setPeFxUnified(on);
+                                  if (on) {
+                                    form.setValue('target_exchange_rate', form.getValues('source_exchange_rate'));
+                                  }
+                                }}
+                              />
+                              <Label htmlFor="pe-fx-unified" className="text-[12px] font-bold text-foreground/70 flex items-center gap-2 cursor-pointer">
+                                <span className="h-5 w-5 rounded-md bg-warning/10 flex items-center justify-center">
+                                  <ArrowRightLeft className="h-3 w-3 text-warning" />
+                                </span>
+                                سعر صرف موحّد (حساب الدفع منه = حساب الدفع إليه بالنسبة لعملة الشركة)
+                              </Label>
+                            </div>
+                          </div>
+                          <div className="p-4 bg-card/50">
+                            <div className={`grid gap-4 ${peFxUnified ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
+                              <FormField label={peFxUnified ? 'سعر الصرف (مصدر/هدف)' : 'سعر صرف المصدر (paid_from)'} icon={ArrowRightLeft} hint="اترك 1 للعملة المحلية">
+                                <Input type="number" dir="ltr" step="any" min={0} placeholder="1" {...form.register('source_exchange_rate', { valueAsNumber: true })} />
+                              </FormField>
+                              {!peFxUnified && (
+                                <FormField label="سعر صرف الهدف (paid_to)" icon={ArrowRightLeft} hint="اترك 1 للعملة المحلية">
+                                  <Input type="number" dir="ltr" step="any" min={0} placeholder="1" {...form.register('target_exchange_rate', { valueAsNumber: true })} />
+                                </FormField>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </SectionFieldset>
                     </div>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  اترك 1 للعملة المحلية فقط.
-                </p>
-              </div>
-              </TabsContent>
-
-              <TabsContent value="refs" className="space-y-4 py-4 outline-none">
+                  ),
+                },
+                {
+                  value: 'refs',
+                  label: 'مراجع الفواتير',
+                  icon: <Receipt className="h-3.5 w-3.5" />,
+                  content: (
+                    <div className="space-y-4 py-4">
               {refDoctype && watchPaymentType !== 'Internal Transfer' ? (
                 <div className="space-y-2 border rounded-lg p-3 bg-muted/20">
                   <div className="flex items-center justify-between">
@@ -700,9 +809,15 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                   مراجع الفواتير تظهر عند اختيار تحصيل من عميل (فواتير مبيعات) أو صرف لمورد (فواتير شراء).
                 </p>
               )}
-              </TabsContent>
-
-              <TabsContent value="summary" className="space-y-4 py-4 outline-none">
+                    </div>
+                  ),
+                },
+                {
+                  value: 'summary',
+                  label: 'ملخص',
+                  icon: <FileText className="h-3.5 w-3.5" />,
+                  content: (
+                    <div className="space-y-4 py-4">
                 <div className="rounded-lg border border-border/40 bg-muted/20 p-4 text-xs space-y-2">
                   <div className="flex justify-between gap-2">
                     <span className="text-muted-foreground">نوع العملية</span>
@@ -719,8 +834,11 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
                     <span className="font-bold tabular-nums">{formatCurrency(Number(form.watch('paid_amount') || 0))}</span>
                   </div>
                 </div>
-              </TabsContent>
-            </Tabs>
+                    </div>
+                  ),
+                },
+              ]}
+            />
             <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
               <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
               <Button type="submit" disabled={createMutation.isPending} className="gap-1.5 min-w-[130px]">{createMutation.isPending ? 'جاري الحفظ...' : 'حفظ كمسودة'}</Button>

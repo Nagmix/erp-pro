@@ -218,8 +218,6 @@ export function ErpLinkCombobox({
               <Button variant="secondary" size="sm" className="w-full h-9 gap-2 text-[12px] font-semibold" asChild>
                 <Link
                   href={createShortcut.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   onClick={() => setOpen(false)}
                 >
                   <Plus className="h-3.5 w-3.5" />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, type ReactNode } from 'react';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { useRouter } from 'next/navigation';
 import { DataTable, type Column } from '@/components/erp/data-table';
@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Receipt, Trash2, Upload, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Plus, Receipt, Trash2, Upload, FileSpreadsheet, Loader2, CalendarDays, Users, Landmark, Wallet, ArrowRightLeft, Hash, MessageSquare, Building2 } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
@@ -50,6 +50,110 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Info } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+
+/* ─── Section fieldset header component ─── */
+
+function SectionFieldset({
+  legend,
+  icon: Icon,
+  title,
+  accent = 'primary',
+  children,
+}: {
+  legend: string;
+  icon: React.ElementType;
+  title: string;
+  accent?: 'primary' | 'info' | 'success' | 'warning' | 'destructive';
+  children: ReactNode;
+}) {
+  const accentMap: Record<string, string> = {
+    primary: 'from-primary/[0.04] via-transparent to-transparent',
+    info: 'from-info/[0.04] via-transparent to-transparent',
+    success: 'from-success/[0.04] via-transparent to-transparent',
+    warning: 'from-warning/[0.04] via-transparent to-transparent',
+    destructive: 'from-destructive/[0.04] via-transparent to-transparent',
+  };
+  const iconBgMap: Record<string, string> = {
+    primary: 'bg-primary/10',
+    info: 'bg-info/10',
+    success: 'bg-success/10',
+    warning: 'bg-warning/10',
+    destructive: 'bg-destructive/10',
+  };
+  const iconTextMap: Record<string, string> = {
+    primary: 'text-primary',
+    info: 'text-info',
+    success: 'text-success',
+    warning: 'text-warning',
+    destructive: 'text-destructive',
+  };
+
+  return (
+    <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+      <legend className="sr-only">{legend}</legend>
+      <div className={`bg-gradient-to-l ${accentMap[accent]} px-4 py-2.5 border-b border-border/30`}>
+        <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+          <span className={`h-5 w-5 rounded-md ${iconBgMap[accent]} flex items-center justify-center`}>
+            <Icon className={`h-3 w-3 ${iconTextMap[accent]}`} />
+          </span>
+          {title}
+        </h4>
+      </div>
+      <div className="p-4 space-y-4 bg-card/50">
+        {children}
+      </div>
+    </fieldset>
+  );
+}
+
+/* ─── Form field with icon label ─── */
+
+function FormField({
+  label,
+  icon: Icon,
+  error,
+  children,
+  required,
+  hint,
+}: {
+  label: string;
+  icon: React.ElementType;
+  error?: string;
+  children: ReactNode;
+  required?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+        <span className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        </span>
+        {label}
+        {required && <span className="text-destructive text-xs me-0.5">*</span>}
+      </Label>
+      {children}
+      {hint && !error && (
+        <p className="text-[11px] text-muted-foreground/60 pe-8">{hint}</p>
+      )}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-[11px] text-destructive font-medium flex items-center gap-1 pe-8"
+          >
+            <Info className="h-3 w-3 shrink-0" />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 interface ExpenseRow {
   name: string;
@@ -404,9 +508,17 @@ export default function ExpensesPage() {
       />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>إنشاء مطالبة مصروفات جديدة</DialogTitle>
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
+                <Receipt className="h-5 w-5" />
+              </div>
+              <div>
+                <span>إنشاء مطالبة مصروفات جديدة</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">أدخل بيانات المطالبة وتأكد من صحة البنود قبل الحفظ</p>
+              </div>
+            </DialogTitle>
           </DialogHeader>
           <input
             ref={expenseImportRef}
@@ -420,142 +532,157 @@ export default function ExpensesPage() {
             }}
           />
           <form onSubmit={form.handleSubmit(handleCreate)}>
-            <div className="px-1 pb-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="gap-1.5 text-xs"
-                onClick={() => expenseImportRef.current?.click()}
-              >
-                <Upload className="h-3.5 w-3.5" />
-                استيراد بنود من Excel
-              </Button>
-              <p className="text-xs text-muted-foreground mt-1">أعمدة مقترحة: تاريخ، نوع المصروف، المبلغ، وصف، مركز تكلفة (اختياري)</p>
-            </div>
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">الموظف *</Label>
-                  <ErpLinkCombobox
-                    doctype="Employee"
-                    value={form.watch('employee')}
-                    onChange={(v) => form.setValue('employee', v)}
-                    displayKey="employee_name"
-                    placeholder="اختر الموظف..."
-                  />
-                  {form.formState.errors.employee && (
-                    <p className="text-xs text-destructive">{form.formState.errors.employee.message}</p>
-                  )}
+            <div className="space-y-5 py-4">
+              {/* ── Section 1: Claim Info ── */}
+              <SectionFieldset legend="معلومات المطالبة" icon={Receipt} title="معلومات المطالبة" accent="primary">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField label="الموظف" icon={Users} error={form.formState.errors.employee?.message} required hint="الموظف صاحب المطالبة">
+                    <ErpLinkCombobox
+                      doctype="Employee"
+                      value={form.watch('employee')}
+                      onChange={(v) => form.setValue('employee', v)}
+                      displayKey="employee_name"
+                      placeholder="اختر الموظف..."
+                    />
+                  </FormField>
+                  <FormField label="تاريخ الترحيل" icon={CalendarDays} error={form.formState.errors.posting_date?.message} required hint="تاريخ تسجيل المطالبة">
+                    <Input type="date" dir="ltr" {...form.register('posting_date')} />
+                  </FormField>
+                  <FormField label="مركز التكلفة" icon={Building2} hint="مركز التكلفة الافتراضي للبنود">
+                    <ErpLinkCombobox
+                      doctype="Cost Center"
+                      value={form.watch('cost_center')}
+                      onChange={(v) => form.setValue('cost_center', v)}
+                      placeholder="اختياري"
+                    />
+                  </FormField>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">تاريخ الترحيل *</Label>
-                  <Input type="date" dir="ltr" {...form.register('posting_date')} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">مركز التكلفة</Label>
-                  <ErpLinkCombobox
-                    doctype="Cost Center"
-                    value={form.watch('cost_center')}
-                    onChange={(v) => form.setValue('cost_center', v)}
-                    placeholder="اختياري"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">العملة</Label>
-                  <ErpLinkCombobox
-                    doctype="Currency"
-                    value={form.watch('currency')}
-                    onChange={(v) => form.setValue('currency', v)}
-                    placeholder="ر.س"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">سعر الصرف</Label>
-                  <Input
-                    type="number"
-                    dir="ltr"
-                    step="any"
-                    min={0}
-                    placeholder="1"
-                    {...form.register('exchange_rate', { valueAsNumber: true })}
-                  />
-                </div>
-              </div>
-
-              <div className="border rounded-lg overflow-hidden">
-                <div className="bg-muted/50 px-3 py-2 grid grid-cols-12 gap-2 text-xs font-semibold">
-                  <div className="col-span-2">تاريخ البند</div>
-                  <div className="col-span-3">نوع المصروف</div>
-                  <div className="col-span-2">المبلغ</div>
-                  <div className="col-span-4">الوصف</div>
-                  <div className="col-span-1" />
-                </div>
-                {items.map((item, idx) => (
-                  <div key={idx} className="px-3 py-2 grid grid-cols-1 md:grid-cols-12 gap-2 items-center border-b last:border-b-0">
-                    <div className="md:col-span-2">
-                      <Input
-                        className="h-8 text-xs"
-                        type="date"
-                        dir="ltr"
-                        value={item.expense_date}
-                        onChange={(e) => updateItem(idx, 'expense_date', e.target.value)}
-                      />
-                    </div>
-                    <div className="md:col-span-3">
-                      <ErpLinkCombobox
-                        doctype="Expense Claim Type"
-                        value={item.expense_type}
-                        onChange={(v) => updateItem(idx, 'expense_type', v)}
-                        placeholder="نوع المصروف"
-                        className="h-8 text-xs"
-                      />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField label="العملة" icon={Wallet} error={form.formState.errors.currency?.message} required hint="عملة المطالبة">
+                    <ErpLinkCombobox
+                      doctype="Currency"
+                      value={form.watch('currency')}
+                      onChange={(v) => form.setValue('currency', v)}
+                      placeholder="ر.س"
+                    />
+                  </FormField>
+                  <FormField label="سعر الصرف" icon={ArrowRightLeft} error={form.formState.errors.exchange_rate?.message} hint="اترك 1 للعملة المحلية">
                     <Input
-                      className="md:col-span-2 h-8 text-xs"
                       type="number"
                       dir="ltr"
-                      placeholder="0.00"
-                      value={item.amount || ''}
-                      onChange={(e) => updateItem(idx, 'amount', Number(e.target.value) || 0)}
+                      step="any"
+                      min={0}
+                      placeholder="1"
+                      {...form.register('exchange_rate', { valueAsNumber: true })}
                     />
-                    <Input
-                      className="md:col-span-4 h-8 text-xs"
-                      placeholder="وصف المصروف"
-                      value={item.description}
-                      onChange={(e) => updateItem(idx, 'description', e.target.value)}
-                    />
-                    <div className="md:col-span-1 flex justify-center">
-                      {items.length > 1 && (
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" type="button" onClick={() => removeItem(idx)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                <div className="px-3 py-2 flex justify-center">
-                  <Button variant="ghost" size="sm" className="text-xs gap-1" type="button" onClick={addItem}>
-                    <Plus className="h-3 w-3" />
-                    إضافة بند
-                  </Button>
+                  </FormField>
                 </div>
-              </div>
+              </SectionFieldset>
 
-              <div className="bg-muted/50 rounded-lg p-3 flex justify-between text-sm font-bold">
-                <span>المبلغ الإجمالي</span>
-                <span className="tabular-nums">{formatCurrency(totalAmount)}</span>
-              </div>
+              {/* ── Section 2: Expense Items ── */}
+              <SectionFieldset legend="بنود المصروفات" icon={Hash} title="بنود المصروفات" accent="info">
+                <div className="px-1 pb-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    onClick={() => expenseImportRef.current?.click()}
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    استيراد بنود من Excel
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-1">أعمدة مقترحة: تاريخ، نوع المصروف، المبلغ، وصف، مركز تكلفة (اختياري)</p>
+                </div>
+                <div className="rounded-xl border border-border/40 overflow-hidden">
+                  {/* Table header with gradient background */}
+                  <div className="bg-gradient-to-l from-info/[0.06] via-muted/60 to-muted/40 border-b-2 border-border/50 px-3 py-2.5 grid grid-cols-12 gap-2 text-[11px] font-bold text-foreground/60 uppercase tracking-wider">
+                    <div className="col-span-2">تاريخ البند</div>
+                    <div className="col-span-3">نوع المصروف</div>
+                    <div className="col-span-2">المبلغ</div>
+                    <div className="col-span-4">الوصف</div>
+                    <div className="col-span-1" />
+                  </div>
+                  {items.map((item, idx) => (
+                    <div key={idx} className={`px-3 py-2 grid grid-cols-1 md:grid-cols-12 gap-2 items-center border-b border-border/30 last:border-b-0 transition-colors hover:bg-muted/20 ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/[0.03]'}`}>
+                      <div className="md:col-span-2">
+                        <Input
+                          className="h-8 text-xs"
+                          type="date"
+                          dir="ltr"
+                          value={item.expense_date}
+                          onChange={(e) => updateItem(idx, 'expense_date', e.target.value)}
+                        />
+                      </div>
+                      <div className="md:col-span-3">
+                        <ErpLinkCombobox
+                          doctype="Expense Claim Type"
+                          value={item.expense_type}
+                          onChange={(v) => updateItem(idx, 'expense_type', v)}
+                          placeholder="نوع المصروف"
+                          className="h-8 text-xs"
+                        />
+                      </div>
+                      <Input
+                        className="md:col-span-2 h-8 text-xs font-mono tabular-nums"
+                        type="number"
+                        dir="ltr"
+                        placeholder="0.00"
+                        value={item.amount || ''}
+                        onChange={(e) => updateItem(idx, 'amount', Number(e.target.value) || 0)}
+                      />
+                      <Input
+                        className="md:col-span-4 h-8 text-xs"
+                        placeholder="وصف المصروف"
+                        value={item.description}
+                        onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                      />
+                      <div className="md:col-span-1 flex justify-center">
+                        {items.length > 1 && (
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10" type="button" onClick={() => removeItem(idx)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="px-3 py-3 flex justify-center border-t border-dashed border-border/40 bg-muted/20">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-info hover:text-info hover:bg-info/10 hover:border-info/30 font-semibold shadow-sm min-w-[160px] justify-center"
+                      onClick={addItem}
+                    >
+                      <Plus className="h-4 w-4" />
+                      إضافة بند
+                    </Button>
+                  </div>
+                </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">ملاحظات</Label>
-                <Textarea placeholder="ملاحظات إضافية..." {...form.register('remark')} rows={3} />
-              </div>
+                {/* Total */}
+                <div className="bg-gradient-to-l from-info/[0.04] via-muted/30 to-muted/15 rounded-xl border border-border/40 p-3 flex justify-between text-sm font-bold">
+                  <span className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4 text-info" />
+                    المبلغ الإجمالي
+                  </span>
+                  <span className="tabular-nums text-info" dir="ltr">{formatCurrency(totalAmount)}</span>
+                </div>
+              </SectionFieldset>
+
+              {/* ── Section 3: Notes ── */}
+              <SectionFieldset legend="ملاحظات" icon={MessageSquare} title="ملاحظات" accent="success">
+                <FormField label="ملاحظات إضافية" icon={MessageSquare} hint="ملاحظات أو تفاصيل إضافية عن المطالبة">
+                  <Textarea
+                    placeholder="ملاحظات إضافية..."
+                    {...form.register('remark')}
+                    rows={3}
+                    className="min-h-[80px] text-sm resize-none"
+                  />
+                </FormField>
+              </SectionFieldset>
             </div>
-            <DialogFooter className="gap-2">
+            <DialogFooter className="gap-2 pt-4 mt-3 border-t border-border/40">
               <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">
                 إلغاء
               </Button>

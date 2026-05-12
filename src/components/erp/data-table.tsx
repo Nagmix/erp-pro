@@ -38,6 +38,8 @@ import {
   Inbox,
   AlertCircle,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ExportButton } from "@/components/erp/export-button";
@@ -119,6 +121,14 @@ function defaultGetRowId<T>(row: T, index: number): string {
   return `row-${index}`;
 }
 
+/** Map docstatus to a color for the left border indicator */
+function getStatusBorderColor(rec: Record<string, unknown>): string {
+  const ds = rec.docstatus;
+  if (ds === 1) return "border-s-green-500";       // Submitted → green
+  if (ds === 2) return "border-s-destructive";      // Cancelled → red
+  return "border-s-amber-400";                       // Draft → amber
+}
+
 export function DataTable<T = unknown>({
   data,
   columns,
@@ -155,6 +165,7 @@ export function DataTable<T = unknown>({
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [editing, setEditing] = useState<{ rowId: string; colKey: string } | null>(null);
   const [editDraft, setEditDraft] = useState("");
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(() => new Set());
 
   // ── Null-safety: تأكد من أن data و columns مصفوفات صالحة ──
   const safeData = Array.isArray(data) ? data : [];
@@ -267,6 +278,15 @@ export function DataTable<T = unknown>({
     });
   };
 
+  const toggleCardExpand = (id: string) => {
+    setExpandedCards((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const selectedRows = useMemo(
     () => safeData.filter((row, i) => selected.has(getRowId(row, i))),
     [safeData, selected, getRowId]
@@ -288,6 +308,10 @@ export function DataTable<T = unknown>({
   };
 
   const bulkBar = selectable && selected.size > 0 && bulkActions && bulkActions.length > 0;
+
+  // Number of columns to show on mobile by default (not counting primary)
+  const MOBILE_DEFAULT_COLS = 5; // primary + 5 secondary = 6 total
+  const MOBILE_VISIBLE_COUNT = 1 + MOBILE_DEFAULT_COLS;
 
   // ── Error state ──
   if (error) {
@@ -335,7 +359,7 @@ export function DataTable<T = unknown>({
         )}
         <div className="flex flex-wrap items-center gap-2">
           {searchable && (
-            <div className="relative flex-1 sm:flex-initial">
+            <div className="relative w-full sm:w-auto sm:flex-initial">
               <div className="absolute start-2.5 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center pointer-events-none">
                 <Search className="h-3 w-3 text-primary/70" />
               </div>
@@ -636,29 +660,77 @@ export function DataTable<T = unknown>({
             const id = getRowId(row, globalIndex);
             const rec = rowRecord(row);
             const primary = visibleColumns[0];
-            const secondary = visibleColumns.slice(1, 5);
+            const isExpanded = expandedCards.has(id);
+            const hasMoreCols = visibleColumns.length > MOBILE_VISIBLE_COUNT;
+            // Default visible secondary columns (up to 5, making total 6 with primary)
+            const secondaryDefault = visibleColumns.slice(1, MOBILE_VISIBLE_COUNT);
+            // Extra columns shown when expanded
+            const secondaryExtra = hasMoreCols ? visibleColumns.slice(MOBILE_VISIBLE_COUNT) : [];
+            // Determine the status border color
+            const statusBorder = getStatusBorderColor(rec);
+
             return (
-              <div key={`m-${id}`} className="rounded-lg border border-border/40 bg-card p-3 transition-colors hover:bg-accent/30">
+              <div
+                key={`m-${id}`}
+                className={cn(
+                  "rounded-lg border border-border/40 bg-card p-3 transition-all duration-200",
+                  "hover:bg-accent/30",
+                  // Alternating background for readability
+                  idx % 2 === 1 && "bg-muted/20",
+                  // Subtle left border status indicator
+                  "border-s-[3px]",
+                  statusBorder
+                )}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{primary?.header ?? "السجل"}</p>
-                    <p className="truncate text-sm font-bold mt-0.5">
+                    <p className="truncate text-base font-bold mt-0.5 leading-snug">
                       {primary ? (primary.render ? primary.render(rec[primary.key], row) : String(rec[primary.key] ?? "—")) : id}
                     </p>
                   </div>
-                  {showSelectCol ? (
-                    <Checkbox
-                      checked={selected.has(id)}
-                      onCheckedChange={() => toggleRow(id)}
-                      aria-label="تحديد البطاقة"
-                    />
-                  ) : null}
+                  <div className="flex items-center gap-2 shrink-0">
+                    {showSelectCol ? (
+                      <Checkbox
+                        checked={selected.has(id)}
+                        onCheckedChange={() => toggleRow(id)}
+                        aria-label="تحديد البطاقة"
+                      />
+                    ) : null}
+                    {hasMoreCols && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => toggleCardExpand(id)}
+                        aria-label={isExpanded ? "عرض أقل" : "عرض المزيد"}
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-2.5 space-y-1.5">
-                  {secondary.map((col) => {
+                  {secondaryDefault.map((col) => {
                     const rawVal = rec[col.key];
                     return (
                       <div key={`m-${id}-${col.key}`} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-muted-foreground shrink-0">{col.header}</span>
+                        <span className="truncate font-medium text-end">
+                          {col.render ? col.render(rawVal, row) : String(rawVal ?? "—")}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {/* Extra columns shown on expand */}
+                  {isExpanded && secondaryExtra.map((col) => {
+                    const rawVal = rec[col.key];
+                    return (
+                      <div key={`m-${id}-${col.key}`} className="flex items-center justify-between gap-2 text-xs animate-in fade-in slide-in-from-top-1 duration-200">
                         <span className="text-muted-foreground shrink-0">{col.header}</span>
                         <span className="truncate font-medium text-end">
                           {col.render ? col.render(rawVal, row) : String(rawVal ?? "—")}

@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
@@ -24,7 +24,8 @@ import { buildTrialBalanceFilters, pickFiscalYearForDate, type FiscalYearRow } f
 import { normalizeFrappeReportPayload } from '@/lib/reports/normalize-frappe-report';
 import { normalizedColumnsToDataTable } from '@/lib/reports/frappe-report-columns';
 import { formatCurrency } from '@/lib/core/helpers';
-import { BookOpen, Printer, RotateCcw, Scale, ArrowUpDown, Hash } from 'lucide-react';
+import { Printer, RotateCcw } from 'lucide-react';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { cn } from '@/lib/utils';
 
 type RootTypeFilter = 'all' | 'Asset' | 'Liability' | 'Income' | 'Expense' | 'Equity';
@@ -175,6 +176,8 @@ export default function TrialBalanceDetailPage() {
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
+      <ListQueryAlert error={reportQuery.isError ? (reportQuery.error as Error | null) : null} onRetry={() => reportQuery.refetch()} />
+
       <PageHeader
         title="ميزان المراجعة التفصيلي"
         description="تقرير مفصّل بأرصدة الحسابات الافتتاحية والحركة والإغلاق مع تصفية حسب نوع الحساب الجذري."

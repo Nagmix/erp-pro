@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ErpTabbedForm, type ErpTabDef } from '@/components/erp/erp-tabbed-form';
 import {
   Dialog,
   DialogContent,
@@ -57,6 +57,7 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  PiggyBank,
 } from 'lucide-react';
 
 /* ─── Types ─── */
@@ -563,47 +564,42 @@ export default function BudgetsPage() {
       />
 
       {/* ─── Tabs ─── */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="budgets" className="gap-1.5 text-xs">
-            <Wallet className="h-3.5 w-3.5" />
-            الميزانيات
-          </TabsTrigger>
-          <TabsTrigger value="comparison" className="gap-1.5 text-xs">
-            <BarChart3 className="h-3.5 w-3.5" />
-            مقارنة الموازنة
-          </TabsTrigger>
-          <TabsTrigger value="distribution" className="gap-1.5 text-xs">
-            <PieChart className="h-3.5 w-3.5" />
-            توزيع الميزانية
-          </TabsTrigger>
-        </TabsList>
-
-        {/* ═══ Tab 1: Budgets List ═══ */}
-        <TabsContent value="budgets" className="space-y-4">
-          <DataTable
-            data={filteredBudgets}
-            columns={columns}
-            tableId="accounting-budgets"
-            searchable
-            loading={budgetsLoading}
-            columnFilters
-            stickyFirstColumn
-            addLabel="ميزانية جديدة"
-            onAdd={openCreate}
-            onEdit={(row) => openEdit(row as Budget)}
-            onDelete={(row) => {
-              setToDelete(row as Budget);
-              setDeleteOpen(true);
-            }}
-            exportFileName="الميزانيات.csv"
-            printTitle="الميزانيات"
-          />
-        </TabsContent>
-
-        {/* ═══ Tab 2: Budget vs Actual ═══ */}
-        <TabsContent value="comparison" className="space-y-4">
-          {costCenterComparison.length === 0 ? (
+      <ErpTabbedForm
+        value={activeTab}
+        onValueChange={setActiveTab}
+        tabs={[
+          {
+            value: 'budgets',
+            label: 'الميزانيات',
+            icon: <PiggyBank className="h-4 w-4" />,
+            content: (
+              <DataTable
+                data={filteredBudgets}
+                columns={columns}
+                tableId="accounting-budgets"
+                searchable
+                loading={budgetsLoading}
+                columnFilters
+                stickyFirstColumn
+                addLabel="ميزانية جديدة"
+                onAdd={openCreate}
+                onEdit={(row) => openEdit(row as Budget)}
+                onDelete={(row) => {
+                  setToDelete(row as Budget);
+                  setDeleteOpen(true);
+                }}
+                exportFileName="الميزانيات.csv"
+                printTitle="الميزانيات"
+              />
+            ),
+          },
+          {
+            value: 'comparison',
+            label: 'مقارنة الموازنة',
+            icon: <BarChart3 className="h-4 w-4" />,
+            content: (
+              <div className="space-y-4">
+                {costCenterComparison.length === 0 ? (
             <Card className="border-border/40">
               <CardContent className="p-10 text-center">
                 <BarChart3 className="h-9 w-10 mx-auto text-muted-foreground/30 mb-3" />
@@ -704,11 +700,16 @@ export default function BudgetsPage() {
               ))}
             </div>
           )}
-        </TabsContent>
-
-        {/* ═══ Tab 3: Budget Distribution ═══ */}
-        <TabsContent value="distribution" className="space-y-4">
-          {budgets.length === 0 ? (
+              </div>
+            ),
+          },
+          {
+            value: 'distribution',
+            label: 'توزيع الميزانية',
+            icon: <PieChart className="h-4 w-4" />,
+            content: (
+              <div className="space-y-4">
+                {budgets.length === 0 ? (
             <Card className="border-border/40">
               <CardContent className="p-10 text-center">
                 <PieChart className="h-9 w-10 mx-auto text-muted-foreground/30 mb-3" />
@@ -808,8 +809,11 @@ export default function BudgetsPage() {
               })}
             </div>
           )}
-        </TabsContent>
-      </Tabs>
+              </div>
+            ),
+          },
+        ]}
+      />
 
       {/* ═══ Create / Edit Dialog ═══ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

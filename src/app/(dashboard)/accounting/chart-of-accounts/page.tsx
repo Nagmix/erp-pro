@@ -51,6 +51,7 @@ import {
   FolderOpen,
   Info,
   X,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '@/lib/core/helpers';
@@ -277,9 +278,9 @@ function AccountTreeItem({
 
       {/* ── Mobile row (<768px): card-style layout with proper name visibility ── */}
       <div
-        className="md:hidden border-b border-border/20 last:border-b-0 group transition-colors hover:bg-accent/50"
+        className="md:hidden border-b border-border/20 last:border-b-0 group transition-colors hover:bg-accent/50 overflow-hidden"
       >
-        <div className="flex items-center gap-2 py-2.5 text-xs" style={{ paddingInlineStart: `${Math.min(level, 4) * 0.6 + 0.6}rem`, paddingInlineEnd: '0.75rem' }}>
+        <div className="flex items-center gap-2 py-2.5 text-xs min-w-0" style={{ paddingInlineStart: `${Math.min(level, 4) * 0.6 + 0.6}rem`, paddingInlineEnd: '0.75rem' }}>
           {/* Expand arrow */}
           {hasChildren ? (
             <button
@@ -297,11 +298,11 @@ function AccountTreeItem({
           ) : (
             <FileText className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
           )}
-          <span className={`truncate min-w-0 flex-1 ${isGroup ? 'font-semibold' : ''}`}>{displayName}</span>
+          <span className={`truncate min-w-0 flex-1 overflow-hidden ${isGroup ? 'font-semibold' : ''}`}>{displayName}</span>
 
           {/* Balance */}
           {!isGroup && (
-            <span className="tabular-nums text-xs shrink-0 font-medium" dir="ltr">
+            <span className="tabular-nums text-xs shrink-0 font-medium max-w-[80px] truncate" dir="ltr">
               <span className={balance >= 0 ? 'text-foreground' : 'text-destructive'}>
                 {formatCurrency(balance)}
               </span>
@@ -630,6 +631,7 @@ function AccountFormContent({
 export default function ChartOfAccountsPage() {
   const [filterRoot, setFilterRoot] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -878,8 +880,8 @@ export default function ChartOfAccountsPage() {
         }
       />
 
-      {/* ─── Toolbar: Search + Filters ─── */}
-      <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-[var(--shadow-xs-ui)] p-3" dir="rtl">
+      {/* ─── Toolbar: Search + Filters (Desktop) ─── */}
+      <div className="hidden md:block rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-[var(--shadow-xs-ui)] p-3" dir="rtl">
         {/* Row 1: Search + Stats */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[220px] max-w-md group">
@@ -948,6 +950,96 @@ export default function ChartOfAccountsPage() {
             );
           })}
         </div>
+      </div>
+
+      {/* ─── Toolbar: Search + Filters (Mobile - Collapsible) ─── */}
+      <div className="md:hidden rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm overflow-hidden" dir="rtl">
+        <button
+          onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+          className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium hover:bg-accent/40 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+            <span>الفلاتر والبحث</span>
+            {(searchQuery || filterRoot !== 'all') && (
+              <span className="h-5 min-w-5 rounded-full bg-primary/15 text-primary text-[10px] font-bold flex items-center justify-center px-1.5">
+                فعّال
+              </span>
+            )}
+          </div>
+          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${mobileFiltersOpen ? '' : '-rotate-90'}`} />
+        </button>
+        {mobileFiltersOpen && (
+          <div className="px-3 pb-3 space-y-3 border-t border-border/30">
+            {/* Search input */}
+            <div className="relative pt-2 group">
+              <div className="absolute start-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-primary/20">
+                <Search className="h-4 w-4 text-primary/70 group-focus-within:text-primary" />
+              </div>
+              <Input
+                placeholder="بحث في الحسابات ..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pe-10 ps-9 h-10 text-sm rounded-xl border-border/40 bg-background/60 focus:bg-background transition-all duration-300 placeholder:text-muted-foreground/50"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute end-2.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg bg-muted/80 hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-all duration-200"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Stats */}
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-[11px] h-7 px-2.5 rounded-lg border-border/40 bg-muted/30 text-muted-foreground font-medium">
+                <FolderTree className="h-3 w-3 ms-1 text-primary/60" />
+                {filteredAccounts.length} من {totalAccounts}
+              </Badge>
+            </div>
+
+            {/* Filter tabs - scrollable horizontally */}
+            <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 overflow-x-auto -mx-0.5">
+              <button
+                onClick={() => setFilterRoot('all')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-250 whitespace-nowrap ${
+                  filterRoot === 'all'
+                    ? 'bg-background text-foreground shadow-sm ring-1 ring-border/30'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                }`}
+              >
+                <Layers className="h-3 w-3" />
+                الكل
+                <span className={`tabular-nums text-[10px] rounded-md px-1.5 py-0.5 font-semibold ${
+                  filterRoot === 'all' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/70'
+                }`}>{totalAccounts}</span>
+              </button>
+              {Object.entries(rootTypeConfig).map(([key, config]) => {
+                const count = accounts.filter(a => a.root_type === key).length;
+                const isActive = filterRoot === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setFilterRoot(isActive ? 'all' : key)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-250 whitespace-nowrap ${
+                      isActive
+                        ? 'bg-background text-foreground shadow-sm ring-1 ring-border/30'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                    }`}
+                  >
+                    <span className="h-2 w-2 rounded-full shrink-0" style={{ background: key === 'Asset' ? '#3b82f6' : key === 'Liability' ? '#f59e0b' : key === 'Equity' ? '#8b5cf6' : key === 'Income' ? '#10b981' : '#f43f5e' }} />
+                    {config.label}
+                    <span className={`tabular-nums text-[10px] rounded-md px-1.5 py-0.5 font-semibold ${
+                      isActive ? `${config.badge}` : 'bg-muted text-muted-foreground/70'
+                    }`}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ─── Tree View ─── */}

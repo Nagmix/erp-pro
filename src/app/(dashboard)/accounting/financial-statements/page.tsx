@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ErpTabbedForm, type ErpTabDef } from '@/components/erp/erp-tabbed-form';
 import { DataTable } from '@/components/erp/data-table';
 import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
@@ -31,18 +31,26 @@ import {
   type FiscalYearRow,
   type Periodicity,
 } from '@/lib/reports/financial-filters';
-import { BarChart3, BookOpen, Scale, Wallet, Printer, RotateCcw } from 'lucide-react';
+import {
+  Landmark,
+  TrendingUp,
+  Wallet,
+  Scale,
+  Printer,
+  RotateCcw,
+} from 'lucide-react';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/core/helpers';
 
 type ReportTab = 'balance-sheet' | 'income-statement' | 'cash-flow' | 'trial-balance';
 
 /** `catalogId` = مُعرّف سجل في `REPORTS_CATALOG` (يُمرَّر لـ `/api/reports/{id}`) وليس اسم ERPNext مباشرة. */
-const TAB_META: { id: ReportTab; label: string; short: string; icon: typeof BarChart3; catalogId: string }[] = [
-  { id: 'balance-sheet', label: 'الميزانية العمومية', short: 'ميزانية', icon: Scale, catalogId: 'balance-sheet' },
-  { id: 'income-statement', label: 'قائمة الدخل', short: 'دخل', icon: BarChart3, catalogId: 'income-statement' },
+const TAB_META: { id: ReportTab; label: string; short: string; icon: React.ComponentType<{ className?: string }>; catalogId: string }[] = [
+  { id: 'balance-sheet', label: 'الميزانية العمومية', short: 'ميزانية', icon: Landmark, catalogId: 'balance-sheet' },
+  { id: 'income-statement', label: 'قائمة الدخل', short: 'دخل', icon: TrendingUp, catalogId: 'income-statement' },
   { id: 'cash-flow', label: 'التدفقات النقدية', short: 'تدفقات', icon: Wallet, catalogId: 'cash-flow' },
-  { id: 'trial-balance', label: 'ميزان المراجعة', short: 'مراجعة', icon: BookOpen, catalogId: 'trial-balance' },
+  { id: 'trial-balance', label: 'ميزان المراجعة', short: 'مراجعة', icon: Scale, catalogId: 'trial-balance' },
 ];
 
 function defaultDateRange() {
@@ -134,6 +142,8 @@ export default function FinancialStatementsPage() {
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
+      <ListQueryAlert error={reportQuery.isError ? (reportQuery.error as Error | null) : null} onRetry={() => reportQuery.refetch()} />
+
       <PageHeader
         title="القوائم المالية الرسمية"
         description="قائمة الدخل والميزانية العمومية والتدفقات النقدية وميزان المراجعة — بيانات فعلية للمراجعة والتصدير."
@@ -297,24 +307,17 @@ export default function FinancialStatementsPage() {
         </CardContent>
       </Card>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as ReportTab)} className="space-y-4">
-        <TabsList className="flex h-auto flex-wrap justify-start gap-1 bg-muted/40 p-1 print:hidden">
-          {TAB_META.map((t) => {
-            const Icon = t.icon;
-            return (
-              <TabsTrigger
-                key={t.id}
-                value={t.id}
-                className="gap-1.5 data-[state=active]:bg-background"
-              >
-                <Icon className="h-4 w-4 opacity-80" />
-                {t.short}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
-
-        <div className="space-y-4">
+      <ErpTabbedForm
+        value={tab}
+        onValueChange={(v) => setTab(v as ReportTab)}
+        tabs={TAB_META.map((t) => {
+          const Icon = t.icon;
+          return {
+            value: t.id,
+            label: t.short,
+            icon: <Icon className="h-4 w-4" />,
+            content: (
+              <div className="space-y-4">
           {tab === 'trial-balance' && !fyLoading && company && !fiscalYearName && (
             <p className="text-sm text-chart-2">
               لا توجد سنة مالية تغطي «إلى تاريخ» المحدد. عدّل التاريخ أو أنشئ السنة المالية في النظام.
@@ -390,8 +393,11 @@ export default function FinancialStatementsPage() {
               exportFileName={activeTabLabel}
             />
           )}
-        </div>
-      </Tabs>
+              </div>
+            ),
+          };
+        })}
+      />
     </div>
   );
 }

@@ -13,6 +13,9 @@ const ROUTES: Record<string, { href: string; label: string }> = {
   Account: { href: '/accounting/chart-of-accounts?create=1', label: 'إضافة حساب' },
   'Mode of Payment': { href: '/accounting/settings?tab=payment-methods&create=1', label: 'إضافة طريقة دفع' },
   'Expense Claim Type': { href: '/accounting/settings?tab=expense-types&create=1', label: 'إضافة نوع مصروف' },
+  Currency: { href: '/accounting/settings?tab=general&create=1', label: 'إضافة عملة' },
+  Branch: { href: '/accounting/settings?tab=operations&create=1', label: 'إضافة فرع' },
+  'Fiscal Year': { href: '/accounting/fiscal-year?create=1', label: 'إضافة سنة مالية' },
 };
 
 export function getErpDocCreateShortcut(doctype: string): { href: string; label: string } | null {

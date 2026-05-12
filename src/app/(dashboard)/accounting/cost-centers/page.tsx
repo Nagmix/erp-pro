@@ -117,7 +117,7 @@ function CostCenterTreeItem({
         )}
         <div className="flex items-center gap-3 shrink-0">
           {item.cost_center_number && (
-            <span className="text-muted-foreground font-mono text-[11px] tabular-nums w-24 text-center" dir="ltr">
+            <span className="text-muted-foreground font-mono text-[11px] tabular-nums w-24 text-center hidden sm:inline-block" dir="ltr">
               {item.cost_center_number}
             </span>
           )}
@@ -386,8 +386,8 @@ export default function CostCentersPage() {
       <Card className="overflow-hidden border-border/40">
         {/* Table Header */}
         <div className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-4 py-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none">
-          <span className="flex-1">مركز التكلفة</span>
-          <span className="w-24 text-center">الرقم</span>
+          <span className="flex-1 min-w-0">مركز التكلفة</span>
+          <span className="w-24 text-center hidden sm:block">الرقم</span>
           <span className="w-20 text-center">النوع</span>
           <span className="w-16" />
         </div>
