@@ -639,8 +639,11 @@ export default function BankAccountsPage() {
                 pageSize={10}
                 searchable
                 loading={aLoad}
-                tableId="bank-accounts-table"
+                columnFilters
+                stickyFirstColumn
+                tableId="accounting-bank-accounts"
                 exportFileName="bank-accounts.csv"
+                printTitle="الحسابات البنكية"
               />
             </CardContent>
           </Card>
@@ -688,7 +691,7 @@ export default function BankAccountsPage() {
                   pageSize={5}
                   searchable
                   loading={bLoad}
-                  tableId="bank-accounts-banks"
+                  tableId="accounting-bank-accounts-banks"
                 />
               </CardContent>
             </Card>
@@ -741,7 +744,7 @@ export default function BankAccountsPage() {
                   pageSize={5}
                   searchable
                   loading={mLoad}
-                  tableId="bank-accounts-modes"
+                  tableId="accounting-bank-accounts-modes"
                 />
               </CardContent>
             </Card>
@@ -799,8 +802,11 @@ export default function BankAccountsPage() {
                 pageSize={15}
                 searchable
                 loading={btLoad}
-                tableId="bank-transactions-table"
+                columnFilters
+                stickyFirstColumn
+                tableId="accounting-bank-transactions"
                 exportFileName="bank-transactions.csv"
+                printTitle="حركات البنك"
               />
             </CardContent>
           </Card>
@@ -823,8 +829,11 @@ export default function BankAccountsPage() {
                 pageSize={10}
                 searchable
                 loading={btLoad}
-                tableId="bank-reconciliation"
+                columnFilters
+                stickyFirstColumn
+                tableId="accounting-bank-reconciliation"
                 exportFileName="reconciliation.csv"
+                printTitle="المطابقة البنكية"
               />
             </CardContent>
           </Card>

@@ -4,7 +4,9 @@ import { useCallback, useMemo, useState } from 'react';
 import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
+import { DocStatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -235,6 +237,16 @@ export default function BudgetsPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Budget | null>(null);
   const [activeTab, setActiveTab] = useState('budgets');
+  const [docstatusFilter, setDocstatusFilter] = useState<string>('all');
+
+  /* ─── Filtered budgets by docstatus ─── */
+  const filteredBudgets = useMemo(() => {
+    if (docstatusFilter === 'all') return budgets;
+    return budgets.filter((b) => {
+      const statusToDocstatus: Record<string, string> = { 'مسودة': '0', 'نشط': '1', 'مغلق': '2' };
+      return statusToDocstatus[b.status] === docstatusFilter;
+    });
+  }, [budgets, docstatusFilter]);
 
   /* ─── Form State ─── */
   const [form, setForm] = useState({
@@ -255,6 +267,13 @@ export default function BudgetsPage() {
   const activeBudgets = budgets.filter((b) => b.status === 'نشط').length;
   const totalAllocated = useMemo(() => budgets.reduce((s, b) => s + b.allocatedAmount, 0), [budgets]);
   const totalSpent = useMemo(() => budgets.reduce((s, b) => s + b.actualSpent, 0), [budgets]);
+
+  const docstatusTabs: ErpStatusTab[] = [
+    { value: 'all', label: 'الكل' },
+    { value: '0', label: 'مسودة' },
+    { value: '1', label: 'نشط' },
+    { value: '2', label: 'ملغي' },
+  ];
 
   /* ─── Actions ─── */
   const openCreate = useCallback(() => {
@@ -417,7 +436,7 @@ export default function BudgetsPage() {
         header: 'المخصص',
         sortable: true,
         render: (v) => (
-          <span className="text-xs font-semibold tabular-nums">{formatCurrency(Number(v))}</span>
+          <span className="text-xs font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(v))}</span>
         ),
       },
       {
@@ -425,7 +444,7 @@ export default function BudgetsPage() {
         header: 'المصروف',
         sortable: true,
         render: (v) => (
-          <span className="text-xs tabular-nums">{formatCurrency(Number(v))}</span>
+          <span className="text-xs tabular-nums" dir="ltr">{formatCurrency(Number(v))}</span>
         ),
       },
       {
@@ -441,6 +460,7 @@ export default function BudgetsPage() {
                   ? 'text-destructive dark:text-rose-400'
                   : 'text-primary'
               )}
+              dir="ltr"
             >
               {formatCurrency(rem)}
             </span>
@@ -531,6 +551,17 @@ export default function BudgetsPage() {
       />
 
       <ListQueryAlert error={budgetsError} onRetry={() => refetchBudgets()} />
+
+      <ErpListDateStatusFilters
+        dateFrom=""
+        dateTo=""
+        onDateFromChange={() => {}}
+        onDateToChange={() => {}}
+        statusValue={docstatusFilter}
+        onStatusChange={setDocstatusFilter}
+        statusTabs={docstatusTabs}
+      />
+
       {/* ─── Tabs ─── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
@@ -551,10 +582,13 @@ export default function BudgetsPage() {
         {/* ═══ Tab 1: Budgets List ═══ */}
         <TabsContent value="budgets" className="space-y-4">
           <DataTable
-            data={budgets}
+            data={filteredBudgets}
             columns={columns}
-            tableId="budgets-list"
+            tableId="accounting-budgets"
             searchable
+            loading={budgetsLoading}
+            columnFilters
+            stickyFirstColumn
             addLabel="ميزانية جديدة"
             onAdd={openCreate}
             onEdit={(row) => openEdit(row as Budget)}
@@ -562,7 +596,8 @@ export default function BudgetsPage() {
               setToDelete(row as Budget);
               setDeleteOpen(true);
             }}
-            exportFileName="الميزانيات"
+            exportFileName="الميزانيات.csv"
+            printTitle="الميزانيات"
           />
         </TabsContent>
 

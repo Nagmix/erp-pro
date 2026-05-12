@@ -3,13 +3,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader } from '@/components/erp/page-header';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Select,
   SelectContent,
@@ -17,16 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Loader2, Filter, ChevronDown, Upload, X, CreditCard, ArrowDownToLine, ArrowUpFromLine, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { apiChequeLifecycleFieldStatus, apiEnsureChequeLifecycleField } from '@/lib/client/api';
 import { useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { CHEQUE_LIFECYCLE_FIELD, CHEQUE_LIFECYCLE_OPTIONS, chequeLifecycleLabel } from '@/lib/erp/cheque-lifecycle';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { toast } from 'sonner';
-import { translateAccountName } from '@/lib/core/arabic-labels';
-import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 type PERow = {
@@ -58,8 +56,6 @@ export default function ChequesPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [includeLifecycle, setIncludeLifecycle] = useState(false);
   const [lifecycleCheckDone, setLifecycleCheckDone] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -107,7 +103,14 @@ export default function ChequesPage() {
     };
   }, []);
 
-  const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setStatusFilter('all'); setTypeFilter('all'); setLifecycleFilter('all'); };
+  const statusTabs: ErpStatusTab[] = [
+    { value: 'all', label: 'الكل' },
+    { value: '0', label: 'مسودة' },
+    { value: '1', label: 'مرحّل' },
+    { value: '2', label: 'ملغي' },
+  ];
+
+  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setTypeFilter('all'); setLifecycleFilter('all'); };
 
   const rows = useMemo(() => {
     const all = data || [];
@@ -126,28 +129,15 @@ export default function ChequesPage() {
   const filtered = useMemo(() => {
     let list = rows;
     if (typeFilter !== 'all') list = list.filter((p) => p.payment_type === typeFilter);
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter((p) =>
-        ['name', 'party', 'reference_no', 'mode_of_payment'].some(
-          (k) => String((p as any)[k] ?? '').toLowerCase().includes(q)
-        )
-      );
-    }
     if (dateFrom || dateTo) {
-      list = list.filter((p) => {
-        const d = p.posting_date || '';
-        if (dateFrom && d < dateFrom) return false;
-        if (dateTo && d > dateTo) return false;
-        return true;
-      });
+      list = list.filter((p) => rowInDateRangeISO(p.posting_date, dateFrom, dateTo));
     }
     if (statusFilter !== 'all') list = list.filter((p) => String(p.docstatus) === statusFilter);
     if (lifecycleFilter !== 'all' && includeLifecycle) {
       list = list.filter((p) => (p[CHEQUE_LIFECYCLE_FIELD] || '__none__') === lifecycleFilter);
     }
     return list;
-  }, [rows, typeFilter, search, dateFrom, dateTo, statusFilter, lifecycleFilter, includeLifecycle]);
+  }, [rows, typeFilter, dateFrom, dateTo, statusFilter, lifecycleFilter, includeLifecycle]);
 
   const onStageChange = useCallback(
     (name: string, stage: string) => {
@@ -187,7 +177,7 @@ export default function ChequesPage() {
       {
         key: 'paid_amount',
         header: 'المبلغ',
-        render: (v) => <span className="tabular-nums font-semibold">{formatCurrency(Number(v))}</span>},
+        render: (v) => <span className="tabular-nums font-semibold" dir="ltr">{formatCurrency(Number(v))}</span>},
       { key: 'reference_no', header: 'رقم الشيك/مرجع', render: (v) => String(v || '—') },
       { key: 'posting_date', header: 'التاريخ', render: (v) => formatDate(String(v)) },
       { key: 'docstatus', header: 'الحالة', render: (v) => <DocStatusBadge docstatus={Number(v) as 0 | 1 | 2} /> },
@@ -228,26 +218,7 @@ export default function ChequesPage() {
     return [...base.slice(0, 6), lifecycleCol, ...base.slice(6)];
   }, [includeLifecycle, onStageChange, updatePe.isPending]);
 
-  const filterOptions = [
-    { key: 'all', label: 'الكل', count: rows.length },
-    { key: 'Receive', label: 'تحصيل', count: rows.filter((p) => p.payment_type === 'Receive').length },
-    { key: 'Pay', label: 'صرف', count: rows.filter((p) => p.payment_type === 'Pay').length },
-    {
-      key: 'Internal Transfer',
-      label: 'تحويل',
-      count: rows.filter((p) => p.payment_type === 'Internal Transfer').length},
-  ];
-
-  // KPI strip — مؤشرات الشيكات
-  const kpis = useMemo(() => {
-    const lcField = CHEQUE_LIFECYCLE_FIELD;
-    const issued = rows.filter((p) => (p as any)[lcField] === 'Issued').length;
-    const deposited = rows.filter((p) => (p as any)[lcField] === 'Deposited').length;
-    const cleared = rows.filter((p) => (p as any)[lcField] === 'Cleared').length;
-    const bounced = rows.filter((p) => (p as any)[lcField] === 'Bounced').length;
-    const noStage = rows.filter((p) => !(p as any)[lcField]).length;
-    return { total: rows.length, issued, deposited, cleared, bounced, noStage };
-  }, [rows]);
+  const hasActiveFilters = dateFrom || dateTo || statusFilter !== 'all' || typeFilter !== 'all' || lifecycleFilter !== 'all';
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
@@ -268,72 +239,6 @@ export default function ChequesPage() {
           </Button>
         }
       />
-
-      {/* شريط البحث والفلاتر */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* بحث سريع */}
-          <div className="flex-1 min-w-[200px]">
-            <Input placeholder="بحث بالرقم أو الطرف..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
-          </div>
-        </div>
-
-        {/* فلاتر متقدمة (قابلة للطي) */}
-        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-                <Filter className="h-3 w-3" /> فلاتر متقدمة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            {(dateFrom || dateTo || statusFilter !== 'all' || search || lifecycleFilter !== 'all') && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-                <X className="h-3 w-3" /> مسح الفلاتر
-              </Button>
-            )}
-          </div>
-          <CollapsibleContent>
-            <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-            <Label className="text-xs">من تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">إلى تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">الحالة</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-8 text-xs w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="0">مسودة</SelectItem>
-                <SelectItem value="1">مرحّل</SelectItem>
-                <SelectItem value="2">ملغي</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          {includeLifecycle && (
-            <div className="space-y-1">
-              <Label className="text-xs">دورة الشيك</Label>
-              <Select value={lifecycleFilter} onValueChange={setLifecycleFilter}>
-                <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">الكل</SelectItem>
-                  <SelectItem value="__none__">بدون مرحلة</SelectItem>
-                  {CHEQUE_LIFECYCLE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt} value={opt}>{chequeLifecycleLabel(opt)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
 
       {lifecycleCheckDone && !includeLifecycle && (
         <Alert className="border-amber-500/40 bg-chart-2/5">
@@ -358,78 +263,70 @@ export default function ChequesPage() {
         </Alert>
       )}
 
-      {/* شريط مؤشرات الشيكات */}
-      {includeLifecycle && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <CreditCard className="h-4.5 w-4.5" />
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">نوع السند</Label>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="h-9 text-xs w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="Receive">تحصيل</SelectItem>
+                  <SelectItem value="Pay">صرف</SelectItem>
+                  <SelectItem value="Internal Transfer">تحويل</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">إجمالي الشيكات</p>
-              <p className="text-lg font-bold tabular-nums">{kpis.total}</p>
-            </div>
-          </div>
-          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-chart-2/10 text-chart-2 flex items-center justify-center">
-              <ArrowUpFromLine className="h-4.5 w-4.5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">إصدار</p>
-              <p className="text-lg font-bold tabular-nums">{kpis.issued}</p>
-            </div>
-          </div>
-          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-chart-1/10 text-chart-1 flex items-center justify-center">
-              <ArrowDownToLine className="h-4.5 w-4.5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">إيداع</p>
-              <p className="text-lg font-bold tabular-nums">{kpis.deposited}</p>
-            </div>
-          </div>
-          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-              <CheckCircle2 className="h-4.5 w-4.5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">مقاصة</p>
-              <p className="text-lg font-bold tabular-nums">{kpis.cleared}</p>
-            </div>
-          </div>
-          <div className="rounded-xl border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center">
-              <AlertTriangle className="h-4.5 w-4.5" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground font-medium">ارتداد</p>
-              <p className="text-lg font-bold tabular-nums">{kpis.bounced}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-[var(--shadow-xs-ui)] p-3">
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 overflow-x-auto">
-          {filterOptions.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setTypeFilter(f.key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold transition-all whitespace-nowrap ${typeFilter === f.key ? 'bg-background text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-border/30' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}`}
-            >
-              {f.label}
-              <span
-                className={`tabular-nums text-xs rounded-md px-1.5 py-0.5 font-semibold ${typeFilter === f.key ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/70'}`}
+            {includeLifecycle && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">دورة الشيك</Label>
+                <Select value={lifecycleFilter} onValueChange={setLifecycleFilter}>
+                  <SelectTrigger className="h-9 text-xs w-32"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">الكل</SelectItem>
+                    <SelectItem value="__none__">بدون مرحلة</SelectItem>
+                    {CHEQUE_LIFECYCLE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt} value={opt}>{chequeLifecycleLabel(opt)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs"
+                onClick={clearFilters}
               >
-                {f.count}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+                مسح الكل
+              </Button>
+            )}
+          </div>
+        }
+      />
 
-      <DataTable data={filtered} columns={columns} searchable loading={isLoading} pageSize={15} />
+      <DataTable
+        data={filtered}
+        columns={columns}
+        searchable
+        loading={isLoading}
+        pageSize={15}
+        columnFilters
+        stickyFirstColumn
+        tableId="accounting-cheques"
+        exportFileName="cheques.csv"
+        printTitle="الشيكات"
+      />
     </div>
   );
 }

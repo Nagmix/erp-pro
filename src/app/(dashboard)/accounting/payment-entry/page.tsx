@@ -3,13 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -33,9 +32,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, ArrowUpLeft, ArrowDownLeft, ArrowLeftRight, Trash2, CreditCard, Send, Undo2, Eye, FileText, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import { Plus, ArrowUpLeft, ArrowDownLeft, ArrowLeftRight, Trash2, CreditCard, Send, Undo2, Eye } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PageHeader } from '@/components/erp/page-header';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { buildPaymentEntry, type PaymentReferenceInput } from '@/lib/erp/erpnext-payloads';
@@ -44,13 +44,10 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { toast } from 'sonner';
-import { translateAccountName } from '@/lib/core/arabic-labels';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { cn } from '@/lib/utils';
 
 interface PaymentRow {
   name: string;
@@ -98,7 +95,6 @@ type PaymentFormOutput = z.output<typeof paymentSchema>;
 
 export default function PaymentEntryPage() {
   const router = useRouter();
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -107,8 +103,6 @@ export default function PaymentEntryPage() {
   const [selectedEntry, setSelectedEntry] = useState<PaymentRow | null>(null);
   const [peRefs, setPeRefs] = useState<PaymentReferenceInput[]>([]);
   const [peFxUnified, setPeFxUnified] = useState(true);
-  const [search, setSearch] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [paymentTypeFilter, setPaymentTypeFilter] = useState('all');
   const chequeFlowHandled = useRef(false);
   const interBranchFundsHandled = useRef(false);
@@ -159,24 +153,21 @@ export default function PaymentEntryPage() {
 
   const entries = data || [];
 
+  const statusTabs: ErpStatusTab[] = [
+    { value: 'all', label: 'الكل' },
+    { value: '0', label: 'مسودة' },
+    { value: '1', label: 'مرحّل' },
+    { value: '2', label: 'ملغي' },
+  ];
+
   // Filtered data
   const filteredData = useMemo(() => {
     let list = entries;
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter((row: any) =>
-        ['name', 'party', 'mode_of_payment', 'reference_no', 'payment_type', 'remarks'].some(key => String((row as any)[key] ?? '').toLowerCase().includes(q))
-      );
-    }
-    if (typeFilter !== 'all') list = list.filter(p => p.payment_type === typeFilter);
     if (statusFilter !== 'all') list = list.filter(p => String(p.docstatus) === statusFilter);
-    if (dateFrom) list = list.filter(p => p.posting_date >= dateFrom);
-    if (dateTo) list = list.filter(p => p.posting_date <= dateTo);
-    
-    if (paymentTypeFilter !== 'all') {
-      list = list.filter((row: any) => String(row.payment_type) === paymentTypeFilter);
-    }return list;
-  }, [entries, typeFilter, statusFilter, dateFrom, dateTo]);
+    if (dateFrom || dateTo) list = list.filter(p => rowInDateRangeISO(p.posting_date, dateFrom, dateTo));
+    if (paymentTypeFilter !== 'all') list = list.filter(p => p.payment_type === paymentTypeFilter);
+    return list;
+  }, [entries, statusFilter, dateFrom, dateTo, paymentTypeFilter]);
 const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
   const totalPaid = entries.filter(p => p.payment_type === 'Pay' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
   const totalTransfers = entries.filter(p => p.payment_type === 'Internal Transfer' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
@@ -337,7 +328,11 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
       key: 'paid_amount',
       header: 'المبلغ',
       sortable: true,
-      render: (value) => <span className="font-semibold tabular-nums">{formatCurrency(Number(value))}</span>},
+      render: (value) => (
+        <span className="font-semibold tabular-nums" dir="ltr">
+          {formatCurrency(Number(value))}
+        </span>
+      )},
     {
       key: 'party',
       header: 'الطرف',
@@ -404,8 +399,8 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
         </div>
       )},
   ], [submitMutation, cancelMutation, refetch, toast]);
-  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setSearch(''); setPaymentTypeFilter('all'); };
-
+  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setPaymentTypeFilter('all'); };
+  const hasActiveFilters = dateFrom || dateTo || statusFilter !== 'all' || paymentTypeFilter !== 'all';
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
@@ -434,74 +429,53 @@ const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docs
         }
       />
 
-      {/* شريط البحث والفلاتر */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* بحث سريع */}
-          <div className="flex-1 min-w-[200px]">
-            <Input placeholder="بحث بالرقم أو الطرف..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
-          </div>
-        </div>
-
-        {/* فلاتر متقدمة (قابلة للطي) */}
-        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-                <Filter className="h-3 w-3" /> فلاتر متقدمة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            {(dateFrom || dateTo || statusFilter !== 'all' || paymentTypeFilter !== 'all' || search) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-                <X className="h-3 w-3" /> مسح الفلاتر
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">نوع السند</Label>
+              <Select value={paymentTypeFilter} onValueChange={setPaymentTypeFilter}>
+                <SelectTrigger className="h-9 text-xs w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="Receive">قبض</SelectItem>
+                  <SelectItem value="Pay">صرف</SelectItem>
+                  <SelectItem value="Internal Transfer">تحويل داخلي</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs"
+                onClick={clearFilters}
+              >
+                مسح الكل
               </Button>
             )}
           </div>
-          <CollapsibleContent>
-            <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-            <Label className="text-xs">من تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">إلى تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">النوع</Label>
-            <Select value={paymentTypeFilter} onValueChange={setPaymentTypeFilter}>
-              <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="Receive">قبض</SelectItem>
-                <SelectItem value="Pay">صرف</SelectItem>
-                <SelectItem value="Internal Transfer">تحويل داخلي</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">الحالة</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-8 text-xs w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="0">مسودة</SelectItem>
-                <SelectItem value="1">مرحّل</SelectItem>
-                <SelectItem value="2">ملغي</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+        }
+      />
 
       <DataTable
         data={filteredData}
         columns={columns}
         searchable
         loading={isLoading}
+        columnFilters
+        stickyFirstColumn
+        tableId="accounting-payment-entry"
+        exportFileName="payment-entries.csv"
+        printTitle="سندات القبض والصرف"
       />
 
       {/* Create Dialog */}

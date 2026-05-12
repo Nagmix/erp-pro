@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
+import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Select,
   SelectContent,
@@ -32,8 +33,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Building2, LineChart, Trash2, Filter, ChevronDown, Upload, X} from 'lucide-react';
+import { Plus, Building2, LineChart, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { buildAssetCreate } from '@/lib/erp/erpnext-payloads';
@@ -45,7 +47,6 @@ import { toast } from 'sonner';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { cn } from '@/lib/utils';
 
 interface AssetRow {
   name: string;
@@ -64,6 +65,7 @@ interface AssetRow {
   custodian?: string;
   item_code?: string;
   status: string;
+  docstatus?: number;
 }
 
 // ============================================================
@@ -134,7 +136,7 @@ const columns: Column<AssetRow>[] = [
   }},
   { key: 'available_for_use_date', header: 'تاريخ الاستخدام', sortable: true, render: (_, row) => formatDate(String(row.available_for_use_date || row.purchase_date || '')) },
   { key: 'gross_purchase_amount', header: 'قيمة الشراء', sortable: true, render: (_, row) => (
-    <span className="font-semibold tabular-nums">{formatCurrency(Number(row.gross_purchase_amount ?? row.purchase_amount ?? 0))}</span>
+    <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(row.gross_purchase_amount ?? row.purchase_amount ?? 0))}</span>
   )},
   { key: 'location', header: 'الموقع' },
   { key: 'status', header: 'الحالة', render: (value) => <StatusBadge status={String(value)} /> },
@@ -145,18 +147,24 @@ const columns: Column<AssetRow>[] = [
 // ============================================================
 
 export default function AssetsPage() {
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [assetStatusFilter, setAssetStatusFilter] = useState('all');
   const [selected, setSelected] = useState<AssetRow | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [docstatusFilter, setDocstatusFilter] = useState<string>('all');
 
-  const clearFilters = () => { setStatusFilter('all'); setSearch(''); setAssetStatusFilter('all'); setDateFrom(''); setDateTo(''); };
+  const docstatusTabs: ErpStatusTab[] = [
+    { value: 'all', label: 'الكل' },
+    { value: '0', label: 'مسودة' },
+    { value: '1', label: 'مرحّل' },
+    { value: '2', label: 'ملغي' },
+  ];
+
+  const clearFilters = () => { setDocstatusFilter('all'); setAssetStatusFilter('all'); setDateFrom(''); setDateTo(''); };
+  const hasActiveFilters = dateFrom || dateTo || assetStatusFilter !== 'all' || docstatusFilter !== 'all';
   const { company: defaultCo } = useDefaultCompanyName();
   const {
     data: depSched = [],
@@ -188,6 +196,7 @@ export default function AssetsPage() {
       'depreciation_method',
       'total_number_of_depreciations',
       'status',
+      'docstatus',
     ],
     limit: 500,
   });
@@ -198,12 +207,6 @@ export default function AssetsPage() {
   const assets = data || [];
   const filteredData = useMemo(() => {
     let list = assets;
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      list = list.filter(a =>
-        [a.name, a.asset_name, a.asset_category].some(v => String(v ?? '').toLowerCase().includes(q))
-      );
-    }
     if (dateFrom) {
       list = list.filter(a => a.available_for_use_date && a.available_for_use_date >= dateFrom);
     }
@@ -213,8 +216,11 @@ export default function AssetsPage() {
     if (assetStatusFilter !== 'all') {
       list = list.filter(a => a.status === assetStatusFilter);
     }
+    if (docstatusFilter !== 'all') {
+      list = list.filter(a => String(a.docstatus) === docstatusFilter);
+    }
     return list;
-  }, [assets, search, dateFrom, dateTo, assetStatusFilter]);  const createForm = useForm<AssetFormInput, any, AssetFormOutput>({
+  }, [assets, dateFrom, dateTo, assetStatusFilter, docstatusFilter]);  const createForm = useForm<AssetFormInput, any, AssetFormOutput>({
     resolver: zodResolver(assetSchema),
     defaultValues: {
       asset_name: '',
@@ -576,79 +582,54 @@ export default function AssetsPage() {
         }
       />
 
-      {/* شريط البحث والفلاتر */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* بحث سريع */}
-          <div className="flex-1 min-w-[200px]">
-            <Input placeholder="بحث باسم الأصل..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
-          </div>
-        </div>
-
-        {/* فلاتر متقدمة (قابلة للطي) */}
-        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-                <Filter className="h-3 w-3" /> فلاتر متقدمة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            {(dateFrom || dateTo || assetStatusFilter !== 'all' || search) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-                <X className="h-3 w-3" /> مسح الفلاتر
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={docstatusFilter}
+        onStatusChange={setDocstatusFilter}
+        statusTabs={docstatusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">حالة الأصل</Label>
+              <Select value={assetStatusFilter} onValueChange={setAssetStatusFilter}>
+                <SelectTrigger className="h-9 text-xs w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="Active">نشط</SelectItem>
+                  <SelectItem value="Sold">مباع</SelectItem>
+                  <SelectItem value="Scrapped">مستهلك</SelectItem>
+                  <SelectItem value="In Maintenance">صيانة</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs"
+                onClick={clearFilters}
+              >
+                مسح الكل
               </Button>
             )}
           </div>
-          <CollapsibleContent>
-            <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-            <Label className="text-xs">من تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">إلى تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">الحالة</Label>
-            <Select value={assetStatusFilter} onValueChange={setAssetStatusFilter}>
-              <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="Active">نشط</SelectItem>
-                <SelectItem value="Sold">مباع</SelectItem>
-                <SelectItem value="Scrapped">مستهلك</SelectItem>
-                <SelectItem value="In Maintenance">صيانة</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-
-      <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-[var(--shadow-xs-ui)] p-3">
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 overflow-x-auto">
-          {([
-            { key: 'all', label: 'الكل', count: assets.length },
-            { key: 'Active', label: 'نشطة', count: assets.filter(a => a.status === 'Active').length },
-            { key: 'Draft', label: 'مسودات', count: assets.filter(a => a.status === 'Draft').length },
-            { key: 'Sold', label: 'مباعة', count: assets.filter(a => a.status === 'Sold').length },
-          ] as const).map(f => (
-            <button key={f.key} onClick={() => setStatusFilter(f.key)} className={`flex items-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-bold transition-all whitespace-nowrap ${statusFilter === f.key ? 'bg-background text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-border/30' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}`}>
-              {f.label}
-              <span className={`tabular-nums text-xs rounded-md px-1.5 py-0.5 font-semibold ${statusFilter === f.key ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/70'}`}>{f.count}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+        }
+      />
 
       <DataTable
         data={filteredData}
         columns={columns}
         searchable
         loading={isLoading}
+        columnFilters
+        stickyFirstColumn
+        tableId="accounting-assets"
+        exportFileName="assets.csv"
+        printTitle="الأصول الثابتة"
         onEdit={openEdit}
         onDelete={(row) => { setSelected(row); setDeleteDialogOpen(true); }}
       />

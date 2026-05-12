@@ -4,12 +4,12 @@ import { useState, useMemo, useRef } from 'react';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { useRouter } from 'next/navigation';
 import { DataTable, type Column } from '@/components/erp/data-table';
+import { DocStatusBadge } from '@/components/erp/status-badge';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -27,10 +27,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Receipt, Trash2, CheckCircle, Clock, FileX, Upload, Filter, ChevronDown, X, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Plus, Receipt, Trash2, Upload, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { translateAccountName } from '@/lib/core/arabic-labels';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
@@ -43,8 +43,13 @@ import type { ParsedExpenseLine } from '@/lib/erp/parse-expense-import-xlsx';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
-import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ExpenseRow {
   name: string;
@@ -91,10 +96,10 @@ export default function ExpensesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [docstatusFilter, setDocstatusFilter] = useState<string>('all');
   const expenseImportRef = useRef<HTMLInputElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<ExpenseRow | null>(null);
   const [items, setItems] = useState<ExpenseItem[]>(() => [emptyItem(new Date().toISOString().split('T')[0]!)]);
 
@@ -140,27 +145,37 @@ export default function ExpensesPage() {
       exchange_rate: 1}});
 
   const expenses = data || [];
+  const docstatusTabs: ErpStatusTab[] = [
+    { value: 'all', label: 'الكل' },
+    { value: '0', label: 'مسودة' },
+    { value: '1', label: 'مرحّل' },
+    { value: '2', label: 'ملغي' },
+  ];
+
   const filteredData = useMemo(() => {
     let list = expenses;
     if (dateFrom || dateTo) {
       list = list.filter((e) => rowInDateRangeISO(e.posting_date, dateFrom, dateTo));
     }
+    if (docstatusFilter !== 'all') {
+      list = list.filter((row) => String(row.docstatus) === docstatusFilter);
+    }
     if (statusFilter !== 'all') {
-      list = list.filter((row: any) => String(row.status) === statusFilter);
+      list = list.filter((row) => String(row.status) === statusFilter);
     }
     return list;
-  }, [expenses, dateFrom, dateTo, statusFilter]);
+  }, [expenses, dateFrom, dateTo, statusFilter, docstatusFilter]);
 
   const expenseStatusTabs = useMemo(
     () => [
-      { value: 'all', label: `الكل (${expenses.length})` },
-      { value: 'Draft', label: `مسودات (${expenses.filter((e) => e.status === 'Draft').length})` },
-      { value: 'Submitted', label: `مُرحَّلة (${expenses.filter((e) => e.status === 'Submitted').length})` },
-      { value: 'Approved', label: `موافق (${expenses.filter((e) => e.status === 'Approved').length})` },
-      { value: 'Paid', label: `مدفوعة (${expenses.filter((e) => e.status === 'Paid').length})` },
-      { value: 'Rejected', label: `مرفوضة (${expenses.filter((e) => e.status === 'Rejected').length})` },
+      { value: 'all', label: 'الكل' },
+      { value: 'Draft', label: 'مسودة' },
+      { value: 'Submitted', label: 'مُرحّل' },
+      { value: 'Approved', label: 'موافق' },
+      { value: 'Paid', label: 'مدفوع' },
+      { value: 'Rejected', label: 'مرفوض' },
     ],
-    [expenses]
+    []
   );  const totalAmount = useMemo(() => items.reduce((s, i) => s + i.amount, 0), [items]);
 
   const columns: Column<ExpenseRow>[] = useMemo(
@@ -190,11 +205,12 @@ export default function ExpensesPage() {
         header: 'المبلغ',
         sortable: true,
         render: (_v, row) => (
-          <span className="font-semibold tabular-nums">
+          <span className="font-semibold tabular-nums" dir="ltr">
             {formatCurrency(Number(row.total_sanctioned_amount ?? row.total_claimed_amount ?? 0))}
           </span>
         )},
       { key: 'cost_center', header: 'مركز التكلفة', render: (v) => String(v || '—') },
+      { key: 'docstatus', header: 'حالة الترحيل', render: (value) => <DocStatusBadge docstatus={Number(value) as 0 | 1 | 2} /> },
       { key: 'status', header: 'الحالة', render: (value) => <StatusBadge status={String(value || '')} /> },
       { key: 'remark', header: 'ملاحظات', render: (v) => <span className="max-w-[200px] truncate block">{String(v || '')}</span> },
     ],
@@ -278,8 +294,8 @@ export default function ExpensesPage() {
       },
       onError: () => toast.error('حدث خطأ أثناء الحذف')});
   };
-  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
-
+  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setDocstatusFilter('all'); };
+  const hasActiveFilters = dateFrom || dateTo || statusFilter !== 'all' || docstatusFilter !== 'all';
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
@@ -328,56 +344,54 @@ export default function ExpensesPage() {
         }
       />
 
-      {/* شريط الفلاتر */}
-      <div className="space-y-3">
-        {/* فلاتر متقدمة (قابلة للطي) */}
-        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-                <Filter className="h-3 w-3" /> فلاتر متقدمة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            {(dateFrom || dateTo || statusFilter !== 'all') && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-                <X className="h-3 w-3" /> مسح الفلاتر
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={docstatusFilter}
+        onStatusChange={setDocstatusFilter}
+        statusTabs={docstatusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">حالة المطالبة</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9 text-xs w-32"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="Draft">مسودة</SelectItem>
+                  <SelectItem value="Approved">موافق</SelectItem>
+                  <SelectItem value="Rejected">مرفوض</SelectItem>
+                  <SelectItem value="Paid">مدفوع</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs"
+                onClick={clearFilters}
+              >
+                مسح الكل
               </Button>
             )}
           </div>
-          <CollapsibleContent>
-            <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-                <Label className="text-xs">من تاريخ</Label>
-                <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">إلى تاريخ</Label>
-                <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">الحالة</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">الكل</SelectItem>
-                    <SelectItem value="Draft">مسودة</SelectItem>
-                    <SelectItem value="Approved">موافق</SelectItem>
-                    <SelectItem value="Rejected">مرفوض</SelectItem>
-                    <SelectItem value="Paid">مدفوع</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+        }
+      />
 
       <DataTable
         data={filteredData}
         columns={columns}
         searchable
         loading={isLoading}
+        columnFilters
+        stickyFirstColumn
+        tableId="accounting-expenses"
+        exportFileName="expenses.csv"
+        printTitle="المصروفات"
         onEdit={(row) => {
           const href = docDetailPath('Expense Claim', row.name);
           if (href) router.push(href);

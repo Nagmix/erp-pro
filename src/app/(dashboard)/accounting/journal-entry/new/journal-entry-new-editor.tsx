@@ -7,7 +7,25 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, BookOpen, GripVertical, Plus, Trash2, Upload } from 'lucide-react';
+import {
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  CheckCircle2,
+  ChevronDown,
+  GripVertical,
+  Hash,
+  Info,
+  Landmark,
+  MessageSquare,
+  Plus,
+  Receipt,
+  Scale,
+  Tag,
+  Trash2,
+  Upload,
+  XCircle,
+} from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -19,10 +37,14 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, arrayMove, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import { CurrencyInput } from '@/components/erp/currency-input';
 import {
   Select,
   SelectContent,
@@ -30,17 +52,151 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatCurrency } from '@/lib/core/helpers';
 import { useCreateDoc } from '@/lib/client/hooks';
 import { toast } from 'sonner';
 import { buildJournalEntry, type JournalLineInput } from '@/lib/erp/erpnext-payloads';
 import { parseJournalImportXlsx } from '@/lib/erp/parse-journal-import-xlsx';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
+import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { DEFAULT_JOURNAL_NAMING_SERIES } from '@/lib/erp/doc-defaults';
+import { NamingSeriesSelect } from '@/components/erp/naming-series-select';
+
+/* ─── helpers ─── */
 
 function newJournalRowId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   return `je-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
 }
+
+const emptyLine = (): JournalLineInput => ({
+  _rid: newJournalRowId(),
+  account: '',
+  party_type: '',
+  party: '',
+  debit: 0,
+  credit: 0,
+  cost_center: '',
+  remarks: '',
+});
+
+/* ─── zod schema ─── */
+
+const journalSchema = z.object({
+  posting_date: z.string().min(1, 'تاريخ القيد مطلوب'),
+  voucher_type: z.string().min(1, 'نوع القيد مطلوب'),
+  user_remark: z.string(),
+  title: z.string().min(1, 'عنوان القيد مطلوب'),
+  reference_number: z.string().optional(),
+  is_opening: z.boolean().optional(),
+  multi_currency: z.boolean().optional(),
+});
+
+type JournalFormData = z.infer<typeof journalSchema>;
+
+/* ─── Section fieldset header component ─── */
+
+function SectionFieldset({
+  legend,
+  icon: Icon,
+  title,
+  accent = 'primary',
+  children,
+}: {
+  legend: string;
+  icon: React.ElementType;
+  title: string;
+  accent?: 'primary' | 'info' | 'success' | 'warning' | 'destructive';
+  children: ReactNode;
+}) {
+  const accentMap: Record<string, string> = {
+    primary: 'from-primary/[0.04] via-transparent to-transparent',
+    info: 'from-info/[0.04] via-transparent to-transparent',
+    success: 'from-success/[0.04] via-transparent to-transparent',
+    warning: 'from-warning/[0.04] via-transparent to-transparent',
+    destructive: 'from-destructive/[0.04] via-transparent to-transparent',
+  };
+  const iconBgMap: Record<string, string> = {
+    primary: 'bg-primary/10',
+    info: 'bg-info/10',
+    success: 'bg-success/10',
+    warning: 'bg-warning/10',
+    destructive: 'bg-destructive/10',
+  };
+  const iconTextMap: Record<string, string> = {
+    primary: 'text-primary',
+    info: 'text-info',
+    success: 'text-success',
+    warning: 'text-warning',
+    destructive: 'text-destructive',
+  };
+
+  return (
+    <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+      <legend className="sr-only">{legend}</legend>
+      <div className={`bg-gradient-to-l ${accentMap[accent]} px-4 py-2.5 border-b border-border/30`}>
+        <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+          <span className={`h-5 w-5 rounded-md ${iconBgMap[accent]} flex items-center justify-center`}>
+            <Icon className={`h-3 w-3 ${iconTextMap[accent]}`} />
+          </span>
+          {title}
+        </h4>
+      </div>
+      <div className="p-4 space-y-4 bg-card/50">
+        {children}
+      </div>
+    </fieldset>
+  );
+}
+
+/* ─── Form field with icon label ─── */
+
+function FormField({
+  label,
+  icon: Icon,
+  error,
+  children,
+  required,
+  hint,
+}: {
+  label: string;
+  icon: React.ElementType;
+  error?: string;
+  children: ReactNode;
+  required?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+        <span className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        </span>
+        {label}
+        {required && <span className="text-destructive text-xs me-0.5">*</span>}
+      </Label>
+      {children}
+      {hint && !error && (
+        <p className="text-[11px] text-muted-foreground/60 pe-8">{hint}</p>
+      )}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-[11px] text-destructive font-medium flex items-center gap-1 pe-8"
+          >
+            <Info className="h-3 w-3 shrink-0" />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ─── Sortable wrapper ─── */
 
 function SortableJournalLine({ id, children }: { id: string; children: ReactNode }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
@@ -52,34 +208,25 @@ function SortableJournalLine({ id, children }: { id: string; children: ReactNode
         transition,
         opacity: isDragging ? 0.75 : 1,
       }}
-      className="flex border-b border-border/40"
+      className="group"
     >
-      <button
-        type="button"
-        className="shrink-0 w-9 flex items-start justify-center pt-3 text-muted-foreground hover:bg-muted/50 touch-none cursor-grab active:cursor-grabbing"
-        aria-label="سحب لإعادة ترتيب البنود"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="h-4 w-4" />
-      </button>
-      <div className="min-w-0 flex-1">{children}</div>
+      <div className="flex items-stretch border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors">
+        <button
+          type="button"
+          className="shrink-0 w-8 flex items-start justify-center pt-3 text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 touch-none cursor-grab active:cursor-grabbing transition-colors"
+          aria-label="سحب لإعادة ترتيب البنود"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
     </div>
   );
 }
-import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
-import { DEFAULT_JOURNAL_NAMING_SERIES } from '@/lib/erp/doc-defaults';
-import { NamingSeriesSelect } from '@/components/erp/naming-series-select';
 
-const journalSchema = z.object({
-  posting_date: z.string().min(1, 'تاريخ القيد مطلوب'),
-  voucher_type: z.string().min(1, 'نوع القيد مطلوب'),
-  user_remark: z.string(),
-  title: z.string().min(1, 'عنوان القيد مطلوب'),
-});
-
-type JournalFormData = z.infer<typeof journalSchema>;
+/* ─── Journal line row ─── */
 
 function JournalLineRow({
   line,
@@ -95,9 +242,10 @@ function JournalLineRow({
   canRemove: boolean;
 }) {
   return (
-    <div className="px-3 py-2 space-y-2">
+    <div className="px-3 py-2.5 space-y-2">
+      {/* Row 1: Account + Party */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start">
-        <div className="md:col-span-3">
+        <div className="md:col-span-4">
           <ErpLinkCombobox
             doctype="Account"
             value={line.account}
@@ -106,12 +254,12 @@ function JournalLineRow({
           />
         </div>
         <div className="md:col-span-2">
-          <Select value={line.party_type} onValueChange={(v) => updateLine(index, 'party_type', v === '_none' ? '' : v)}>
+          <Select value={line.party_type || '_none'} onValueChange={(v) => updateLine(index, 'party_type', v === '_none' ? '' : v)}>
             <SelectTrigger className="h-9 text-xs">
               <SelectValue placeholder="الطرف" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="_none">-</SelectItem>
+              <SelectItem value="_none">— بدون طرف —</SelectItem>
               <SelectItem value="Customer">عميل</SelectItem>
               <SelectItem value="Supplier">مورد</SelectItem>
               <SelectItem value="Employee">موظف</SelectItem>
@@ -119,7 +267,7 @@ function JournalLineRow({
           </Select>
         </div>
         {line.party_type ? (
-          <div className="md:col-span-2">
+          <div className="md:col-span-3">
             <ErpLinkCombobox
               doctype={line.party_type === 'Customer' ? 'Customer' : line.party_type === 'Supplier' ? 'Supplier' : 'Employee'}
               value={line.party}
@@ -132,62 +280,69 @@ function JournalLineRow({
               }
               onChange={(v) => updateLine(index, 'party', v)}
               placeholder="اسم الطرف"
-              className="h-8 text-xs"
             />
           </div>
         ) : (
-          <div className="md:col-span-2" />
+          <div className="md:col-span-3 hidden md:block" />
         )}
-        <div className="md:col-span-2">
-          <Input
-            className="h-8 text-xs"
-            type="number"
-            dir="ltr"
-            placeholder="مدين"
-            value={line.debit || ''}
-            onChange={(e) => updateLine(index, 'debit', Number(e.target.value) || 0)}
-          />
-        </div>
-        <div className="md:col-span-2">
-          <Input
-            className="h-8 text-xs"
-            type="number"
-            dir="ltr"
-            placeholder="دائن"
-            value={line.credit || ''}
-            onChange={(e) => updateLine(index, 'credit', Number(e.target.value) || 0)}
-          />
-        </div>
-        <div className="md:col-span-1 flex justify-end">
+        <div className="md:col-span-3 flex items-start gap-1.5">
           {canRemove && (
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeLine(index)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 shrink-0"
+              onClick={() => removeLine(index)}
+              aria-label="حذف البند"
+            >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           )}
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end pb-1">
-        <div className="md:col-span-5">
-          <Label className="text-xs text-muted-foreground mb-1 block">مركز التكلفة</Label>
+
+      {/* Row 2: Debit + Credit + Cost Center + Remarks */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start">
+        <div className="md:col-span-2">
+          <CurrencyInput
+            value={line.debit || null}
+            onValueChange={(v) => updateLine(index, 'debit', v ?? 0)}
+            placeholder="مدين"
+            className="h-9 text-xs font-mono tabular-nums"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <CurrencyInput
+            value={line.credit || null}
+            onValueChange={(v) => updateLine(index, 'credit', v ?? 0)}
+            placeholder="دائن"
+            className="h-9 text-xs font-mono tabular-nums"
+          />
+        </div>
+        <div className="md:col-span-3">
           <ErpLinkCombobox
             doctype="Cost Center"
             value={line.cost_center}
             onChange={(v) => updateLine(index, 'cost_center', v)}
             placeholder="مركز التكلفة"
-            className="h-8 text-xs"
+            showCreateShortcut={false}
           />
         </div>
         <div className="md:col-span-3">
-          <Label className="text-xs text-muted-foreground mb-1 block" title="سعر صرف عملة الحساب (1 = محلي)">
-            سعر الصرف
-          </Label>
           <Input
-            className="h-8 text-xs"
+            className="h-9 text-xs"
+            placeholder="ملاحظة البند"
+            value={line.remarks || ''}
+            onChange={(e) => updateLine(index, 'remarks', e.target.value)}
+          />
+        </div>
+        <div className="md:col-span-2">
+          <Input
+            className="h-9 text-xs font-mono tabular-nums"
             type="number"
             dir="ltr"
             step="any"
             min={0}
-            placeholder="1"
+            placeholder="سعر الصرف"
             value={
               line.exchange_rate != null && !Number.isNaN(Number(line.exchange_rate)) && Number(line.exchange_rate) !== 1
                 ? line.exchange_rate
@@ -209,16 +364,7 @@ function JournalLineRow({
   );
 }
 
-const emptyLine = (): JournalLineInput => ({
-  _rid: newJournalRowId(),
-  account: '',
-  party_type: '',
-  party: '',
-  debit: 0,
-  credit: 0,
-  cost_center: '',
-  remarks: '',
-});
+/* ─── Main component ─── */
 
 export function JournalEntryNewEditor() {
   const router = useRouter();
@@ -234,6 +380,9 @@ export function JournalEntryNewEditor() {
       voucher_type: 'Journal Entry',
       user_remark: '',
       title: '',
+      reference_number: '',
+      is_opening: false,
+      multi_currency: false,
     },
   });
   const createMutation = useCreateDoc('Journal Entry');
@@ -257,6 +406,7 @@ export function JournalEntryNewEditor() {
   const totalDebit = useMemo(() => lines.reduce((s, l) => s + l.debit, 0), [lines]);
   const totalCredit = useMemo(() => lines.reduce((s, l) => s + l.credit, 0), [lines]);
   const difference = useMemo(() => totalDebit - totalCredit, [totalDebit, totalCredit]);
+  const isBalanced = difference === 0 && (totalDebit > 0 || totalCredit > 0);
 
   const updateLine = (index: number, field: keyof JournalLineInput, value: string | number) => {
     setLines((prev) => {
@@ -350,6 +500,7 @@ export function JournalEntryNewEditor() {
 
   return (
     <div className="flex min-h-[calc(100dvh-7rem)] flex-col" dir="rtl">
+      {/* Hidden file input */}
       <input
         ref={importFileRef}
         type="file"
@@ -368,6 +519,7 @@ export function JournalEntryNewEditor() {
         }}
       />
 
+      {/* ─── Page Header ─── */}
       <header className="flex flex-col gap-3 border-b border-border/40 bg-card/80 px-4 py-4 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="shrink-0" asChild>
@@ -375,14 +527,16 @@ export function JournalEntryNewEditor() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10">
               <BookOpen className="h-5 w-5 text-primary" />
-              <h1 className="text-lg font-bold tracking-tight sm:text-xl">قيد يومية جديد</h1>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              بنود ديناميكية وتحقق توازن مدين/دائن قبل الحفظ
-            </p>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight sm:text-xl">قيد يومية جديد</h1>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                أدخل بيانات القيد وتأكد من توازن المدين والدائن قبل الحفظ
+              </p>
+            </div>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -399,62 +553,85 @@ export function JournalEntryNewEditor() {
         </div>
       </header>
 
+      {/* ─── Form ─── */}
       <form onSubmit={form.handleSubmit(handleCreate)} className="flex flex-1 flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <Tabs defaultValue="header" className="w-full max-w-5xl mx-auto">
-            <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/50 p-1">
-              <TabsTrigger value="header" className="text-xs">
-                رأس القيد
-              </TabsTrigger>
-              <TabsTrigger value="lines" className="text-xs">
-                بنود دفتر الأستاذ
-              </TabsTrigger>
-              <TabsTrigger value="balance" className="text-xs">
-                التوازن
-              </TabsTrigger>
-            </TabsList>
+          <div className="w-full max-w-5xl mx-auto space-y-5">
 
-            <TabsContent value="header" className="mt-4 space-y-4 outline-none">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">تاريخ القيد *</Label>
-                  <Input type="date" dir="ltr" {...form.register('posting_date')} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">نوع القيد</Label>
-                  <Select value={form.watch('voucher_type')} onValueChange={(v) => form.setValue('voucher_type', v)}>
-                    <SelectTrigger className="h-9 text-sm">
+            {/* ── Section 1: Basic Info ── */}
+            <SectionFieldset legend="المعلومات الأساسية" icon={Receipt} title="المعلومات الأساسية" accent="primary">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <FormField label="تاريخ القيد" icon={CalendarDays} error={form.formState.errors.posting_date?.message} required hint="تاريخ ترحيل القيد">
+                  <Input type="date" dir="ltr" className="h-9" {...form.register('posting_date')} />
+                </FormField>
+                <FormField label="نوع القيد" icon={Landmark} error={form.formState.errors.voucher_type?.message} required hint="نوع السند المحاسبي">
+                  <Select dir="rtl" value={form.watch('voucher_type')} onValueChange={(v) => form.setValue('voucher_type', v)}>
+                    <SelectTrigger className="h-9 text-start">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent dir="rtl">
                       <SelectItem value="Journal Entry">قيد يومية</SelectItem>
                       <SelectItem value="Opening Entry">قيد افتتاحي</SelectItem>
                       <SelectItem value="Closing Entry">قيد إقفال</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </FormField>
+                <FormField label="عنوان القيد" icon={Tag} error={form.formState.errors.title?.message} required hint="وصف مختصر للقيد">
+                  <Input placeholder="مثال: تسوية أرصدة نهاية الشهر" className="h-9" {...form.register('title')} />
+                </FormField>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">العنوان *</Label>
-                  <Input placeholder="عنوان القيد..." {...form.register('title')} />
-                  {form.formState.errors.title && (
-                    <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">ملاحظات</Label>
-                  <Input placeholder="وصف القيد..." {...form.register('user_remark')} />
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-3 rounded-lg border border-border/40 px-3 py-2.5 cursor-pointer hover:bg-accent/50 transition-colors flex-1">
+                    <Checkbox
+                      checked={form.watch('is_opening') || false}
+                      onCheckedChange={(checked) => form.setValue('is_opening', !!checked)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-foreground">قيد افتتاحي</span>
+                      <span className="text-[11px] text-muted-foreground block mt-0.5">
+                        يُستخدم لترصيد الحسابات في بداية الفترة
+                      </span>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 rounded-lg border border-border/40 px-3 py-2.5 cursor-pointer hover:bg-accent/50 transition-colors flex-1">
+                    <Checkbox
+                      checked={form.watch('multi_currency') || false}
+                      onCheckedChange={(checked) => form.setValue('multi_currency', !!checked)}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium text-foreground">تعدد العملات</span>
+                      <span className="text-[11px] text-muted-foreground block mt-0.5">
+                        تفعيل حقول سعر الصرف لكل بند
+                      </span>
+                    </div>
+                  </label>
                 </div>
               </div>
-            </TabsContent>
+            </SectionFieldset>
 
-            <TabsContent value="lines" className="mt-4 outline-none">
-              <div className="rounded-xl border border-border/40 overflow-hidden bg-card">
-                <div className="bg-muted/50 px-3 py-2 flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-xs font-semibold">بنود القيد</span>
-                  <span className="text-xs text-muted-foreground">اسحب ⋮ لإعادة ترتيب الصفوف — يُحفظ الترتيب كـ idx على الخادم</span>
+            {/* ── Section 2: Journal Lines ── */}
+            <SectionFieldset legend="بنود القيد" icon={Scale} title="بنود القيد — مدين / دائن" accent="info">
+              {/* Lines table container */}
+              <div className="rounded-xl border border-border/40 overflow-hidden bg-background">
+                {/* Table header */}
+                <div className="bg-muted/40 px-3 py-2 border-b border-border/30">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    <span className="md:col-span-4">الحساب</span>
+                    <span className="md:col-span-2">الطرف</span>
+                    <span className="md:col-span-3 hidden md:block">اسم الطرف</span>
+                    <span className="md:col-span-3 hidden md:block" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mt-1">
+                    <span className="md:col-span-2">مدين</span>
+                    <span className="md:col-span-2">دائن</span>
+                    <span className="md:col-span-3">مركز التكلفة</span>
+                    <span className="md:col-span-3">ملاحظة</span>
+                    <span className="md:col-span-2">سعر الصرف</span>
+                  </div>
                 </div>
+
+                {/* Drag-and-drop lines */}
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleJournalDragEnd}>
                   <SortableContext items={lines.map((l) => l._rid!)} strategy={verticalListSortingStrategy}>
                     {lines.map((line, idx) => (
@@ -470,50 +647,167 @@ export function JournalEntryNewEditor() {
                     ))}
                   </SortableContext>
                 </DndContext>
-                <div className="px-3 py-2 flex justify-center border-t border-border/40">
-                  <Button type="button" variant="ghost" size="sm" className="text-xs gap-1" onClick={addLine}>
-                    <Plus className="h-3 w-3" />
+
+                {/* Add row button */}
+                <div className="px-3 py-2 flex justify-center border-t border-border/30">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={addLine}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
                     إضافة بند
                   </Button>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                صيغة الاستيراد: الحساب، نوع_الطرف، الطرف، مدين، دائن، مركز_تكلفة، ملاحظة، سعر_صرف
-              </p>
-            </TabsContent>
 
-            <TabsContent value="balance" className="mt-4 outline-none">
-              <div
-                className={`rounded-xl p-4 border ${
-                  difference === 0 ? 'bg-primary/10 border-primary/30' : 'bg-destructive/5 border-destructive/30'
-                }`}
-              >
-                <div className="flex justify-between items-center text-sm">
-                  <span className="font-semibold">إجمالي المدين</span>
-                  <span className="text-chart-1 font-bold tabular-nums">{formatCurrency(totalDebit)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm mt-2">
-                  <span className="font-semibold">إجمالي الدائن</span>
-                  <span className="text-orange-600 font-bold tabular-nums">{formatCurrency(totalCredit)}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm mt-3 pt-3 border-t border-border/40">
-                  <span className="font-semibold">الفرق</span>
-                  <span className={`font-bold tabular-nums ${difference === 0 ? 'text-green-600' : 'text-destructive'}`}>
-                    {difference === 0 ? 'متوازن ✓' : formatCurrency(Math.abs(difference))}
-                  </span>
+              {/* Balance summary */}
+              <div className={`rounded-xl border overflow-hidden transition-colors duration-300 ${
+                isBalanced
+                  ? 'bg-emerald-500/[0.04] border-emerald-500/20'
+                  : difference !== 0
+                    ? 'bg-destructive/[0.04] border-destructive/20'
+                    : 'bg-muted/30 border-border/30'
+              }`}>
+                <div className="px-4 py-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-center">
+                    {/* Total Debit */}
+                    <div className="text-center">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">إجمالي المدين</p>
+                      <p className="text-lg font-bold tabular-nums text-chart-1" dir="ltr">{formatCurrency(totalDebit)}</p>
+                    </div>
+
+                    {/* Total Credit */}
+                    <div className="text-center">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">إجمالي الدائن</p>
+                      <p className="text-lg font-bold tabular-nums text-orange-600" dir="ltr">{formatCurrency(totalCredit)}</p>
+                    </div>
+
+                    {/* Difference */}
+                    <div className="text-center">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">الفرق</p>
+                      <p className={`text-lg font-bold tabular-nums ${difference === 0 ? 'text-emerald-600' : 'text-destructive'}`} dir="ltr">
+                        {difference === 0 ? '0.00' : formatCurrency(Math.abs(difference))}
+                      </p>
+                    </div>
+
+                    {/* Balance status badge */}
+                    <div className="flex justify-center">
+                      <AnimatePresence mode="wait">
+                        {isBalanced ? (
+                          <motion.div
+                            key="balanced"
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1.5 px-3 py-1 text-xs font-bold">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              متوازن ✓
+                            </Badge>
+                          </motion.div>
+                        ) : difference !== 0 ? (
+                          <motion.div
+                            key="unbalanced"
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <Badge variant="destructive" className="gap-1.5 px-3 py-1 text-xs font-bold">
+                              <XCircle className="h-3.5 w-3.5" />
+                              غير متوازن
+                            </Badge>
+                          </motion.div>
+                        ) : (
+                          <Badge variant="outline" className="text-muted-foreground gap-1.5 px-3 py-1 text-xs">
+                            <ChevronDown className="h-3.5 w-3.5" />
+                            في انتظار الإدخال
+                          </Badge>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </TabsContent>
-          </Tabs>
+
+              <p className="text-[11px] text-muted-foreground/60">
+                صيغة الاستيراد: الحساب، نوع_الطرف، الطرف، مدين، دائن، مركز_تكلفة، ملاحظة، سعر_صرف — اسحب ⋮ لإعادة ترتيب البنود
+              </p>
+            </SectionFieldset>
+
+            {/* ── Section 3: Additional Info ── */}
+            <SectionFieldset legend="معلومات إضافية" icon={MessageSquare} title="معلومات إضافية" accent="success">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="ملاحظات عامة" icon={MessageSquare} hint="وصف تفصيلي للقيد يظهر في الطباعة">
+                  <Textarea
+                    placeholder="أدخل وصفاً للقيد أو سبب إعداده..."
+                    className="min-h-[80px] text-sm resize-none"
+                    {...form.register('user_remark')}
+                  />
+                </FormField>
+                <div className="space-y-4">
+                  <FormField label="رقم المرجع" icon={Hash} hint="رقم مرجعي اختياري لربط القيد بمستند خارجي">
+                    <Input
+                      placeholder="مثال: INV-2025-001"
+                      className="h-9"
+                      {...form.register('reference_number')}
+                    />
+                  </FormField>
+                  <div className="rounded-lg bg-muted/30 p-3 border border-border/30">
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      <Info className="h-3 w-3 inline-block me-1 -mt-0.5" />
+                      تأكد من توازن مجموع المدين مع مجموع الدائن قبل الحفظ.
+                      يمكنك إعادة ترتيب البنود بالسحب والإفلات.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </SectionFieldset>
+
+          </div>
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border/40 bg-card/95 px-4 py-3">
-          <Button type="button" variant="ghost" asChild>
-            <Link href="/accounting/journal-entry">إلغاء</Link>
-          </Button>
-          <Button type="submit" disabled={createMutation.isPending || difference !== 0 || compLoading} className="min-w-[140px]">
-            {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ كمسودة'}
-          </Button>
+        {/* ─── Action Bar ─── */}
+        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border/40 bg-card/95 backdrop-blur-sm px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-2">
+            {isBalanced ? (
+              <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1 text-[11px]">
+                <CheckCircle2 className="h-3 w-3" />
+                القيد متوازن
+              </Badge>
+            ) : difference !== 0 ? (
+              <Badge variant="destructive" className="gap-1 text-[11px]">
+                <XCircle className="h-3 w-3" />
+                فرق: {formatCurrency(Math.abs(difference))}
+              </Badge>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="ghost" asChild className="text-muted-foreground">
+              <Link href="/accounting/journal-entry">إلغاء</Link>
+            </Button>
+            <Button
+              type="submit"
+              disabled={createMutation.isPending || !isBalanced || compLoading}
+              className="min-w-[140px] gap-1.5"
+            >
+              {createMutation.isPending ? (
+                <>
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                  جاري الحفظ...
+                </>
+              ) : (
+                <>
+                  <Receipt className="h-3.5 w-3.5" />
+                  حفظ كمسودة
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </form>
     </div>

@@ -197,8 +197,9 @@ function AccountTreeItem({
 
   return (
     <div>
+      {/* ── Desktop row (≥768px): 5-column grid ── */}
       <div
-        className="grid items-center h-9 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
+        className="hidden md:grid items-center h-9 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
         style={{
           paddingRight: `${level * 1.25 + 1}rem`,
           gridTemplateColumns: '1fr 96px 112px 110px 64px',
@@ -259,6 +260,64 @@ function AccountTreeItem({
 
         {/* Column 5: Actions */}
         <div className="flex gap-0.5 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => onEdit(account)}
+            className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          >
+            <Edit className="h-3 w-3" />
+          </button>
+          <button
+            onClick={() => onDelete(account)}
+            className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Mobile row (<768px): simplified flex layout ── */}
+      <div
+        className="md:hidden flex items-center gap-2 px-3 py-2.5 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
+        style={{ paddingRight: `${level * 0.75 + 0.75}rem` }}
+      >
+        {/* Expand arrow + icon + name + group badge */}
+        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+          {hasChildren ? (
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="h-5 w-5 rounded flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-150 ${isOpen ? '' : '-rotate-90'}`} />
+            </button>
+          ) : (
+            <span className="w-5 shrink-0" />
+          )}
+          {isGroup ? (
+            <FolderOpen className={`h-4 w-4 shrink-0 ${config?.accent || 'text-muted-foreground'}`} />
+          ) : (
+            <FileText className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+          )}
+          <span className={`truncate ${isGroup ? 'font-semibold' : ''}`}>{displayName}</span>
+          {isGroup && (
+            <Badge variant="outline" className="text-[9px] font-normal px-1.5 py-0 shrink-0 text-muted-foreground border-muted-foreground/20">
+              مجموعة
+            </Badge>
+          )}
+        </div>
+
+        {/* Balance only */}
+        <span className="tabular-nums text-xs shrink-0" dir="ltr">
+          {isGroup ? (
+            <span className="text-muted-foreground/40">—</span>
+          ) : (
+            <span className={balance >= 0 ? 'text-foreground' : 'text-destructive font-medium'}>
+              {formatCurrency(balance)}
+            </span>
+          )}
+        </span>
+
+        {/* Actions - always visible on mobile (no hover on touch) */}
+        <div className="flex gap-0.5 shrink-0">
           <button
             onClick={() => onEdit(account)}
             className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
@@ -893,9 +952,9 @@ export default function ChartOfAccountsPage() {
 
       {/* ─── Tree View ─── */}
       <Card className="overflow-hidden border-border/40">
-        {/* Table Header */}
+        {/* Table Header - Desktop */}
         <div
-          className="sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-4 py-2 grid items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none"
+          className="hidden md:grid sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-4 py-2 items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none"
           style={{ gridTemplateColumns: '1fr 96px 112px 110px 64px' }}
         >
           <span>الحساب</span>
@@ -904,19 +963,39 @@ export default function ChartOfAccountsPage() {
           <span className="text-start" dir="ltr">الرصيد</span>
           <span />
         </div>
+        {/* Table Header - Mobile */}
+        <div
+          className="md:hidden sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-3 py-2 flex items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none"
+        >
+          <span className="flex-1">الحساب</span>
+          <span className="text-start ms-4" dir="ltr">الرصيد</span>
+          <span className="w-14" />
+        </div>
 
         {isLoading ? (
           <div className="divide-y divide-border/20">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="grid items-center h-9 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem`, gridTemplateColumns: '1fr 96px 112px 110px 64px' }}>
-                <div className="flex items-center gap-1.5">
-                  <div className="h-3.5 w-3.5 rounded bg-muted shrink-0" />
-                  <div className="h-3.5 rounded bg-muted flex-1 max-w-[180px]" />
+              <div key={i}>
+                {/* Desktop skeleton */}
+                <div className="hidden md:grid items-center h-9 px-4 animate-pulse" style={{ paddingRight: `${(i % 3) * 1.25 + 1}rem`, gridTemplateColumns: '1fr 96px 112px 110px 64px' }}>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3.5 w-3.5 rounded bg-muted shrink-0" />
+                    <div className="h-3.5 rounded bg-muted flex-1 max-w-[180px]" />
+                  </div>
+                  <div className="h-3 rounded bg-muted w-14 mx-auto" />
+                  <div className="h-3 rounded bg-muted w-16 mx-auto" />
+                  <div className="h-3 rounded bg-muted w-20" />
+                  <div />
                 </div>
-                <div className="h-3 rounded bg-muted w-14 mx-auto" />
-                <div className="h-3 rounded bg-muted w-16 mx-auto" />
-                <div className="h-3 rounded bg-muted w-20" />
-                <div />
+                {/* Mobile skeleton */}
+                <div className="md:hidden flex items-center gap-2 px-3 py-2.5 animate-pulse" style={{ paddingRight: `${(i % 3) * 0.75 + 0.75}rem` }}>
+                  <div className="flex-1 flex items-center gap-1.5 min-w-0">
+                    <div className="h-3.5 w-3.5 rounded bg-muted shrink-0" />
+                    <div className="h-3.5 rounded bg-muted flex-1 max-w-[140px]" />
+                  </div>
+                  <div className="h-3 rounded bg-muted w-20 shrink-0" />
+                  <div className="w-14 shrink-0" />
+                </div>
               </div>
             ))}
           </div>

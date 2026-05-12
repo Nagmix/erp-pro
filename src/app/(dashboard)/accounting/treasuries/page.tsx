@@ -200,7 +200,7 @@ export default function TreasuriesPage() {
         render: (_v, row) => {
           const bal = balanceMap[row.name] || 0;
           return (
-            <span className={`tabular-nums font-bold text-base ${bal >= 0 ? "text-emerald-600" : "text-destructive"}`}>
+            <span className={`tabular-nums font-bold text-base ${bal >= 0 ? "text-emerald-600" : "text-destructive"}`} dir="ltr">
               {formatCurrency(bal)}
             </span>
           );
@@ -320,6 +320,8 @@ export default function TreasuriesPage() {
         pageSize={10}
         searchable
         loading={isLoading}
+        columnFilters
+        stickyFirstColumn
         tableId="accounting-treasuries"
         exportFileName="treasuries.csv"
         printTitle="تقرير الخزائن النقدية"
