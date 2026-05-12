@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { formatDate } from '@/lib/core/helpers';
@@ -76,6 +77,22 @@ export default function PeriodClosingPage() {
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<PcvRow | null>(null);
 
+  // ── Filter state ──
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [docstatusFilter, setDocstatusFilter] = useState('all');
+  const [fiscalYearFilter, setFiscalYearFilter] = useState('');
+
+  const statusTabs: ErpStatusTab[] = useMemo(
+    () => [
+      { value: 'all', label: 'الكل' },
+      { value: '0', label: 'مسودة' },
+      { value: '1', label: 'مقفلة' },
+      { value: '2', label: 'ملغاة' },
+    ],
+    []
+  );
+
   const { data, isLoading, isError, error, refetch } = useDocList<PcvRow>('Period Closing Voucher', {
     fields: [
       'name',
@@ -117,6 +134,24 @@ export default function PeriodClosingPage() {
   const draftCount = useMemo(() => rows.filter(r => r.docstatus === 0).length, [rows]);
   const submittedCount = useMemo(() => rows.filter(r => r.docstatus === 1).length, [rows]);
   const cancelledCount = useMemo(() => rows.filter(r => r.docstatus === 2).length, [rows]);
+
+  // ── Filtered data ──
+  const filteredData = useMemo(() => {
+    return rows.filter((r) => {
+      if (docstatusFilter !== 'all' && String(r.docstatus) !== docstatusFilter) return false;
+      if (dateFrom && r.transaction_date < dateFrom) return false;
+      if (dateTo && r.transaction_date > dateTo) return false;
+      if (fiscalYearFilter && r.fiscal_year !== fiscalYearFilter) return false;
+      return true;
+    });
+  }, [rows, docstatusFilter, dateFrom, dateTo, fiscalYearFilter]);
+
+  const clearFilters = useCallback(() => {
+    setDateFrom('');
+    setDateTo('');
+    setDocstatusFilter('all');
+    setFiscalYearFilter('');
+  }, []);
 
   const onSubmit = (d: Form) => {
     createMutation.mutate(
@@ -328,6 +363,35 @@ export default function PeriodClosingPage() {
         }
       />
 
+      {/* ── Filters ── */}
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={docstatusFilter}
+        onStatusChange={setDocstatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">السنة المالية</Label>
+              <ErpLinkCombobox
+                doctype="Fiscal Year"
+                value={fiscalYearFilter}
+                onChange={setFiscalYearFilter}
+                placeholder="كل السنوات"
+              />
+            </div>
+            {(dateFrom || dateTo || docstatusFilter !== 'all' || fiscalYearFilter) && (
+              <Button type="button" variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={clearFilters}>
+                مسح الكل
+              </Button>
+            )}
+          </div>
+        }
+      />
+
       {/* KPI Strip */}
       {/* Warning about period closing */}
       {draftCount > 0 && (
@@ -350,7 +414,7 @@ export default function PeriodClosingPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <DataTable
-            data={rows}
+            data={filteredData}
             columns={columns}
             title="القسائم"
             searchable

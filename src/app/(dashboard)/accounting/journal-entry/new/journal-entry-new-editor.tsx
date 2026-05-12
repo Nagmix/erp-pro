@@ -9,10 +9,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
   BookOpen,
   CalendarDays,
   CheckCircle2,
   ChevronDown,
+  Equal,
   GripVertical,
   Hash,
   Info,
@@ -21,6 +24,7 @@ import {
   Plus,
   Receipt,
   Scale,
+  Sparkles,
   Tag,
   Trash2,
   Upload,
@@ -198,7 +202,7 @@ function FormField({
 
 /* ─── Sortable wrapper ─── */
 
-function SortableJournalLine({ id, children }: { id: string; children: ReactNode }) {
+function SortableJournalLine({ id, children, index }: { id: string; children: ReactNode; index: number }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   return (
     <div
@@ -207,10 +211,15 @@ function SortableJournalLine({ id, children }: { id: string; children: ReactNode
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.75 : 1,
+        zIndex: isDragging ? 50 : undefined,
       }}
       className="group"
     >
-      <div className="flex items-stretch border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors">
+      <div
+        className={`flex items-stretch border-b border-border/30 last:border-b-0 hover:bg-muted/20 transition-colors ${
+          index % 2 === 0 ? 'bg-background' : 'bg-muted/[0.03]'
+        }`}
+      >
         <button
           type="button"
           className="shrink-0 w-8 flex items-start justify-center pt-3 text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted/30 touch-none cursor-grab active:cursor-grabbing transition-colors"
@@ -237,13 +246,20 @@ function JournalLineRow({
 }: {
   line: JournalLineInput;
   index: number;
-  updateLine: (i: number, f: keyof JournalLineInput, v: string | number) => void;
+  updateLine: (i: number, field: keyof JournalLineInput, v: string | number) => void;
   removeLine: (i: number) => void;
   canRemove: boolean;
 }) {
+  // Determine the border indicator color based on debit vs credit
+  const borderIndicator = line.debit > line.credit
+    ? 'border-s-4 border-s-chart-1'
+    : line.credit > line.debit
+      ? 'border-s-4 border-s-orange-500'
+      : 'border-s-4 border-s-transparent';
+
   return (
-    <div className="px-3 py-2.5 space-y-2">
-      {/* Row 1: Account + Party */}
+    <div className={`px-3 py-2.5 space-y-2 ${borderIndicator}`}>
+      {/* Desktop: Row 1: Account + Party */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start">
         <div className="md:col-span-4">
           <ErpLinkCombobox
@@ -251,11 +267,12 @@ function JournalLineRow({
             value={line.account}
             onChange={(v) => updateLine(index, 'account', v)}
             placeholder="الحساب *"
+            className="w-full"
           />
         </div>
         <div className="md:col-span-2">
           <Select value={line.party_type || '_none'} onValueChange={(v) => updateLine(index, 'party_type', v === '_none' ? '' : v)}>
-            <SelectTrigger className="h-9 text-xs">
+            <SelectTrigger className="h-9 text-xs w-full">
               <SelectValue placeholder="الطرف" />
             </SelectTrigger>
             <SelectContent>
@@ -280,6 +297,7 @@ function JournalLineRow({
               }
               onChange={(v) => updateLine(index, 'party', v)}
               placeholder="اسم الطرف"
+              className="w-full"
             />
           </div>
         ) : (
@@ -300,7 +318,7 @@ function JournalLineRow({
         </div>
       </div>
 
-      {/* Row 2: Debit + Credit + Cost Center + Remarks */}
+      {/* Desktop: Row 2: Debit + Credit + Cost Center + Remarks */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start">
         <div className="md:col-span-2">
           <CurrencyInput
@@ -325,6 +343,7 @@ function JournalLineRow({
             onChange={(v) => updateLine(index, 'cost_center', v)}
             placeholder="مركز التكلفة"
             showCreateShortcut={false}
+            className="w-full"
           />
         </div>
         <div className="md:col-span-3">
@@ -519,36 +538,42 @@ export function JournalEntryNewEditor() {
         }}
       />
 
-      {/* ─── Page Header ─── */}
-      <header className="flex flex-col gap-3 border-b border-border/40 bg-card/80 px-4 py-4 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="shrink-0" asChild>
+      {/* ─── Page Header (Premium Gradient) ─── */}
+      <header className="relative flex flex-col gap-3 border-b border-border/40 bg-gradient-to-l from-primary/[0.08] via-primary/[0.03] to-transparent px-4 py-5 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between overflow-hidden">
+        {/* Decorative background element */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(var(--primary),0.06),transparent_60%)] pointer-events-none" />
+        <div className="relative flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="shrink-0 hover:bg-primary/10" asChild>
             <Link href="/accounting/journal-entry" aria-label="العودة">
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10">
+            <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center border border-primary/15 shadow-sm shadow-primary/10">
               <BookOpen className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight sm:text-xl">قيد يومية جديد</h1>
+              <h1 className="text-lg font-bold tracking-tight sm:text-xl flex items-center gap-2">
+                قيد يومية جديد
+                <Sparkles className="h-4 w-4 text-primary/50 hidden sm:block" />
+              </h1>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 أدخل بيانات القيد وتأكد من توازن المدين والدائن قبل الحفظ
               </p>
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="relative flex flex-wrap items-center gap-2">
           <NamingSeriesSelect
             doctype="Journal Entry"
             value={namingSeries}
             onChange={setNamingSeries}
             defaultSeries={DEFAULT_JOURNAL_NAMING_SERIES}
           />
-          <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={() => importFileRef.current?.click()}>
+          <Button type="button" size="sm" variant="outline" className="gap-1.5 hover:bg-primary/5 hover:border-primary/20" onClick={() => importFileRef.current?.click()}>
             <Upload className="h-3.5 w-3.5" />
-            استيراد CSV / Excel
+            <span className="hidden sm:inline">استيراد CSV / Excel</span>
+            <span className="sm:hidden">استيراد</span>
           </Button>
         </div>
       </header>
@@ -614,20 +639,40 @@ export function JournalEntryNewEditor() {
             <SectionFieldset legend="بنود القيد" icon={Scale} title="بنود القيد — مدين / دائن" accent="info">
               {/* Lines table container */}
               <div className="rounded-xl border border-border/40 overflow-hidden bg-background">
-                {/* Table header */}
-                <div className="bg-muted/40 px-3 py-2 border-b border-border/30">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                    <span className="md:col-span-4">الحساب</span>
-                    <span className="md:col-span-2">الطرف</span>
-                    <span className="md:col-span-3 hidden md:block">اسم الطرف</span>
-                    <span className="md:col-span-3 hidden md:block" />
+                {/* Table header — darker, more visually distinct */}
+                <div className="bg-muted/60 border-b-2 border-border/50 px-3 py-2.5">
+                  {/* Desktop headers */}
+                  <div className="hidden md:grid md:grid-cols-12 gap-2 items-center text-[11px] font-bold text-foreground/60 uppercase tracking-wider">
+                    <span className="col-span-4">الحساب</span>
+                    <span className="col-span-2">الطرف</span>
+                    <span className="col-span-3">اسم الطرف</span>
+                    <span className="col-span-3" />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mt-1">
-                    <span className="md:col-span-2">مدين</span>
-                    <span className="md:col-span-2">دائن</span>
-                    <span className="md:col-span-3">مركز التكلفة</span>
-                    <span className="md:col-span-3">ملاحظة</span>
-                    <span className="md:col-span-2">سعر الصرف</span>
+                  <div className="hidden md:grid md:grid-cols-12 gap-2 items-center text-[11px] font-bold text-foreground/60 uppercase tracking-wider mt-1">
+                    <span className="col-span-2 flex items-center gap-1">
+                      <ArrowUp className="h-3 w-3 text-chart-1" />
+                      مدين
+                    </span>
+                    <span className="col-span-2 flex items-center gap-1">
+                      <ArrowDown className="h-3 w-3 text-orange-500" />
+                      دائن
+                    </span>
+                    <span className="col-span-3">مركز التكلفة</span>
+                    <span className="col-span-3">ملاحظة</span>
+                    <span className="col-span-2">سعر الصرف</span>
+                  </div>
+                  {/* Mobile headers — simplified */}
+                  <div className="md:hidden text-[11px] font-bold text-foreground/60 uppercase tracking-wider">
+                    <div className="flex items-center gap-4">
+                      <span className="flex items-center gap-1">
+                        <ArrowUp className="h-3 w-3 text-chart-1" />
+                        مدين
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <ArrowDown className="h-3 w-3 text-orange-500" />
+                        دائن
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -635,7 +680,7 @@ export function JournalEntryNewEditor() {
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleJournalDragEnd}>
                   <SortableContext items={lines.map((l) => l._rid!)} strategy={verticalListSortingStrategy}>
                     {lines.map((line, idx) => (
-                      <SortableJournalLine key={line._rid} id={line._rid!}>
+                      <SortableJournalLine key={line._rid} id={line._rid!} index={idx}>
                         <JournalLineRow
                           line={line}
                           index={idx}
@@ -648,52 +693,76 @@ export function JournalEntryNewEditor() {
                   </SortableContext>
                 </DndContext>
 
-                {/* Add row button */}
-                <div className="px-3 py-2 flex justify-center border-t border-border/30">
+                {/* Add row button — more prominent */}
+                <div className="px-3 py-3 flex justify-center border-t border-dashed border-border/40 bg-muted/20">
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="text-xs gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
+                    className="gap-2 text-primary hover:text-primary hover:bg-primary/10 hover:border-primary/30 font-semibold shadow-sm min-w-[160px] justify-center"
                     onClick={addLine}
                   >
-                    <Plus className="h-3.5 w-3.5" />
+                    <Plus className="h-4 w-4" />
                     إضافة بند
                   </Button>
                 </div>
               </div>
 
-              {/* Balance summary */}
-              <div className={`rounded-xl border overflow-hidden transition-colors duration-300 ${
-                isBalanced
-                  ? 'bg-emerald-500/[0.04] border-emerald-500/20'
-                  : difference !== 0
-                    ? 'bg-destructive/[0.04] border-destructive/20'
-                    : 'bg-muted/30 border-border/30'
-              }`}>
-                <div className="px-4 py-3">
+              {/* Balance summary — enhanced with icons and better visual prominence */}
+              <motion.div
+                key={isBalanced ? 'balanced' : difference !== 0 ? 'unbalanced' : 'empty'}
+                initial={{ opacity: 0.7, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25 }}
+                className={`rounded-xl border-2 overflow-hidden transition-colors duration-300 ${
+                  isBalanced
+                    ? 'bg-emerald-500/[0.04] border-emerald-500/30 shadow-sm shadow-emerald-500/5'
+                    : difference !== 0
+                      ? 'bg-destructive/[0.04] border-destructive/30 shadow-sm shadow-destructive/5'
+                      : 'bg-muted/30 border-border/40'
+                }`}
+              >
+                <div className="px-4 py-4">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-center">
                     {/* Total Debit */}
                     <div className="text-center">
-                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">إجمالي المدين</p>
-                      <p className="text-lg font-bold tabular-nums text-chart-1" dir="ltr">{formatCurrency(totalDebit)}</p>
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center justify-center gap-1">
+                        <ArrowUp className="h-3 w-3 text-chart-1" />
+                        إجمالي المدين
+                      </p>
+                      <p className="text-xl font-bold tabular-nums text-chart-1" dir="ltr">{formatCurrency(totalDebit)}</p>
                     </div>
 
                     {/* Total Credit */}
                     <div className="text-center">
-                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">إجمالي الدائن</p>
-                      <p className="text-lg font-bold tabular-nums text-orange-600" dir="ltr">{formatCurrency(totalCredit)}</p>
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center justify-center gap-1">
+                        <ArrowDown className="h-3 w-3 text-orange-500" />
+                        إجمالي الدائن
+                      </p>
+                      <p className="text-xl font-bold tabular-nums text-orange-600" dir="ltr">{formatCurrency(totalCredit)}</p>
                     </div>
 
                     {/* Difference */}
                     <div className="text-center">
-                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">الفرق</p>
-                      <p className={`text-lg font-bold tabular-nums ${difference === 0 ? 'text-emerald-600' : 'text-destructive'}`} dir="ltr">
-                        {difference === 0 ? '0.00' : formatCurrency(Math.abs(difference))}
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center justify-center gap-1">
+                        <Equal className="h-3 w-3" />
+                        الفرق
                       </p>
+                      <AnimatePresence mode="wait">
+                        <motion.p
+                          key={difference}
+                          initial={{ scale: 1.1, opacity: 0.5 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                          className={`text-xl font-bold tabular-nums ${difference === 0 ? 'text-emerald-600' : 'text-destructive'}`}
+                          dir="ltr"
+                        >
+                          {difference === 0 ? '0.00' : formatCurrency(Math.abs(difference))}
+                        </motion.p>
+                      </AnimatePresence>
                     </div>
 
-                    {/* Balance status badge */}
+                    {/* Balance status badge — more prominent */}
                     <div className="flex justify-center">
                       <AnimatePresence mode="wait">
                         {isBalanced ? (
@@ -702,10 +771,10 @@ export function JournalEntryNewEditor() {
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.8, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
+                            transition={{ duration: 0.25, type: 'spring', stiffness: 300, damping: 20 }}
                           >
-                            <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1.5 px-3 py-1 text-xs font-bold">
-                              <CheckCircle2 className="h-3.5 w-3.5" />
+                            <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/25 gap-1.5 px-4 py-1.5 text-xs font-bold shadow-sm shadow-emerald-500/10">
+                              <CheckCircle2 className="h-4 w-4" />
                               متوازن ✓
                             </Badge>
                           </motion.div>
@@ -715,15 +784,15 @@ export function JournalEntryNewEditor() {
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.8, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
+                            transition={{ duration: 0.25, type: 'spring', stiffness: 300, damping: 20 }}
                           >
-                            <Badge variant="destructive" className="gap-1.5 px-3 py-1 text-xs font-bold">
-                              <XCircle className="h-3.5 w-3.5" />
+                            <Badge variant="destructive" className="gap-1.5 px-4 py-1.5 text-xs font-bold shadow-sm">
+                              <XCircle className="h-4 w-4" />
                               غير متوازن
                             </Badge>
                           </motion.div>
                         ) : (
-                          <Badge variant="outline" className="text-muted-foreground gap-1.5 px-3 py-1 text-xs">
+                          <Badge variant="outline" className="text-muted-foreground gap-1.5 px-4 py-1.5 text-xs">
                             <ChevronDown className="h-3.5 w-3.5" />
                             في انتظار الإدخال
                           </Badge>
@@ -732,7 +801,7 @@ export function JournalEntryNewEditor() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               <p className="text-[11px] text-muted-foreground/60">
                 صيغة الاستيراد: الحساب، نوع_الطرف، الطرف، مدين، دائن، مركز_تكلفة، ملاحظة، سعر_صرف — اسحب ⋮ لإعادة ترتيب البنود
@@ -771,18 +840,20 @@ export function JournalEntryNewEditor() {
           </div>
         </div>
 
-        {/* ─── Action Bar ─── */}
-        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border/40 bg-card/95 backdrop-blur-sm px-4 py-3 sm:px-6">
+        {/* ─── Action Bar (Glass effect) ─── */}
+        <div className="sticky bottom-0 flex shrink-0 items-center justify-between gap-2 border-t border-border/40 bg-card/80 backdrop-blur-xl px-4 py-3 sm:px-6 shadow-[0_-4px_20px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-2">
             {isBalanced ? (
-              <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1 text-[11px]">
-                <CheckCircle2 className="h-3 w-3" />
-                القيد متوازن
+              <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/25 gap-1.5 text-[11px] font-bold px-3 py-1 shadow-sm shadow-emerald-500/5">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">القيد متوازن</span>
+                <span className="sm:hidden">متوازن</span>
               </Badge>
             ) : difference !== 0 ? (
-              <Badge variant="destructive" className="gap-1 text-[11px]">
-                <XCircle className="h-3 w-3" />
-                فرق: {formatCurrency(Math.abs(difference))}
+              <Badge variant="destructive" className="gap-1.5 text-[11px] font-bold px-3 py-1 shadow-sm">
+                <XCircle className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">فرق: {formatCurrency(Math.abs(difference))}</span>
+                <span className="sm:hidden">فرق</span>
               </Badge>
             ) : null}
           </div>
@@ -793,7 +864,11 @@ export function JournalEntryNewEditor() {
             <Button
               type="submit"
               disabled={createMutation.isPending || !isBalanced || compLoading}
-              className="min-w-[140px] gap-1.5"
+              className={`min-w-[140px] gap-1.5 transition-all duration-200 ${
+                isBalanced && !createMutation.isPending
+                  ? 'bg-primary hover:bg-primary/90 shadow-md shadow-primary/20'
+                  : ''
+              }`}
             >
               {createMutation.isPending ? (
                 <>
@@ -803,7 +878,7 @@ export function JournalEntryNewEditor() {
               ) : (
                 <>
                   <Receipt className="h-3.5 w-3.5" />
-                  حفظ كمسودة
+                  حفظ القيد
                 </>
               )}
             </Button>

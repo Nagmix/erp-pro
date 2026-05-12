@@ -5,12 +5,13 @@ import { DataTable, type Column } from '@/components/erp/data-table';
 import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { StatusBadge } from '@/components/erp/status-badge';
+import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDocList, useCreateDoc } from '@/lib/client/hooks';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { apiCreateDoc, apiGetDoc, apiUpdateDoc } from '@/lib/client/api';
@@ -54,13 +55,24 @@ interface AssetRow {
 }
 
 // ============================================================
+// Status Tabs
+// ============================================================
+
+const statusTabs: ErpStatusTab[] = [
+  { value: 'all', label: 'الكل' },
+  { value: 'pending', label: 'معلّق' },
+  { value: 'posted', label: 'مُرحّل' },
+];
+
+// ============================================================
 // Main Component
 // ============================================================
 
 export default function DepreciationRunPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [assetFilter, setAssetFilter] = useState('');
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const { company: defaultCo } = useDefaultCompanyName();
@@ -81,13 +93,28 @@ export default function DepreciationRunPage() {
   const isError = depErr || assetIsErr;
   const error = depErr ? depErrObj : assetErr;
 
+  // ── Apply all filters ──
+  const filteredSchedules = useMemo(() => {
+    let list = depSched;
+    // Date range
+    if (dateFrom) list = list.filter(s => s.schedule_date >= dateFrom);
+    if (dateTo) list = list.filter(s => s.schedule_date <= dateTo);
+    // Status filter
+    if (statusFilter === 'pending') list = list.filter(s => !s.journal_entry);
+    else if (statusFilter === 'posted') list = list.filter(s => !!s.journal_entry);
+    // Asset filter
+    if (assetFilter) list = list.filter(s => s.parent === assetFilter);
+    return list;
+  }, [depSched, dateFrom, dateTo, statusFilter, assetFilter]);
+
   // ── Pending schedules (no journal_entry) ──
   const pendingSchedules = useMemo(() => {
     let list = depSched.filter(s => !s.journal_entry);
     if (dateFrom) list = list.filter(s => s.schedule_date >= dateFrom);
     if (dateTo) list = list.filter(s => s.schedule_date <= dateTo);
+    if (assetFilter) list = list.filter(s => s.parent === assetFilter);
     return list;
-  }, [depSched, dateFrom, dateTo]);
+  }, [depSched, dateFrom, dateTo, assetFilter]);
 
   const postedSchedules = useMemo(() => depSched.filter(s => !!s.journal_entry), [depSched]);
 
@@ -119,6 +146,16 @@ export default function DepreciationRunPage() {
     }
     return [...map.values()].sort((a, b) => b.pendingAmount - a.pendingAmount);
   }, [pendingSchedules]);
+
+  // ── Clear filters ──
+  const clearFilters = useCallback(() => {
+    setDateFrom('');
+    setDateTo('');
+    setStatusFilter('all');
+    setAssetFilter('');
+  }, []);
+
+  const hasActiveFilters = dateFrom || dateTo || statusFilter !== 'all' || assetFilter;
 
   // ── Run Depreciation ──
   const handleRunDepreciation = useCallback(async () => {
@@ -235,8 +272,6 @@ export default function DepreciationRunPage() {
     )},
   ];
 
-  const clearFilters = () => { setDateFrom(''); setDateTo(''); };
-
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <ListQueryAlert error={isError ? error : null} onRetry={() => { void refetchDep(); void refetchAssets(); }} />
@@ -302,40 +337,47 @@ export default function DepreciationRunPage() {
         </Card>
       </div>
 
-      {/* Date Range Filter */}
-      <div className="space-y-3">
-        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-                <Filter className="h-3 w-3" /> فلاتر الفترة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            {(dateFrom || dateTo) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-                <X className="h-3 w-3" /> مسح الفلاتر
+      {/* Unified Filters */}
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">الأصل</Label>
+              <ErpLinkCombobox
+                doctype="Asset"
+                value={assetFilter}
+                onChange={setAssetFilter}
+                placeholder="اختر الأصل..."
+                displayKey="asset_name"
+                className="h-9 w-48"
+              />
+            </div>
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs gap-1"
+                onClick={clearFilters}
+              >
+                <X className="h-3 w-3" />
+                مسح الفلاتر
               </Button>
             )}
           </div>
-          <CollapsibleContent>
-            <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-                <Label className="text-xs">من تاريخ</Label>
-                <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">إلى تاريخ</Label>
-                <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
-              </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+        }
+      />
 
       {/* Depreciation Schedule Table */}
       <DataTable
-        data={dateFrom || dateTo ? pendingSchedules : depSched}
+        data={filteredSchedules}
         columns={columns}
         searchable
         loading={isLoading}

@@ -219,6 +219,7 @@ except Exception as e:
     // الخطوة 1: إنشاء Server Script على ERPNext
     console.log('[Setup] Creating Server Script for safe company creation...');
     const scriptResult = await createDoc('Server Script', {
+      __newname: `ERP Pro Safe Company ${Date.now()}`,
       script_type: 'API',
       api_method: scriptApiMethod,
       script: SCRIPT_CODE,

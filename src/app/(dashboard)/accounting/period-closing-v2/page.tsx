@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import {
   useDocList,
   useCreateDoc,
@@ -175,6 +176,22 @@ export default function PeriodClosingV2Page() {
   const [selectedRow, setSelectedRow] = useState<PcvRow | null>(null);
   const [activeTab, setActiveTab] = useState<'closing' | 'calendar' | 'fiscal'>('closing');
 
+  // ── Filter state ──
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [docstatusFilter, setDocstatusFilter] = useState('all');
+  const [fiscalYearFilter, setFiscalYearFilter] = useState('');
+
+  const statusTabs: ErpStatusTab[] = useMemo(
+    () => [
+      { value: 'all', label: 'الكل' },
+      { value: '0', label: 'مسودة' },
+      { value: '1', label: 'مقفلة' },
+      { value: '2', label: 'ملغاة' },
+    ],
+    []
+  );
+
   // ── Close period form ──
   const [form, setForm] = useState({
     fiscal_year: '',
@@ -245,6 +262,24 @@ export default function PeriodClosingV2Page() {
   const draftCount = useMemo(() => pcvRows.filter((r) => r.docstatus === 0).length, [pcvRows]);
   const submittedCount = useMemo(() => pcvRows.filter((r) => r.docstatus === 1).length, [pcvRows]);
   const cancelledCount = useMemo(() => pcvRows.filter((r) => r.docstatus === 2).length, [pcvRows]);
+
+  // ── Filtered data for closing tab ──
+  const filteredPcvRows = useMemo(() => {
+    return pcvRows.filter((r) => {
+      if (docstatusFilter !== 'all' && String(r.docstatus) !== docstatusFilter) return false;
+      if (dateFrom && r.transaction_date < dateFrom) return false;
+      if (dateTo && r.transaction_date > dateTo) return false;
+      if (fiscalYearFilter && r.fiscal_year !== fiscalYearFilter) return false;
+      return true;
+    });
+  }, [pcvRows, docstatusFilter, dateFrom, dateTo, fiscalYearFilter]);
+
+  const clearFilters = useCallback(() => {
+    setDateFrom('');
+    setDateTo('');
+    setDocstatusFilter('all');
+    setFiscalYearFilter('');
+  }, []);
 
   // Closed periods for calendar
   const closedPeriods = useMemo(() => {
@@ -729,6 +764,35 @@ export default function PeriodClosingV2Page() {
         }
       />
 
+      {/* ── Filters ── */}
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={docstatusFilter}
+        onStatusChange={setDocstatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">السنة المالية</Label>
+              <ErpLinkCombobox
+                doctype="Fiscal Year"
+                value={fiscalYearFilter}
+                onChange={setFiscalYearFilter}
+                placeholder="كل السنوات"
+              />
+            </div>
+            {(dateFrom || dateTo || docstatusFilter !== 'all' || fiscalYearFilter) && (
+              <Button type="button" variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={clearFilters}>
+                مسح الكل
+              </Button>
+            )}
+          </div>
+        }
+      />
+
       {/* ── Stats KPIs ── */}
       {/* ── Closed Period Warning ── */}
       {currentPeriodStatus === 'closed' && (
@@ -803,7 +867,7 @@ export default function PeriodClosingV2Page() {
             </CardHeader>
             <CardContent>
               <DataTable
-                data={pcvRows}
+                data={filteredPcvRows}
                 columns={pcvColumns}
                 title="قسائم الإقفال"
                 searchable

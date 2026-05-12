@@ -6,6 +6,7 @@ import { StatusBadge } from '@/components/erp/status-badge';
 import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,7 +46,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils';
-import { RefreshCw, Play, Pause, Trash2, Plus, CalendarClock, Activity, Ban, Clock } from 'lucide-react';
+import { RefreshCw, Play, Pause, Trash2, Plus, CalendarClock, Activity, Ban, Clock, X } from 'lucide-react';
 
 // ============================================================
 // Types
@@ -87,6 +88,13 @@ const STATUS_STYLES: Record<string, string> = {
   Completed: 'bg-info/12 text-info ring-1 ring-inset ring-info/25',
 };
 
+const statusTabs: ErpStatusTab[] = [
+  { value: 'all', label: 'الكل' },
+  { value: 'Active', label: 'نشط' },
+  { value: 'Disabled', label: 'متوقف' },
+  { value: 'Completed', label: 'مكتمل' },
+];
+
 // ============================================================
 // Zod Schema
 // ============================================================
@@ -115,6 +123,12 @@ export default function RecurringEntriesPage() {
   const [togglingKey, setTogglingKey] = useState<string | null>(null);
   const { company: defaultCo } = useDefaultCompanyName();
 
+  // ── Filter state ──
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [doctypeFilter, setDoctypeFilter] = useState('all');
+
   // ── Data fetching ──
   const { data = [], isLoading, isError, error, refetch } = useDocList<AutoRepeatRow>('Auto Repeat', {
     fields: ['name', 'reference_doctype', 'reference_name', 'start_date', 'end_date', 'next_schedule_date', 'frequency', 'status', 'notify_by_email'],
@@ -140,6 +154,43 @@ export default function RecurringEntriesPage() {
   });
 
   const selectedDoctype = form.watch('reference_doctype');
+
+  // ── Clear all filters ──
+  const clearFilters = () => {
+    setDateFrom('');
+    setDateTo('');
+    setStatusFilter('all');
+    setDoctypeFilter('all');
+  };
+
+  const hasActiveFilters = dateFrom !== '' || dateTo !== '' || statusFilter !== 'all' || doctypeFilter !== 'all';
+
+  // ── Filtered data ──
+  const filteredData = useMemo(() => {
+    let result = data;
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(r => r.status === statusFilter);
+    }
+
+    // Doctype filter
+    if (doctypeFilter !== 'all') {
+      result = result.filter(r => r.reference_doctype === doctypeFilter);
+    }
+
+    // Date from filter (based on start_date)
+    if (dateFrom) {
+      result = result.filter(r => r.start_date && r.start_date >= dateFrom);
+    }
+
+    // Date to filter (based on start_date)
+    if (dateTo) {
+      result = result.filter(r => r.start_date && r.start_date <= dateTo);
+    }
+
+    return result;
+  }, [data, statusFilter, doctypeFilter, dateFrom, dateTo]);
 
   // ── KPIs ──
   const activeCount = useMemo(() => data.filter(r => r.status === 'Active').length, [data]);
@@ -263,10 +314,50 @@ export default function RecurringEntriesPage() {
         }
       />
 
-      {/* KPI Strip */}
+      {/* Unified Filters */}
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">نوع المستند</Label>
+              <Select value={doctypeFilter} onValueChange={setDoctypeFilter}>
+                <SelectTrigger className="h-9 w-[160px] text-xs rounded-lg">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent dir="rtl" align="start">
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="Journal Entry">قيد يومية</SelectItem>
+                  <SelectItem value="Payment Entry">سند دفع/قبض</SelectItem>
+                  <SelectItem value="Expense Claim">مطالبة مصروفات</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs gap-1 text-destructive hover:text-destructive"
+                onClick={clearFilters}
+              >
+                <X className="h-3 w-3" />
+                مسح الكل
+              </Button>
+            )}
+          </div>
+        }
+      />
+
       {/* DataTable */}
       <DataTable
-        data={data}
+        data={filteredData}
         columns={columns}
         searchable
         loading={isLoading}

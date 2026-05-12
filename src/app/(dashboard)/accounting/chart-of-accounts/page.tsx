@@ -275,13 +275,12 @@ function AccountTreeItem({
         </div>
       </div>
 
-      {/* ── Mobile row (<768px): simplified flex layout ── */}
+      {/* ── Mobile row (<768px): card-style layout with proper name visibility ── */}
       <div
-        className="md:hidden flex items-center gap-2 px-3 py-2.5 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
-        style={{ paddingRight: `${level * 0.75 + 0.75}rem` }}
+        className="md:hidden border-b border-border/20 last:border-b-0 group transition-colors hover:bg-accent/50"
       >
-        {/* Expand arrow + icon + name + group badge */}
-        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+        <div className="flex items-center gap-2 py-2.5 text-xs" style={{ paddingInlineStart: `${Math.min(level, 4) * 0.6 + 0.6}rem`, paddingInlineEnd: '0.75rem' }}>
+          {/* Expand arrow */}
           {hasChildren ? (
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -292,44 +291,45 @@ function AccountTreeItem({
           ) : (
             <span className="w-5 shrink-0" />
           )}
+          {/* Icon + Name */}
           {isGroup ? (
             <FolderOpen className={`h-4 w-4 shrink-0 ${config?.accent || 'text-muted-foreground'}`} />
           ) : (
             <FileText className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
           )}
-          <span className={`truncate ${isGroup ? 'font-semibold' : ''}`}>{displayName}</span>
+          <span className={`truncate min-w-0 flex-1 ${isGroup ? 'font-semibold' : ''}`}>{displayName}</span>
+
+          {/* Balance */}
+          {!isGroup && (
+            <span className="tabular-nums text-xs shrink-0 font-medium" dir="ltr">
+              <span className={balance >= 0 ? 'text-foreground' : 'text-destructive'}>
+                {formatCurrency(balance)}
+              </span>
+            </span>
+          )}
+
+          {/* Group badge */}
           {isGroup && (
             <Badge variant="outline" className="text-[9px] font-normal px-1.5 py-0 shrink-0 text-muted-foreground border-muted-foreground/20">
               مجموعة
             </Badge>
           )}
-        </div>
 
-        {/* Balance only */}
-        <span className="tabular-nums text-xs shrink-0" dir="ltr">
-          {isGroup ? (
-            <span className="text-muted-foreground/40">—</span>
-          ) : (
-            <span className={balance >= 0 ? 'text-foreground' : 'text-destructive font-medium'}>
-              {formatCurrency(balance)}
-            </span>
-          )}
-        </span>
-
-        {/* Actions - always visible on mobile (no hover on touch) */}
-        <div className="flex gap-0.5 shrink-0">
-          <button
-            onClick={() => onEdit(account)}
-            className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-          >
-            <Edit className="h-3 w-3" />
-          </button>
-          <button
-            onClick={() => onDelete(account)}
-            className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-          >
-            <Trash2 className="h-3 w-3" />
-          </button>
+          {/* Actions - always visible on mobile */}
+          <div className="flex gap-0.5 shrink-0">
+            <button
+              onClick={() => onEdit(account)}
+              className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            >
+              <Edit className="h-3 w-3" />
+            </button>
+            <button
+              onClick={() => onDelete(account)}
+              className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
+          </div>
         </div>
       </div>
       <AnimatePresence initial={false}>
@@ -968,8 +968,8 @@ export default function ChartOfAccountsPage() {
           className="md:hidden sticky top-0 z-10 bg-muted/50 backdrop-blur-sm px-3 py-2 flex items-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 select-none"
         >
           <span className="flex-1">الحساب</span>
-          <span className="text-start ms-4" dir="ltr">الرصيد</span>
-          <span className="w-14" />
+          <span className="text-start ms-3 shrink-0" dir="ltr">الرصيد</span>
+          <span className="w-16 shrink-0" />
         </div>
 
         {isLoading ? (

@@ -6,6 +6,7 @@ import { DataTable, type Column } from '@/components/erp/data-table';
 import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -106,14 +107,25 @@ const BASE_FIELDS: string[] = [
   CHEQUE_LIFECYCLE_FIELD,
 ];
 
+const statusTabs: ErpStatusTab[] = [
+  { value: 'all', label: 'الكل' },
+  { value: 'Issued', label: 'مصدّر' },
+  { value: 'Deposited', label: 'مودع' },
+  { value: 'Cleared', label: 'مقاص' },
+  { value: 'Bounced', label: 'مرتد' },
+];
+
 export default function ChequeWorkflowPage() {
   const qc = useQueryClient();
   const { company: defaultCompany } = useDefaultCompanyName();
 
   // ── Filters ──
-  const [stageFilter, setStageFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string>('all');
+  const [bankAccountFilter, setBankAccountFilter] = useState('');
   const [search, setSearch] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // ── Create Dialog ──
   const [createOpen, setCreateOpen] = useState(false);
@@ -166,13 +178,30 @@ export default function ChequeWorkflowPage() {
   // ── Filtered data ──
   const filtered = useMemo(() => {
     let result = allCheques;
-    if (stageFilter !== 'all') {
+    // Status filter
+    if (statusFilter !== 'all') {
       result = result.filter((r) => {
         const stage = r[CHEQUE_LIFECYCLE_FIELD] || '';
-        if (stageFilter === 'Issued') return !stage || stage === 'Issued';
-        return stage === stageFilter;
+        if (statusFilter === 'Issued') return !stage || stage === 'Issued';
+        return stage === statusFilter;
       });
     }
+    // Date range filter
+    if (dateFrom) {
+      result = result.filter((r) => r.posting_date >= dateFrom);
+    }
+    if (dateTo) {
+      result = result.filter((r) => r.posting_date <= dateTo);
+    }
+    // Payment type filter
+    if (paymentTypeFilter !== 'all') {
+      result = result.filter((r) => r.payment_type === paymentTypeFilter);
+    }
+    // Bank account filter
+    if (bankAccountFilter) {
+      result = result.filter((r) => r.bank_account === bankAccountFilter);
+    }
+    // Search
     if (search.trim()) {
       const s = search.trim().toLowerCase();
       result = result.filter(
@@ -183,7 +212,7 @@ export default function ChequeWorkflowPage() {
       );
     }
     return result;
-  }, [allCheques, stageFilter, search]);
+  }, [allCheques, statusFilter, dateFrom, dateTo, paymentTypeFilter, bankAccountFilter, search]);
 
   // ── KPIs ──
   const issuedCount = allCheques.filter(
@@ -199,6 +228,17 @@ export default function ChequeWorkflowPage() {
     (r) => r[CHEQUE_LIFECYCLE_FIELD] === 'Bounced'
   ).length;
   const totalValue = allCheques.reduce((sum, r) => sum + (Number(r.paid_amount) || 0), 0);
+
+  // ── Clear filters ──
+  const clearFilters = useCallback(() => {
+    setDateFrom('');
+    setDateTo('');
+    setStatusFilter('all');
+    setPaymentTypeFilter('all');
+    setBankAccountFilter('');
+  }, []);
+
+  const hasActiveFilters = dateFrom || dateTo || statusFilter !== 'all' || paymentTypeFilter !== 'all' || bankAccountFilter;
 
   // ── Stage update handler ──
   const updateStage = useCallback(
@@ -283,6 +323,16 @@ export default function ChequeWorkflowPage() {
     }
   }, [reverseTarget, defaultCompany, refetch]);
 
+  const resetCreateForm = useCallback(() => {
+    setFormParty('');
+    setFormPartyType('Customer');
+    setFormRefNo('');
+    setFormRefDate('');
+    setFormAmount('');
+    setFormBank('');
+    setFormDueDate('');
+  }, []);
+
   // ── Create Cheque handler ──
   const handleCreate = useCallback(async () => {
     if (!formParty || !formRefNo || !formRefDate || !formAmount || !formBank) {
@@ -330,17 +380,7 @@ export default function ChequeWorkflowPage() {
     } finally {
       setCreating(false);
     }
-  }, [formParty, formPartyType, formRefNo, formRefDate, formAmount, formBank, formDueDate, defaultCompany, refetch]);
-
-  const resetCreateForm = () => {
-    setFormParty('');
-    setFormPartyType('Customer');
-    setFormRefNo('');
-    setFormRefDate('');
-    setFormAmount('');
-    setFormBank('');
-    setFormDueDate('');
-  };
+  }, [formParty, formPartyType, formRefNo, formRefDate, formAmount, formBank, formDueDate, defaultCompany, refetch, resetCreateForm]);
 
   const getStage = (row: ChequeRow): string => {
     return row[CHEQUE_LIFECYCLE_FIELD] || 'Issued';
@@ -479,10 +519,10 @@ export default function ChequeWorkflowPage() {
             <div key={stage} className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => setStageFilter(stage === 'Issued' && stageFilter === 'Issued' ? 'all' : stage)}
+                onClick={() => setStatusFilter(stage === 'Issued' && statusFilter === 'Issued' ? 'all' : stage)}
                 className={cn(
                   'flex flex-col items-center gap-1 px-4 py-3 rounded-xl transition-all min-w-[80px]',
-                  stageFilter === stage
+                  statusFilter === stage
                     ? 'bg-background shadow-md ring-1 ring-border/40'
                     : 'hover:bg-muted/30'
                 )}
@@ -530,29 +570,66 @@ export default function ChequeWorkflowPage() {
       {/* Visual Lifecycle Flow */}
       {renderLifecycleFlow()}
 
-      {/* Search & Filters */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex-1 min-w-[200px]">
-            <Input
-              placeholder="بحث برقم الشيك أو الطرف..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-8 text-xs"
-            />
+      {/* Unified Filters */}
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={statusFilter}
+        onStatusChange={setStatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">نوع الدفع</Label>
+              <Select value={paymentTypeFilter} onValueChange={setPaymentTypeFilter}>
+                <SelectTrigger className="h-9 text-xs w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  <SelectItem value="Receive">استلام</SelectItem>
+                  <SelectItem value="Pay">دفع</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">الحساب البنكي</Label>
+              <ErpLinkCombobox
+                doctype="Bank Account"
+                value={bankAccountFilter}
+                onChange={setBankAccountFilter}
+                placeholder="اختر الحساب البنكي..."
+                displayKey="account_name"
+                className="h-9 w-48"
+              />
+            </div>
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs gap-1"
+                onClick={clearFilters}
+              >
+                <X className="h-3 w-3" />
+                مسح الفلاتر
+              </Button>
+            )}
           </div>
-          <Select value={stageFilter} onValueChange={setStageFilter}>
-            <SelectTrigger className="h-8 text-xs w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">جميع المراحل</SelectItem>
-              <SelectItem value="Issued">مصدّر</SelectItem>
-              <SelectItem value="Deposited">مودع</SelectItem>
-              <SelectItem value="Cleared">مقاص</SelectItem>
-              <SelectItem value="Bounced">مرتد</SelectItem>
-            </SelectContent>
-          </Select>
+        }
+      />
+
+      {/* Search */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            placeholder="بحث برقم الشيك أو الطرف..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-8 text-xs"
+          />
         </div>
       </div>
 

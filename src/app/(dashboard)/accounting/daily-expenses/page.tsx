@@ -7,11 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { DocStatusBadge } from '@/components/erp/status-badge';
+import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -19,11 +19,9 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
 import { toast } from 'sonner';
-import { Plus, Receipt, Send, CheckCircle2, XCircle, Filter, ChevronDown, Upload, X, DollarSign, FileText } from 'lucide-react';
+import { Plus, Receipt, Send, CheckCircle2, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
-import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type ExpenseRow = {
   name: string;
@@ -46,7 +44,15 @@ const EXPENSE_STATUS_MAP: Record<string, string> = {
   'Paid': 'مدفوع',
   'Unpaid': 'غير مدفوع',
   'Submitted': 'مقدم',
-  'Cancelled': 'ملغي'};
+  'Cancelled': 'ملغي',
+};
+
+const statusTabs: ErpStatusTab[] = [
+  { value: 'all', label: 'الكل' },
+  { value: '0', label: 'مسودة' },
+  { value: '1', label: 'مرحّل' },
+  { value: '2', label: 'ملغي' },
+];
 
 export default function DailyExpensesPage() {
   const { company: defaultCompany } = useDefaultCompanyName();
@@ -66,11 +72,12 @@ export default function DailyExpensesPage() {
   const [busy, setBusy] = useState(false);
 
   // Filter state
-  const [dateFrom, setDateFrom] = useState(today);
-  const [dateTo, setDateTo] = useState(today);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [docstatusFilter, setDocstatusFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [employeeFilter, setEmployeeFilter] = useState('');
+  const [expenseTypeFilter, setExpenseTypeFilter] = useState('');
 
   // Fetch expenses
   const { data: expenses = [], isLoading, isError, error, refetch } = useDocList<ExpenseRow>('Expense Claim', {
@@ -91,11 +98,17 @@ export default function DailyExpensesPage() {
     if (dateFrom || dateTo) {
       list = list.filter(e => rowInDateRangeISO(e.posting_date, dateFrom, dateTo));
     }
-    if (statusFilter !== 'all') {
-      list = list.filter(e => String(e.docstatus) === statusFilter);
+    if (docstatusFilter !== 'all') {
+      list = list.filter(e => String(e.docstatus) === docstatusFilter);
+    }
+    if (employeeFilter.trim()) {
+      list = list.filter(e => e.employee === employeeFilter);
+    }
+    if (expenseTypeFilter.trim()) {
+      list = list.filter(e => e.expense_type === expenseTypeFilter);
     }
     return list;
-  }, [expenses, dateFrom, dateTo, statusFilter]);
+  }, [expenses, dateFrom, dateTo, docstatusFilter, search, employeeFilter, expenseTypeFilter]);
 
   // KPIs
   const totalExpensesAmount = useMemo(
@@ -134,7 +147,8 @@ export default function DailyExpensesPage() {
         expense_claim_date: expenseDate,
         expenses: [{ expense_type: expenseType, amount: amt, cost_center: costCenter || undefined }],
         remark,
-        company: defaultCompany});
+        company: defaultCompany,
+      });
       toast.success('تم إنشاء المصروف بنجاح');
       setEmployee('');
       setExpenseType('');
@@ -149,9 +163,9 @@ export default function DailyExpensesPage() {
     } finally {
       setBusy(false);
     }
-  }, [employee, expenseType, amount, expenseDate, costCenter, remark, defaultCompany, createExpense, refetch, toast, today]);
+  }, [employee, expenseType, amount, expenseDate, costCenter, remark, defaultCompany, createExpense, refetch, today]);
 
-  // Submit expense — useSubmitDoc mutationFn takes just a string
+  // Submit expense
   const handleSubmit = useCallback(async (name: string) => {
     try {
       await submitExpense.mutateAsync(name);
@@ -161,9 +175,9 @@ export default function DailyExpensesPage() {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error('فشل الاعتماد', { description: msg });
     }
-  }, [submitExpense, refetch, toast]);
+  }, [submitExpense, refetch]);
 
-  // Cancel expense — useCancelDoc mutationFn takes just a string
+  // Cancel expense
   const handleCancel = useCallback(async (name: string) => {
     try {
       await cancelExpense.mutateAsync(name);
@@ -173,7 +187,7 @@ export default function DailyExpensesPage() {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error('فشل الإلغاء', { description: msg });
     }
-  }, [cancelExpense, refetch, toast]);
+  }, [cancelExpense, refetch]);
 
   // Table columns
   const columns: Column<ExpenseRow>[] = useMemo(
@@ -186,7 +200,8 @@ export default function DailyExpensesPage() {
         render: (v) => {
           const href = docDetailPath('Expense Claim', String(v));
           return href ? <Link href={href} className="font-medium text-primary hover:underline">{String(v)}</Link> : <span>{String(v)}</span>;
-        }},
+        },
+      },
       { key: 'posting_date', header: 'التاريخ', sortable: true, render: (v) => v ? formatDate(String(v)) : '\u2014' },
       { key: 'employee_name', header: 'الموظف', filterable: true, render: (v) => String(v || '\u2014') },
       { key: 'expense_type', header: 'نوع المصروف', filterable: true, render: (v) => String(v || '\u2014') },
@@ -194,12 +209,14 @@ export default function DailyExpensesPage() {
         key: 'total_claimed_amount',
         header: 'المبلغ المطلوب',
         sortable: true,
-        render: (v) => <span className="font-semibold text-destructive tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span>},
+        render: (v) => <span className="font-semibold text-destructive tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span>,
+      },
       {
         key: 'total_sanctioned_amount',
         header: 'المبلغ المعتمد',
         sortable: true,
-        render: (v) => <span className="font-semibold text-emerald-600 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span>},
+        render: (v) => <span className="font-semibold text-emerald-600 tabular-nums" dir="ltr">{formatCurrency(Number(v) || 0)}</span>,
+      },
       {
         key: 'status',
         header: 'الحالة',
@@ -207,7 +224,8 @@ export default function DailyExpensesPage() {
         render: (v) => {
           const label = EXPENSE_STATUS_MAP[String(v)] || String(v);
           return <Badge variant="outline" className="text-xs">{label}</Badge>;
-        }},
+        },
+      },
       { key: 'docstatus', header: 'حالة المستند', render: (v) => <DocStatusBadge docstatus={Number(v) as 0 | 1 | 2} /> },
       {
         key: 'actions',
@@ -236,13 +254,27 @@ export default function DailyExpensesPage() {
                 إلغاء
               </Button>
             )}
-            {(() => { const href = docDetailPath('Expense Claim', row.name); return href ? <Link href={href} className="text-xs text-primary hover:underline">عرض</Link> : <span className="text-xs text-muted-foreground">عرض</span>; })()}
+            {(() => {
+              const href = docDetailPath('Expense Claim', row.name);
+              return href ? <Link href={href} className="text-xs text-primary hover:underline">عرض</Link> : <span className="text-xs text-muted-foreground">عرض</span>;
+            })()}
           </div>
-        )},
+        ),
+      },
     ],
     [handleSubmit, handleCancel]
   );
-  const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setSearch(''); };
+
+  const hasActiveFilters = dateFrom || dateTo || docstatusFilter !== 'all' || search || employeeFilter || expenseTypeFilter;
+
+  const clearFilters = () => {
+    setDateFrom('');
+    setDateTo('');
+    setDocstatusFilter('all');
+    setSearch('');
+    setEmployeeFilter('');
+    setExpenseTypeFilter('');
+  };
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
@@ -256,56 +288,65 @@ export default function DailyExpensesPage() {
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'المصاريف اليومية' }]}
       />
 
-      {/* شريط البحث والفلاتر */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* بحث سريع */}
-          <div className="flex-1 min-w-[200px]">
-            <Input placeholder="بحث بالرقم أو البيان..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
-          </div>
-        </div>
-
-        {/* فلاتر متقدمة (قابلة للطي) */}
-        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-                <Filter className="h-3 w-3" /> فلاتر متقدمة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            {(dateFrom || dateTo || statusFilter !== 'all' || search) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-                <X className="h-3 w-3" /> مسح الفلاتر
+      {/* ── فلاتر التاريخ والحالة ── */}
+      <ErpListDateStatusFilters
+        dateFrom={dateFrom}
+        dateTo={dateTo}
+        onDateFromChange={setDateFrom}
+        onDateToChange={setDateTo}
+        statusValue={docstatusFilter}
+        onStatusChange={setDocstatusFilter}
+        statusTabs={statusTabs}
+        extraFilters={
+          <div className="flex flex-wrap items-end gap-3">
+            {/* فلتر الموظف */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">الموظف</Label>
+              <ErpLinkCombobox
+                doctype="Employee"
+                value={employeeFilter}
+                onChange={setEmployeeFilter}
+                placeholder="كل الموظفين"
+                displayKey="employee_name"
+                className="h-9 w-44"
+              />
+            </div>
+            {/* فلتر نوع المصروف */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">نوع المصروف</Label>
+              <ErpLinkCombobox
+                doctype="Expense Claim Type"
+                value={expenseTypeFilter}
+                onChange={setExpenseTypeFilter}
+                placeholder="كل الأنواع"
+                className="h-9 w-40"
+              />
+            </div>
+            {/* بحث سريع */}
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">بحث</Label>
+              <Input
+                placeholder="رقم أو بيان..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="h-9 text-xs w-44"
+              />
+            </div>
+            {/* مسح */}
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs"
+                onClick={clearFilters}
+              >
+                مسح الكل
               </Button>
             )}
           </div>
-          <CollapsibleContent>
-            <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-            <Label className="text-xs">من تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">إلى تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">الحالة</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-8 text-xs w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="0">مسودة</SelectItem>
-                <SelectItem value="1">مرحّل</SelectItem>
-                <SelectItem value="2">ملغي</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
+        }
+      />
 
       {/* New Expense Form */}
       <Card className="border-warning/20">

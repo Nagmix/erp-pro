@@ -335,8 +335,10 @@ export function DataTable<T = unknown>({
         )}
         <div className="flex flex-wrap items-center gap-2">
           {searchable && (
-            <div className="relative">
-              <Search className="pointer-events-none absolute end-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative flex-1 sm:flex-initial">
+              <div className="absolute start-2.5 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center pointer-events-none">
+                <Search className="h-3 w-3 text-primary/70" />
+              </div>
               <Input
                 placeholder="بحث في الجدول..."
                 value={search}
@@ -344,7 +346,7 @@ export function DataTable<T = unknown>({
                   setSearch(e.target.value);
                   setCurrentPage(1);
                 }}
-              className="h-9 w-full sm:w-56 rounded-[var(--radius-md-ui)] pe-8 text-xs"
+              className="h-9 w-full sm:w-56 rounded-lg ps-8 pe-3 text-xs border-border/40 bg-background/60 focus:bg-background"
               />
             </div>
           )}
@@ -409,6 +411,7 @@ export function DataTable<T = unknown>({
         </div>
       )}
 
+      {/* ── Desktop Table ── */}
       <div
         id={`erp-print-area-${tableId ?? "default"}`}
         className="hidden md:block rounded-xl border border-border/40 bg-card overflow-x-auto transition-colors duration-200 hover:border-border/60"
@@ -613,10 +616,11 @@ export function DataTable<T = unknown>({
         </Table>
       </div>
 
+      {/* ── Mobile Cards ── */}
       <div className="space-y-2 md:hidden">
         {loading ? (
           Array.from({ length: Math.min(pageSize, 6) }).map((_, si) => (
-            <Skeleton key={`mobile-sk-${si}`} className="h-28 w-full rounded-[var(--radius-md-ui)]" />
+            <Skeleton key={`mobile-sk-${si}`} className="h-28 w-full rounded-lg" />
           ))
         ) : paginatedData.length === 0 ? (
           <EmptyState
@@ -632,14 +636,14 @@ export function DataTable<T = unknown>({
             const id = getRowId(row, globalIndex);
             const rec = rowRecord(row);
             const primary = visibleColumns[0];
-            const secondary = visibleColumns.slice(1, 4);
+            const secondary = visibleColumns.slice(1, 5);
             return (
-              <div key={`m-${id}`} className="rounded-[var(--radius-md-ui)] border border-border/40 bg-card p-3">
+              <div key={`m-${id}`} className="rounded-lg border border-border/40 bg-card p-3 transition-colors hover:bg-accent/30">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">{primary?.header ?? "السجل"}</p>
-                    <p className="truncate text-sm font-semibold">
-                      {primary ? String(rec[primary.key] ?? "—") : id}
+                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{primary?.header ?? "السجل"}</p>
+                    <p className="truncate text-sm font-bold mt-0.5">
+                      {primary ? (primary.render ? primary.render(rec[primary.key], row) : String(rec[primary.key] ?? "—")) : id}
                     </p>
                   </div>
                   {showSelectCol ? (
@@ -650,19 +654,24 @@ export function DataTable<T = unknown>({
                     />
                   ) : null}
                 </div>
-                <div className="mt-3 grid grid-cols-1 gap-1.5">
-                  {secondary.map((col) => (
-                    <div key={`m-${id}-${col.key}`} className="flex items-center justify-between gap-2 text-xs">
-                      <span className="text-muted-foreground">{col.header}</span>
-                      <span className="truncate font-medium">{String(rec[col.key] ?? "—")}</span>
-                    </div>
-                  ))}
+                <div className="mt-2.5 space-y-1.5">
+                  {secondary.map((col) => {
+                    const rawVal = rec[col.key];
+                    return (
+                      <div key={`m-${id}-${col.key}`} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-muted-foreground shrink-0">{col.header}</span>
+                        <span className="truncate font-medium text-end">
+                          {col.render ? col.render(rawVal, row) : String(rawVal ?? "—")}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
                 {showActions ? (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {onView ? <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => onView(row)}>عرض</Button> : null}
-                    {onEdit ? <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => onEdit(row)}>تعديل</Button> : null}
-                    {onDelete ? <Button size="sm" variant="destructive" className="h-8 text-xs" onClick={() => onDelete(row)}>حذف</Button> : null}
+                  <div className="mt-3 flex flex-wrap gap-1.5 pt-2 border-t border-border/20">
+                    {onView ? <Button size="sm" variant="outline" className="h-7 text-[11px] px-2" onClick={() => onView(row)}>عرض</Button> : null}
+                    {onEdit ? <Button size="sm" variant="outline" className="h-7 text-[11px] px-2" onClick={() => onEdit(row)}>تعديل</Button> : null}
+                    {onDelete ? <Button size="sm" variant="destructive" className="h-7 text-[11px] px-2" onClick={() => onDelete(row)}>حذف</Button> : null}
                   </div>
                 ) : null}
                 {selected.has(id) ? <Badge variant="secondary" className="mt-2 text-[10px]">محدد</Badge> : null}
