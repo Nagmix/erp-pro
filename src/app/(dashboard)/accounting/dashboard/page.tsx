@@ -2,6 +2,16 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 import { useDocList } from '@/lib/client/hooks';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
@@ -62,30 +72,21 @@ const SUB_PAGES = [
 ];
 
 /* ------------------------------------------------------------------ */
-/*  Simple bar chart component using divs                              */
+/*  Custom tooltip for the recharts bar chart                          */
 /* ------------------------------------------------------------------ */
-function SimpleBarChart({ data, maxVal, colorClass, labelFn }: {
-  data: { label: string; value: number }[];
-  maxVal: number;
-  colorClass: string;
-  labelFn?: (label: string) => string;
+function ChartTooltip({ active, payload, label }: {
+  active?: boolean;
+  payload?: { name: string; value: number; color: string }[];
+  label?: string;
 }) {
-  const safeMax = Math.max(maxVal, 1);
+  if (!active || !payload || payload.length === 0) return null;
   return (
-    <div className="flex items-end gap-1.5 h-28">
-      {data.map((item, i) => (
-        <div key={i} className="flex flex-1 flex-col items-center gap-1">
-          <span className="text-[9px] text-muted-foreground tabular-nums leading-none">
-            {item.value > 0 ? formatCurrency(item.value).replace('ر.ي', '').trim() : '—'}
-          </span>
-          <div
-            className={`w-full rounded-t-sm transition-all duration-300 ${colorClass}`}
-            style={{ height: `${Math.max((item.value / safeMax) * 80, 2)}px` }}
-          />
-          <span className="text-[9px] text-muted-foreground leading-none">
-            {labelFn ? labelFn(item.label) : item.label}
-          </span>
-        </div>
+    <div className="rounded-lg border border-border/60 bg-background px-3 py-2 shadow-md">
+      <p className="text-xs font-semibold mb-1">{label}</p>
+      {payload.map((entry, i) => (
+        <p key={i} className="text-[11px] tabular-nums" style={{ color: entry.color }}>
+          {entry.name === 'revenue' ? 'الإيرادات' : 'المصروفات'}: {formatCurrency(entry.value)}
+        </p>
       ))}
     </div>
   );
@@ -263,11 +264,6 @@ export default function AccountingDashboardPage() {
     return months;
   }, [salesInvoices, purchaseInvoices]);
 
-  const maxChartVal = useMemo(
-    () => Math.max(...monthlyData.map((m) => Math.max(m.revenue, m.expenses)), 1),
-    [monthlyData]
-  );
-
   /* ---------- AR Aging ---------- */
   const arAging = useMemo(() => {
     const todayDate = new Date();
@@ -433,23 +429,34 @@ export default function AccountingDashboardPage() {
             <CardTitle className="text-sm font-semibold">الإيرادات مقابل المصروفات (آخر ٦ أشهر)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div>
-                <p className="text-[10px] text-muted-foreground mb-1">الإيرادات</p>
-                <SimpleBarChart
-                  data={monthlyData.map((m) => ({ label: m.label, value: m.revenue }))}
-                  maxVal={maxChartVal}
-                  colorClass="bg-chart-3/80"
-                />
-              </div>
-              <div>
-                <p className="text-[10px] text-muted-foreground mb-1">المصروفات</p>
-                <SimpleBarChart
-                  data={monthlyData.map((m) => ({ label: m.label, value: m.expenses }))}
-                  maxVal={maxChartVal}
-                  colorClass="bg-chart-2/80"
-                />
-              </div>
+            <div dir="ltr" className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v: number) => formatCurrency(v).replace('ر.ي', '').trim()}
+                    width={55}
+                  />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Legend
+                    formatter={(value: string) => (value === 'revenue' ? 'الإيرادات' : 'المصروفات')}
+                    iconType="circle"
+                    iconSize={8}
+                    wrapperStyle={{ fontSize: 11, direction: 'rtl' }}
+                  />
+                  <Bar dataKey="revenue" name="revenue" fill="#10b981" radius={[3, 3, 0, 0]} maxBarSize={32} />
+                  <Bar dataKey="expenses" name="expenses" fill="#f59e0b" radius={[3, 3, 0, 0]} maxBarSize={32} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>

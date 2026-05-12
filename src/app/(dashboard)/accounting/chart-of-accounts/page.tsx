@@ -278,46 +278,43 @@ function AccountTreeItem({
 
       {/* ── Mobile row (<768px): card-style layout with proper name visibility ── */}
       <div
-        className="md:hidden border-b border-border/20 last:border-b-0 group transition-colors hover:bg-accent/50 overflow-hidden"
+        className="md:hidden border-b border-border/20 last:border-b-0 group transition-colors hover:bg-accent/50"
       >
-        <div className="flex items-center gap-2 py-2.5 text-xs min-w-0" style={{ paddingInlineStart: `${Math.min(level, 4) * 0.6 + 0.6}rem`, paddingInlineEnd: '0.75rem' }}>
+        {/* Main row: name + actions */}
+        <div className="flex items-center gap-1.5 py-2 text-xs" style={{ paddingInlineStart: `${Math.min(level, 4) * 0.5 + 0.5}rem`, paddingInlineEnd: '0.5rem' }}>
           {/* Expand arrow */}
           {hasChildren ? (
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="h-5 w-5 rounded flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+              className="h-6 w-6 rounded flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
             >
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-150 ${isOpen ? '' : '-rotate-90'}`} />
+              <ChevronDown className={`h-4 w-4 transition-transform duration-150 ${isOpen ? '' : '-rotate-90'}`} />
             </button>
           ) : (
-            <span className="w-5 shrink-0" />
+            <span className="w-2 shrink-0" />
           )}
-          {/* Icon + Name */}
-          {isGroup ? (
-            <FolderOpen className={`h-4 w-4 shrink-0 ${config?.accent || 'text-muted-foreground'}`} />
-          ) : (
-            <FileText className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
-          )}
-          <span className={`truncate min-w-0 flex-1 overflow-hidden ${isGroup ? 'font-semibold' : ''}`}>{displayName}</span>
+          {/* Icon + Name - takes most space */}
+          <div className="flex items-center gap-1.5 min-w-0 flex-1 basis-0">
+            {isGroup ? (
+              <FolderOpen className={`h-4 w-4 shrink-0 ${config?.accent || 'text-muted-foreground'}`} />
+            ) : (
+              <FileText className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+            )}
+            <span className={`truncate min-w-[60px] ${isGroup ? 'font-semibold' : ''}`}>{displayName}</span>
+            {isGroup && (
+              <Badge variant="outline" className="text-[9px] font-normal px-1 py-0 shrink-0 text-muted-foreground border-muted-foreground/20">
+                مجموعة
+              </Badge>
+            )}
+          </div>
 
-          {/* Balance */}
-          {!isGroup && (
-            <span className="tabular-nums text-xs shrink-0 font-medium max-w-[80px] truncate" dir="ltr">
-              <span className={balance >= 0 ? 'text-foreground' : 'text-destructive'}>
+          {/* Balance + Actions on same line */}
+          <div className="flex items-center gap-1 shrink-0">
+            {!isGroup && (
+              <span className={`tabular-nums text-[11px] font-medium max-w-[90px] truncate ${balance >= 0 ? 'text-foreground' : 'text-destructive'}`} dir="ltr">
                 {formatCurrency(balance)}
               </span>
-            </span>
-          )}
-
-          {/* Group badge */}
-          {isGroup && (
-            <Badge variant="outline" className="text-[9px] font-normal px-1.5 py-0 shrink-0 text-muted-foreground border-muted-foreground/20">
-              مجموعة
-            </Badge>
-          )}
-
-          {/* Actions - always visible on mobile */}
-          <div className="flex gap-0.5 shrink-0">
+            )}
             <button
               onClick={() => onEdit(account)}
               className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"

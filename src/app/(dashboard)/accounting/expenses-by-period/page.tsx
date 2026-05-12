@@ -1,6 +1,19 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from 'recharts';
 import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -43,7 +56,7 @@ import {
   FileSpreadsheet,
   FileText,
   BarChart3,
-  PieChart,
+  PieChart as PieChartIcon,
   ChevronDown,
   ChevronUp,
   ChevronRight,
@@ -162,6 +175,59 @@ const CATEGORY_COLORS = [
   'bg-chart-1/10 text-chart-1 border-chart-1/20',
   'bg-chart-2/10 text-chart-2 border-chart-2/20',
 ];
+
+const CHART_COLORS = ['#3b82f6', '#f59e0b', '#8b5cf6', '#10b981', '#f43f5e', '#06b6d4', '#ec4899', '#84cc16', '#f97316', '#6366f1'];
+
+/* ─── Custom Tooltip for Bar Chart ─── */
+function BarChartTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div
+      dir="rtl"
+      className="rounded-lg border border-border/50 bg-popover px-3 py-2 shadow-md"
+      style={{ textAlign: 'right' }}
+    >
+      <p className="text-xs font-semibold text-popover-foreground mb-1">{label}</p>
+      <p className="text-sm font-bold text-destructive tabular-nums" dir="ltr">
+        {formatCurrency(payload[0].value)}
+      </p>
+      <p className="text-[10px] text-muted-foreground">إجمالي المصروفات</p>
+    </div>
+  );
+}
+
+/* ─── Custom Tooltip for Pie Chart ─── */
+function PieChartTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; payload: { fill: string } }> }) {
+  if (!active || !payload || !payload.length) return null;
+  return (
+    <div
+      dir="rtl"
+      className="rounded-lg border border-border/50 bg-popover px-3 py-2 shadow-md"
+      style={{ textAlign: 'right' }}
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: payload[0].payload.fill }} />
+        <p className="text-xs font-semibold text-popover-foreground">{payload[0].name}</p>
+      </div>
+      <p className="text-sm font-bold tabular-nums" dir="ltr">{formatCurrency(payload[0].value)}</p>
+    </div>
+  );
+}
+
+/* ─── Custom Legend for Pie Chart ─── */
+function PieChartLegend({ payload }: { payload?: Array<{ value: string; color: string }> }) {
+  if (!payload) return null;
+  return (
+    <div dir="rtl" className="flex flex-col gap-1.5 pr-2">
+      {payload.map((entry, idx) => (
+        <div key={entry.value} className="flex items-center gap-2">
+          <div className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: entry.color }} />
+          <span className="text-[11px] text-foreground truncate max-w-[120px]">{entry.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /* ─── Main Component ─── */
 export default function ExpensesByPeriodPage() {
@@ -299,7 +365,14 @@ export default function ExpensesByPeriodPage() {
     }));
   }, [groupedData, groupBy]);
 
-  const maxTrendValue = useMemo(() => Math.max(...trendData.map(d => d.total), 1), [trendData]);
+  /* ─── Pie chart data ─── */
+  const pieData = useMemo(() => {
+    return categoryTotals.map(({ category, total }, idx) => ({
+      name: category,
+      value: total,
+      fill: CHART_COLORS[idx % CHART_COLORS.length],
+    }));
+  }, [categoryTotals]);
 
   /* ─── Table Columns ─── */
   const periodColumns: Column<typeof groupedData[number]>[] = useMemo(
@@ -514,7 +587,7 @@ export default function ExpensesByPeriodPage() {
             الرسم البياني
           </TabsTrigger>
           <TabsTrigger value="categories" className="gap-1.5 text-xs">
-            <PieChart className="h-3.5 w-3.5" />
+            <PieChartIcon className="h-3.5 w-3.5" />
             التصنيفات
           </TabsTrigger>
         </TabsList>
@@ -635,39 +708,34 @@ export default function ExpensesByPeriodPage() {
                   لا توجد بيانات كافية لرسم البيان
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {trendData.map((item, idx) => {
-                    const prevValue = idx > 0 ? trendData[idx - 1].total : null;
-                    const change = prevValue !== null && prevValue > 0
-                      ? Math.round(((item.total - prevValue) / prevValue) * 100)
-                      : null;
-                    const barWidth = Math.max(4, (item.total / maxTrendValue) * 100);
-                    return (
-                      <div key={idx} className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold text-muted-foreground">{item.period}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-destructive tabular-nums" dir="ltr">{formatCurrency(item.total)}</span>
-                            {change !== null && (
-                              <span className={`text-[9px] font-semibold tabular-nums ${
-                                change > 0 ? 'text-rose-600' : change < 0 ? 'text-emerald-600' : 'text-muted-foreground'
-                              }`}>
-                                {change > 0 ? '↑' : change < 0 ? '↓' : '→'}{Math.abs(change)}%
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="h-6 bg-muted/30 rounded-md overflow-hidden relative">
-                          <div
-                            className={`h-full rounded-md transition-all duration-500 ${
-                              change !== null && change > 0 ? 'bg-destructive/70' : change !== null && change < 0 ? 'bg-chart-3/70' : 'bg-chart-2/70'
-                            }`}
-                            style={{ width: `${barWidth}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div dir="ltr" className="w-full h-[350px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={trendData} margin={{ top: 10, right: 10, left: 10, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+                      <XAxis
+                        dataKey="period"
+                        tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                        axisLine={{ stroke: 'hsl(var(--border))' }}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                        axisLine={{ stroke: 'hsl(var(--border))' }}
+                        tickLine={false}
+                        tickFormatter={(value: number) => formatCurrency(value)}
+                        width={90}
+                        orientation="right"
+                      />
+                      <Tooltip content={<BarChartTooltip />} cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }} />
+                      <Bar
+                        dataKey="total"
+                        fill="#3b82f6"
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={56}
+                        name="إجمالي المصروفات"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               )}
             </CardContent>
@@ -716,11 +784,11 @@ export default function ExpensesByPeriodPage() {
         {/* ─── Categories Tab ─── */}
         <TabsContent value="categories" className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
-            {/* Category Pie-style Breakdown */}
+            {/* Category Pie Chart Breakdown */}
             <Card className="border-border/40">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <PieChart className="h-4 w-4 text-violet-500" />
+                  <PieChartIcon className="h-4 w-4 text-violet-500" />
                   توزيع المصروفات حسب التصنيف
                 </CardTitle>
               </CardHeader>
@@ -730,32 +798,35 @@ export default function ExpensesByPeriodPage() {
                     لا توجد بيانات مصروفات
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {categoryTotals.map(({ category, total }, idx) => {
-                      const pct = totalExpenses > 0 ? Math.round((total / totalExpenses) * 100) : 0;
-                      return (
-                        <div key={category} className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div className={`h-3 w-3 rounded-sm ${CATEGORY_COLORS[idx % CATEGORY_COLORS.length].split(' ')[0]}`} />
-                              <span className="text-xs font-medium">{category}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold tabular-nums" dir="ltr">{formatCurrency(total)}</span>
-                              <span className="text-[10px] text-muted-foreground tabular-nums">{pct}%</span>
-                            </div>
-                          </div>
-                          <div className="h-2 bg-muted/30 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-500 ${
-                                idx % 2 === 0 ? 'bg-destructive/70' : 'bg-chart-2/70'
-                              }`}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div dir="ltr" className="w-full h-[320px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          cx="40%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={100}
+                          paddingAngle={3}
+                          dataKey="value"
+                          nameKey="name"
+                          stroke="none"
+                        >
+                          {pieData.map((entry, idx) => (
+                            <Cell key={`cell-${idx}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<PieChartTooltip />} />
+                        <Legend
+                          layout="vertical"
+                          align="right"
+                          verticalAlign="middle"
+                          iconType="circle"
+                          iconSize={8}
+                          content={<PieChartLegend />}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
                 )}
               </CardContent>
@@ -781,7 +852,10 @@ export default function ExpensesByPeriodPage() {
                       return (
                         <div key={category} className="flex items-center justify-between rounded-lg border border-border/30 p-3 hover:bg-muted/20 transition-colors">
                           <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-full bg-chart-2/5 flex items-center justify-center text-xs font-bold text-chart-2">
+                            <div
+                              className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold"
+                              style={{ backgroundColor: `${CHART_COLORS[idx % CHART_COLORS.length]}15`, color: CHART_COLORS[idx % CHART_COLORS.length] }}
+                            >
                               {idx + 1}
                             </div>
                             <div>
