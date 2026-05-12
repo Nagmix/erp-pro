@@ -68,8 +68,10 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy data directory for app config
+# Ensure data dir exists in builder stage (in case .dockerignore was set)
+RUN mkdir -p /app/data
 COPY --from=builder /app/data ./data
-RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+RUN chown -R nextjs:nodejs /app/data
 
 USER nextjs
 
