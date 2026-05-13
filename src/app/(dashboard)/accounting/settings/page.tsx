@@ -81,9 +81,28 @@ type ExpenseTypeRow = {
   expense_claim_type_name?: string;
 };
 
+/** أنواع المصروفات الافتراضية الشائعة للمؤسسات اليمنية */
+const DEFAULT_EXPENSE_TYPES = [
+  'مصاريف إدارية',
+  'مصاريف سفر وتنقل',
+  'مصاريف ضيافة',
+  'مصاريف صيانة',
+  'مصاريف نقل وشحن',
+  'مصاريف اتصالات',
+  'مصاريف قرطاسية ومستلزمات',
+  'مصاريف وقود',
+  'مصاريف إيجار',
+  'مصاريف كهرباء وماء',
+  'مصاريف تسويق وإعلان',
+  'مصاريف تدريب وتطوير',
+  'مصاريف طبية وتأمين',
+  'مصاريف مهنية وخدمية',
+  'مصاريف متنوعة',
+];
+
 function ExpenseTypesManager() {
   const { data: expenseTypes = [], isLoading, isError, error, refetch } = useDocList<ExpenseTypeRow>('Expense Claim Type', {
-    fields: ['name', 'expense_claim_type_name'],
+    fields: ['name'],
     limit: 200,
   });
 
@@ -95,6 +114,33 @@ function ExpenseTypesManager() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [toDelete, setToDelete] = useState<ExpenseTypeRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [seedingDefaults, setSeedingDefaults] = useState(false);
+
+  /** إضافة أنواع المصروفات الافتراضية دفعة واحدة */
+  const handleSeedDefaults = useCallback(async () => {
+    setSeedingDefaults(true);
+    const existing = new Set(expenseTypes.map(t => t.name));
+    const toCreate = DEFAULT_EXPENSE_TYPES.filter(t => !existing.has(t));
+    if (toCreate.length === 0) {
+      toast.info('جميع أنواع المصروفات الافتراضية موجودة بالفعل');
+      setSeedingDefaults(false);
+      return;
+    }
+    let created = 0;
+    let failed = 0;
+    for (const typeName of toCreate) {
+      try {
+        await createMutation.mutateAsync({ name: typeName });
+        created++;
+      } catch {
+        failed++;
+      }
+    }
+    if (created > 0) toast.success(`تم إضافة ${created} نوع مصروف بنجاح`);
+    if (failed > 0) toast.warning(`فشل إضافة ${failed} نوع`);
+    refetch();
+    setSeedingDefaults(false);
+  }, [expenseTypes, createMutation, refetch]);
 
   const handleAdd = useCallback(async () => {
     if (!newTypeName.trim()) {
@@ -102,9 +148,9 @@ function ExpenseTypesManager() {
       return;
     }
     try {
+      // ERPNext Expense Claim Type uses the document name as the type name
       await createMutation.mutateAsync({
-        doctype: 'Expense Claim Type',
-        expense_claim_type_name: newTypeName.trim(),
+        name: newTypeName.trim(),
       });
       toast.success(`تم إضافة نوع المصروف "${newTypeName.trim()}" بنجاح`);
       setNewTypeName('');
@@ -167,10 +213,16 @@ function ExpenseTypesManager() {
             إدارة أنواع وتصنيفات المصروفات المستخدمة في مطالبات المصروفات
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setAddDialogOpen(true)}>
-          <Plus className="h-4 w-4" />
-          إضافة نوع مصروف
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" className="gap-2" onClick={handleSeedDefaults} disabled={seedingDefaults}>
+            {seedingDefaults ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            {seedingDefaults ? 'جاري الإضافة...' : 'إضافة الأنواع الافتراضية'}
+          </Button>
+          <Button className="gap-2" onClick={() => setAddDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            إضافة نوع مصروف
+          </Button>
+        </div>
       </div>
 
       <Separator />
@@ -185,10 +237,16 @@ function ExpenseTypesManager() {
             <Receipt className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
             <p className="text-muted-foreground font-medium">لا توجد أنواع مصروفات مسجلة</p>
             <p className="text-xs text-muted-foreground mt-1">أضف أنواع المصروفات لتصنيف مطالبات المصروفات</p>
-            <Button variant="outline" className="mt-4 gap-2" onClick={() => setAddDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
-              إضافة أول نوع مصروف
-            </Button>
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <Button variant="outline" className="gap-2" onClick={handleSeedDefaults} disabled={seedingDefaults}>
+                {seedingDefaults ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                {seedingDefaults ? 'جاري الإضافة...' : 'إضافة الأنواع الافتراضية'}
+              </Button>
+              <Button variant="secondary" className="gap-2" onClick={() => setAddDialogOpen(true)}>
+                <Plus className="h-4 w-4" />
+                إضافة نوع مخصص
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -202,9 +260,6 @@ function ExpenseTypesManager() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">{type.name}</p>
-                    {type.expense_claim_type_name && type.expense_claim_type_name !== type.name && (
-                      <p className="text-xs text-muted-foreground truncate">{type.expense_claim_type_name}</p>
-                    )}
                   </div>
                 </div>
                 <Button
@@ -234,6 +289,7 @@ function ExpenseTypesManager() {
               إضافة نوع مصروف جديد
             </DialogTitle>
           </DialogHeader>
+          <p className="text-sm text-muted-foreground -mt-2">أدخل اسم نوع المصروف الجديد ليتم تسجيله في النظام</p>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="expense-type-name">اسم نوع المصروف</Label>

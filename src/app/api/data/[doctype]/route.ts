@@ -17,6 +17,7 @@ const GRACEFUL_404_DOTYPES = new Set([
   'Journal Entry Template',
   'Bank Transaction',
   'Loyalty Point Entry',
+  'Expense Claim Type',
 ]);
 
 function isNotFoundError(error: unknown): boolean {
