@@ -414,6 +414,7 @@ export default function SetupWizardPage() {
     appInstalled: boolean;
     canToggle: boolean;
     missingApps: string[];
+    moduleExists?: boolean;
   }[]>([]);
   const [selectedExistingModules, setSelectedExistingModules] = useState<string[]>([]);
   const [installedApps, setInstalledApps] = useState<string[]>([]);
@@ -807,8 +808,14 @@ export default function SetupWizardPage() {
   // ── تفعيل الوحدات والانتقال لتسجيل الدخول (خادم موجود) ────
 
   const activateModulesAndLogin = useCallback(async () => {
-    if (selectedExistingModules.length === 0) {
-      setSetupError('يجب تفعيل وحدة واحدة على الأقل');
+    // تصفية الوحدات التي لا يمكن تفعيلها (تطبيقات غير مثبتة)
+    const activatableModules = selectedExistingModules.filter((modId) => {
+      const modInfo = existingModules.find((m) => m.id === modId);
+      return modInfo && modInfo.appInstalled;
+    });
+
+    if (activatableModules.length === 0) {
+      setSetupError('يجب تفعيل وحدة واحدة على الأقل (بعد استبعاد الوحدات التي تتطلب تطبيقات غير مثبتة)');
       return;
     }
 
@@ -823,7 +830,7 @@ export default function SetupWizardPage() {
           host: form.backendHost,
           admin_user: form.serverAdminUser,
           admin_password: form.serverAdminPassword,
-          enabled_modules: selectedExistingModules,
+          enabled_modules: activatableModules, // فقط الوحدات القابلة للتفعيل
           company_info: ec ? {
             name: ec.name,
             abbr: ec.abbr,
@@ -835,11 +842,12 @@ export default function SetupWizardPage() {
       const data = await response.json();
       if (data.success) {
         const company = data.company || ec;
+        const actuallyEnabled = data.enabledModules || activatableModules;
         if (company) {
           setSetupConfig({
             defaultCompany: company.name,
             branchesEnabled: false,
-            enabledModules: selectedExistingModules,
+            enabledModules: actuallyEnabled,
             currency: company.default_currency || form.currency,
             country: company.country || form.country,
             language: form.language,
@@ -859,7 +867,7 @@ export default function SetupWizardPage() {
     } finally {
       setActivatingModules(false);
     }
-  }, [selectedExistingModules, connectionResult, form.backendHost, form.serverAdminUser, form.serverAdminPassword, form.currency, form.country, form.language, form.companyLogo, form.companyTagline, form.companyPhone, form.companyAddress, form.companyTaxId, router]);
+  }, [selectedExistingModules, existingModules, connectionResult, form.backendHost, form.serverAdminUser, form.serverAdminPassword, form.currency, form.country, form.language, form.companyLogo, form.companyTagline, form.companyPhone, form.companyAddress, form.companyTaxId, router]);
 
   // ── رفع الشعار ────────────────────────────────────────────
 
@@ -1150,7 +1158,7 @@ export default function SetupWizardPage() {
               <AlertDescription className="text-sm">
                 فعّل الوحدات التي تحتاجها في نظامك. الوحدات المفعّلة ستكون متاحة في القائمة الرئيسية، والمعطّلة لن تظهر.
                 {existingModules.some((m) => !m.appInstalled) && (
-                  <span className="block mt-1 text-amber-700">⚠ بعض الوحدات تتطلب تطبيقات غير مثبتة على الخادم — سيُشير إليها بتنبيه.</span>
+                  <span className="block mt-1 text-red-700 font-medium">⚠ بعض الوحدات تتطلب تطبيقات غير مثبتة على الخادم — لا يمكن تفعيلها حتى يتم تثبيت التطبيق المطلوب.</span>
                 )}
               </AlertDescription>
             </Alert>
@@ -1180,7 +1188,7 @@ export default function SetupWizardPage() {
                 const isSelected = selectedExistingModules.includes(mod.id);
                 const ModIcon = moduleIcons[mod.id] || LayoutGrid;
                 const hasMissingApps = mod.missingApps && mod.missingApps.length > 0;
-                const isDisabled = !mod.canToggle;
+                const isDisabled = hasMissingApps; // لا يمكن التفعيل إذا التطبيق غير مثبت
 
                 return (
                   <Card
@@ -1188,8 +1196,10 @@ export default function SetupWizardPage() {
                     className={`transition-all duration-200 border-2 overflow-hidden ${
                       isSelected
                         ? 'border-emerald-400 bg-emerald-50/50 shadow-md shadow-emerald-100'
-                        : 'border-muted/60 bg-white hover:border-emerald-200 hover:shadow-sm'
-                    } ${hasMissingApps ? 'ring-1 ring-amber-300' : ''} ${isDisabled ? 'opacity-60' : ''}`}
+                        : hasMissingApps
+                          ? 'border-amber-200 bg-amber-50/30'
+                          : 'border-muted/60 bg-white hover:border-emerald-200 hover:shadow-sm'
+                    } ${isDisabled && !isSelected ? 'opacity-80' : ''}`}
                   >
                     <CardContent className="p-4 space-y-3">
                       {/* صف الأيقونة والاسم والزر */}
@@ -1197,16 +1207,18 @@ export default function SetupWizardPage() {
                         <div className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                           isSelected
                             ? 'bg-emerald-500/15'
-                            : 'bg-muted/60'
+                            : hasMissingApps
+                              ? 'bg-amber-100'
+                              : 'bg-muted/60'
                         }`}>
                           <ModIcon className={`w-5 h-5 transition-colors ${
-                            isSelected ? 'text-emerald-600' : 'text-muted-foreground'
+                            isSelected ? 'text-emerald-600' : hasMissingApps ? 'text-amber-600' : 'text-muted-foreground'
                           }`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-semibold text-sm leading-tight">{mod.label}</p>
-                            {mod.enabled && !isSelected && (
+                            <p className={`font-semibold text-sm leading-tight ${hasMissingApps ? 'text-amber-800' : ''}`}>{mod.label}</p>
+                            {mod.enabled && !isSelected && !hasMissingApps && (
                               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-slate-100 text-slate-500 shrink-0">
                                 حالياً مفعّلة
                               </Badge>
@@ -1216,7 +1228,9 @@ export default function SetupWizardPage() {
                         </div>
                         <Switch
                           checked={isSelected}
-                          onCheckedChange={() => toggleModule(mod.id)}
+                          onCheckedChange={() => {
+                            if (!isDisabled) toggleModule(mod.id);
+                          }}
                           disabled={isDisabled}
                           className="shrink-0 mt-0.5"
                         />
@@ -1229,11 +1243,11 @@ export default function SetupWizardPage() {
                             <Check className="w-2.5 h-2.5" /> التطبيق مثبت
                           </Badge>
                         ) : (
-                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-amber-50 text-amber-600 border border-amber-200 gap-1">
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-red-50 text-red-600 border border-red-200 gap-1">
                             <AlertCircle className="w-2.5 h-2.5" /> التطبيق غير مثبت
                           </Badge>
                         )}
-                        {isSelected && (
+                        {isSelected && !hasMissingApps && (
                           <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-emerald-50 text-emerald-600 border border-emerald-200 gap-1">
                             <Check className="w-2.5 h-2.5" /> سيتم تفعيلها
                           </Badge>
@@ -1242,12 +1256,17 @@ export default function SetupWizardPage() {
 
                       {/* تنبيه التطبيقات المفقودة */}
                       {hasMissingApps && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5">
-                          <p className="text-xs text-amber-800 flex items-start gap-1.5">
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-2.5">
+                          <p className="text-xs text-red-800 flex items-start gap-1.5">
                             <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                             <span>
-                              يتطلب التطبيقات التالية غير المثبتة: <strong>{mod.missingApps.join('، ')}</strong>
-                              — يمكن تفعيل الوحدة لكن بعض الميزات قد لا تعمل حتى يتم تثبيت التطبيق.
+                              يتطلب التطبيق <strong>{mod.missingApps.join('، ')}</strong> غير المثبت على الخادم.
+                              {mod.id === 'hr' && (
+                                <> لتثبيت HRMS، أعد نشر الخادم الخلفي على Railway — سيتم تثبيته تلقائياً.</>
+                              )}
+                              {!mod.appInstalled && mod.id !== 'hr' && (
+                                <> لا يمكن تفعيل هذه الوحدة حتى يتم تثبيت التطبيق المطلوب.</>
+                              )}
                             </span>
                           </p>
                         </div>

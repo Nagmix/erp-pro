@@ -198,16 +198,21 @@ export function ErpLinkCombobox({
         align="start"
         dir="rtl"
         sideOffset={4}
-        collisionPadding={8}
+        collisionPadding={16}
         avoidCollisions={true}
+        side="bottom"
+        sticky="always"
       >
         <Command shouldFilter={false}>
-          <CommandInput
-            placeholder="بحث حي بالاسم..."
-            className="h-9 border-b border-border/40 text-[13px]"
-            value={search}
-            onValueChange={setSearch}
-          />
+          <div className="flex items-center border-b border-border/40 px-3">
+            <input
+              placeholder="بحث حي بالاسم..."
+              className="h-9 w-full bg-transparent text-[13px] outline-none placeholder:text-muted-foreground"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              dir="rtl"
+            />
+          </div>
           <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain scroll-smooth">
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
               {isLoading || isFetching ? 'جارٍ التحميل...' : searchTerm ? 'لا نتائج مطابقة' : 'لا نتائج'}

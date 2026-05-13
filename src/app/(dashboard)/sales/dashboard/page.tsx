@@ -302,7 +302,7 @@ export default function SalesDashboardPage() {
         <Card className="border-border/40">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">أفضل ٥ عملاء حسب الإيرادات</CardTitle>
+              <CardTitle className="text-sm font-semibold">أفضل 5 عملاء حسب الإيرادات</CardTitle>
               <Link href="/sales/customers" className="text-xs text-primary hover:underline">عرض الكل</Link>
             </div>
           </CardHeader>
@@ -361,7 +361,7 @@ export default function SalesDashboardPage() {
         {/* Monthly Sales Trend */}
         <Card className="lg:col-span-2 border-border/40">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">اتجاه المبيعات الشهرية (آخر ٦ أشهر)</CardTitle>
+            <CardTitle className="text-sm font-semibold">اتجاه المبيعات الشهرية (آخر 6 أشهر)</CardTitle>
           </CardHeader>
           <CardContent>
             <SimpleBarChart data={monthlySales} maxVal={maxSalesVal} colorClass="bg-chart-3/80" />
@@ -408,7 +408,7 @@ export default function SalesDashboardPage() {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm font-semibold">آخر معاملات المبيعات</CardTitle>
-            <span className="text-[10px] text-muted-foreground">آخر ١٠ معاملات</span>
+            <span className="text-[10px] text-muted-foreground">آخر 10 معاملات</span>
           </div>
         </CardHeader>
         <CardContent>

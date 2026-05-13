@@ -2,13 +2,27 @@
 
 import * as React from "react"
 import { format, parseISO } from "date-fns"
-import { arSA } from "date-fns/locale"
+import { enUS } from "date-fns/locale"
 import type { DateRange } from "react-day-picker"
 import { CalendarDays } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+
+// الأشهر بالعربية لعرض التواريخ ميلادياً بأسماء عربية
+const ARABIC_MONTHS = [
+  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+];
+
+/** تنسيق التاريخ ميلادي بأسماء أشهر عربية */
+function formatDateAr(date: Date): string {
+  const day = date.getDate();
+  const month = ARABIC_MONTHS[date.getMonth()] || '';
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
+}
 
 interface DateRangeValue {
   from?: string
@@ -33,7 +47,7 @@ function toIso(input?: Date): string | undefined {
   return input ? format(input, "yyyy-MM-dd") : undefined
 }
 
-/** DateRangePicker بقيمة ISO from/to. */
+/** DateRangePicker بقيمة ISO from/to — تاريخ ميلادي فقط. */
 export function DateRangePicker({
   value,
   onChange,
@@ -52,8 +66,8 @@ export function DateRangePicker({
 
   const label = React.useMemo(() => {
     if (!range.from && !range.to) return placeholder
-    if (range.from && range.to) return `${format(range.from, "PPP", { locale: arSA })} - ${format(range.to, "PPP", { locale: arSA })}`
-    return range.from ? `${format(range.from, "PPP", { locale: arSA })} - ...` : placeholder
+    if (range.from && range.to) return `${formatDateAr(range.from)} - ${formatDateAr(range.to)}`
+    return range.from ? `${formatDateAr(range.from)} - ...` : placeholder
   }, [range.from, range.to, placeholder])
 
   return (
@@ -82,7 +96,7 @@ export function DateRangePicker({
             if (next?.from && next?.to) setOpen(false)
           }}
           numberOfMonths={2}
-          locale={arSA}
+          locale={enUS}
           dir="rtl"
           initialFocus
         />
@@ -90,4 +104,3 @@ export function DateRangePicker({
     </Popover>
   )
 }
-

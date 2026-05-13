@@ -249,7 +249,7 @@ export default function PurchasesDashboardPage() {
         <Card className="border-border/40">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-semibold">أفضل ٥ موردين حسب قيمة المشتريات</CardTitle>
+              <CardTitle className="text-sm font-semibold">أفضل 5 موردين حسب قيمة المشتريات</CardTitle>
               <Link href="/purchases/suppliers" className="text-xs text-primary hover:underline">عرض الكل</Link>
             </div>
           </CardHeader>
@@ -329,7 +329,7 @@ export default function PurchasesDashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">آخر معاملات المشتريات</CardTitle>
-              <span className="text-[10px] text-muted-foreground">آخر ١٠ معاملات</span>
+              <span className="text-[10px] text-muted-foreground">آخر 10 معاملات</span>
             </div>
           </CardHeader>
           <CardContent>

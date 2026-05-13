@@ -66,6 +66,9 @@ export const useInstalledAppsStore = create<InstalledAppsState>((set, get) => ({
 
   isAppInstalled: (appName: string) => {
     const { installedApps } = get();
-    return installedApps.some((ia) => ia.toLowerCase().includes(appName.toLowerCase()));
+    return installedApps.some((ia) => {
+      if (typeof ia !== 'string' || !ia) return false;
+      return ia.toLowerCase().includes(appName.toLowerCase());
+    });
   },
 }));

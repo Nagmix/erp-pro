@@ -117,7 +117,7 @@ function getDaysInMonth(year: number, month: number): number {
 
 /* ─── Helper: Format hours ─── */
 function formatHours(hours: number): string {
-  if (!hours || hours === 0) return '٠';
+  if (!hours || hours === 0) return '0';
   return hours.toFixed(1);
 }
 

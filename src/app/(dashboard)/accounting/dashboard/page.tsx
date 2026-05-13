@@ -102,9 +102,9 @@ function AgingSummary({ current, days30, days60, over60 }: {
   const safeTotal = Math.max(total, 1);
   const segments = [
     { label: 'حالي', value: current, color: 'bg-chart-3' },
-    { label: '١-٣٠ يوم', value: days30, color: 'bg-chart-1' },
-    { label: '٣١-٦٠ يوم', value: days60, color: 'bg-chart-2' },
-    { label: 'أكثر من ٦٠', value: over60, color: 'bg-destructive' },
+    { label: '1-30 يوم', value: days30, color: 'bg-chart-1' },
+    { label: '31-60 يوم', value: days60, color: 'bg-chart-2' },
+    { label: 'أكثر من 60', value: over60, color: 'bg-destructive' },
   ];
   return (
     <div className="space-y-3">
@@ -426,7 +426,7 @@ export default function AccountingDashboardPage() {
         {/* Revenue vs Expenses Chart */}
         <Card className="border-border/40">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">الإيرادات مقابل المصروفات (آخر ٦ أشهر)</CardTitle>
+            <CardTitle className="text-sm font-semibold">الإيرادات مقابل المصروفات (آخر 6 أشهر)</CardTitle>
           </CardHeader>
           <CardContent>
             <div dir="ltr" className="h-64 w-full">
@@ -479,7 +479,7 @@ export default function AccountingDashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">آخر المعاملات</CardTitle>
-              <span className="text-[10px] text-muted-foreground">آخر ١٠ معاملات</span>
+              <span className="text-[10px] text-muted-foreground">آخر 10 معاملات</span>
             </div>
           </CardHeader>
           <CardContent>

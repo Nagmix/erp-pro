@@ -84,7 +84,7 @@ type CustomerFullDoc = {
 };
 
 const emptyForm = {
-  customer_name: '', customer_type: 'Company', customer_group: 'Individual', territory: '',
+  customer_name: '', customer_type: 'Company', customer_group: '', territory: '',
   email_id: '', mobile_no: '', tax_id: ''
 };
 

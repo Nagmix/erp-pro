@@ -569,7 +569,7 @@ export default function SmsAutoRulesPage() {
     <div className="rounded-lg border border-border/30 bg-background p-3 space-y-1.5">
      <div className="flex items-center gap-1.5">
      <CircleDot className="h-4 w-4 text-primary" />
-     <span className="text-[11px] font-semibold">١. الحدث المُحفّز</span>
+     <span className="text-[11px] font-semibold">1. الحدث المُحفّز</span>
      </div>
      <p className="text-xs text-muted-foreground leading-relaxed">
      يتم مراقبة أحداث مثل إنشاء فاتورة أو دفع أو تأخير استحقاق
@@ -578,7 +578,7 @@ export default function SmsAutoRulesPage() {
     <div className="rounded-lg border border-border/30 bg-background p-3 space-y-1.5">
      <div className="flex items-center gap-1.5">
      <Clock className="h-4 w-4 text-chart-2" />
-     <span className="text-[11px] font-semibold">٢. التأخير والقالب</span>
+     <span className="text-[11px] font-semibold">2. التأخير والقالب</span>
      </div>
      <p className="text-xs text-muted-foreground leading-relaxed">
      اختيار قالب رسالة وتحديد وقت التأخير قبل الإرسال
@@ -587,7 +587,7 @@ export default function SmsAutoRulesPage() {
     <div className="rounded-lg border border-border/30 bg-background p-3 space-y-1.5">
      <div className="flex items-center gap-1.5">
      <Send className="h-4 w-4 text-chart-3" />
-     <span className="text-[11px] font-semibold">٣. الإرسال التلقائي</span>
+     <span className="text-[11px] font-semibold">3. الإرسال التلقائي</span>
      </div>
      <p className="text-xs text-muted-foreground leading-relaxed">
      إرسال الرسالة عبر SMS أو واتساب للعميل أو الموظف

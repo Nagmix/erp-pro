@@ -42,6 +42,90 @@ function markSetupComplete(config: Record<string, unknown>): void {
 }
 
 /**
+ * مقارنة آمنة لاسم التطبيق (غير حساسة للحالة)
+ */
+function isAppMatch(installedApp: unknown, requiredApp: string): boolean {
+  if (typeof installedApp !== 'string' || !installedApp) return false;
+  return installedApp.toLowerCase().includes(requiredApp.toLowerCase());
+}
+
+/**
+ * جلب التطبيقات المثبتة من ERPNext بطريقة موثوقة
+ */
+async function fetchInstalledApps(host: string, headers: Record<string, string>): Promise<string[]> {
+  const apps: string[] = [];
+
+  // ─── الطريقة 1: جلب Installed Applications (Single DocType) ───
+  try {
+    const appsRes = await fetch(
+      `${host}/api/method/frappe.client.get`,
+      {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          doctype: 'Installed Applications',
+          name: 'Installed Applications',
+        }),
+        signal: AbortSignal.timeout(10000),
+      }
+    );
+    if (appsRes.ok) {
+      const appsData = await appsRes.json() as {
+        message?: {
+          installed_applications?: { app_name?: string }[];
+        };
+      };
+      const installedList = appsData.message?.installed_applications;
+      if (Array.isArray(installedList) && installedList.length > 0) {
+        for (const app of installedList) {
+          const appName = app.app_name;
+          if (appName && typeof appName === 'string' && appName.trim()) {
+            apps.push(appName.trim());
+          }
+        }
+        if (apps.length > 0) return apps;
+      }
+    }
+  } catch {
+    // تجاهل
+  }
+
+  // ─── الطريقة 2: فحص وحدات ERPNext لمعرفة التطبيقات المثبتة ───
+  try {
+    let hasErpnext = false;
+    let hasHrms = false;
+
+    for (const moduleName of ['Accounts', 'Selling', 'Buying', 'Stock']) {
+      try {
+        const modRes = await fetch(
+          `${host}/api/resource/Module Def/${encodeURIComponent(moduleName)}`,
+          { method: 'GET', headers, signal: AbortSignal.timeout(5000) }
+        );
+        if (modRes.ok) { hasErpnext = true; break; }
+      } catch { /* تجاهل */ }
+    }
+
+    try {
+      const hrRes = await fetch(
+        `${host}/api/resource/Module Def/HR`,
+        { method: 'GET', headers, signal: AbortSignal.timeout(5000) }
+      );
+      if (hrRes.ok) hasHrms = true;
+    } catch { /* تجاهل */ }
+
+    if (hasErpnext) apps.push('erpnext');
+    if (hasHrms) apps.push('hrms');
+    if (apps.length > 0) return apps;
+  } catch {
+    // تجاهل
+  }
+
+  // ─── طريقة أخيرة ───
+  apps.push('erpnext');
+  return apps;
+}
+
+/**
  * POST /api/setup/activate-modules
  * يفعّل أو يعطّل وحدات ERPNext على الخادم الخلفي
  * يُستخدم عند ربط خادم موجود بعد أن يختار المستخدم الوحدات
@@ -150,25 +234,7 @@ export async function POST(request: NextRequest) {
       ...(apiKey && apiSecret ? { Authorization: `token ${apiKey}:${apiSecret}` } : {}),
     };
 
-    let installedApps: string[] = [];
-    try {
-      const appsRes = await fetch(
-        `${host}/api/resource/Installed Application?fields=["app_name"]&limit_page_length=50`,
-        {
-          method: 'GET',
-          headers: requestHeaders,
-          signal: AbortSignal.timeout(10000),
-        }
-      );
-      if (appsRes.ok) {
-        const appsData = await appsRes.json() as { data?: { app_name: string }[] };
-        if (appsData.data && appsData.data.length > 0) {
-          installedApps = appsData.data.map((a: { app_name: string }) => a.app_name);
-        }
-      }
-    } catch {
-      // تجاهل
-    }
+    const installedApps = await fetchInstalledApps(host, requestHeaders);
 
     // 5. تفعيل/تعطيل الوحدات على ERPNext
     const allModuleKeys = Object.keys(MODULE_MAP);
@@ -177,14 +243,16 @@ export async function POST(request: NextRequest) {
 
     const results: { module: string; action: string; success: boolean; message: string }[] = [];
 
-    // التحقق من التبعيات قبل التفعيل — وحدة HR تتطلب تطبيق HRMS
+    // التحقق من التبعيات قبل التفعيل
+    const modulesWithMissingApps: string[] = [];
     for (const modKey of modulesToEnable) {
       const modInfo = MODULE_MAP[modKey];
       if (!modInfo) continue;
       const missingApps = modInfo.requiredApps.filter(
-        (app) => !installedApps.some((ia) => ia.toLowerCase().includes(app.toLowerCase()))
+        (app) => !installedApps.some((ia) => isAppMatch(ia, app))
       );
       if (missingApps.length > 0) {
+        modulesWithMissingApps.push(modKey);
         results.push({
           module: modKey,
           action: 'enable',
@@ -198,6 +266,14 @@ export async function POST(request: NextRequest) {
     for (const modKey of modulesToDisable) {
       const modInfo = MODULE_MAP[modKey];
       if (!modInfo) continue;
+      // تخطي الوحدات التي تطبيقها غير مثبت (لم تكن مفعلة أصلاً)
+      const missingApps = modInfo.requiredApps.filter(
+        (app) => !installedApps.some((ia) => isAppMatch(ia, app))
+      );
+      if (missingApps.length > 0) {
+        // لا حاجة لتعطيل وحدة لم تكن مفعلة أصلاً
+        continue;
+      }
       for (const moduleName of modInfo.modules) {
         try {
           await fetch(
@@ -218,13 +294,11 @@ export async function POST(request: NextRequest) {
 
     // تفعيل الوحدات المحددة (فقط إذا كانت التبعيات متوفرة)
     for (const modKey of modulesToEnable) {
+      // تخطي الوحدات التي تفتقر للتطبيقات المطلوبة
+      if (modulesWithMissingApps.includes(modKey)) continue;
+
       const modInfo = MODULE_MAP[modKey];
       if (!modInfo) continue;
-      // تخطي الوحدات التي تفتقر للتطبيقات المطلوبة
-      const missingApps = modInfo.requiredApps.filter(
-        (app) => !installedApps.some((ia) => ia.toLowerCase().includes(app.toLowerCase()))
-      );
-      if (missingApps.length > 0) continue;
       for (const moduleName of modInfo.modules) {
         try {
           await fetch(
@@ -270,7 +344,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 6. وضع علامة اكتمال الإعداد
+    // 6. تحديث إعدادات النظام (تنسيق التاريخ والأرقام)
+    try {
+      await fetch(
+        `${host}/api/resource/System Settings/System Settings`,
+        {
+          method: 'PUT',
+          headers: requestHeaders,
+          body: JSON.stringify({
+            date_format: 'yyyy-mm-dd',
+            number_format: '#,###.##',
+          }),
+          signal: AbortSignal.timeout(8000),
+        }
+      );
+    } catch {
+      // تجاهل — ليس حرجاً
+    }
+
+    // 7. وضع علامة اكتمال الإعداد
+    // فقط الوحدات التي تم تفعيلها فعلياً (بدون التي تفتقر للتطبيقات)
+    const actuallyEnabledModules = enabledModules.filter((m) => !modulesWithMissingApps.includes(m));
+
     if (company) {
       markSetupComplete({
         companyName: company.name,
@@ -278,20 +373,28 @@ export async function POST(request: NextRequest) {
         currency: company.default_currency,
         country: company.country,
         linkedExisting: true,
-        enabledModules,
+        enabledModules: actuallyEnabledModules,
       });
     }
 
-    const enabledLabels = enabledModules
+    const enabledLabels = actuallyEnabledModules
+      .map((m) => MODULE_MAP[m]?.label || m)
+      .filter(Boolean);
+
+    const hasBlockedModules = modulesWithMissingApps.length > 0;
+    const blockedLabels = modulesWithMissingApps
       .map((m) => MODULE_MAP[m]?.label || m)
       .filter(Boolean);
 
     return NextResponse.json({
       success: true,
-      message: `تم تفعيل الوحدات: ${enabledLabels.join('، ')}`,
+      message: hasBlockedModules
+        ? `تم تفعيل الوحدات: ${enabledLabels.join('، ')}${blockedLabels.length > 0 ? ` — تعذّر تفعيل: ${blockedLabels.join('، ')} (تطبيقات مطلوبة غير مثبتة)` : ''}`
+        : `تم تفعيل الوحدات: ${enabledLabels.join('، ')}`,
       company,
       results,
-      enabledModules,
+      enabledModules: actuallyEnabledModules,
+      blockedModules: modulesWithMissingApps,
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل تفعيل الوحدات';

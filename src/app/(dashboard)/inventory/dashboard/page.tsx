@@ -422,7 +422,7 @@ export default function InventoryDashboardPage() {
           {/* Top 5 items by stock value */}
           <Card className="border-border/40">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">أعلى ٥ أصناف حسب القيمة</CardTitle>
+              <CardTitle className="text-sm font-semibold">أعلى 5 أصناف حسب القيمة</CardTitle>
             </CardHeader>
             <CardContent>
               {topItemsByValue.length === 0 && (

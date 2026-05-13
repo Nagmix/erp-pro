@@ -468,7 +468,7 @@ export default function ManufacturingDashboardPage() {
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />
-              <CardTitle className="text-sm font-semibold">الإنتاج الشهري (آخر ٦ أشهر)</CardTitle>
+              <CardTitle className="text-sm font-semibold">الإنتاج الشهري (آخر 6 أشهر)</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -597,7 +597,7 @@ export default function ManufacturingDashboardPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Box className="h-4 w-4 text-primary" />
-                <CardTitle className="text-sm font-semibold">أعلى ٥ أصناف مُنتَجة</CardTitle>
+                <CardTitle className="text-sm font-semibold">أعلى 5 أصناف مُنتَجة</CardTitle>
               </div>
               <Link href="/manufacturing/work-orders" className="text-xs text-primary hover:underline">
                 عرض الكل
@@ -802,7 +802,7 @@ export default function ManufacturingDashboardPage() {
               <CardTitle className="text-sm font-semibold">آخر أوامر العمل</CardTitle>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-muted-foreground">آخر ١٠ أوامر</span>
+              <span className="text-[10px] text-muted-foreground">آخر 10 أوامر</span>
               <Link href="/manufacturing/work-orders" className="text-xs text-primary hover:underline">
                 عرض الكل
               </Link>

@@ -1607,7 +1607,8 @@ export function buildEmployeeCreate(input: {
 }): Record<string, unknown> {
   return {
     doctype: 'Employee',
-    naming_series: input.naming_series || 'HR-EMP-',
+    // لا نحدد naming_series — ندع ERPNext/HRMS يستخدم الإعداد الافتراضي
+    // لتجنب أخطاء "naming series not found" أو تعارض الأرقام
     first_name: input.first_name.trim(),
     ...(input.last_name ? { last_name: input.last_name.trim() } : {}),
     company: input.company,

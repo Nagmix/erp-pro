@@ -360,16 +360,19 @@ const COUNTRY_CONFIG: Record<string, { currency: string; taxRate: number; taxNam
   'Oman': { currency: 'OMR', taxRate: 5, taxName: 'ضريبة القيمة المضافة', taxSupported: true },
 };
 
-/** الوحدات المتاحة و DocTypes المقابلة */
-const MODULE_MAP: Record<string, { label: string; modules: string[] }> = {
-  accounting: { label: 'المحاسبة والمالية', modules: ['Accounts'] },
-  sales: { label: 'المبيعات', modules: ['Selling'] },
-  purchases: { label: 'المشتريات', modules: ['Buying'] },
-  inventory: { label: 'المخزون', modules: ['Stock'] },
-  hr: { label: 'الموارد البشرية', modules: ['HR'] },
-  crm: { label: 'إدارة العملاء', modules: ['CRM'] },
-  manufacturing: { label: 'التصنيع', modules: ['Manufacturing'] },
-  projects: { label: 'المشاريع', modules: ['Projects'] },
+/** الوحدات المتاحة و DocTypes المقابلة
+ *  requiredApps: التطبيقات المطلوب تثبيتها لعمل الوحدة
+ *  - وحدة HR تتطلب تطبيق HRMS المنفصل (ERPNext v16+)
+ */
+const MODULE_MAP: Record<string, { label: string; modules: string[]; requiredApps: string[] }> = {
+  accounting: { label: 'المحاسبة والمالية', modules: ['Accounts'], requiredApps: ['erpnext'] },
+  sales: { label: 'المبيعات', modules: ['Selling'], requiredApps: ['erpnext'] },
+  purchases: { label: 'المشتريات', modules: ['Buying'], requiredApps: ['erpnext'] },
+  inventory: { label: 'المخزون', modules: ['Stock'], requiredApps: ['erpnext'] },
+  hr: { label: 'الموارد البشرية', modules: ['HR'], requiredApps: ['hrms'] },
+  crm: { label: 'إدارة العملاء', modules: ['CRM'], requiredApps: ['erpnext'] },
+  manufacturing: { label: 'التصنيع', modules: ['Manufacturing'], requiredApps: ['erpnext'] },
+  projects: { label: 'المشاريع', modules: ['Projects'], requiredApps: ['erpnext'] },
 };
 
 /**
@@ -1024,6 +1027,10 @@ export async function POST(request: NextRequest) {
         country,
         language,
         time_zone: country === 'Yemen' ? 'Asia/Aden' : country === 'Saudi Arabia' ? 'Asia/Riyadh' : country === 'Egypt' ? 'Africa/Cairo' : 'Asia/Aden',
+        // تنسيق التاريخ ميلادي: yyyy-mm-dd (ISO standard)
+        date_format: 'yyyy-mm-dd',
+        // تنسيق الأرقام: أرقام إنجليزية مع فاصلة للألوف ونقطة عشرية
+        number_format: '#,###.##',
         disable_website_map: 1,
         allow_login_using_mobile_number: 1,
         allow_login_using_user_name: 1,
