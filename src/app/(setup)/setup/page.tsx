@@ -402,6 +402,7 @@ export default function SetupWizardPage() {
   const [credentialsCopied, setCredentialsCopied] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [checkingSetup, setCheckingSetup] = useState(true);
+  const [linkingExisting, setLinkingExisting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -654,7 +655,7 @@ export default function SetupWizardPage() {
         updateForm('serverConnectionTested', true);
         updateForm('serverConnectionOk', true);
 
-        // ── إذا وُجدت شركة مسجلة مسبقاً، نعبّء بياناتها تلقائياً ──
+        // ── إذا وُجدت شركة مسجلة مسبقاً، نربط الخادم تلقائياً ──
         if (data.existingCompany) {
           const ec = data.existingCompany as { name: string; abbr: string; default_currency: string; country: string };
           updateForm('companyName', ec.name);
@@ -671,6 +672,39 @@ export default function SetupWizardPage() {
               }
             }
           }
+          // ربط الخادم الموجود تلقائياً والانتقال لتسجيل الدخول
+          setLinkingExisting(true);
+          try {
+            const linkResponse = await fetch('/api/setup/link-existing', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                host: form.backendHost,
+                admin_user: form.serverAdminUser,
+                admin_password: form.serverAdminPassword,
+              }),
+            });
+            const linkData = await linkResponse.json();
+            if (linkData.success && linkData.company) {
+              const lec = linkData.company as { name: string; abbr: string; default_currency: string; country: string };
+              setSetupConfig({
+                defaultCompany: lec.name,
+                branchesEnabled: false,
+                enabledModules: DEFAULT_MODULES.filter((m) => m.enabled).map((m) => m.id),
+                currency: lec.default_currency || ec.default_currency || 'YER',
+                country: lec.country || ec.country || 'Yemen',
+                language: 'ar',
+              });
+              router.replace('/login');
+              return; // لا نكمل — المستخدم سينتقل لتسجيل الدخول
+            } else {
+              setLinkingExisting(false);
+              setSetupError(linkData.error || 'فشل ربط الخادم الموجود');
+            }
+          } catch {
+            setLinkingExisting(false);
+            setSetupError('فشل الاتصال أثناء ربط الخادم الموجود');
+          }
         }
       } else {
         setConnectionResult({ success: false, message: data.error });
@@ -684,7 +718,50 @@ export default function SetupWizardPage() {
     } finally {
       setTestingConnection(false);
     }
-  }, [form.backendHost, form.serverAdminUser, form.serverAdminPassword, updateForm, setFieldTouched]);
+  }, [form.backendHost, form.serverAdminUser, form.serverAdminPassword, updateForm, setFieldTouched, router]);
+
+  // ── ربط خادم موجود به شركة مسجلة مسبقاً ─────────────────
+
+  const linkExistingServer = useCallback(async () => {
+    setLinkingExisting(true);
+    try {
+      const response = await fetch('/api/setup/link-existing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          host: form.backendHost,
+          admin_user: form.serverAdminUser,
+          admin_password: form.serverAdminPassword,
+        }),
+      });
+      const data = await response.json();
+      if (data.success && data.company) {
+        const ec = data.company as { name: string; abbr: string; default_currency: string; country: string };
+        // حفظ إعدادات التهيئة محلياً
+        setSetupConfig({
+          defaultCompany: ec.name,
+          branchesEnabled: false,
+          enabledModules: form.modules.filter((m) => m.enabled).map((m) => m.id),
+          currency: ec.default_currency || form.currency,
+          country: ec.country || form.country,
+          language: form.language,
+          companyLogo: form.companyLogo,
+          companyTagline: form.companyTagline,
+          companyPhone: form.companyPhone,
+          companyAddress: form.companyAddress,
+          companyTaxId: form.companyTaxId,
+        });
+        // الانتقال إلى صفحة تسجيل الدخول
+        router.replace('/login');
+      } else {
+        setSetupError(data.error || 'فشل ربط الخادم الموجود');
+      }
+    } catch {
+      setSetupError('فشل الاتصال أثناء ربط الخادم الموجود');
+    } finally {
+      setLinkingExisting(false);
+    }
+  }, [form.backendHost, form.serverAdminUser, form.serverAdminPassword, form.modules, form.currency, form.country, form.language, form.companyLogo, form.companyTagline, form.companyPhone, form.companyAddress, form.companyTaxId, router]);
 
   // ── رفع الشعار ────────────────────────────────────────────
 
@@ -803,6 +880,32 @@ export default function SetupWizardPage() {
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mx-auto" />
           <p className="text-lg text-muted-foreground">جاري التحقق من حالة الإعداد...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // شاشة ربط خادم موجود
+  // ════════════════════════════════════════════════════════════
+
+  if (linkingExisting) {
+    return (
+      <div className="min-h-screen bg-gradient-to-bl from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center" dir="rtl">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="relative mx-auto w-20 h-20">
+            <Loader2 className="w-20 h-20 text-emerald-600 animate-spin" />
+            <Building2 className="w-8 h-8 text-emerald-700 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xl font-bold text-foreground">تم اكتشاف شركة مسجلة</p>
+            <p className="text-muted-foreground">
+              {connectionResult?.existingCompany
+                ? `الشركة: ${connectionResult.existingCompany.name}`
+                : 'جاري ربط الخادم الموجود...'}
+            </p>
+            <p className="text-sm text-muted-foreground">جاري إعداد النظام للاتصال بالخادم الموجود...</p>
+          </div>
         </div>
       </div>
     );
@@ -1425,7 +1528,7 @@ export default function SetupWizardPage() {
                               {connectionResult.existingCompany.country && <> — الدولة: {connectionResult.existingCompany.country}</>}
                             </p>
                             <p className="text-xs text-blue-600 mt-1">
-                              تم تعبئة بيانات الشركة تلقائياً. يمكنك تعديلها أو استخدامها كما هي.
+                              جاري ربط النظام بالخادم الموجود تلقائياً وسيتم تحويلك لصفحة تسجيل الدخول...
                             </p>
                           </div>
                         </div>
