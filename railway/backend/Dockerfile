@@ -53,8 +53,10 @@ RUN mkdir -p /home/frappe/logs \
 # ------------------------------------------------------------------
 # تثبيت تطبيق HRMS (الموارد البشرية)
 # ERPNext v16 أصبح يعتمد على تطبيق HRMS منفصل
+# ملاحظة: bench يرفض العمل كـ root، لذلك نتحول لمستخدم frappe
 # ------------------------------------------------------------------
-RUN cd /home/frappe/frappe-bench && bench get-app hrms --branch version-16
+RUN chown -R frappe:frappe /home/frappe/frappe-bench \
+    && su - frappe -c "cd /home/frappe/frappe-bench && bench get-app hrms --branch version-16"
 
 # ------------------------------------------------------------------
 # نسخ ملفات الإعداد
