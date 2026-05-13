@@ -133,6 +133,7 @@ export const SYSTEM_MODULES: SystemModule[] = [
     icon: 'Users',
     path: '/hr',
     color: 'purple',
+    requiredApp: 'hrms',
     subModules: [
       { id: 'employees', name: 'Employees', nameAr: 'الموظفين', path: '/hr/employees', doctype: 'Employee' },
       { id: 'attendance', name: 'Attendance', nameAr: 'الحضور والانصراف', path: '/hr/attendance', doctype: 'Attendance' },

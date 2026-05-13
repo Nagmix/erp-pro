@@ -48,6 +48,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/core/helpers';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ────────────────────────────────────────────
    أنواع البيانات
@@ -211,6 +213,23 @@ export default function ShiftsPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const { company, isLoading: coLoading } = useDefaultCompanyName();
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="الورديات"
+          description="إدارة أنواع الورديات، ساعات العمل وتعيينات الموظفين"
+          iconify="solar:clock-circle-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الورديات' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── جلب البيانات ── */
   const { data, isLoading, isError, error, refetch } = useDocList<ShiftRow>('Shift Type', {

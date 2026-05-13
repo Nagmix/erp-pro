@@ -46,6 +46,8 @@ import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { apiCreateDoc, apiSubmitDoc } from '@/lib/client/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ────────────────────────────────────────
    Types
@@ -117,6 +119,23 @@ export default function SalaryComponentsPage() {
   const [typeFilter, setTypeFilter] = useState<'all' | 'Earning' | 'Deduction'>('all');
   const [formData, setFormData] = useState<FormData>({ ...initialForm });
   const qc = useQueryClient();
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="مكوّنات الرواتب"
+          description="إدارة مكوّنات الاستحقاق والاستقطاع — الأساس لكل هيكل رواتب"
+          iconify="solar:widget-2-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'مكوّنات الرواتب' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── Data ── */
   const { data, isLoading, isError, error, refetch } = useDocList<SalaryComponentRow>('Salary Component', {

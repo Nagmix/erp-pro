@@ -60,6 +60,8 @@ import {
   Tag,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ───────────── Types ───────────── */
 type LeaveTypeRow = {
@@ -149,6 +151,23 @@ export default function LeaveTypesPage() {
 
   /* ── Delete Dialog ── */
   const [deleteDialog, setDeleteDialog] = useState<LeaveTypeRow | null>(null);
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="أنواع الإجازات"
+          description="إدارة أنواع الإجازات المتاحة للموظفين — مدفوعة وبدون راتب وتعويضية"
+          iconify="solar:calendar-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'أنواع الإجازات' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── KPIs ── */
   const leaveTypes = data || [];

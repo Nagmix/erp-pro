@@ -63,6 +63,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 type ContractRow = {
   name: string;
@@ -113,6 +115,23 @@ const initialForm: ContractFormState = {
 
 export default function ContractsPage() {
   const { company, isLoading: coLoading } = useDefaultCompanyName();
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="عقود الموظفين"
+          description="إدارة عقود الموظفين (Contract) — الإنشاء والتعديل والترحيل والإلغاء"
+          iconify="solar:document-text-bold-duotone"
+          accent="primary"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'العقود' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const {
     data: contracts = [],

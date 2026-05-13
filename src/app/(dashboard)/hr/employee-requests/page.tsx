@@ -33,6 +33,8 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { buildAttendanceRequestCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { toast } from 'sonner';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 type RequestRow = {
   name: string;
@@ -81,6 +83,23 @@ export default function EmployeeRequestsPage() {
   // Edit state
   const [editingDoc, setEditingDoc] = useState<RequestRow | null>(null);
   const { data: editFullDoc } = useDoc<RequestRow>('Attendance Request', editingDoc?.name ?? '', { enabled: !!editingDoc && dialogOpen });
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="طلبات الحضور"
+          description="إدارة طلبات الحضور للعمل عن بُعد أو المهام الخارجية."
+          iconify="solar:clipboard-list-bold-duotone"
+          accent="amber"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'طلبات الحضور' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const { data, isLoading, isError, error, refetch } = useDocList<RequestRow>('Attendance Request', {
     fields: ['name', 'employee', 'employee_name', 'from_date', 'to_date', 'reason', 'explanation', 'custom_request_category', 'custom_attachment_url', 'docstatus'],

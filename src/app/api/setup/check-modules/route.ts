@@ -9,7 +9,7 @@ const MODULE_MAP: Record<string, { label: string; description: string; modules: 
   sales: { label: 'المبيعات', description: 'عروض الأسعار، أوامر البيع، فواتير المبيعات', modules: ['Selling'], requiredApps: ['erpnext'] },
   purchases: { label: 'المشتريات', description: 'طلبات الشراء، فواتير المشتريات، الموردون', modules: ['Buying'], requiredApps: ['erpnext'] },
   inventory: { label: 'المخزون', description: 'إدارة المخزون، حركات المخزون، الجرد', modules: ['Stock'], requiredApps: ['erpnext'] },
-  hr: { label: 'الموارد البشرية', description: 'الموظفون، الإجازات، الرواتب، الحضور', modules: ['HR'], requiredApps: ['erpnext'] },
+  hr: { label: 'الموارد البشرية', description: 'الموظفون، الإجازات، الرواتب، الحضور', modules: ['HR'], requiredApps: ['hrms'] },
   crm: { label: 'إدارة العملاء', description: 'العملاء المحتملون، الفرص، الاتصالات', modules: ['CRM'], requiredApps: ['erpnext'] },
   manufacturing: { label: 'التصنيع', description: 'أوامر العمل، قوائم المواد، محطات العمل', modules: ['Manufacturing'], requiredApps: ['erpnext'] },
   projects: { label: 'المشاريع', description: 'إدارة المشاريع، المهام، الجداول الزمنية', modules: ['Projects'], requiredApps: ['erpnext'] },

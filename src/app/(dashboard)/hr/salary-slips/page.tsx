@@ -57,6 +57,8 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { pdf } from '@react-pdf/renderer';
 import { PayslipPDFDocument, type PayslipData } from '@/components/erp/payslip-pdf';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 // ── Types ────────────────────────────────────────────────────
 interface SalarySlipRow {
@@ -122,6 +124,23 @@ export default function SalarySlipsPage() {
   const deleteMutation = useDeleteDoc('Salary Slip');
   const submitMut = useSubmitDoc('Salary Slip');
   const cancelMut = useCancelDoc('Salary Slip');
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="قسائم الرواتب"
+          description="عرض قسائم الرواتب ومتابعة حالتها وترحيلها وطباعتها"
+          iconify="solar:document-text-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'قسائم الرواتب' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const salarySlips = data || [];
 

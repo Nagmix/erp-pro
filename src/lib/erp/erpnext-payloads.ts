@@ -1612,22 +1612,25 @@ export function buildEmployeeCreate(input: {
     ...(input.last_name ? { last_name: input.last_name.trim() } : {}),
     company: input.company,
     gender: input.gender || 'Male',
-    date_of_birth: input.date_of_birth || '1990-01-01',
     date_of_joining: input.date_of_joining || undefined,
     status: input.status || 'Active',
+    // في HRMS v16، لا يجب إرسال تاريخ ميلاد وهمي — أرسله فقط إن وُجد
+    ...(input.date_of_birth ? { date_of_birth: input.date_of_birth } : {}),
     ...(input.department ? { department: input.department } : {}),
     ...(input.designation ? { designation: input.designation } : {}),
     ...(input.cell_number ? { cell_number: input.cell_number.trim() } : {}),
     ...(input.company_email ? { company_email: input.company_email.trim() } : {}),
     ...(input.personal_email ? { personal_email: input.personal_email.trim() } : {}),
-    ...(input.user_id ? { user_id: input.user_id } : {}),
-    ...(input.date_of_birth ? { date_of_birth: input.date_of_birth } : {}),
+    // في HRMS v16، يجب تعيين create_user=0 عند عدم وجود user_id
+    // لتجنب أخطاء إنشاء مستخدم تلقائي
+    create_user: 0,
+    ...(input.user_id ? { user_id: input.user_id, create_user: 1 } : {}),
     ...(input.branch ? { branch: input.branch } : {}),
     ...(input.employment_type ? { employment_type: input.employment_type } : {}),
   };
 }
 
-/** عقد موظف — حقول شائعة في Frappe HR (قد تختلف إن عُطّل تطبيق HR) */
+/** عقد موظف — في HRMS v16 يُستخدم Contract مع party_type=Employee */
 export function buildEmployeeContractCreate(input: {
   employee: string;
   company: string;
@@ -1636,11 +1639,12 @@ export function buildEmployeeContractCreate(input: {
   salary_structure?: string;
 }): Record<string, unknown> {
   const d: Record<string, unknown> = {
-    doctype: 'Employee Contract',
-    employee: input.employee,
+    doctype: 'Contract',
+    party_type: 'Employee',
+    party_name: input.employee,
     company: input.company,
-    contract_start_date: input.contract_start_date,
-    contract_end_date: input.contract_end_date,
+    start_date: input.contract_start_date,
+    end_date: input.contract_end_date,
   };
   if (input.salary_structure) d.salary_structure = input.salary_structure;
   return d;
@@ -1808,7 +1812,8 @@ export function buildSalaryStructureCreate(input: {
   }));
   return {
     doctype: 'Salary Structure',
-    name: input.name.trim(),
+    // في HRMS v16، استخدم title بدلاً من name — الاسم يُولّد تلقائياً
+    title: input.name.trim(),
     company: input.company,
     currency: input.currency,
     payroll_frequency: input.payroll_frequency ?? 'Monthly',
@@ -1985,14 +1990,27 @@ export function buildEmployeeCheckinCreate(input: {
 export function buildLeavePolicyCreate(input: {
   title: string;
   company: string;
+  leave_type?: string;
   annual_allocation?: number;
   is_active?: boolean;
+  // تفاصيل سياسة الإجازة — جدول فرعي في HRMS
+  leave_policy_details?: { leave_type: string; annual_allocation: number }[];
 }): Record<string, unknown> {
+  // في HRMS v16، يجب إرسال leave_policy_details كجدول فرعي
+  const details = input.leave_policy_details
+    ?? (input.leave_type && input.annual_allocation != null
+      ? [{ leave_type: input.leave_type, annual_allocation: input.annual_allocation }]
+      : []);
+
   return {
     doctype: 'Leave Policy',
     title: input.title.trim(),
     company: input.company,
-    ...(input.annual_allocation != null ? { annual_allocation: input.annual_allocation } : {}),
+    leave_policy_details: details.map((d) => ({
+      doctype: 'Leave Policy Detail',
+      leave_type: d.leave_type,
+      annual_allocation: d.annual_allocation,
+    })),
     is_active: input.is_active === false ? 0 : 1,
   };
 }

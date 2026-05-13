@@ -44,6 +44,8 @@ import { useDocList } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader } from '@/components/erp/page-header';
 import { cn } from '@/lib/utils';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 // ── Types ────────────────────────────────────────────────────
 type Emp = {
@@ -365,6 +367,23 @@ export default function OrgChartPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<TreeNode | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="الهيكل التنظيمي"
+          description="شجرة العلاقات الإدارية بين الموظفين بناءً على حقل المدير المباشر"
+          iconify="solar:users-group-rounded-bold-duotone"
+          accent="primary"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الهيكل التنظيمي' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const { data, isLoading, isError, error, refetch } = useDocList<Emp>('Employee', {
     fields: ['name', 'employee_name', 'reports_to', 'designation', 'department', 'company_email', 'image'],

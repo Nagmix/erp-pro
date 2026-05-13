@@ -58,6 +58,8 @@ import {
   Moon,
   Star,
 } from 'lucide-react';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ─── Types ─── */
 interface AttendanceRecord {
@@ -128,6 +130,23 @@ export default function AttendanceSummaryPage() {
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('summary');
   const [expandedDept, setExpandedDept] = useState<string | null>(null);
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="ملخص الحضور"
+          description="تقرير شامل لحضور الموظفين"
+          iconify="solar:calendar-mark-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية' }, { label: 'ملخص الحضور' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ─── ERPNext Data Hooks ─── */
   const attendanceList = useDocList<AttendanceRecord>('Attendance', {

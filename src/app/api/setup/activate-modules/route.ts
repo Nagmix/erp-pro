@@ -9,16 +9,19 @@ import path from 'path';
 // Prevent static analysis during build
 export const dynamic = 'force-dynamic';
 
-/** خريطة الوحدات من معرّف ERP Pro إلى وحدات ERPNext */
-const MODULE_MAP: Record<string, { label: string; modules: string[] }> = {
-  accounting: { label: 'المحاسبة والمالية', modules: ['Accounts'] },
-  sales: { label: 'المبيعات', modules: ['Selling'] },
-  purchases: { label: 'المشتريات', modules: ['Buying'] },
-  inventory: { label: 'المخزون', modules: ['Stock'] },
-  hr: { label: 'الموارد البشرية', modules: ['HR'] },
-  crm: { label: 'إدارة العملاء', modules: ['CRM'] },
-  manufacturing: { label: 'التصنيع', modules: ['Manufacturing'] },
-  projects: { label: 'المشاريع', modules: ['Projects'] },
+/** خريطة الوحدات من معرّف ERP Pro إلى وحدات ERPNext
+ *  requiredApps: التطبيقات المطلوب تثبيتها لعمل الوحدة
+ *  - وحدة HR تتطلب تطبيق HRMS المنفصل (ERPNext v16+)
+ */
+const MODULE_MAP: Record<string, { label: string; modules: string[]; requiredApps: string[] }> = {
+  accounting: { label: 'المحاسبة والمالية', modules: ['Accounts'], requiredApps: ['erpnext'] },
+  sales: { label: 'المبيعات', modules: ['Selling'], requiredApps: ['erpnext'] },
+  purchases: { label: 'المشتريات', modules: ['Buying'], requiredApps: ['erpnext'] },
+  inventory: { label: 'المخزون', modules: ['Stock'], requiredApps: ['erpnext'] },
+  hr: { label: 'الموارد البشرية', modules: ['HR'], requiredApps: ['hrms'] },
+  crm: { label: 'إدارة العملاء', modules: ['CRM'], requiredApps: ['erpnext'] },
+  manufacturing: { label: 'التصنيع', modules: ['Manufacturing'], requiredApps: ['erpnext'] },
+  projects: { label: 'المشاريع', modules: ['Projects'], requiredApps: ['erpnext'] },
 };
 
 /** ملف علامة اكتمال الإعداد */
@@ -139,7 +142,7 @@ export async function POST(request: NextRequest) {
     });
     clearFrappeConnectionCache();
 
-    // 4. تفعيل/تعطيل الوحدات على ERPNext
+    // 4. جلب التطبيقات المثبتة للتحقق من التبعيات
     const requestHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
@@ -147,11 +150,49 @@ export async function POST(request: NextRequest) {
       ...(apiKey && apiSecret ? { Authorization: `token ${apiKey}:${apiSecret}` } : {}),
     };
 
+    let installedApps: string[] = [];
+    try {
+      const appsRes = await fetch(
+        `${host}/api/resource/Installed Application?fields=["app_name"]&limit_page_length=50`,
+        {
+          method: 'GET',
+          headers: requestHeaders,
+          signal: AbortSignal.timeout(10000),
+        }
+      );
+      if (appsRes.ok) {
+        const appsData = await appsRes.json() as { data?: { app_name: string }[] };
+        if (appsData.data && appsData.data.length > 0) {
+          installedApps = appsData.data.map((a: { app_name: string }) => a.app_name);
+        }
+      }
+    } catch {
+      // تجاهل
+    }
+
+    // 5. تفعيل/تعطيل الوحدات على ERPNext
     const allModuleKeys = Object.keys(MODULE_MAP);
     const modulesToDisable = allModuleKeys.filter((m) => !enabledModules.includes(m));
     const modulesToEnable = allModuleKeys.filter((m) => enabledModules.includes(m));
 
     const results: { module: string; action: string; success: boolean; message: string }[] = [];
+
+    // التحقق من التبعيات قبل التفعيل — وحدة HR تتطلب تطبيق HRMS
+    for (const modKey of modulesToEnable) {
+      const modInfo = MODULE_MAP[modKey];
+      if (!modInfo) continue;
+      const missingApps = modInfo.requiredApps.filter(
+        (app) => !installedApps.some((ia) => ia.toLowerCase().includes(app.toLowerCase()))
+      );
+      if (missingApps.length > 0) {
+        results.push({
+          module: modKey,
+          action: 'enable',
+          success: false,
+          message: `لا يمكن تفعيل ${modInfo.label} — التطبيق المطلوب غير مثبت: ${missingApps.join('، ')}`,
+        });
+      }
+    }
 
     // تعطيل الوحدات غير المحددة
     for (const modKey of modulesToDisable) {
@@ -175,10 +216,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // تفعيل الوحدات المحددة
+    // تفعيل الوحدات المحددة (فقط إذا كانت التبعيات متوفرة)
     for (const modKey of modulesToEnable) {
       const modInfo = MODULE_MAP[modKey];
       if (!modInfo) continue;
+      // تخطي الوحدات التي تفتقر للتطبيقات المطلوبة
+      const missingApps = modInfo.requiredApps.filter(
+        (app) => !installedApps.some((ia) => ia.toLowerCase().includes(app.toLowerCase()))
+      );
+      if (missingApps.length > 0) continue;
       for (const moduleName of modInfo.modules) {
         try {
           await fetch(

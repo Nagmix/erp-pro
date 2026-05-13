@@ -126,7 +126,7 @@ const fieldMappings: Record<keyof AppSettings, FieldMapping> = {
   reorderLevel:     { doctype: 'Stock Settings', field: 'default_reorder_level',    fromErp: (v) => (v == null ? '' : String(v)), toErp: strToErp },
   // الموارد البشرية
   workingHours:    { doctype: 'HR Settings', field: 'standard_working_hours', fromErp: (v) => (v == null ? '' : String(v)), toErp: strToErp },
-  overtimeRate:    { doctype: 'HR Settings', field: 'overtime_rate',          fromErp: (v) => (v == null ? '' : String(v)), toErp: strToErp },
+  overtimeRate:    { doctype: 'HR Settings', field: 'standard_working_hours',          fromErp: (v) => (v == null ? '' : String(v)), toErp: strToErp },
   penaltyEnabled:  { doctype: 'HR Settings', field: 'expense_approval',       fromErp: boolFromErp, toErp: boolToErp },
   // الطباعة
   printTemplate:   { doctype: 'Print Settings', field: 'print_style',   fromErp: strFromErp, toErp: strToErp },

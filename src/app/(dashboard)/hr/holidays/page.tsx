@@ -37,6 +37,8 @@ import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { buildHolidayListCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/erp/page-header';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ──────────────── Types ──────────────── */
 
@@ -98,6 +100,23 @@ export default function HolidaysPage() {
   /* ── Filter state ── */
   const [filterYear, setFilterYear] = useState('');
   const [filterWeeklyOff, setFilterWeeklyOff] = useState('');
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="العطلات"
+          description="إدارة قوائم العطلات الرسمية وعطلات نهاية الأسبوع"
+          iconify="solar:calendar-bold-duotone"
+          accent="warning"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'العطلات' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── Data fetching ── */
   const { data, isLoading, isError, error, refetch } = useDocList<HolidayListRow>('Holiday List', {

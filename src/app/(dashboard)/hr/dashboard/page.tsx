@@ -30,6 +30,8 @@ import {
   CalendarDays,
   AlertCircle,
 } from 'lucide-react';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ------------------------------------------------------------------ */
 /*  Quick Actions                                                      */
@@ -113,10 +115,8 @@ function SimpleDonut({ segments }: { segments: { label: string; value: number; c
 /*  Main Page                                                          */
 /* ------------------------------------------------------------------ */
 export default function HrDashboardPage() {
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
   const { company } = useDefaultCompanyName();
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   /* ---------- Fetch data ---------- */
   const { data: employees = [], isLoading: empLoading } = useDocList<Record<string, unknown>>(
@@ -160,6 +160,26 @@ export default function HrDashboardPage() {
       limit: 10,
     }
   );
+
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+  // إذا لم يكن HRMS مثبتاً، أظهر رسالة تحذيرية
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter mx-auto w-full max-w-[1600px]">
+        <PageHeader
+          title="لوحة تحكم الموارد البشرية"
+          description="متابعة الموظفين والحضور والإجازات والرواتب والأنشطة"
+          iconify="solar:users-group-rounded-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية' }, { label: 'لوحة التحكم' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const isLoading = empLoading || attLoading || leaveLoading || salaryLoading || holLoading;
 

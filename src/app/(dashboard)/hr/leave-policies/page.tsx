@@ -40,6 +40,8 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { toast } from 'sonner';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ──────────────── Types ──────────────── */
 
@@ -78,6 +80,23 @@ const DOC_STATUS_OPTIONS = [
 
 export default function LeavePoliciesPage() {
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="سياسات ورصيد الإجازات"
+          description="إدارة سياسات الإجازات وتخصيص الأرصدة للموظفين"
+          iconify="solar:calendar-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'سياسات الإجازات' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── Tab state ── */
   const [tab, setTab] = useState('policies');

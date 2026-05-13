@@ -51,6 +51,12 @@ RUN mkdir -p /home/frappe/logs \
     && echo "Directories created with proper permissions!"
 
 # ------------------------------------------------------------------
+# تثبيت تطبيق HRMS (الموارد البشرية)
+# ERPNext v16 أصبح يعتمد على تطبيق HRMS منفصل
+# ------------------------------------------------------------------
+RUN cd /home/frappe/frappe-bench && bench get-app hrms --branch version-16
+
+# ------------------------------------------------------------------
 # نسخ ملفات الإعداد
 # ------------------------------------------------------------------
 COPY railway/backend/supervisord.conf /etc/supervisor/conf.d/erpnext.conf

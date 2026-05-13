@@ -62,6 +62,8 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 // ── Types ────────────────────────────────────────────────────
 type PayrollRow = {
@@ -152,6 +154,23 @@ export default function PayrollEntryPage() {
   const updateMut = useUpdateDoc('Payroll Entry');
   const submitMut = useSubmitDoc('Payroll Entry');
   const cancelMut = useCancelDoc('Payroll Entry');
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="مسير الرواتب"
+          description="إنشاء جماعي واعتماد مسيرات الدفع وصرف الرواتب"
+          iconify="solar:calculator-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'مسير الرواتب' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const entries = data || [];
 

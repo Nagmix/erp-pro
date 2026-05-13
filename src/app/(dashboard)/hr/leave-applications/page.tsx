@@ -37,6 +37,8 @@ import { buildLeaveApplicationCreate, prepareFrappeDocForCreate } from '@/lib/er
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 interface LeaveRow {
   name: string;
@@ -95,6 +97,23 @@ export default function LeaveApplicationsPage() {
     filters: balanceEmployee ? [['employee', '=', balanceEmployee]] : [],
     limit: 100,
     order_by: 'creation desc'});
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="طلبات الإجازة"
+          description="إدارة طلبات الإجازة ومتابعة الموافقات وحالة الطلب وأرصدة الموظفين"
+          iconify="solar:calendar-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'طلبات الإجازة' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const leaveApplications = data ?? [];
   const filtered = filter === 'all' ? leaveApplications : leaveApplications.filter((l) => l.status === filter);  const calculateDays = () => {

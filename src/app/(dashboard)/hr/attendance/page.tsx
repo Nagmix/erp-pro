@@ -27,6 +27,8 @@ import { buildAttendanceCreate, buildEmployeeCheckinCreate, prepareFrappeDocForC
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 type AttendanceRow = {
   name: string;
@@ -80,6 +82,23 @@ export default function AttendancePage() {
     order_by: 'attendance_date desc'});
   const createMutation = useCreateDoc('Attendance');
   const createCheckinMutation = useCreateDoc('Employee Checkin');
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="الحضور والانصراف"
+          description="إدارة سجلات الحضور والانصراف اليومية، الحالات، الأوقات، والاستثناءات"
+          iconify="solar:calendar-mark-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الحضور والانصراف' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const attendanceRecords = data || [];
 

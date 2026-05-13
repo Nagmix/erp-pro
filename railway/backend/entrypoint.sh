@@ -589,6 +589,7 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
                         --admin-password ${ADMIN_PASSWORD} \
                         --install-app erpnext \
                         --install-app frappe \
+                        --install-app hrms \
                         --set-default \
                         --force \
                         --verbose" 2>&1
@@ -605,6 +606,7 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
                         --admin-password ${ADMIN_PASSWORD} \
                         --install-app erpnext \
                         --install-app frappe \
+                        --install-app hrms \
                         --set-default \
                         --force \
                         --verbose" 2>&1
@@ -647,6 +649,32 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
     log "Site creation running in background (PID: $!)"
 else
     log "Site '${SITE_NAME}' already exists and is initialized."
+
+    # ★ تثبيت HRMS على الموقع الموجود إن لم يكن مثبتاً
+    # ERPNext v16 أصبح يعتمد على تطبيق HRMS منفصل للموارد البشرية
+    log "Checking if HRMS app is installed on site '${SITE_NAME}'..."
+    HRMS_INSTALLED=false
+    if su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} list-apps" 2>&1 | grep -q "hrms"; then
+        HRMS_INSTALLED=true
+        log "HRMS app is already installed on site '${SITE_NAME}'."
+    else
+        log "HRMS app is NOT installed. Installing HRMS on existing site '${SITE_NAME}'..."
+        # التحقق من وجود تطبيق HRMS في bench
+        if [ -d "/home/frappe/frappe-bench/apps/hrms" ]; then
+            log "HRMS app directory exists. Running bench install-app..."
+            su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} install-app hrms" 2>&1 || log "WARNING: HRMS installation had errors (may need manual intervention)"
+        else
+            log "WARNING: HRMS app directory not found at /home/frappe/frappe-bench/apps/hrms"
+            log "Trying to get HRMS app first..."
+            su - frappe -c "cd /home/frappe/frappe-bench && bench get-app hrms --branch version-16" 2>&1 || log "WARNING: Could not get HRMS app"
+            if [ -d "/home/frappe/frappe-bench/apps/hrms" ]; then
+                log "HRMS app downloaded. Installing on site '${SITE_NAME}'..."
+                su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} install-app hrms" 2>&1 || log "WARNING: HRMS installation had errors"
+            else
+                log "WARNING: Could not download HRMS app. HR module will not be available."
+            fi
+        fi
+    fi
 
     # حتى لو الموقع موجود، نتأكد من إعدادات التوجيه
     log "Ensuring serve_default_site is configured..."

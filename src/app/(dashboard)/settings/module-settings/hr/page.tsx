@@ -24,6 +24,8 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { useDoc, useUpdateDoc } from '@/lib/client/hooks';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 const SINGLETON = 'HR Settings';
 
@@ -34,6 +36,28 @@ function docFlag(v: unknown): boolean {
 export default function HrSettingsPage() {
  const doc = useDoc<Record<string, unknown>>('HR Settings', SINGLETON);
  const updateMut = useUpdateDoc('HR Settings');
+ const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+ // إذا لم يكن HRMS مثبتاً، أظهر رسالة تحذيرية
+ if (hrmsLoaded && !hrmsInstalled) {
+  return (
+   <div className="erp-page-enter space-y-5" dir="rtl">
+    <PageHeader
+     title="إعدادات الموارد البشرية"
+     description="إعدادات الموارد البشرية — مطابقة مستند «إعدادات الموارد البشرية» عند تثبيت تطبيق الموارد البشرية"
+     iconify="solar:users-group-rounded-bold-duotone"
+     accent="info"
+     breadcrumbs={[
+      { label: 'الإعدادات', href: '/settings' },
+      { label: 'إعدادات الوحدات', href: '/settings/module-settings' },
+      { label: 'الموارد البشرية' },
+     ]}
+    />
+    <HrmsRequiredBanner />
+   </div>
+  );
+ }
+
  const d = doc.data;
 
  const patchAndSave = (patch: Record<string, unknown>) => {

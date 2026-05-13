@@ -55,6 +55,8 @@ import {
 } from '@/lib/erp/erpnext-payloads';
 import { apiSubmitDoc } from '@/lib/client/api';
 import { toast } from 'sonner';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 type StructureRow = {
   name: string;
@@ -261,6 +263,23 @@ export default function SalaryStructuresPage() {
   const createAssign = useCreateDoc('Salary Structure Assignment');
   const submitMutation = useSubmitDoc('Salary Structure');
   const cancelMutation = useCancelDoc('Salary Structure');
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="هياكل الرواتب"
+          description="هيكل الراتب + تعيين هيكل الراتب"
+          iconify="solar:document-text-bold-duotone"
+          accent="primary"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'هياكل الرواتب' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const structures = data || [];
 

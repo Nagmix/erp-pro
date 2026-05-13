@@ -64,6 +64,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ───────────── Types ───────────── */
 type DocRow = {
@@ -191,6 +193,8 @@ export default function EmployeeDocumentsPage() {
 
   /* ── Delete Dialog ── */
   const [deleteDialog, setDeleteDialog] = useState<DocRow | null>(null);
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
   /* ── KPIs ── */
   const docs = data || [];
@@ -437,6 +441,22 @@ export default function EmployeeDocumentsPage() {
     ],
     []
   );
+
+  /* ── HRMS Check ── */
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="مستندات الموظفين"
+          description="أرشفة المستندات المرفقة لكل موظف — جوازات وإقامات وعقود وشهادات"
+          iconify="solar:folder-bold-duotone"
+          accent="primary"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'مستندات الموظفين' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── Render ── */
   return (

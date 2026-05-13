@@ -53,6 +53,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ────────────────────────────────────────────
    أنواع البيانات
@@ -211,6 +213,25 @@ const initialFormData = {
    الصفحة الرئيسية
    ──────────────────────────────────────────── */
 export default function EmployeesPage() {
+  /* ── فحص HRMS ── */
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  // إذا لم يكن HRMS مثبتاً، أظهر رسالة تحذيرية
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="الموظفين"
+          description="إدارة بيانات الموظفين، الأقسام، المسميات الوظيفية، الحالة الوظيفية وروابطها"
+          iconify="solar:users-group-rounded-bold-duotone"
+          accent="success"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الموظفون' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
   /* ── الحالة ── */
   const [statusFilter, setStatusFilter] = useState('all');
   const [deptFilter, setDeptFilter] = useState('all');

@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { ModernIcon } from '@/components/ui/modern-icon';
 import Link from 'next/link';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 function SettingsCard({ icon, title, description, href }: { icon: string; title: string; description: string; href: string }) {
   return (
@@ -25,6 +27,23 @@ function SettingsCard({ icon, title, description, href }: { icon: string; title:
 }
 
 export default function HrSettingsPage() {
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="إعدادات الموارد البشرية"
+          description="إدارة إعدادات الرواتب والإجازات والعقود والتنظيم"
+          iconify="solar:settings-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr/dashboard' }, { label: 'الإعدادات' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <PageHeader

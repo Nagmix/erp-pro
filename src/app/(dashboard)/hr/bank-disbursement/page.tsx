@@ -34,6 +34,8 @@ import { apiCallMethod, apiCreateDoc } from '@/lib/client/api';
 import { formatCurrency } from '@/lib/core/helpers';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ────────────────────────────────────────
    Types
@@ -59,6 +61,23 @@ export default function BankDisbursementPage() {
   const [bankFilter, setBankFilter] = useState<string>('all');
   const [periodFilter, setPeriodFilter] = useState('');
   const [payingSlip, setPayingSlip] = useState<string | null>(null);
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="الصرف البنكي"
+          description="إدارة صرف الرواتب عبر البنوك وإنشاء سندات الدفع وتصدير الملفات البنكية"
+          iconify="solar:bank-bold-duotone"
+          accent="success"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الصرف البنكي' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── Fetch submitted salary slips ── */
   const { data, isLoading, isError, error, refetch } = useDocList<SalarySlipRow>('Salary Slip', {

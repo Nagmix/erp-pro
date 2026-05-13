@@ -779,6 +779,8 @@ export interface SystemModule {
   icon: string;
   path: string;
   color: string;
+  /** التطبيق المطلوب تثبيته لعمل هذه الوحدة (مثل 'hrms' لوحدة HR) */
+  requiredApp?: string;
   subModules: {
     id: string;
     name: string;

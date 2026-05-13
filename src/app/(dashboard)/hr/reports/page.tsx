@@ -32,6 +32,8 @@ import {
 import { CalendarDays, ClipboardList, Clock, LayoutGrid, UserCircle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 type HrReportTab =
   | 'hr-attendance'
@@ -114,6 +116,22 @@ export default function HrReportsPage() {
   const { company: effectiveCompany } = useDefaultCompanyName();
   const [attendanceSummarized, setAttendanceSummarized] = useState(false);
   const [analyticsParameter, setAnalyticsParameter] = useState<EmployeeAnalyticsParameter>('Department');
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="تقارير الموارد البشرية"
+          description="حضور (تفصيلي أو ملخص HRMS)، ورديات، رواتب، إجازات، تحليل توزيع الموظفين، وبيانات الموظفين من HRMS عند تفعيل الوحدة."
+          iconify="solar:users-group-rounded-bold-duotone"
+          accent="info"
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const reportId = useMemo(
     () => TAB_META.find((t) => t.id === tab)?.catalogId ?? 'hr-attendance',

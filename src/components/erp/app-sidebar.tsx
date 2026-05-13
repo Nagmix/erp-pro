@@ -15,7 +15,8 @@ import type { SystemModule, SettingsGroup } from '@/lib/core/types';
 import { canAccessPath } from '@/lib/auth/route-access';
 import { useAuthStore } from '@/stores/auth-store';
 import { useUIStore } from '@/stores/ui-store';
-import { useState, useMemo } from 'react';
+import { useInstalledAppsStore } from '@/stores/installed-apps-store';
+import { useState, useMemo, useEffect } from 'react';
 import type { ComponentType } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -191,9 +192,24 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const roles = user?.roles ?? [];
+  const { isAppInstalled, fetchInstalledApps, loaded: appsLoaded } = useInstalledAppsStore();
+
+  // جلب التطبيقات المثبتة عند تحميل الشريط الجانبي
+  useEffect(() => {
+    if (!appsLoaded) {
+      fetchInstalledApps();
+    }
+  }, [appsLoaded, fetchInstalledApps]);
+
   const visibleModules = useMemo(
-    () => SYSTEM_MODULES.filter((m) => canAccessPath(m.path, roles)),
-    [roles]
+    () => SYSTEM_MODULES.filter((m) => {
+      // فحص الصلاحيات
+      if (!canAccessPath(m.path, roles)) return false;
+      // فحص التطبيقات المطلوبة (مثل HRMS لوحدة HR)
+      if (m.requiredApp && !isAppInstalled(m.requiredApp)) return false;
+      return true;
+    }),
+    [roles, isAppInstalled, appsLoaded]
   );
   const showAudit = canAccessPath('/audit-log', roles);
   const showSettingsBlock = canAccessPath('/settings', roles);
