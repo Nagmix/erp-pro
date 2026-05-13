@@ -376,13 +376,49 @@ export function getDashboardPathForDocType(doctype: string | null | undefined): 
   return null;
 }
 
-export function formatCurrency(amount: number, currency: string = 'YER'): string {
+/**
+ * تحويل الأرقام العربية-الهندية (٠-٩) والفواصل العشرية العربية إلى أرقام إنجليزية
+ * ERPNext قد يرجع قيماً منسقة بالأرقام العربية-الهندية مثل: ٥٬٠٠٠٫٠٠
+ * هذه الدالة تحولها إلى: 5,000.00
+ */
+export function toEnglishDigits(str: string | number | null | undefined): string {
+  if (str == null) return '';
+  const s = String(str);
+  return s
+    // تحويل الأرقام العربية-الهندية (٠-٩) إلى إنجليزية
+    .replace(/[٠١٢٣٤٥٦٧٨٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString())
+    // تحويل الأرقام الفارسية/الأردية (۰-۹) إلى إنجليزية
+    .replace(/[۰۱۲۳۴۵۶۷۸۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d).toString())
+    // تحويل الفاصلة العشرية العربية (٫) إلى نقطة
+    .replace(/٫/g, '.')
+    // تحويل فاصل الآلاف العربي (٬) إلى فاصلة إنجليزية
+    .replace(/٬/g, ',')
+    // إزالة أي أحرف تحكم عربية مخفية
+    .replace(/[\u200E\u200F\u066A\u0609\u060A]/g, '');
+}
+
+/**
+ * تحويل قيمة رقمية من ERPNext (قد تكون نصاً بأرقام عربية) إلى رقم إنجليزي
+ */
+export function parseErpNumber(val: unknown): number {
+  if (typeof val === 'number') return val;
+  if (val == null) return 0;
+  const englishStr = toEnglishDigits(String(val));
+  // إزالة فواصل الآلاف ثم التحويل لرقم
+  const cleaned = englishStr.replace(/,/g, '');
+  const n = Number(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export function formatCurrency(amount: number | string | null | undefined, currency: string = 'YER'): string {
+  // تحويل القيمة لرقم (قد تأتي من ERPNext كنص بأرقام عربية)
+  const numAmount = parseErpNumber(amount);
   // استخدام تنسيق إنجليزي للأرقام (أرقام لاتينية + نقطة عشرية)
   // مع إضافة رمز العملة يدوياً لتجنب الأرقام العربية
   const formatted = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(amount);
+  }).format(numAmount);
   // رموز العملات العربية
   const currencySymbols: Record<string, string> = {
     YER: 'ر.ي',
@@ -415,9 +451,11 @@ export function formatDate(dateStr: string): string {
   return `${day} ${month} ${year}`;
 }
 
-export function formatNumber(num: number): string {
+export function formatNumber(num: number | string | null | undefined): string {
+  // تحويل القيمة لرقم (قد تأتي من ERPNext كنص بأرقام عربية)
+  const n = parseErpNumber(num);
   // استخدام تنسيق إنجليزي للأرقام (أرقام لاتينية + نقطة عشرية)
-  return new Intl.NumberFormat('en-US').format(num);
+  return new Intl.NumberFormat('en-US').format(n);
 }
 
 /** Palette for Recharts — references theme --chart-1..5 tokens via HSL */

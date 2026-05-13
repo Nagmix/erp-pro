@@ -141,12 +141,26 @@ export function buildCustomerCreate(input: {
   mobile_no?: string;
   tax_id?: string;
 }): Record<string, unknown> {
+  // حماية من استخدام عقد جذرية (is_group=1) كمجموعة عملاء أو منطقة
+  // ERPNext يرفض "All Customer Groups" و "All Territories" كقيم صالحة
+  const safeCustomerGroup = input.customer_group &&
+    !input.customer_group.startsWith('All ') &&
+    input.customer_group !== 'All Customer Groups'
+    ? input.customer_group
+    : 'Individual'; // الافتراضي إذا كانت المجموعة غير صالحة
+
+  const safeTerritory = input.territory &&
+    !input.territory.startsWith('All ') &&
+    input.territory !== 'All Territories'
+    ? input.territory
+    : 'Yemen'; // الافتراضي إذا كانت المنطقة غير صالحة
+
   return {
     doctype: 'Customer',
     customer_name: input.customer_name.trim(),
     customer_type: input.customer_type,
-    customer_group: input.customer_group,
-    territory: input.territory,
+    customer_group: safeCustomerGroup,
+    territory: safeTerritory,
     email_id: input.email_id || undefined,
     mobile_no: input.mobile_no || undefined,
     tax_id: input.tax_id || undefined,

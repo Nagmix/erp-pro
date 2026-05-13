@@ -701,11 +701,30 @@ export default function SetupWizardPage() {
             });
             const modulesData = await modulesResponse.json();
             if (modulesData.success && modulesData.modules) {
-              setExistingModules(modulesData.modules);
-              setInstalledApps(modulesData.installedApps || []);
-              // تحديد الوحدات المفعلة افتراضياً
-              const enabledIds = modulesData.modules
-                .filter((m: { enabled: boolean }) => m.enabled)
+              // تنقية التطبيقات المثبتة — إزالة القيم الفارغة أو غير النصية
+              const cleanApps = (modulesData.installedApps || []).filter(
+                (a: unknown) => typeof a === 'string' && a.trim()
+              ) as string[];
+              setInstalledApps(cleanApps);
+              // تنقية بيانات الوحدات — ضمان عدم وجود قيم undefined
+              const cleanModules = modulesData.modules.map(
+                (m: { id?: string; label?: string; description?: string; enabled?: boolean; appInstalled?: boolean; canToggle?: boolean; missingApps?: string[]; moduleExists?: boolean }) => ({
+                  id: String(m.id || ''),
+                  label: String(m.label || ''),
+                  description: String(m.description || ''),
+                  enabled: Boolean(m.enabled),
+                  appInstalled: Boolean(m.appInstalled),
+                  canToggle: Boolean(m.canToggle),
+                  missingApps: Array.isArray(m.missingApps)
+                    ? m.missingApps.filter((a: unknown) => typeof a === 'string' && a.trim())
+                    : [],
+                  moduleExists: Boolean(m.moduleExists),
+                })
+              );
+              setExistingModules(cleanModules);
+              // تحديد الوحدات المفعلة افتراضياً (فقط التي يمكن تفعيلها)
+              const enabledIds = cleanModules
+                .filter((m: { enabled: boolean; canToggle: boolean; appInstalled: boolean }) => m.enabled && m.appInstalled)
                 .map((m: { id: string }) => m.id);
               setSelectedExistingModules(enabledIds);
               // تحديث وحدات النموذج بناءً على حالة الخادم الخلفي
@@ -716,33 +735,36 @@ export default function SetupWizardPage() {
               updateForm('modules', updatedModules);
               setShowExistingModules(true);
             } else {
-              // فشل فحص الوحدات — نستخدم القيم الافتراضية
+              // فشل فحص الوحدات — نستخدم القيم الافتراضية مع التحذير
+              // ملاحظة: نحدد appInstalled بناءً على التطبيقات المعروفة فقط
               const fallbackModules = DEFAULT_MODULES.map((m) => ({
                 id: m.id,
                 label: m.label,
                 description: m.description,
-                enabled: m.enabled,
-                appInstalled: true,
-                canToggle: true,
-                missingApps: [],
+                enabled: m.id !== 'hr', // نعطل HR افتراضياً لأن HRMS قد لا يكون مثبتاً
+                appInstalled: m.id !== 'hr', // نتوقع أن ERPNext مثبت لكن HRMS قد لا يكون
+                canToggle: m.id !== 'hr',
+                missingApps: m.id === 'hr' ? ['hrms'] : [],
               }));
               setExistingModules(fallbackModules);
-              setSelectedExistingModules(DEFAULT_MODULES.filter((m) => m.enabled).map((m) => m.id));
+              setInstalledApps(['erpnext']); // نفترض أن erpnext مثبت
+              setSelectedExistingModules(DEFAULT_MODULES.filter((m) => m.enabled && m.id !== 'hr').map((m) => m.id));
               setShowExistingModules(true);
             }
           } catch {
-            // فشل فحص الوحدات — نستخدم القيم الافتراضية
+            // فشل فحص الوحدات — نستخدم القيم الافتراضية مع التحذير
             const fallbackModules = DEFAULT_MODULES.map((m) => ({
               id: m.id,
               label: m.label,
               description: m.description,
-              enabled: m.enabled,
-              appInstalled: true,
-              canToggle: true,
-              missingApps: [],
+              enabled: m.id !== 'hr', // نعطل HR افتراضياً لأن HRMS قد لا يكون مثبتاً
+              appInstalled: m.id !== 'hr',
+              canToggle: m.id !== 'hr',
+              missingApps: m.id === 'hr' ? ['hrms'] : [],
             }));
             setExistingModules(fallbackModules);
-            setSelectedExistingModules(DEFAULT_MODULES.filter((m) => m.enabled).map((m) => m.id));
+            setInstalledApps(['erpnext']); // نفترض أن erpnext مثبت
+            setSelectedExistingModules(DEFAULT_MODULES.filter((m) => m.enabled && m.id !== 'hr').map((m) => m.id));
             setShowExistingModules(true);
           } finally {
             setCheckingModules(false);

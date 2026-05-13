@@ -33,6 +33,7 @@ const NAMING_SERIES_DOCTYPES = [
   { doctype: 'Production Plan', label: 'خطة إنتاج', defaultPrefix: 'MFG-PP-.YYYY.-' },
   { doctype: 'Lead', label: 'عميل محتمل', defaultPrefix: 'CRM-LEAD-.YYYY.-' },
   { doctype: 'Opportunity', label: 'فرصة', defaultPrefix: 'CRM-OPP-.YYYY.-' },
+  { doctype: 'Employee', label: 'موظف', defaultPrefix: 'HR-EMP-.YYYY.-' },
 ] as const;
 
 /** GET — Fetch naming series info for all/specific DocTypes */

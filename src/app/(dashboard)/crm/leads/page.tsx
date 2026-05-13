@@ -341,8 +341,9 @@ export default function LeadsPage() {
             doctype: 'Customer',
             customer_name: lead.lead_name || lead.company_name || lead.name,
             customer_type: lead.company_name ? 'Company' : 'Individual',
-            customer_group: 'Commercial',
-            territory: lead.territory || 'All Territories',
+            // استخدام مجموعة عملاء افتراضية صالحة — "All Customer Groups" عقدة جذرية وتسبب خطأ
+            customer_group: 'Individual',
+            territory: lead.territory || 'Yemen',
             lead_name: lead.name,
           },
         },

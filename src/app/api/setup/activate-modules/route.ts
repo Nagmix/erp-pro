@@ -43,10 +43,16 @@ function markSetupComplete(config: Record<string, unknown>): void {
 
 /**
  * مقارنة آمنة لاسم التطبيق (غير حساسة للحالة)
+ * يحمي من القيم undefined/null/non-string
  */
-function isAppMatch(installedApp: unknown, requiredApp: string): boolean {
-  if (typeof installedApp !== 'string' || !installedApp) return false;
-  return installedApp.toLowerCase().includes(requiredApp.toLowerCase());
+function isAppMatch(installedApp: unknown, requiredApp: unknown): boolean {
+  if (typeof installedApp !== 'string' || !installedApp.trim()) return false;
+  if (typeof requiredApp !== 'string' || !requiredApp.trim()) return false;
+  try {
+    return installedApp.toLowerCase().includes(requiredApp.toLowerCase());
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -344,7 +350,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 6. تحديث إعدادات النظام (تنسيق التاريخ والأرقام)
+    // 6. تحديث إعدادات النظام (تنسيق التاريخ والأرقام — ميلادي + أرقام إنجليزية)
     try {
       await fetch(
         `${host}/api/resource/System Settings/System Settings`,
@@ -354,6 +360,11 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify({
             date_format: 'yyyy-mm-dd',
             number_format: '#,###.##',
+            // ضمان استخدام الأرقام الإنجليزية (وليس العربية-الهندية)
+            // ERPNext يستخدم هذه الإعدادات لتنسيق الأرقام في الاستجابات
+            currency_format: '#,###.##',
+            // تعطيل التاريخ الهجري
+            hide_dismissed_warnings: 1,
           }),
           signal: AbortSignal.timeout(8000),
         }

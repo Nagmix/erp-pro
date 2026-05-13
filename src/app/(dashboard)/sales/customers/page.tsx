@@ -369,6 +369,7 @@ export default function CustomersPage() {
                       onChange={(v) => setFormData((prev) => ({ ...prev, territory: v }))}
                       placeholder="اختر المنطقة..."
                       className="h-9 text-sm"
+                      excludeGroups
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -480,6 +481,7 @@ export default function CustomersPage() {
                       onChange={(v) => setEditFormData((prev) => ({ ...prev, territory: v }))}
                       placeholder="اختر المنطقة..."
                       className="h-9 text-sm"
+                      excludeGroups
                     />
                   </div>
                   <div className="space-y-1.5">

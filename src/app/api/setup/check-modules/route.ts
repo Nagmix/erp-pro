@@ -221,10 +221,16 @@ async function fetchModuleStatus(host: string, headers: Record<string, string>):
 
 /**
  * مقارنة آمنة لاسم التطبيق (غير حساسة للحالة)
+ * يحمي من القيم undefined/null/non-string
  */
-function isAppMatch(installedApp: unknown, requiredApp: string): boolean {
-  if (typeof installedApp !== 'string' || !installedApp) return false;
-  return installedApp.toLowerCase().includes(requiredApp.toLowerCase());
+function isAppMatch(installedApp: unknown, requiredApp: unknown): boolean {
+  if (typeof installedApp !== 'string' || !installedApp.trim()) return false;
+  if (typeof requiredApp !== 'string' || !requiredApp.trim()) return false;
+  try {
+    return installedApp.toLowerCase().includes(requiredApp.toLowerCase());
+  } catch {
+    return false;
+  }
 }
 
 /**

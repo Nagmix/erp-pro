@@ -364,7 +364,14 @@ export default function EmployeesPage() {
           if (parsed?.message) displayMsg = parsed.message;
           else if (parsed?.exception) displayMsg = parsed.exception;
         } catch { /* not JSON */ }
-        toast.error('خطأ في إنشاء الموظف', { description: displayMsg });
+        // رسائل مخصصة للأخطاء الشائعة
+        if (displayMsg.includes('Duplicate') || displayMsg.includes('already exists') || displayMsg.includes('DuplicateEntryError')) {
+          toast.error('خطأ: معرف الموظف مكرر', {
+            description: 'يوجد موظف بنفس المعرف بالفعل. جرب مرة أخرى — سيقوم النظام بإنشاء معرف جديد تلقائياً.',
+          });
+        } else {
+          toast.error('خطأ في إنشاء الموظف', { description: displayMsg });
+        }
       },
     });
   };
