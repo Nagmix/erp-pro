@@ -403,6 +403,20 @@ export default function SetupWizardPage() {
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [checkingSetup, setCheckingSetup] = useState(true);
   const [linkingExisting, setLinkingExisting] = useState(false);
+  const [showExistingModules, setShowExistingModules] = useState(false);
+  const [checkingModules, setCheckingModules] = useState(false);
+  const [activatingModules, setActivatingModules] = useState(false);
+  const [existingModules, setExistingModules] = useState<{
+    id: string;
+    label: string;
+    description: string;
+    enabled: boolean;
+    appInstalled: boolean;
+    canToggle: boolean;
+    missingApps: string[];
+  }[]>([]);
+  const [selectedExistingModules, setSelectedExistingModules] = useState<string[]>([]);
+  const [installedApps, setInstalledApps] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -655,7 +669,7 @@ export default function SetupWizardPage() {
         updateForm('serverConnectionTested', true);
         updateForm('serverConnectionOk', true);
 
-        // ── إذا وُجدت شركة مسجلة مسبقاً، نربط الخادم تلقائياً ──
+        // ── إذا وُجدت شركة مسجلة مسبقاً، نفحص الوحدات المثبتة ──
         if (data.existingCompany) {
           const ec = data.existingCompany as { name: string; abbr: string; default_currency: string; country: string };
           updateForm('companyName', ec.name);
@@ -672,10 +686,10 @@ export default function SetupWizardPage() {
               }
             }
           }
-          // ربط الخادم الموجود تلقائياً والانتقال لتسجيل الدخول
-          setLinkingExisting(true);
+          // فحص الوحدات المثبتة/المفعلة على الخادم الخلفي بدلاً من الربط المباشر
+          setCheckingModules(true);
           try {
-            const linkResponse = await fetch('/api/setup/link-existing', {
+            const modulesResponse = await fetch('/api/setup/check-modules', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -684,26 +698,33 @@ export default function SetupWizardPage() {
                 admin_password: form.serverAdminPassword,
               }),
             });
-            const linkData = await linkResponse.json();
-            if (linkData.success && linkData.company) {
-              const lec = linkData.company as { name: string; abbr: string; default_currency: string; country: string };
-              setSetupConfig({
-                defaultCompany: lec.name,
-                branchesEnabled: false,
-                enabledModules: DEFAULT_MODULES.filter((m) => m.enabled).map((m) => m.id),
-                currency: lec.default_currency || ec.default_currency || 'YER',
-                country: lec.country || ec.country || 'Yemen',
-                language: 'ar',
-              });
-              router.replace('/login');
-              return; // لا نكمل — المستخدم سينتقل لتسجيل الدخول
+            const modulesData = await modulesResponse.json();
+            if (modulesData.success && modulesData.modules) {
+              setExistingModules(modulesData.modules);
+              setInstalledApps(modulesData.installedApps || []);
+              // تحديد الوحدات المفعلة افتراضياً
+              const enabledIds = modulesData.modules
+                .filter((m: { enabled: boolean }) => m.enabled)
+                .map((m: { id: string }) => m.id);
+              setSelectedExistingModules(enabledIds);
+              // تحديث وحدات النموذج بناءً على حالة الخادم الخلفي
+              const updatedModules = form.modules.map((m) => ({
+                ...m,
+                enabled: enabledIds.includes(m.id),
+              }));
+              updateForm('modules', updatedModules);
+              setShowExistingModules(true);
             } else {
-              setLinkingExisting(false);
-              setSetupError(linkData.error || 'فشل ربط الخادم الموجود');
+              // فشل فحص الوحدات — نستخدم القيم الافتراضية
+              setSelectedExistingModules(DEFAULT_MODULES.filter((m) => m.enabled).map((m) => m.id));
+              setShowExistingModules(true);
             }
           } catch {
-            setLinkingExisting(false);
-            setSetupError('فشل الاتصال أثناء ربط الخادم الموجود');
+            // فشل فحص الوحدات — نستخدم القيم الافتراضية
+            setSelectedExistingModules(DEFAULT_MODULES.filter((m) => m.enabled).map((m) => m.id));
+            setShowExistingModules(true);
+          } finally {
+            setCheckingModules(false);
           }
         }
       } else {
@@ -762,6 +783,63 @@ export default function SetupWizardPage() {
       setLinkingExisting(false);
     }
   }, [form.backendHost, form.serverAdminUser, form.serverAdminPassword, form.modules, form.currency, form.country, form.language, form.companyLogo, form.companyTagline, form.companyPhone, form.companyAddress, form.companyTaxId, router]);
+
+  // ── تفعيل الوحدات والانتقال لتسجيل الدخول (خادم موجود) ────
+
+  const activateModulesAndLogin = useCallback(async () => {
+    if (selectedExistingModules.length === 0) {
+      setSetupError('يجب تفعيل وحدة واحدة على الأقل');
+      return;
+    }
+
+    setActivatingModules(true);
+    setSetupError('');
+    try {
+      const ec = connectionResult?.existingCompany;
+      const response = await fetch('/api/setup/activate-modules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          host: form.backendHost,
+          admin_user: form.serverAdminUser,
+          admin_password: form.serverAdminPassword,
+          enabled_modules: selectedExistingModules,
+          company_info: ec ? {
+            name: ec.name,
+            abbr: ec.abbr,
+            default_currency: ec.default_currency,
+            country: ec.country,
+          } : undefined,
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        const company = data.company || ec;
+        if (company) {
+          setSetupConfig({
+            defaultCompany: company.name,
+            branchesEnabled: false,
+            enabledModules: selectedExistingModules,
+            currency: company.default_currency || form.currency,
+            country: company.country || form.country,
+            language: form.language,
+            companyLogo: form.companyLogo,
+            companyTagline: form.companyTagline,
+            companyPhone: form.companyPhone,
+            companyAddress: form.companyAddress,
+            companyTaxId: form.companyTaxId,
+          });
+        }
+        router.replace('/login');
+      } else {
+        setSetupError(data.error || 'فشل تفعيل الوحدات');
+      }
+    } catch {
+      setSetupError('فشل الاتصال أثناء تفعيل الوحدات');
+    } finally {
+      setActivatingModules(false);
+    }
+  }, [selectedExistingModules, connectionResult, form.backendHost, form.serverAdminUser, form.serverAdminPassword, form.currency, form.country, form.language, form.companyLogo, form.companyTagline, form.companyPhone, form.companyAddress, form.companyTaxId, router]);
 
   // ── رفع الشعار ────────────────────────────────────────────
 
@@ -905,6 +983,249 @@ export default function SetupWizardPage() {
                 : 'جاري ربط الخادم الموجود...'}
             </p>
             <p className="text-sm text-muted-foreground">جاري إعداد النظام للاتصال بالخادم الموجود...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // شاشة فحص الوحدات (تحميل)
+  // ════════════════════════════════════════════════════════════
+
+  if (checkingModules) {
+    return (
+      <div className="min-h-screen bg-gradient-to-bl from-emerald-50 via-teal-50 to-cyan-50 flex items-center justify-center" dir="rtl">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="relative mx-auto w-20 h-20">
+            <Loader2 className="w-20 h-20 text-emerald-600 animate-spin" />
+            <LayoutGrid className="w-8 h-8 text-emerald-700 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <div className="space-y-2">
+            <p className="text-xl font-bold text-foreground">تم اكتشاف شركة مسجلة</p>
+            <p className="text-muted-foreground">
+              {connectionResult?.existingCompany
+                ? `الشركة: ${connectionResult.existingCompany.name}`
+                : ''}
+            </p>
+            <p className="text-sm text-muted-foreground">جاري فحص الوحدات المثبتة والمفعلة على الخادم...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════
+  // شاشة اختيار الوحدات (خادم موجود)
+  // ════════════════════════════════════════════════════════════
+
+  if (showExistingModules && !checkingModules) {
+    const ec = connectionResult?.existingCompany;
+    const enabledCount = selectedExistingModules.length;
+    const disabledCount = existingModules.length - enabledCount;
+
+    // خريطة الأيقونات للوحدات
+    const moduleIcons: Record<string, React.ElementType> = {
+      accounting: Landmark,
+      sales: TrendingUp,
+      purchases: ShoppingCart,
+      inventory: Package,
+      hr: Users,
+      crm: Handshake,
+      manufacturing: Factory,
+      projects: Kanban,
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-bl from-emerald-50 via-teal-50 to-cyan-50 p-4" dir="rtl">
+        <div className="max-w-2xl mx-auto pt-8 space-y-6">
+          {/* رأس الصفحة */}
+          <div className="text-center space-y-3">
+            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-bl from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+              <LayoutGrid className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">تم اكتشاف شركة مسجلة</h2>
+            <p className="text-muted-foreground">
+              {ec ? `الشركة: ${ec.name}` : ''} {ec?.default_currency ? `| العملة: ${ec.default_currency}` : ''}
+            </p>
+          </div>
+
+          {/* معلومات التطبيقات المثبتة */}
+          {installedApps.length > 0 && (
+            <Card className="shadow-lg border-0 bg-blue-50/80">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Server className="w-4 h-4 text-blue-600" />
+                  <p className="font-medium text-blue-800 text-sm">التطبيقات المثبتة على الخادم</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {installedApps.map((app, i) => (
+                    <Badge key={i} variant="secondary" className="bg-blue-100 text-blue-800">
+                      {app}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* تعليمات */}
+          <Alert className="border-primary/20 bg-primary/5">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertTitle>اختر الوحدات المطلوبة</AlertTitle>
+            <AlertDescription>
+              فيما يلي الوحدات المتاحة على الخادم الخلفي. الوحدات المفعّلة ستكون متاحة في النظام، والوحدات المعطّلة لن تظهر.
+              يمكنك تفعيل أو تعطيل أي وحدة حسب احتياجاتك. الوحدات التي تتطلب تطبيقات غير مثبتة ستُعلّم بتنبيه خاص.
+            </AlertDescription>
+          </Alert>
+
+          {/* خطأ */}
+          {setupError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>خطأ</AlertTitle>
+              <AlertDescription>{setupError}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* ملخص */}
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="gap-1 text-sm py-1 px-3">
+              <Check className="w-4 h-4" /> {enabledCount} مفعّلة
+            </Badge>
+            <Badge variant="outline" className="gap-1 text-sm py-1 px-3">
+              <X className="w-4 h-4" /> {disabledCount} معطّلة
+            </Badge>
+          </div>
+
+          {/* شبكة الوحدات */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {existingModules.map((mod) => {
+              const isSelected = selectedExistingModules.includes(mod.id);
+              const ModIcon = moduleIcons[mod.id] || LayoutGrid;
+              const hasMissingApps = mod.missingApps && mod.missingApps.length > 0;
+
+              return (
+                <Card
+                  key={mod.id}
+                  className={`cursor-pointer transition-all duration-200 border-2 ${
+                    isSelected
+                      ? 'border-primary bg-primary/5 shadow-md'
+                      : 'border-muted hover:border-primary/30 hover:shadow-sm'
+                  } ${hasMissingApps ? 'ring-2 ring-amber-300/50' : ''}`}
+                  onClick={() => {
+                    setSelectedExistingModules((prev) =>
+                      prev.includes(mod.id)
+                        ? prev.filter((id) => id !== mod.id)
+                        : [...prev, mod.id]
+                    );
+                  }}
+                >
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          isSelected ? 'bg-primary/20' : 'bg-muted'
+                        }`}>
+                          <ModIcon className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{mod.label}</p>
+                          <p className="text-xs text-muted-foreground">{mod.description}</p>
+                        </div>
+                      </div>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => {
+                          setSelectedExistingModules((prev) =>
+                            prev.includes(mod.id)
+                              ? prev.filter((id) => id !== mod.id)
+                              : [...prev, mod.id]
+                          );
+                        }}
+                      />
+                    </div>
+
+                    {/* حالة الوحدة */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {mod.enabled ? (
+                        <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-700 gap-1">
+                          <Check className="w-3 h-3" /> مفعّلة حالياً
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs bg-red-100 text-red-700 gap-1">
+                          <X className="w-3 h-3" /> معطّلة حالياً
+                        </Badge>
+                      )}
+
+                      {mod.appInstalled ? (
+                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 gap-1">
+                          <Server className="w-3 h-3" /> التطبيق مثبت
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 gap-1">
+                          <AlertCircle className="w-3 h-3" /> التطبيق غير مثبت
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* تنبيه التطبيقات المفقودة */}
+                    {hasMissingApps && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
+                        <p className="text-xs text-amber-800 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3 shrink-0" />
+                          يتطلب التطبيقات التالية غير المثبتة: {mod.missingApps.join('، ')}
+                          — يمكن تفعيل الوحدة لكن بعض الميزات قد لا تعمل حتى يتم تثبيت التطبيق.
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* التحقق من وحدة واحدة على الأقل */}
+          {selectedExistingModules.length === 0 && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>يجب تفعيل وحدة واحدة على الأقل</AlertTitle>
+              <AlertDescription>اختر وحدة واحدة على الأقل للمتابعة.</AlertDescription>
+            </Alert>
+          )}
+
+          {/* أزرار الإجراء */}
+          <div className="flex items-center gap-3 pt-2">
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => {
+                setShowExistingModules(false);
+                setExistingModules([]);
+                setSelectedExistingModules([]);
+              }}
+              disabled={activatingModules}
+            >
+              <ArrowRight className="w-4 h-4" />
+              رجوع
+            </Button>
+            <Button
+              className="flex-1 gap-2"
+              onClick={activateModulesAndLogin}
+              disabled={selectedExistingModules.length === 0 || activatingModules}
+            >
+              {activatingModules ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  جاري تفعيل الوحدات والانتقال لتسجيل الدخول...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  تفعيل الوحدات والانتقال لتسجيل الدخول
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </div>
