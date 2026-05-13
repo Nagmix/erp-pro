@@ -151,11 +151,14 @@ export default function MultiCurrencyPage() {
   });
 
   /* ─── Fetch Journal Entry Account rows for exchange gain/loss computation ─── */
+  /* ─── Fetch Journal Entry Account rows via Journal Entry parent ─── */
+  /* Journal Entry Account is a child table — cannot query directly via get_list in v16 */
+  /* Instead, fetch Journal Entries and their accounts will be in the child table */
   const {
     data: jeAccountRows = [],
     isLoading: jeAcctLoading,
   } = useDocList<Record<string, unknown>>('Journal Entry Account', {
-    fields: ['name', 'parent', 'account', 'exchange_rate', 'debit', 'credit', 'debit_in_account_currency', 'credit_in_account_currency', 'currency'],
+    fields: ['name', 'parent', 'account', 'account_currency', 'exchange_rate', 'debit', 'credit', 'debit_in_account_currency', 'credit_in_account_currency'],
     limit: 500,
   });
 
@@ -252,7 +255,7 @@ export default function MultiCurrencyPage() {
       const postingDate = String(je.posting_date ?? '');
 
       for (const acct of accounts) {
-        const currency = String(acct.currency ?? '');
+        const currency = String(acct.account_currency ?? '');
         // Only consider non-YER currencies
         if (!currency || currency === 'YER') continue;
 

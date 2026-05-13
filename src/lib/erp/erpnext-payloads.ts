@@ -1395,7 +1395,7 @@ export function buildAssetCreate(input: {
   asset_category: string;
   company: string;
   available_for_use_date: string;
-  gross_purchase_amount: number;
+  purchase_amount: number;
   location?: string;
   is_existing_asset: boolean;
   /** صنف مرتبط بالأصل — مطلوب في إصدارات ERPNext الحديثة غالباً */
@@ -1416,7 +1416,7 @@ export function buildAssetCreate(input: {
     company: input.company,
     is_existing_asset: input.is_existing_asset ? 1 : 0,
     available_for_use_date: input.available_for_use_date,
-    gross_purchase_amount: input.gross_purchase_amount,
+    purchase_amount: input.purchase_amount,
   };
   if (input.location?.trim()) d.location = input.location.trim();
   if (input.item_code?.trim()) d.item_code = input.item_code.trim();

@@ -85,7 +85,8 @@ type Budget = {
 type ErpBudgetRow = {
   name: string;
   budget_against: string;
-  budget_against_name: string;
+  cost_center?: string;
+  project?: string;
   fiscal_year: string;
   company: string;
   monthly_distribution?: string;
@@ -172,7 +173,8 @@ export default function BudgetsPage() {
     fields: [
       'name',
       'budget_against',
-      'budget_against_name',
+      'cost_center',
+      'project',
       'fiscal_year',
       'company',
       'monthly_distribution',
@@ -247,8 +249,8 @@ export default function BudgetsPage() {
 
       return {
         id: row.name,
-        name: row.budget_against_name || row.name,
-        costCenter: row.budget_against_name || row.budget_against,
+        name: row.cost_center || row.project || row.name,
+        costCenter: row.cost_center || row.project || row.budget_against,
         fiscalYear: row.fiscal_year,
         period: 'سنوي' as Budget['period'],
         allocatedAmount,
@@ -361,7 +363,7 @@ export default function BudgetsPage() {
           doc: {
             doctype: 'Budget',
             budget_against: 'Cost Center',
-            budget_against_name: form.costCenter,
+            cost_center: form.costCenter,
             fiscal_year: form.fiscalYear,
             company: form.name,
             accounts: validDistribution.map((d) => ({
@@ -375,7 +377,7 @@ export default function BudgetsPage() {
         await createBudgetMutation.mutateAsync({
           doctype: 'Budget',
           budget_against: 'Cost Center',
-          budget_against_name: form.costCenter,
+          cost_center: form.costCenter,
           fiscal_year: form.fiscalYear,
           company: form.name,
           accounts: validDistribution.map((d) => ({

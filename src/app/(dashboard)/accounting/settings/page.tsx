@@ -1,17 +1,24 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { PageHeader } from '@/components/erp/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ModernIcon } from '@/components/ui/modern-icon';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { useDocList } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
   Landmark,
   CalendarDays,
@@ -25,6 +32,11 @@ import {
   ArrowDownLeft,
   Clock,
   CheckCircle2,
+  Plus,
+  Trash2,
+  Pencil,
+  Loader2,
+  Receipt,
 } from 'lucide-react';
 
 function SettingsCard({ icon, title, description, href, badge }: { icon: string; title: string; description: string; href: string; badge?: string }) {
@@ -58,6 +70,211 @@ function KpiStat({ icon: Icon, label, value, accent }: { icon: React.ElementType
         <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
         <p className="text-xs font-semibold truncate">{value}</p>
       </div>
+    </div>
+  );
+}
+
+/* ─── مكون إدارة أنواع المصروفات ─── */
+
+type ExpenseTypeRow = {
+  name: string;
+  expense_claim_type_name?: string;
+};
+
+function ExpenseTypesManager() {
+  const { data: expenseTypes = [], isLoading, isError, error, refetch } = useDocList<ExpenseTypeRow>('Expense Claim Type', {
+    fields: ['name', 'expense_claim_type_name'],
+    limit: 200,
+  });
+
+  const createMutation = useCreateDoc('Expense Claim Type');
+  const deleteMutation = useDeleteDoc('Expense Claim Type');
+
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newTypeName, setNewTypeName] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<ExpenseTypeRow | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleAdd = useCallback(async () => {
+    if (!newTypeName.trim()) {
+      toast.error('يرجى إدخال اسم نوع المصروف');
+      return;
+    }
+    try {
+      await createMutation.mutateAsync({
+        doctype: 'Expense Claim Type',
+        expense_claim_type_name: newTypeName.trim(),
+      });
+      toast.success(`تم إضافة نوع المصروف "${newTypeName.trim()}" بنجاح`);
+      setNewTypeName('');
+      setAddDialogOpen(false);
+      refetch();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'فشل إضافة نوع المصروف';
+      if (msg.includes('already exists') || msg.includes('Duplicate') || msg.includes('duplicate')) {
+        toast.error('نوع المصروف موجود بالفعل');
+      } else {
+        toast.error(msg);
+      }
+    }
+  }, [newTypeName, createMutation, refetch]);
+
+  const handleDelete = useCallback(async () => {
+    if (!toDelete) return;
+    setDeleting(true);
+    try {
+      await deleteMutation.mutateAsync(toDelete.name);
+      toast.success(`تم حذف نوع المصروف "${toDelete.name}" بنجاح`);
+      setDeleteDialogOpen(false);
+      setToDelete(null);
+      refetch();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'فشل حذف نوع المصروف';
+      toast.error(msg);
+    } finally {
+      setDeleting(false);
+    }
+  }, [toDelete, deleteMutation, refetch]);
+
+  if (isError) {
+    return (
+      <div className="mt-4 space-y-4">
+        <Alert variant="destructive" className="border-destructive/35 bg-destructive/5">
+          <Receipt className="h-4 w-4" />
+          <AlertTitle>فشل تحميل أنواع المصروفات</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p className="text-sm">{error instanceof Error ? error.message : 'خطأ غير معروف'}</p>
+            <p className="text-xs text-muted-foreground">
+              قد تكون وحدة الموارد البشرية (HR) غير مثبتة على الخادم. أنواع المصروفات تتطلب وجود وحدة HR في ERPNext.
+            </p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>إعادة المحاولة</Button>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            <Receipt className="h-5 w-5 text-primary" />
+            أنواع المصروفات
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            إدارة أنواع وتصنيفات المصروفات المستخدمة في مطالبات المصروفات
+          </p>
+        </div>
+        <Button className="gap-2" onClick={() => setAddDialogOpen(true)}>
+          <Plus className="h-4 w-4" />
+          إضافة نوع مصروف
+        </Button>
+      </div>
+
+      <Separator />
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        </div>
+      ) : expenseTypes.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="py-12 text-center">
+            <Receipt className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-muted-foreground font-medium">لا توجد أنواع مصروفات مسجلة</p>
+            <p className="text-xs text-muted-foreground mt-1">أضف أنواع المصروفات لتصنيف مطالبات المصروفات</p>
+            <Button variant="outline" className="mt-4 gap-2" onClick={() => setAddDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              إضافة أول نوع مصروف
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {expenseTypes.map((type) => (
+            <Card key={type.name} className="border-border/40 hover:border-primary/20 transition-all duration-200 group">
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Receipt className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-medium text-sm truncate">{type.name}</p>
+                    {type.expense_claim_type_name && type.expense_claim_type_name !== type.name && (
+                      <p className="text-xs text-muted-foreground truncate">{type.expense_claim_type_name}</p>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => { setToDelete(type); setDeleteDialogOpen(true); }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <div className="text-xs text-muted-foreground">
+        إجمالي أنواع المصروفات: <strong>{expenseTypes.length}</strong>
+      </div>
+
+      {/* حوار إضافة نوع مصروف */}
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5 text-primary" />
+              إضافة نوع مصروف جديد
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="expense-type-name">اسم نوع المصروف</Label>
+              <Input
+                id="expense-type-name"
+                value={newTypeName}
+                onChange={(e) => setNewTypeName(e.target.value)}
+                placeholder="مثال: مصاريف سفر، مصاريف طعام، مصاريف نقل"
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
+              />
+              <p className="text-xs text-muted-foreground">سيتم استخدام هذا الاسم في تصنيف مطالبات المصروفات</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>إلغاء</Button>
+            <Button onClick={handleAdd} disabled={createMutation.isPending} className="gap-2">
+              {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              إضافة
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* حوار تأكيد الحذف */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تأكيد حذف نوع المصروف</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            هل أنت متأكد من حذف نوع المصروف &laquo;{toDelete?.name}&raquo;؟ لا يمكن التراجع عن هذا الإجراء.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>إلغاء</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-2">
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              حذف
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -147,6 +364,7 @@ export default function AccountingSettingsPage() {
         <TabsList>
           <TabsTrigger value="operations">عمليات المحاسبة</TabsTrigger>
           <TabsTrigger value="general">الإعدادات العامة</TabsTrigger>
+          <TabsTrigger value="expense-types">أنواع المصروفات</TabsTrigger>
           <TabsTrigger value="tax">الضرائب والفواتير</TabsTrigger>
         </TabsList>
 
@@ -270,6 +488,10 @@ export default function AccountingSettingsPage() {
               badge={costCenters.length > 0 ? String(costCenters.length) : undefined}
             />
           </div>
+        </TabsContent>
+
+        <TabsContent value="expense-types">
+          <ExpenseTypesManager />
         </TabsContent>
 
         <TabsContent value="tax">

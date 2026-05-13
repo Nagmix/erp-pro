@@ -57,7 +57,6 @@ interface AssetRow {
   purchase_date?: string;
   available_for_use_date?: string;
   purchase_amount?: number;
-  gross_purchase_amount?: number;
   depreciation_method?: string;
   useful_life?: number;
   location?: string;
@@ -134,8 +133,8 @@ const columns: Column<AssetRow>[] = [
     );
   }},
   { key: 'available_for_use_date', header: 'تاريخ الاستخدام', sortable: true, render: (_, row) => formatDate(String(row.available_for_use_date || row.purchase_date || '')) },
-  { key: 'gross_purchase_amount', header: 'قيمة الشراء', sortable: true, render: (_, row) => (
-    <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(row.gross_purchase_amount ?? row.purchase_amount ?? 0))}</span>
+  { key: 'purchase_amount', header: 'قيمة الشراء', sortable: true, render: (_, row) => (
+    <span className="font-semibold tabular-nums" dir="ltr">{formatCurrency(Number(row.purchase_amount ?? 0))}</span>
   )},
   { key: 'location', header: 'الموقع' },
   { key: 'status', header: 'الحالة', render: (value) => <StatusBadge status={String(value)} /> },
@@ -189,7 +188,7 @@ export default function AssetsPage() {
       'item_code',
       'company',
       'available_for_use_date',
-      'gross_purchase_amount',
+      'purchase_amount',
       'location',
       'custodian',
       'depreciation_method',
@@ -313,7 +312,7 @@ export default function AssetsPage() {
         asset_category: formData.category,
         company,
         available_for_use_date: formData.purchase_date,
-        gross_purchase_amount: formData.purchase_amount,
+        purchase_amount: formData.purchase_amount,
         location: formData.location,
         is_existing_asset: true,
         item_code: formData.item_code?.trim() || undefined,
@@ -357,7 +356,7 @@ export default function AssetsPage() {
         asset_category: formData.category,
         company: formData.company,
         available_for_use_date: formData.purchase_date,
-        gross_purchase_amount: formData.purchase_amount,
+        purchase_amount: formData.purchase_amount,
         location: formData.location || undefined,
         item_code: formData.item_code?.trim() || undefined,
         custodian: formData.custodian?.trim() || undefined,
@@ -394,7 +393,7 @@ export default function AssetsPage() {
       item_code: row.item_code || '',
       company: row.company,
       purchase_date: row.purchase_date || row.available_for_use_date || '',
-      purchase_amount: Number(row.purchase_amount ?? row.gross_purchase_amount ?? 0),
+      purchase_amount: Number(row.purchase_amount ?? 0),
       depreciation_method: row.depreciation_method || 'Straight Line',
       useful_life: row.useful_life ?? 0,
       location: row.location || '',
