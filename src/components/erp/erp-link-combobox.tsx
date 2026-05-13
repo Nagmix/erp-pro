@@ -194,7 +194,7 @@ export function ErpLinkCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[--radix-popover-trigger-width] min-w-[280px] max-w-[90vw] p-0 overflow-hidden rounded-[var(--radius-md-ui)] border border-border/40 bg-popover shadow-[var(--shadow-sm-ui)]"
+        className="w-[--radix-popover-trigger-width] min-w-[280px] max-w-[90vw] p-0 rounded-[var(--radius-md-ui)] border border-border/40 bg-popover shadow-[var(--shadow-sm-ui)]"
         align="start"
         dir="rtl"
         sideOffset={4}
@@ -204,16 +204,12 @@ export function ErpLinkCombobox({
         sticky="always"
       >
         <Command shouldFilter={false}>
-          <div className="flex items-center border-b border-border/40 px-3">
-            <input
-              placeholder="بحث حي بالاسم..."
-              className="h-9 w-full bg-transparent text-[13px] outline-none placeholder:text-muted-foreground"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              dir="rtl"
-            />
-          </div>
-          <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain scroll-smooth">
+          <CommandInput
+            placeholder="بحث حي بالاسم..."
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList className="max-h-[min(280px,60vh)] overflow-y-auto scroll-smooth">
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
               {isLoading || isFetching ? 'جارٍ التحميل...' : searchTerm ? 'لا نتائج مطابقة' : 'لا نتائج'}
             </CommandEmpty>
