@@ -716,7 +716,7 @@ export default function FleetManagementPage() {
         sortable: true,
         width: 'w-[110px]',
         render: (val: unknown) => (
-          <span className="tabular-nums">{Number(val).toLocaleString('ar-YE')} كم</span>
+          <span className="tabular-nums">{Number(val).toLocaleString('en-US')} كم</span>
         ),
       },
     ],
@@ -767,7 +767,7 @@ export default function FleetManagementPage() {
         sortable: true,
         width: 'w-[110px]',
         render: (val: unknown) => (
-          <span className="tabular-nums">{Number(val).toLocaleString('ar-YE')} كم</span>
+          <span className="tabular-nums">{Number(val).toLocaleString('en-US')} كم</span>
         ),
       },
       {
@@ -813,7 +813,7 @@ export default function FleetManagementPage() {
         sortable: true,
         width: 'w-[110px]',
         render: (val: unknown) => (
-          <span className="tabular-nums">{Number(val).toLocaleString('ar-YE')} لتر</span>
+          <span className="tabular-nums">{Number(val).toLocaleString('en-US')} لتر</span>
         ),
       },
       {
@@ -836,7 +836,7 @@ export default function FleetManagementPage() {
         sortable: true,
         width: 'w-[110px]',
         render: (val: unknown) => (
-          <span className="tabular-nums">{Number(val).toLocaleString('ar-YE')} كم</span>
+          <span className="tabular-nums">{Number(val).toLocaleString('en-US')} كم</span>
         ),
       },
     ],
@@ -1014,7 +1014,7 @@ export default function FleetManagementPage() {
                 </div>
                 <div>
                   <p className="text-[11px] font-medium text-muted-foreground">إجمالي اللترات</p>
-                  <p className="text-lg font-semibold tabular-nums">{costAnalysis.totalLiters.toLocaleString('ar-YE')} لتر</p>
+                  <p className="text-lg font-semibold tabular-nums">{costAnalysis.totalLiters.toLocaleString('en-US')} لتر</p>
                 </div>
               </CardContent>
             </Card>

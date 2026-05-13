@@ -552,7 +552,7 @@ export default function UsersManagementPage() {
  const formatDate = (dateStr?: string) => {
  if (!dateStr) return '—';
  try {
-  return new Date(dateStr).toLocaleDateString('ar-SA', {
+  return new Date(dateStr).toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'short',
   day: 'numeric',
@@ -565,7 +565,7 @@ export default function UsersManagementPage() {
  const formatDateTime = (dateStr?: string) => {
  if (!dateStr) return '—';
  try {
-  return new Date(dateStr).toLocaleDateString('ar-SA', {
+  return new Date(dateStr).toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'short',
   day: 'numeric',

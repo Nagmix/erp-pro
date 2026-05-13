@@ -136,14 +136,14 @@ export function DynamicRowTable({
         <div className="flex justify-end gap-4 text-xs pt-1">
           <span className="text-muted-foreground">الإجمالي:</span>
           <span className="font-bold">
-            {rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0).toLocaleString('ar-SA')}
+            {rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0).toLocaleString('en-US')}
           </span>
         </div>
       )}
       {rows.length > 0 && (rows[0].debit !== undefined || rows[0].credit !== undefined) && (
         <div className="flex justify-end gap-6 text-xs pt-1">
-          <span>مدين: <b>{rows.reduce((sum, r) => sum + (Number(r.debit) || 0), 0).toLocaleString('ar-SA')}</b></span>
-          <span>دائن: <b>{rows.reduce((sum, r) => sum + (Number(r.credit) || 0), 0).toLocaleString('ar-SA')}</b></span>
+          <span>مدين: <b>{rows.reduce((sum, r) => sum + (Number(r.debit) || 0), 0).toLocaleString('en-US')}</b></span>
+          <span>دائن: <b>{rows.reduce((sum, r) => sum + (Number(r.credit) || 0), 0).toLocaleString('en-US')}</b></span>
         </div>
       )}
     </div>

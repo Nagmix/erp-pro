@@ -309,7 +309,7 @@ export default function TermsSettingsPage() {
   render: (v) => {
    if (!v) return <span className="text-xs text-muted-foreground">—</span>;
    const d = new Date(String(v));
-   return <span className="text-xs text-muted-foreground">{d.toLocaleDateString('ar-SA')}</span>;
+   return <span className="text-xs text-muted-foreground">{d.toLocaleDateString('en-US')}</span>;
   },
   },
  ],

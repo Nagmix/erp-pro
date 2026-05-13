@@ -54,7 +54,7 @@ function chartMonthLabel(ym: string): string {
   const [y, m] = ym.split('-').map(Number);
   if (!y || !m) return ym;
   try {
-    return new Date(y, m - 1, 1).toLocaleDateString('ar-SA', { month: 'short', year: '2-digit' });
+    return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
   } catch {
     return ym;
   }

@@ -124,7 +124,7 @@ function ChartTooltip({
           />
           <span className="text-muted-foreground">{p.name}:</span>
           <span className="font-medium">
-            {isCurrency ? formatCurrency(p.value) : p.value.toLocaleString('ar-YE')}
+            {isCurrency ? formatCurrency(p.value) : p.value.toLocaleString('en-US')}
           </span>
         </div>
       ))}
@@ -556,14 +556,14 @@ export default function ReportsDashboardPage() {
       header: 'الكمية الحالية',
       sortable: true,
       render: (v) => (
-        <span className="text-destructive font-semibold">{Number(v).toLocaleString('ar-YE')}</span>
+        <span className="text-destructive font-semibold">{Number(v).toLocaleString('en-US')}</span>
       ),
     },
     {
       key: 'reorder_level',
       header: 'حد إعادة الطلب',
       sortable: true,
-      render: (v) => Number(v).toLocaleString('ar-YE'),
+      render: (v) => Number(v).toLocaleString('en-US'),
     },
     {
       key: 'stock_value',
@@ -659,7 +659,7 @@ export default function ReportsDashboardPage() {
       header: 'موافق عليها',
       sortable: true,
       render: (v) => (
-        <span className="text-emerald-600 font-semibold">{Number(v).toLocaleString('ar-YE')} يوم</span>
+        <span className="text-emerald-600 font-semibold">{Number(v).toLocaleString('en-US')} يوم</span>
       ),
     },
     {
@@ -667,14 +667,14 @@ export default function ReportsDashboardPage() {
       header: 'قيد الموافقة',
       sortable: true,
       render: (v) => (
-        <span className="text-amber-600 font-semibold">{Number(v).toLocaleString('ar-YE')} يوم</span>
+        <span className="text-amber-600 font-semibold">{Number(v).toLocaleString('en-US')} يوم</span>
       ),
     },
     {
       key: 'total',
       header: 'الإجمالي',
       sortable: true,
-      render: (v) => <span className="font-semibold">{Number(v).toLocaleString('ar-YE')} يوم</span>,
+      render: (v) => <span className="font-semibold">{Number(v).toLocaleString('en-US')} يوم</span>,
     },
   ];
 

@@ -356,6 +356,7 @@ export default function CustomersPage() {
                       onChange={(v) => setFormData((prev) => ({ ...prev, customer_group: v }))}
                       placeholder="اختر المجموعة..."
                       className="h-9 text-sm"
+                      filters={[['is_group', '=', '0']]}
                     />
                   </div>
                 </div>
@@ -466,6 +467,7 @@ export default function CustomersPage() {
                       onChange={(v) => setEditFormData((prev) => ({ ...prev, customer_group: v }))}
                       placeholder="اختر المجموعة..."
                       className="h-9 text-sm"
+                      filters={[['is_group', '=', '0']]}
                     />
                   </div>
                 </div>

@@ -221,7 +221,7 @@ export default function CrmLoyaltyPage() {
         width: 'w-28',
         render: (v) => (
           <Badge variant="outline" className="text-[10px] font-medium px-2 py-0.5 border-0 bg-primary/10 text-primary">
-            {Number(v || 0).toLocaleString('ar-YE')}
+            {Number(v || 0).toLocaleString('en-US')}
           </Badge>
         ),
       },

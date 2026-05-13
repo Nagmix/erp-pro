@@ -167,7 +167,7 @@ export function PosReceiptPrint({ docname, onClose }: PosReceiptPrintProps) {
                 <div className="font-medium truncate">{item.item_name || item.item_code || ''}</div>
                 <div className="flex justify-between text-[10px] text-muted-foreground">
                   <span>
-                    {qty.toLocaleString('ar-YE')} × {formatCurrency(rate, currency)}
+                    {qty.toLocaleString('en-US')} × {formatCurrency(rate, currency)}
                   </span>
                   <span className="font-medium text-foreground tabular-nums">
                     {formatCurrency(amount, currency)}

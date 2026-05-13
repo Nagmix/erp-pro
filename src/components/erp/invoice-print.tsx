@@ -236,7 +236,7 @@ export function InvoicePrint({ doctype, docname, onClose }: InvoicePrintProps) {
                     {item.item_name || item.description || ''}
                   </td>
                   <td className="py-2 px-2 text-center tabular-nums">
-                    {Number(item.qty ?? 0).toLocaleString('ar-YE')}
+                    {Number(item.qty ?? 0).toLocaleString('en-US')}
                     {item.uom ? <span className="text-muted-foreground text-[10px] mr-1">{item.uom}</span> : null}
                   </td>
                   <td className="py-2 px-2 text-left tabular-nums font-mono text-xs">

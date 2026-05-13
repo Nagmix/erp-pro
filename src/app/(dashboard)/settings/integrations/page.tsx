@@ -477,7 +477,7 @@ export default function SettingsIntegrationsPage() {
      {statusBadge(status)}
      <span className="text-[10px] text-muted-foreground">
       {lastSync
-      ? `آخر مزامنة: ${new Date(lastSync).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`
+      ? `آخر مزامنة: ${new Date(lastSync).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`
       : 'لا توجد مزامنة'}
      </span>
      </div>

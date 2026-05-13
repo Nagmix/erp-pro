@@ -612,7 +612,7 @@ export default function POSPage() {
   const handleHold = () => {
     if (cart.length === 0) return;
     const id = `H${Date.now()}`;
-    const label = `${cart.length} صنف — ${new Date().toLocaleTimeString('ar-SA')}`;
+    const label = `${cart.length} صنف — ${new Date().toLocaleTimeString('en-US')}`;
     persistHolds([...holds, { id, label, cart: [...cart], at: new Date().toISOString() }]);
     clearCart();
     toast.success('تعليق الطلب', { description: 'يُحفظ محلياً في هذا المتصفح' });

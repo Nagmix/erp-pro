@@ -25,7 +25,7 @@ export function CurrencyInput({
   value,
   onValueChange,
   currency = "YER",
-  locale = "en-SA",
+  locale = "en-US",
   placeholder,
   disabled,
   className,

@@ -335,6 +335,7 @@ export function PosCustomerSelector({
                 doctype="Customer Group"
                 value={form.customer_group}
                 onChange={(v) => setForm((f) => ({ ...f, customer_group: v }))}
+                filters={[['is_group', '=', '0']]}
               />
             </div>
             <div className="space-y-1">

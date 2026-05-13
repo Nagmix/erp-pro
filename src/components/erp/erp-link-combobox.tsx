@@ -187,7 +187,7 @@ export function ErpLinkCombobox({
             value={search}
             onValueChange={setSearch}
           />
-          <CommandList className="max-h-in(320px,50vh)]">
+          <CommandList className="max-h-[320px] overflow-y-auto">
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
               {isLoading || isFetching ? 'جارٍ التحميل...' : searchTerm ? 'لا نتائج مطابقة' : 'لا نتائج'}
             </CommandEmpty>

@@ -164,7 +164,7 @@ function formatDate(iso?: string): string {
   try {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return iso.slice(0, 16);
-    return d.toLocaleDateString('ar-SA', {
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

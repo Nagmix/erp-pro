@@ -149,7 +149,7 @@ function formatDate(dateStr?: string): string {
 }
 
 function formatNumber(n: number): string {
- return n.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+ return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function mapTemplateToRule(

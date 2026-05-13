@@ -9,15 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 
-type CalendarSystem = "gregorian" | "hijri"
-
 interface DatePickerProps {
   value?: string
   onChange?: (value: string) => void
   placeholder?: string
   disabled?: boolean
   className?: string
-  calendarSystem?: CalendarSystem
 }
 
 function toDate(value?: string): Date | undefined {
@@ -30,15 +27,16 @@ function toIsoDate(date: Date): string {
   return format(date, "yyyy-MM-dd")
 }
 
-function formatDateLabel(date: Date, system: CalendarSystem): string {
-  if (system === "hijri") {
-    return new Intl.DateTimeFormat("ar-SA-u-ca-islamic", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    }).format(date)
-  }
-  return format(date, "PPP", { locale: arSA })
+function formatDateLabel(date: Date): string {
+  // تنسيق ميلادي بأرقام إنجليزية وأسماء أشهر عربية
+  const day = date.getDate()
+  const year = date.getFullYear()
+  const arabicMonths = [
+    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+  ]
+  const month = arabicMonths[date.getMonth()] || ''
+  return `${day} ${month} ${year}`
 }
 
 /** DatePicker يدعم عرض ميلادي/هجري مع إخراج قيمة ISO (yyyy-MM-dd). */
@@ -48,7 +46,6 @@ export function DatePicker({
   placeholder = "اختر التاريخ",
   disabled,
   className,
-  calendarSystem = "gregorian",
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
   const selected = React.useMemo(() => toDate(value), [value])
@@ -67,7 +64,7 @@ export function DatePicker({
           )}
         >
           <span className="truncate text-start">
-            {selected ? formatDateLabel(selected, calendarSystem) : placeholder}
+            {selected ? formatDateLabel(selected) : placeholder}
           </span>
           <CalendarIcon className="ms-2 h-4 w-4 shrink-0 opacity-70" />
         </Button>
@@ -81,7 +78,7 @@ export function DatePicker({
             onChange?.(toIsoDate(next))
             setOpen(false)
           }}
-          locale={calendarSystem === "hijri" ? enUS : arSA}
+          locale={arSA}
           dir="rtl"
           initialFocus
         />

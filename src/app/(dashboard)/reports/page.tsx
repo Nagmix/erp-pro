@@ -348,7 +348,7 @@ export default function ReportsPage() {
                   <div className="text-start">
                     <p className="text-xs text-muted-foreground">تاريخ التقرير</p>
                     <p className="text-sm font-medium">
-                      {new Date().toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                   </div>
                 </div>

@@ -158,7 +158,7 @@ async function exportToPdf(data: Record<string, unknown>[], filename: string, co
     <Document title={filename}>
       <Page size="A4" style={pdfStyles.page}>
         <Text style={pdfStyles.title}>{filename}</Text>
-        <Text style={pdfStyles.meta}>تاريخ التصدير: {new Date().toLocaleDateString('ar-SA')}</Text>
+        <Text style={pdfStyles.meta}>تاريخ التصدير: {new Date().toLocaleDateString('en-US')}</Text>
         <View style={pdfStyles.table}>
           <View style={pdfStyles.row}>
             {headers.map((header) => (

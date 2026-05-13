@@ -181,7 +181,7 @@ function formatCreationDate(dateStr: string): string {
   try {
     const d = new Date(dateStr + 'Z'); // ERPNext dates are UTC
     if (isNaN(d.getTime())) return dateStr;
-    return d.toLocaleDateString('ar-SA', {
+    return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

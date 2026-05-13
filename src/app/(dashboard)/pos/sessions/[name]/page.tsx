@@ -116,7 +116,7 @@ export default function PosSessionDetailPage() {
                       <li key={i} className="flex justify-between gap-4 px-3 py-2 text-sm">
                         <span>{String(row.mode_of_payment ?? '—')}</span>
                         <span className="font-mono tabular-nums">
-                          {Number(row.opening_amount ?? 0).toLocaleString('ar-SA', {
+                          {Number(row.opening_amount ?? 0).toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}

@@ -483,7 +483,7 @@ export default function MultiCurrencyPage() {
         sortable: true,
         render: (_v, row: Currency) => (
           <span className="tabular-nums font-medium text-primary dark:text-emerald-400">
-            {row.buyRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+            {row.buyRate.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </span>
         ),
       },
@@ -493,7 +493,7 @@ export default function MultiCurrencyPage() {
         sortable: true,
         render: (_v, row: Currency) => (
           <span className="tabular-nums font-medium text-destructive dark:text-rose-400">
-            {row.sellRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+            {row.sellRate.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </span>
         ),
       },
@@ -580,7 +580,7 @@ export default function MultiCurrencyPage() {
         sortable: true,
         render: (_v, row: ExchangeEntry) => (
           <span className="tabular-nums font-medium">
-            {row.originalAmount.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+            {row.originalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </span>
         ),
       },
@@ -590,7 +590,7 @@ export default function MultiCurrencyPage() {
         sortable: true,
         render: (_v, row: ExchangeEntry) => (
           <span className="tabular-nums text-muted-foreground">
-            {row.rateAtCreation.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+            {row.rateAtCreation.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </span>
         ),
       },
@@ -600,7 +600,7 @@ export default function MultiCurrencyPage() {
         sortable: true,
         render: (_v, row: ExchangeEntry) => (
           <span className="tabular-nums text-muted-foreground">
-            {row.rateAtSettlement.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}
+            {row.rateAtSettlement.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </span>
         ),
       },
@@ -610,7 +610,7 @@ export default function MultiCurrencyPage() {
         sortable: true,
         render: (_v, row: ExchangeEntry) => (
           <span className={`tabular-nums font-semibold ${row.type === 'ربح' ? 'text-primary dark:text-emerald-400' : 'text-destructive dark:text-rose-400'}`}>
-            {row.difference > 0 ? '+' : ''}{row.difference.toLocaleString('ar-YE')}
+            {row.difference > 0 ? '+' : ''}{row.difference.toLocaleString('en-US')}
           </span>
         ),
       },
@@ -796,13 +796,13 @@ export default function MultiCurrencyPage() {
                 <div className="rounded-xl border border-primary/20 bg-primary/5/50 dark:bg-primary/5 p-5 text-center space-y-2">
                   <p className="text-xs text-muted-foreground">النتيجة</p>
                   <p className="text-3xl sm:text-4xl font-bold tabular-nums text-primary">
-                    {convertResult.result.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                    {convertResult.result.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    <span className="font-medium">{convertAmount}</span> {currencies.find((c) => c.code === fromCurrency)?.nameAr ?? fromCurrency} = <span className="font-semibold text-foreground">{convertResult.result.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span> {currencies.find((c) => c.code === toCurrency)?.nameAr ?? toCurrency}
+                    <span className="font-medium">{convertAmount}</span> {currencies.find((c) => c.code === fromCurrency)?.nameAr ?? fromCurrency} = <span className="font-semibold text-foreground">{convertResult.result.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span> {currencies.find((c) => c.code === toCurrency)?.nameAr ?? toCurrency}
                   </p>
                   <p className="text-[10px] text-muted-foreground pt-1">
-                    سعر الصرف المستخدم: 1 {fromCurrency} = {convertResult.rateUsed.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} {toCurrency}
+                    سعر الصرف المستخدم: 1 {fromCurrency} = {convertResult.rateUsed.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} {toCurrency}
                   </p>
                 </div>
               </CardContent>
@@ -840,7 +840,7 @@ export default function MultiCurrencyPage() {
                       </div>
                       <div>
                         <p className="text-sm font-semibold tabular-nums">
-                          {qc.rate.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                          {qc.rate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
                         </p>
                       </div>
                     </div>
@@ -939,11 +939,11 @@ export default function MultiCurrencyPage() {
                 <p className="text-[11px] font-medium text-muted-foreground">الأسعار الحالية</p>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">سعر الشراء:</span>
-                  <span className="tabular-nums font-medium text-primary">{editingCurrency.buyRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}</span>
+                  <span className="tabular-nums font-medium text-primary">{editingCurrency.buyRate.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">سعر البيع:</span>
-                  <span className="tabular-nums font-medium text-destructive">{editingCurrency.sellRate.toLocaleString('ar-YE', { minimumFractionDigits: 2 })}</span>
+                  <span className="tabular-nums font-medium text-destructive">{editingCurrency.sellRate.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
             )}
@@ -997,7 +997,7 @@ export default function MultiCurrencyPage() {
                   return (
                     <div className="flex justify-between text-xs">
                       <span className={spread >= 0 ? 'text-primary' : 'text-destructive'}>
-                        {spread.toLocaleString('ar-YE', { minimumFractionDigits: 2 })} ({spreadPct}%)
+                        {spread.toLocaleString('en-US', { minimumFractionDigits: 2 })} ({spreadPct}%)
                       </span>
                     </div>
                   );

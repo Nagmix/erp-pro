@@ -376,25 +376,47 @@ export function getDashboardPathForDocType(doctype: string | null | undefined): 
 }
 
 export function formatCurrency(amount: number, currency: string = 'YER'): string {
-  return new Intl.NumberFormat('ar-YE', {
-    style: 'currency',
-    currency,
+  // استخدام تنسيق إنجليزي للأرقام (أرقام لاتينية + نقطة عشرية)
+  // مع إضافة رمز العملة يدوياً لتجنب الأرقام العربية
+  const formatted = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
+  // رموز العملات العربية
+  const currencySymbols: Record<string, string> = {
+    YER: 'ر.ي',
+    SAR: 'ر.س',
+    AED: 'د.إ',
+    KWD: 'د.ك',
+    EGP: 'ج.م',
+    JOD: 'د.أ',
+    QAR: 'ر.ق',
+    BHD: 'د.ب',
+    OMR: 'ر.ع',
+    USD: '$',
+    EUR: '€',
+  };
+  const symbol = currencySymbols[currency] || currency;
+  return `${formatted} ${symbol}`;
 }
 
 export function formatDate(dateStr: string): string {
   if (!dateStr) return '';
   const date = new Date(dateStr);
-  return new Intl.DateTimeFormat('ar-YE', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
+  // استخدام تنسيق ميلادي بأرقام إنجليزية وأسماء أشهر عربية
+  const day = date.getDate();
+  const year = date.getFullYear();
+  const arabicMonths = [
+    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+  ];
+  const month = arabicMonths[date.getMonth()] || '';
+  return `${day} ${month} ${year}`;
 }
 
 export function formatNumber(num: number): string {
-  return new Intl.NumberFormat('ar-YE').format(num);
+  // استخدام تنسيق إنجليزي للأرقام (أرقام لاتينية + نقطة عشرية)
+  return new Intl.NumberFormat('en-US').format(num);
 }
 
 /** Palette for Recharts — references theme --chart-1..5 tokens via HSL */

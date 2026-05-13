@@ -392,11 +392,11 @@ export default function TaxDeclarationPage() {
       <p>الحالة: ${decl.status}</p>
       <table>
         <tr><th>البند</th><th>المبلغ (ر.ي)</th></tr>
-        <tr><td>مبيعات خاضعة</td><td>${decl.taxableSales.toLocaleString('ar-YE')}</td></tr>
-        <tr><td>مشتريات خاضعة</td><td>${decl.taxablePurchases.toLocaleString('ar-YE')}</td></tr>
-        <tr><td>ضريبة المبيعات</td><td>${decl.salesTax.toLocaleString('ar-YE')}</td></tr>
-        <tr><td>ضريبة المشتريات</td><td>${decl.purchaseTax.toLocaleString('ar-YE')}</td></tr>
-        <tr class="total-row"><td>صافي الضريبة المستحقة</td><td>${decl.netTaxPayable.toLocaleString('ar-YE')}</td></tr>
+        <tr><td>مبيعات خاضعة</td><td>${decl.taxableSales.toLocaleString('en-US')}</td></tr>
+        <tr><td>مشتريات خاضعة</td><td>${decl.taxablePurchases.toLocaleString('en-US')}</td></tr>
+        <tr><td>ضريبة المبيعات</td><td>${decl.salesTax.toLocaleString('en-US')}</td></tr>
+        <tr><td>ضريبة المشتريات</td><td>${decl.purchaseTax.toLocaleString('en-US')}</td></tr>
+        <tr class="total-row"><td>صافي الضريبة المستحقة</td><td>${decl.netTaxPayable.toLocaleString('en-US')}</td></tr>
       </table>
       </body></html>`);
     w.document.close();

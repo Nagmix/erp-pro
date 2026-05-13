@@ -22,7 +22,6 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
             }}
             className={className}
             disabled={props.disabled}
-            calendarSystem="hijri"
           />
           <input
             ref={ref}

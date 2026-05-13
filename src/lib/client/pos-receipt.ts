@@ -51,7 +51,7 @@ export function buildPosReceiptHtml(
       </style></head><body>
       <h2 style="margin:0 0 8px;font-size:14px;">إيصال بيع</h2>
       <p style="margin:0;font-size:11px;color:#555">${escapeHtml(r.company)} · ${escapeHtml(r.invoiceName)}</p>
-      <p style="margin:4px 0;font-size:11px;">${escapeHtml(new Date(r.at).toLocaleString('ar-SA'))}</p>
+      <p style="margin:4px 0;font-size:11px;">${escapeHtml(new Date(r.at).toLocaleString('en-US'))}</p>
       <p style="margin:4px 0;"><b>العميل:</b> ${escapeHtml(r.customerId)}</p>
       <p style="margin:4px 0;"><b>الدفع:</b> ${escapeHtml(r.paymentLabel)}</p>
       <table><thead><tr><th>الصنف</th><th>كود</th><th>كمية</th><th>المبلغ</th></tr></thead><tbody>${rows}</tbody></table>

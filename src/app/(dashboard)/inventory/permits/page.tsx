@@ -410,7 +410,7 @@ export default function InventoryPermitsPage() {
   ${row.remarks ? `<p><strong>ملاحظات:</strong> ${row.remarks}</p>` : ''}
   ${itemsHtml}
   <div class="footer">
-    <p>تم الطباعة بتاريخ ${new Date().toLocaleDateString('ar-SA')} — نظام ERP Pro</p>
+    <p>تم الطباعة بتاريخ ${new Date().toLocaleDateString('en-US')} — نظام ERP Pro</p>
   </div>
 </body>
 </html>`);

@@ -76,7 +76,7 @@ function formatEventTime(dateStr: string): string {
   if (dateStr.length <= 10) return ''; // date only
   try {
     const d = new Date(dateStr);
-    return d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true });
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
   } catch {
     return '';
   }
@@ -410,7 +410,7 @@ function DayView({
               }
             });
 
-            const hourLabel = new Date(2000, 0, 1, hour).toLocaleTimeString('ar-SA', {
+            const hourLabel = new Date(2000, 0, 1, hour).toLocaleTimeString('en-US', {
               hour: '2-digit',
               minute: '2-digit',
               hour12: true,

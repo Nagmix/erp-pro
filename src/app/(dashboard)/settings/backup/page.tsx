@@ -58,7 +58,7 @@ function formatDateAr(dateStr: string): string {
  try {
  const date = new Date(dateStr);
  if (isNaN(date.getTime())) return dateStr;
- return date.toLocaleDateString('ar-SA', {
+ return date.toLocaleDateString('en-US', {
   year: 'numeric',
   month: 'long',
   day: 'numeric',

@@ -305,6 +305,10 @@ export default function EmployeesPage() {
       toast.error('يرجى إدخال الاسم الأول واسم العائلة');
       return;
     }
+    if (!formData.date_of_joining) {
+      toast.error('تاريخ الالتحاق مطلوب');
+      return;
+    }
     if (!defaultCompany) {
       toast.error('لم يُعثر على شركة افتراضية');
       return;
@@ -508,7 +512,7 @@ export default function EmployeesPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">
-                        تاريخ الالتحاق
+                        تاريخ الالتحاق <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         type="date"

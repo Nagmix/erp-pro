@@ -93,7 +93,7 @@ interface DailySalesData {
 
 /* ──────────────────── helpers ──────────────────── */
 function fmt(n: number): string {
-  return n.toLocaleString('ar-YE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function fmtHour(h: number): string {

@@ -145,6 +145,7 @@ export default function SellingSettingsPage() {
      value={String(d.customer_group ?? '')}
      onChange={(v) => patchAndSave({ customer_group: v || undefined })}
      className="h-9 text-sm"
+     filters={[['is_group', '=', '0']]}
      />
     </div>
     <div className="space-y-2">

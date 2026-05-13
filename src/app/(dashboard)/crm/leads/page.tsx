@@ -341,7 +341,7 @@ export default function LeadsPage() {
             doctype: 'Customer',
             customer_name: lead.lead_name || lead.company_name || lead.name,
             customer_type: lead.company_name ? 'Company' : 'Individual',
-            customer_group: 'All Customer Groups',
+            customer_group: 'Commercial',
             territory: lead.territory || 'All Territories',
             lead_name: lead.name,
           },
