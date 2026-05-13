@@ -227,7 +227,7 @@ export default function PosReturnsPage() {
     if (!w) return;
     w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><title>إيصال مرتجع - ${invoiceName}</title>
       <style>body{font-family:system-ui,sans-serif;font-size:12px;padding:16px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:4px;text-align:right;}</style>
-      </head><body><h3>إيصال مرتجع نقطة البيع</h3><p>رقم الفاتورة: ${invoiceName}</p><p>تاريخ الطباعة: ${new Date().toLocaleDateString('ar-YE')}</p><script>window.print();</script></body></html>`);
+      </head><body><h3>إيصال مرتجع نقطة البيع</h3><p>رقم الفاتورة: ${invoiceName}</p><p>تاريخ الطباعة: ${new Date().toLocaleDateString('en-US')}</p><script>window.print();</script></body></html>`);
     w.document.close();
   };
 

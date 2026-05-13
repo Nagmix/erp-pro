@@ -142,7 +142,7 @@ function formatDate(dateStr?: string): string {
  if (!dateStr) return '—';
  try {
  const d = new Date(dateStr);
- return d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric' });
+ return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
  } catch {
  return dateStr;
  }

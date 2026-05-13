@@ -238,7 +238,7 @@ export function PosReceiptPrint({ docname, onClose }: PosReceiptPrintProps) {
           <p className="font-semibold text-xs">شكراً لزيارتكم</p>
           <p className="text-[9px] text-muted-foreground">نتمنى لكم يوماً سعيداً</p>
           <p className="text-[8px] text-muted-foreground mt-2">
-            {new Date().toLocaleDateString('ar-YE')} — نظام نقاط البيع
+            {new Date().toLocaleDateString('en-US')} — نظام نقاط البيع
           </p>
         </div>
 

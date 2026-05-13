@@ -580,8 +580,8 @@ export default function WorkstationsPage() {
                   </div>
                   <div className="p-4 space-y-3 bg-card/50">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <WSDetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('ar-YE') : '—'} />
-                      <WSDetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('ar-YE') : '—'} />
+                      <WSDetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('en-US') : '—'} />
+                      <WSDetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('en-US') : '—'} />
                       <WSDetailField label="المُنشئ" value={viewDoc.owner || '—'} dir="ltr" />
                     </div>
                   </div>

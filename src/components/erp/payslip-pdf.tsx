@@ -234,7 +234,7 @@ export interface PayslipData {
 // ── Helpers ──────────────────────────────────────────────────
 function fmtNum(n: number, currency = 'YER'): string {
   try {
-    return new Intl.NumberFormat('ar-YE', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 2,
@@ -247,7 +247,7 @@ function fmtNum(n: number, currency = 'YER'): string {
 function fmtDate(d: string): string {
   if (!d) return '—';
   try {
-    return new Intl.DateTimeFormat('ar-YE', {
+    return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

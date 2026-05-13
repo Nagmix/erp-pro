@@ -34,6 +34,8 @@ type Props = {
   showCreateShortcut?: boolean;
   /** فلاتر إضافية لتمريرها إلى useDocList (مثلاً [['account_type', '=', 'Cash']]) */
   filters?: Record<string, unknown> | string[][];
+  /** استبعاد السجلات التي حقل is_group فيها = 1 (مثل All Customer Groups) */
+  excludeGroups?: boolean;
 };
 
 /**
@@ -50,6 +52,7 @@ export function ErpLinkCombobox({
   limit = 2000,
   showCreateShortcut = true,
   filters,
+  excludeGroups = false,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -57,6 +60,9 @@ export function ErpLinkCombobox({
   const queryClient = useQueryClient();
   const createShortcut = showCreateShortcut ? getErpDocCreateShortcut(doctype) : null;
   const searchTerm = debouncedSearch.trim();
+
+  // إذا excludeGroups مفعّل، أضف فلتر is_group = 0 تلقائياً
+  const groupFilter = excludeGroups ? [['is_group', '=', 0] as string[]] : [];
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -66,13 +72,17 @@ export function ErpLinkCombobox({
   }, [search]);
 
   const fields = useMemo(
-    () => (displayKey ? (['name', displayKey] as string[]) : ['name']),
-    [displayKey]
+    () => (displayKey ? (['name', displayKey, ...(excludeGroups ? ['is_group'] : [])] as string[]) : (excludeGroups ? ['name', 'is_group'] : ['name'])),
+    [displayKey, excludeGroups]
   );
 
   // Build dynamic filters: merge static filters with search-based filters
   const listFilters = useMemo(() => {
     const base: string[][] = [];
+    // Add group filter automatically
+    for (const gf of groupFilter) {
+      base.push(gf);
+    }
     // Add static filters
     if (filters && Array.isArray(filters)) {
       for (const f of filters) {
@@ -85,7 +95,7 @@ export function ErpLinkCombobox({
       // So base filters go in filters, search goes in or_filters
     }
     return base.length > 0 ? base : undefined;
-  }, [filters, searchTerm]);
+  }, [filters, searchTerm, groupFilter]);
 
   const listOrFilters = useMemo(() => {
     if (!searchTerm) return undefined;
@@ -97,16 +107,16 @@ export function ErpLinkCombobox({
 
   // When no static filters and no search, use original behavior for name-only search
   const finalFilters = useMemo(() => {
-    if (!filters && searchTerm && !displayKey) {
+    if (!filters && !excludeGroups && searchTerm && !displayKey) {
       return [['name', 'like', `%${searchTerm}%`]] as string[][];
     }
     return listFilters;
-  }, [filters, searchTerm, displayKey, listFilters]);
+  }, [filters, excludeGroups, searchTerm, displayKey, listFilters]);
 
   const finalOrFilters = useMemo(() => {
-    if (!filters && searchTerm && !displayKey) return undefined;
+    if (!filters && !excludeGroups && searchTerm && !displayKey) return undefined;
     return listOrFilters;
-  }, [filters, searchTerm, displayKey, listOrFilters]);
+  }, [filters, excludeGroups, searchTerm, displayKey, listOrFilters]);
 
   const { data = [], isLoading, isFetching } = useDocList<Record<string, unknown>>(doctype, {
     fields,
@@ -117,6 +127,14 @@ export function ErpLinkCombobox({
   const options: Row[] = useMemo(
     () =>
       data
+        // فلترة إضافية: استبعاد السجلات التي is_group = 1 حتى لو لم يعمل فلتر الخادم
+        .filter((r) => {
+          if (excludeGroups) {
+            const ig = r.is_group;
+            return ig !== 1 && ig !== true && ig !== '1';
+          }
+          return true;
+        })
         .map((r) => {
           const name = typeof r.name === 'string' ? r.name : String(r.name ?? '');
           const raw = displayKey ? r[displayKey] : r.name;
@@ -124,7 +142,7 @@ export function ErpLinkCombobox({
           return name ? { name, label } : null;
         })
         .filter((x): x is Row => x !== null),
-    [data, displayKey]
+    [data, displayKey, excludeGroups]
   );
 
   const displayValue = useMemo(() => {
@@ -176,9 +194,12 @@ export function ErpLinkCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[--radix-popover-trigger-width] min-w-[280px] p-0 overflow-hidden rounded-[var(--radius-md-ui)] border border-border/40 bg-popover shadow-[var(--shadow-sm-ui)]"
+        className="w-[--radix-popover-trigger-width] min-w-[280px] max-w-[90vw] p-0 overflow-hidden rounded-[var(--radius-md-ui)] border border-border/40 bg-popover shadow-[var(--shadow-sm-ui)]"
         align="start"
         dir="rtl"
+        sideOffset={4}
+        collisionPadding={8}
+        avoidCollisions={true}
       >
         <Command shouldFilter={false}>
           <CommandInput
@@ -187,7 +208,7 @@ export function ErpLinkCombobox({
             value={search}
             onValueChange={setSearch}
           />
-          <CommandList className="max-h-[320px] overflow-y-auto">
+          <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain scroll-smooth">
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
               {isLoading || isFetching ? 'جارٍ التحميل...' : searchTerm ? 'لا نتائج مطابقة' : 'لا نتائج'}
             </CommandEmpty>

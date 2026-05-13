@@ -334,8 +334,17 @@ export default function EmployeesPage() {
         setDialogOpen(false);
         setFormData({ ...initialFormData });
       },
-      onError: () =>
-        toast.error('تعذر إنشاء الموظف، يرجى التحقق من البيانات المدخلة'),
+      onError: (error: Error) => {
+        const msg = error?.message || 'تعذر إنشاء الموظف';
+        // استخراج رسالة الخطأ من ERPNext إذا كانت متوفرة
+        let displayMsg = msg;
+        try {
+          const parsed = JSON.parse(msg);
+          if (parsed?.message) displayMsg = parsed.message;
+          else if (parsed?.exception) displayMsg = parsed.exception;
+        } catch { /* not JSON */ }
+        toast.error('خطأ في إنشاء الموظف', { description: displayMsg });
+      },
     });
   };
 

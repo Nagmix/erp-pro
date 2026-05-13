@@ -716,11 +716,31 @@ export default function SetupWizardPage() {
               setShowExistingModules(true);
             } else {
               // فشل فحص الوحدات — نستخدم القيم الافتراضية
+              const fallbackModules = DEFAULT_MODULES.map((m) => ({
+                id: m.id,
+                label: m.label,
+                description: m.description,
+                enabled: m.enabled,
+                appInstalled: true,
+                canToggle: true,
+                missingApps: [],
+              }));
+              setExistingModules(fallbackModules);
               setSelectedExistingModules(DEFAULT_MODULES.filter((m) => m.enabled).map((m) => m.id));
               setShowExistingModules(true);
             }
           } catch {
             // فشل فحص الوحدات — نستخدم القيم الافتراضية
+            const fallbackModules = DEFAULT_MODULES.map((m) => ({
+              id: m.id,
+              label: m.label,
+              description: m.description,
+              enabled: m.enabled,
+              appInstalled: true,
+              canToggle: true,
+              missingApps: [],
+            }));
+            setExistingModules(fallbackModules);
             setSelectedExistingModules(DEFAULT_MODULES.filter((m) => m.enabled).map((m) => m.id));
             setShowExistingModules(true);
           } finally {
@@ -1023,8 +1043,9 @@ export default function SetupWizardPage() {
     const ec = connectionResult?.existingCompany;
     const enabledCount = selectedExistingModules.length;
     const disabledCount = existingModules.length - enabledCount;
+    const installedCount = existingModules.filter((m) => m.appInstalled).length;
 
-    // خريطة الأيقونات للوحدات
+    // خريطة الأيقونات للوحدات — من DEFAULT_MODULES
     const moduleIcons: Record<string, React.ElementType> = {
       accounting: Landmark,
       sales: TrendingUp,
@@ -1036,166 +1057,221 @@ export default function SetupWizardPage() {
       projects: Kanban,
     };
 
-    return (
-      <div className="min-h-screen bg-gradient-to-bl from-emerald-50 via-teal-50 to-cyan-50 p-4" dir="rtl">
-        <div className="max-w-2xl mx-auto pt-8 space-y-6">
-          {/* رأس الصفحة */}
-          <div className="text-center space-y-3">
-            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-bl from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
-              <LayoutGrid className="w-10 h-10 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-foreground">تم اكتشاف شركة مسجلة</h2>
-            <p className="text-muted-foreground">
-              {ec ? `الشركة: ${ec.name}` : ''} {ec?.default_currency ? `| العملة: ${ec.default_currency}` : ''}
-            </p>
-          </div>
+    // دالة تبديل تحديد وحدة
+    const toggleModule = (modId: string) => {
+      setSelectedExistingModules((prev) =>
+        prev.includes(modId)
+          ? prev.filter((id) => id !== modId)
+          : [...prev, modId]
+      );
+    };
 
-          {/* معلومات التطبيقات المثبتة */}
-          {installedApps.length > 0 && (
-            <Card className="shadow-lg border-0 bg-blue-50/80">
-              <CardContent className="p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Server className="w-4 h-4 text-blue-600" />
-                  <p className="font-medium text-blue-800 text-sm">التطبيقات المثبتة على الخادم</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {installedApps.map((app, i) => (
-                    <Badge key={i} variant="secondary" className="bg-blue-100 text-blue-800">
-                      {app}
-                    </Badge>
-                  ))}
+    return (
+      <div className="min-h-screen bg-gradient-to-bl from-emerald-50 via-teal-50 to-cyan-50 flex flex-col" dir="rtl">
+        {/* الشريط العلوي */}
+        <header className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10">
+          <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-bl from-emerald-500 to-teal-600 flex items-center justify-center shrink-0">
+              <LayoutGrid className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="font-bold text-foreground truncate">اختيار الوحدات</h1>
+              <p className="text-xs text-muted-foreground truncate">
+                {ec ? `${ec.name}` : 'خادم موجود'} — اختر الوحدات التي تريد تفعيلها
+              </p>
+            </div>
+            <Badge variant="secondary" className="shrink-0 gap-1 bg-emerald-100 text-emerald-700 border-emerald-200">
+              <LayoutGrid className="w-3.5 h-3.5" />
+              {existingModules.length} وحدة
+            </Badge>
+          </div>
+        </header>
+
+        {/* المحتوى */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto px-4 py-6 space-y-5">
+            {/* بطاقة معلومات الشركة والتطبيقات */}
+            <Card className="shadow-md border-0 bg-gradient-to-bl from-emerald-600 to-teal-700 text-white">
+              <CardContent className="p-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                    <Building2 className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div>
+                      <h2 className="text-lg font-bold">تم اكتشاف شركة مسجلة</h2>
+                      {ec && (
+                        <p className="text-emerald-100 text-sm mt-0.5">
+                          {ec.name}
+                          {ec.abbr && <span className="text-emerald-200"> ({ec.abbr})</span>}
+                          {ec.default_currency && <span className="text-emerald-200"> — {ec.default_currency}</span>}
+                          {ec.country && <span className="text-emerald-200"> — {ec.country}</span>}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 gap-1">
+                        <Server className="w-3 h-3" />
+                        {installedApps.length} تطبيق مثبت
+                      </Badge>
+                      <Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30 gap-1">
+                        <Check className="w-3 h-3" />
+                        {installedCount} وحدة متاحة
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* تعليمات */}
-          <Alert className="border-primary/20 bg-primary/5">
-            <Info className="h-4 w-4 text-primary" />
-            <AlertTitle>اختر الوحدات المطلوبة</AlertTitle>
-            <AlertDescription>
-              فيما يلي الوحدات المتاحة على الخادم الخلفي. الوحدات المفعّلة ستكون متاحة في النظام، والوحدات المعطّلة لن تظهر.
-              يمكنك تفعيل أو تعطيل أي وحدة حسب احتياجاتك. الوحدات التي تتطلب تطبيقات غير مثبتة ستُعلّم بتنبيه خاص.
-            </AlertDescription>
-          </Alert>
+            {/* التطبيقات المثبتة على الخادم */}
+            {installedApps.length > 0 && (
+              <Card className="shadow-sm border-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Server className="w-4 h-4 text-blue-600" />
+                    <p className="font-semibold text-sm">التطبيقات المثبتة على الخادم</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {installedApps.map((app, i) => (
+                      <Badge key={i} variant="secondary" className="bg-blue-50 text-blue-700 border border-blue-200">
+                        {app}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-          {/* خطأ */}
-          {setupError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>خطأ</AlertTitle>
-              <AlertDescription>{setupError}</AlertDescription>
+            {/* تعليمات */}
+            <Alert className="border-primary/20 bg-primary/5">
+              <Info className="h-4 w-4 text-primary" />
+              <AlertTitle className="font-semibold">اختر الوحدات المطلوبة</AlertTitle>
+              <AlertDescription className="text-sm">
+                فعّل الوحدات التي تحتاجها في نظامك. الوحدات المفعّلة ستكون متاحة في القائمة الرئيسية، والمعطّلة لن تظهر.
+                {existingModules.some((m) => !m.appInstalled) && (
+                  <span className="block mt-1 text-amber-700">⚠ بعض الوحدات تتطلب تطبيقات غير مثبتة على الخادم — سيُشير إليها بتنبيه.</span>
+                )}
+              </AlertDescription>
             </Alert>
-          )}
 
-          {/* ملخص */}
-          <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="gap-1 text-sm py-1 px-3">
-              <Check className="w-4 h-4" /> {enabledCount} مفعّلة
-            </Badge>
-            <Badge variant="outline" className="gap-1 text-sm py-1 px-3">
-              <X className="w-4 h-4" /> {disabledCount} معطّلة
-            </Badge>
-          </div>
+            {/* خطأ */}
+            {setupError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>خطأ</AlertTitle>
+                <AlertDescription>{setupError}</AlertDescription>
+              </Alert>
+            )}
 
-          {/* شبكة الوحدات */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {existingModules.map((mod) => {
-              const isSelected = selectedExistingModules.includes(mod.id);
-              const ModIcon = moduleIcons[mod.id] || LayoutGrid;
-              const hasMissingApps = mod.missingApps && mod.missingApps.length > 0;
+            {/* ملخص التحديد */}
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary" className="gap-1.5 text-sm py-1.5 px-3 bg-emerald-100 text-emerald-700 border border-emerald-200">
+                <Check className="w-3.5 h-3.5" /> {enabledCount} مفعّلة
+              </Badge>
+              <Badge variant="outline" className="gap-1.5 text-sm py-1.5 px-3">
+                <X className="w-3.5 h-3.5" /> {disabledCount} معطّلة
+              </Badge>
+            </div>
 
-              return (
-                <Card
-                  key={mod.id}
-                  className={`cursor-pointer transition-all duration-200 border-2 ${
-                    isSelected
-                      ? 'border-primary bg-primary/5 shadow-md'
-                      : 'border-muted hover:border-primary/30 hover:shadow-sm'
-                  } ${hasMissingApps ? 'ring-2 ring-amber-300/50' : ''}`}
-                  onClick={() => {
-                    setSelectedExistingModules((prev) =>
-                      prev.includes(mod.id)
-                        ? prev.filter((id) => id !== mod.id)
-                        : [...prev, mod.id]
-                    );
-                  }}
-                >
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          isSelected ? 'bg-primary/20' : 'bg-muted'
+            {/* شبكة الوحدات */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {existingModules.map((mod) => {
+                const isSelected = selectedExistingModules.includes(mod.id);
+                const ModIcon = moduleIcons[mod.id] || LayoutGrid;
+                const hasMissingApps = mod.missingApps && mod.missingApps.length > 0;
+                const isDisabled = !mod.canToggle;
+
+                return (
+                  <Card
+                    key={mod.id}
+                    className={`transition-all duration-200 border-2 overflow-hidden ${
+                      isSelected
+                        ? 'border-emerald-400 bg-emerald-50/50 shadow-md shadow-emerald-100'
+                        : 'border-muted/60 bg-white hover:border-emerald-200 hover:shadow-sm'
+                    } ${hasMissingApps ? 'ring-1 ring-amber-300' : ''} ${isDisabled ? 'opacity-60' : ''}`}
+                  >
+                    <CardContent className="p-4 space-y-3">
+                      {/* صف الأيقونة والاسم والزر */}
+                      <div className="flex items-start gap-3">
+                        <div className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                          isSelected
+                            ? 'bg-emerald-500/15'
+                            : 'bg-muted/60'
                         }`}>
-                          <ModIcon className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <ModIcon className={`w-5 h-5 transition-colors ${
+                            isSelected ? 'text-emerald-600' : 'text-muted-foreground'
+                          }`} />
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">{mod.label}</p>
-                          <p className="text-xs text-muted-foreground">{mod.description}</p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-sm leading-tight">{mod.label}</p>
+                            {mod.enabled && !isSelected && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-slate-100 text-slate-500 shrink-0">
+                                حالياً مفعّلة
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{mod.description}</p>
                         </div>
+                        <Switch
+                          checked={isSelected}
+                          onCheckedChange={() => toggleModule(mod.id)}
+                          disabled={isDisabled}
+                          className="shrink-0 mt-0.5"
+                        />
                       </div>
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => {
-                          setSelectedExistingModules((prev) =>
-                            prev.includes(mod.id)
-                              ? prev.filter((id) => id !== mod.id)
-                              : [...prev, mod.id]
-                          );
-                        }}
-                      />
-                    </div>
 
-                    {/* حالة الوحدة */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {mod.enabled ? (
-                        <Badge variant="secondary" className="text-xs bg-emerald-100 text-emerald-700 gap-1">
-                          <Check className="w-3 h-3" /> مفعّلة حالياً
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs bg-red-100 text-red-700 gap-1">
-                          <X className="w-3 h-3" /> معطّلة حالياً
-                        </Badge>
-                      )}
-
-                      {mod.appInstalled ? (
-                        <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700 gap-1">
-                          <Server className="w-3 h-3" /> التطبيق مثبت
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 gap-1">
-                          <AlertCircle className="w-3 h-3" /> التطبيق غير مثبت
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* تنبيه التطبيقات المفقودة */}
-                    {hasMissingApps && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-2">
-                        <p className="text-xs text-amber-800 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3 shrink-0" />
-                          يتطلب التطبيقات التالية غير المثبتة: {mod.missingApps.join('، ')}
-                          — يمكن تفعيل الوحدة لكن بعض الميزات قد لا تعمل حتى يتم تثبيت التطبيق.
-                        </p>
+                      {/* شارات الحالة */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {mod.appInstalled ? (
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-blue-50 text-blue-600 border border-blue-200 gap-1">
+                            <Check className="w-2.5 h-2.5" /> التطبيق مثبت
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-amber-50 text-amber-600 border border-amber-200 gap-1">
+                            <AlertCircle className="w-2.5 h-2.5" /> التطبيق غير مثبت
+                          </Badge>
+                        )}
+                        {isSelected && (
+                          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-5 bg-emerald-50 text-emerald-600 border border-emerald-200 gap-1">
+                            <Check className="w-2.5 h-2.5" /> سيتم تفعيلها
+                          </Badge>
+                        )}
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+
+                      {/* تنبيه التطبيقات المفقودة */}
+                      {hasMissingApps && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5">
+                          <p className="text-xs text-amber-800 flex items-start gap-1.5">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                            <span>
+                              يتطلب التطبيقات التالية غير المثبتة: <strong>{mod.missingApps.join('، ')}</strong>
+                              — يمكن تفعيل الوحدة لكن بعض الميزات قد لا تعمل حتى يتم تثبيت التطبيق.
+                            </span>
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {/* التحقق من وحدة واحدة على الأقل */}
+            {selectedExistingModules.length === 0 && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>يجب تفعيل وحدة واحدة على الأقل</AlertTitle>
+                <AlertDescription>اختر وحدة واحدة على الأقل للمتابعة.</AlertDescription>
+              </Alert>
+            )}
           </div>
+        </div>
 
-          {/* التحقق من وحدة واحدة على الأقل */}
-          {selectedExistingModules.length === 0 && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>يجب تفعيل وحدة واحدة على الأقل</AlertTitle>
-              <AlertDescription>اختر وحدة واحدة على الأقل للمتابعة.</AlertDescription>
-            </Alert>
-          )}
-
-          {/* أزرار الإجراء */}
-          <div className="flex items-center gap-3 pt-2">
+        {/* شريط الإجراءات السفلي */}
+        <footer className="bg-white/80 backdrop-blur-sm border-t sticky bottom-0">
+          <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
             <Button
               variant="outline"
               className="gap-2"
@@ -1209,25 +1285,26 @@ export default function SetupWizardPage() {
               <ArrowRight className="w-4 h-4" />
               رجوع
             </Button>
+            <div className="flex-1" />
             <Button
-              className="flex-1 gap-2"
+              className="gap-2 min-w-[200px]"
               onClick={activateModulesAndLogin}
               disabled={selectedExistingModules.length === 0 || activatingModules}
             >
               {activatingModules ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  جاري تفعيل الوحدات والانتقال لتسجيل الدخول...
+                  جاري التفعيل...
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  تفعيل الوحدات والانتقال لتسجيل الدخول
+                  تفعيل الوحدات والمتابعة
                 </>
               )}
             </Button>
           </div>
-        </div>
+        </footer>
       </div>
     );
   }
@@ -1849,7 +1926,7 @@ export default function SetupWizardPage() {
                               {connectionResult.existingCompany.country && <> — الدولة: {connectionResult.existingCompany.country}</>}
                             </p>
                             <p className="text-xs text-blue-600 mt-1">
-                              جاري ربط النظام بالخادم الموجود تلقائياً وسيتم تحويلك لصفحة تسجيل الدخول...
+                              سيتم عرض الوحدات المتاحة لاختيار ما تريد تفعيله ثم الانتقال لتسجيل الدخول...
                             </p>
                           </div>
                         </div>

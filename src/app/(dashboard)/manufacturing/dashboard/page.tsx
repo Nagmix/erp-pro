@@ -256,7 +256,7 @@ export default function ManufacturingDashboardPage() {
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const monthLabel = d.toLocaleDateString('ar-YE', { month: 'short' });
+      const monthLabel = d.toLocaleDateString('en-US', { month: 'short' });
       const monthOrders = workOrders.filter((wo) => {
         const dateStr = String(wo.planned_start_date || wo.expected_delivery_date || '');
         return dateStr.startsWith(ym);

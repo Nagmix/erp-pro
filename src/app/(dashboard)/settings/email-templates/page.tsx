@@ -327,7 +327,7 @@ export default function EmailTemplatesPage() {
   sortable: true,
   render: (v) => {
    if (!v) return <span className="text-xs text-muted-foreground">—</span>;
-   return <span className="text-xs text-muted-foreground">{new Date(String(v)).toLocaleDateString('ar-YE')}</span>;
+   return <span className="text-xs text-muted-foreground">{new Date(String(v)).toLocaleDateString('en-US')}</span>;
   },
   },
  ],

@@ -1603,9 +1603,11 @@ export function buildEmployeeCreate(input: {
   date_of_birth?: string;
   branch?: string;
   employment_type?: string;
+  naming_series?: string;
 }): Record<string, unknown> {
   return {
     doctype: 'Employee',
+    naming_series: input.naming_series || 'HR-EMP-',
     first_name: input.first_name.trim(),
     ...(input.last_name ? { last_name: input.last_name.trim() } : {}),
     company: input.company,

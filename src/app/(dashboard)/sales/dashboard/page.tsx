@@ -233,7 +233,7 @@ export default function SalesDashboardPage() {
     for (let i = 5; i >= 0; i--) {
       const d = new Date(todayForChart.getFullYear(), todayForChart.getMonth() - i, 1);
       const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const monthLabel = d.toLocaleDateString('ar-YE', { month: 'short' });
+      const monthLabel = d.toLocaleDateString('en-US', { month: 'short' });
       const total = salesInvoices
         .filter((inv) => String(inv.posting_date ?? '').startsWith(ym) && Number(inv.docstatus) === 1)
         .reduce((s, inv) => s + Number(inv.grand_total || 0), 0);

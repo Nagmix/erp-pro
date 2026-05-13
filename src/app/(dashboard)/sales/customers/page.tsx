@@ -84,7 +84,7 @@ type CustomerFullDoc = {
 };
 
 const emptyForm = {
-  customer_name: '', customer_type: 'Company', customer_group: '', territory: '',
+  customer_name: '', customer_type: 'Company', customer_group: 'Individual', territory: '',
   email_id: '', mobile_no: '', tax_id: ''
 };
 
@@ -356,7 +356,7 @@ export default function CustomersPage() {
                       onChange={(v) => setFormData((prev) => ({ ...prev, customer_group: v }))}
                       placeholder="اختر المجموعة..."
                       className="h-9 text-sm"
-                      filters={[['is_group', '=', '0']]}
+                      excludeGroups
                     />
                   </div>
                 </div>
@@ -467,7 +467,7 @@ export default function CustomersPage() {
                       onChange={(v) => setEditFormData((prev) => ({ ...prev, customer_group: v }))}
                       placeholder="اختر المجموعة..."
                       className="h-9 text-sm"
-                      filters={[['is_group', '=', '0']]}
+                      excludeGroups
                     />
                   </div>
                 </div>
@@ -626,8 +626,8 @@ export default function CustomersPage() {
                   </div>
                   <div className="p-4 space-y-3 bg-card/50">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <DetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('ar-YE') : '—'} />
-                      <DetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('ar-YE') : '—'} />
+                      <DetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('en-US') : '—'} />
+                      <DetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('en-US') : '—'} />
                       <DetailField label="المُنشئ" value={viewDoc.owner || '—'} dir="ltr" />
                       <DetailField label="الحالة" value={viewDoc.disabled ? 'معطّل' : 'نشط'} badge badgeClass={viewDoc.disabled ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'} />
                     </div>

@@ -565,7 +565,7 @@ export default function PortalPage() {
       ${statementFrom || statementTo ? `<p>الفترة: ${statementFrom ? formatDate(statementFrom) : 'البداية'} — ${statementTo ? formatDate(statementTo) : 'الآن'}</p>` : ''}
       <table><thead><tr><th>التاريخ</th><th>النوع</th><th>المرجع</th><th>مدين</th><th>دائن</th><th>الرصيد</th></tr></thead>
       <tbody>${rows}</tbody></table>
-      <p class="footer">تم إنشاء هذا الكشف تلقائياً من نظام ERP Pro — ${new Date().toLocaleDateString('ar-YE')}</p>
+      <p class="footer">تم إنشاء هذا الكشف تلقائياً من نظام ERP Pro — ${new Date().toLocaleDateString('en-US')}</p>
     </body></html>`);
     w.document.close();
     w.focus();

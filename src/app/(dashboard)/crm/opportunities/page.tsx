@@ -780,8 +780,8 @@ export default function OpportunitiesPage() {
                   </div>
                   <div className="p-4 space-y-3 bg-card/50">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <DetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('ar-YE') : '—'} />
-                      <DetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('ar-YE') : '—'} />
+                      <DetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('en-US') : '—'} />
+                      <DetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('en-US') : '—'} />
                       <DetailField label="المُنشئ" value={viewDoc.owner || '—'} dir="ltr" />
                     </div>
                   </div>

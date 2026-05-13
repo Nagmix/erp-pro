@@ -380,7 +380,7 @@ export default function SmsTemplatesPage() {
    if (!v) return <span className="text-xs text-muted-foreground">—</span>;
    return (
    <span className="text-xs text-muted-foreground">
-    {new Date(String(v)).toLocaleDateString('ar-YE', {
+    {new Date(String(v)).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -763,7 +763,7 @@ export default function SmsTemplatesPage() {
     <div className="rounded-xl bg-card p-3 space-y-2">
      <div className="flex items-center justify-between text-xs text-muted-foreground">
      <span>رسالة جديدة</span>
-     <span>{new Date().toLocaleTimeString('ar-YE', { hour: '2-digit', minute: '2-digit' })}</span>
+     <span>{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
      </div>
      <div className="rounded-lg bg-chart-3/10 p-2.5">
      <p className="text-xs leading-relaxed text-chart-3">{previewText}</p>

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { format, parseISO } from "date-fns"
-import { arSA, enUS } from "date-fns/locale"
+import { enUS } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from "@/components/ui/button"
@@ -78,7 +78,7 @@ export function DatePicker({
             onChange?.(toIsoDate(next))
             setOpen(false)
           }}
-          locale={arSA}
+          locale={enUS}
           dir="rtl"
           initialFocus
         />

@@ -328,7 +328,7 @@ export function InvoicePrint({ doctype, docname, onClose }: InvoicePrintProps) {
 
         {/* تذييل */}
         <div className="mt-6 text-center text-[10px] text-muted-foreground">
-          أُنشئت آلياً بواسطة نظام نقاط البيع — {new Date().toLocaleDateString('ar-YE')}
+          أُنشئت آلياً بواسطة نظام نقاط البيع — {new Date().toLocaleDateString('en-US')}
         </div>
       </div>
 

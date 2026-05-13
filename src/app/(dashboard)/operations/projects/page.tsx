@@ -525,7 +525,7 @@ export default function ProjectsManagementPage() {
                             const offset = ganttOffset(current.toISOString());
                             markers.push(
                               <span key={current.toISOString()} className="absolute text-[10px] text-muted-foreground top-1" style={{ insetInlineEnd: `${offset}%` }}>
-                                {current.toLocaleDateString('ar-YE', { month: 'short' })}
+                                {current.toLocaleDateString('en-US', { month: 'short' })}
                               </span>
                             );
                             current.setMonth(current.getMonth() + 1);
