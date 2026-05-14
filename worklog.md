@@ -1,35 +1,23 @@
 ---
-Task ID: 2
+Task ID: 1
 Agent: Main Agent
-Task: Fix multiple bugs: toLowerCase error, HRMS detection, date formatting, number formatting, dropdowns, customer groups, employee naming
+Task: إصلاح مشروع ERP Pro - Dockerfile, entrypoint, toLowerCase errors
 
 Work Log:
-- Discovered root cause of toLowerCase error: ERPNext Installed Application list API doesn't return app_name field
-- Rewrote check-modules/route.ts to use Installed Applications (Single DocType) via frappe.client.get
-- Added 3-tier fallback: Single DocType → individual record fetch → Module Def presence check
-- Added safe isAppMatch() function with null/undefined checks throughout
-- Rewrote activate-modules/route.ts with same fixes + blocked modules reporting
-- Updated execute/route.ts MODULE_MAP with requiredApps field
-- Rewrote installed-apps/route.ts with reliable detection methods
-- Updated installed-apps-store.ts with safe string matching
-- Fixed date-range-picker.tsx: changed arSA (Hijri) to enUS (Gregorian) locale
-- Added formatDateAr() for Arabic month names with Gregorian dates
-- Set ERPNext System Settings date_format='yyyy-mm-dd' and number_format='#,###.##' during setup
-- Applied date/number format settings to running ERPNext instance via API
-- Replaced 21 hardcoded Arabic-Indic digits (٠١٢٣) across 8 files with English digits (0-9)
-- Changed default customer_group from 'Individual' to empty string to force selection
-- Removed hardcoded naming_series from buildEmployeeCreate() to fix duplicate ID errors
-- Fixed ErpLinkCombobox: replaced CommandInput with native input, added collision padding
-- Fixed SelectContent: added max height constraint, collisionPadding, sticky positioning
-- Updated setup UI: HR module shows red warning when HRMS not installed, switch disabled
-- Pushed all changes to GitHub (commit d2af0d3)
+- استنساخ المشروع من GitHub إلى بيئة العمل
+- إصلاح Dockerfile: تثبيت yarn عالمياً، إنشاء symlinks لـ npm/yarn، تشغيل bench get-app hrms بـ --skip-assets كمستخدم frappe مع PATH
+- إصلاح entrypoint.sh: إضافة symlinks لـ yarn/npm، إضافة PATH=/usr/local/bin لجميع أوامر su - frappe، إضافة بناء assets بعد إنشاء الموقع، إضافة تثبيت HRMS يدوي كـ fallback
+- إصلاح خطأ toLowerCase في route-access.ts: حماية من القيم undefined/null في مصفوفة الأدوار
+- إصلاح خطأ toLowerCase في report-access.ts: نفس الحماية
+- تحسين auth-store.ts: فلترة الأدوار للتأكد من أنها نصوص صالحة
+- تحسين installed-apps-store.ts: تحسين دالة isAppInstalled
+- بناء المشروع محلياً بنجاح
+- رفع جميع التغييرات إلى GitHub
 
 Stage Summary:
-- toLowerCase error FIXED: app detection now works reliably
-- Date system FIXED: switched from Hijri (arSA) to Gregorian (enUS) throughout
-- Number formatting FIXED: replaced Arabic-Indic digits, set ERPNext number_format
-- All Customer Groups FIXED: empty default forces user to select from filtered list
-- Employee duplicate ID FIXED: removed hardcoded naming_series
-- Dropdowns FIXED: better positioning, collision handling, and native search input
-- HRMS detection FIXED: reliable 3-tier fallback method
-- HRMS installation: backend code ready, redeploy needed to trigger auto-install
+- Dockerfile معدّل لدعم yarn و HRMS
+- entrypoint.sh معدّل لدعم PATH و yarn و HRMS
+- خطأ toLowerCase مصلح في route-access.ts و report-access.ts
+- auth-store.ts محسّن لفلترة الأدوار
+- البناء المحلي ناجح
+- تم الدفع إلى GitHub: a170ab2
