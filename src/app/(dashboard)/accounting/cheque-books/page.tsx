@@ -201,7 +201,7 @@ export default function ChequeBooksPage() {
         <Card>
           <CardContent className="p-8 text-center">
             <p className="text-muted-foreground mb-3">دفاتر الشيكات غير متوفرة حالياً في النظام الخلفي</p>
-            <p className="text-xs text-muted-foreground">قد يحتاج DocType &quot;Cheque Book&quot; إلى التثبيت أو التفعيل في ERPNext</p>
+            <p className="text-xs text-muted-foreground">قد تحتاج هذه الميزة إلى التثبيت أو التفعيل في النظام</p>
           </CardContent>
         </Card>
       </div>

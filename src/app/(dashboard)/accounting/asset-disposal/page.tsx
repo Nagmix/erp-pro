@@ -129,7 +129,7 @@ export default function AssetDisposalPage() {
           company: defaultCo,
           posting_date: formData.sale_date,
         });
-        toast.success('تم بيع الأصل بنجاح عبر ERPNext');
+        toast.success('تم بيع الأصل بنجاح');
       } catch {
         // Fallback: update status + create journal entry for the sale
         await apiUpdateDoc('Asset', formData.asset, {
@@ -171,7 +171,7 @@ export default function AssetDisposalPage() {
           company: defaultCo,
           posting_date: formData.scrap_date,
         });
-        toast.success('تم استهلاك الأصل بنجاح عبر ERPNext');
+        toast.success('تم استهلاك الأصل بنجاح');
       } catch {
         // Fallback: update status
         await apiUpdateDoc('Asset', formData.asset, {

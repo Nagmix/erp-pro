@@ -83,12 +83,18 @@ export async function POST(request: NextRequest) {
 
 async function getNamingSeriesForDoctype(doctype: string, userSession?: string) {
   try {
-    // Get the naming_series field options from the DocType meta
-    const meta = await callMethod('frappe.client.get_value', {
-      doctype: 'DocType',
-      fieldname: ['name', 'naming_series'],
-      name: doctype,
-    }, userSession) as Record<string, unknown> | null;
+    // Check if the DocType exists (don't query naming_series as it may not be permitted)
+    let hasNamingSeries = false;
+    try {
+      const meta = await callMethod('frappe.client.get_value', {
+        doctype: 'DocType',
+        fieldname: 'name',
+        name: doctype,
+      }, userSession) as Record<string, unknown> | null;
+      hasNamingSeries = meta != null;
+    } catch {
+      // DocType might not be accessible
+    }
 
     // Try to get existing series options from Naming Series DocType
     let seriesOptions: string[] = [];
@@ -132,7 +138,7 @@ async function getNamingSeriesForDoctype(doctype: string, userSession?: string) 
         defaultPrefix: doctypeInfo?.defaultPrefix || '',
         seriesOptions,
         counterInfo,
-        hasNamingSeries: meta != null,
+        hasNamingSeries,
       },
     });
   } catch (error) {

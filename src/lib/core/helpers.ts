@@ -440,15 +440,11 @@ export function formatCurrency(amount: number | string | null | undefined, curre
 export function formatDate(dateStr: string): string {
   if (!dateStr) return '';
   const date = new Date(dateStr);
-  // استخدام تنسيق ميلادي بأرقام إنجليزية وأسماء أشهر عربية
-  const day = date.getDate();
+  // استخدام تنسيق ميلادي بأرقام: dd/mm/yyyy
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
-  const arabicMonths = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-  ];
-  const month = arabicMonths[date.getMonth()] || '';
-  return `${day} ${month} ${year}`;
+  return `${day}/${month}/${year}`;
 }
 
 export function formatNumber(num: number | string | null | undefined): string {

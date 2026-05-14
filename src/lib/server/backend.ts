@@ -471,7 +471,8 @@ export async function getList(
   }
   if (options.offset) params.set('limit_start', String(options.offset));
 
-  const path = `/resource/${doctype}?${params.toString()}`;
+  const encDoctype = encodeURIComponent(doctype);
+  const path = `/resource/${encDoctype}?${params.toString()}`;
 
   if (LIST_CACHE_TTL > 0 && process.env.REDIS_URL) {
     const sid = userSession || systemSession || '';
@@ -579,7 +580,7 @@ export async function createDoc(
   await ensureSystemSession();
   const result = await internalRequest(
     'POST',
-    `/resource/${doctype}`,
+    `/resource/${encodeURIComponent(doctype)}`,
     doc,
     userSession
   );
@@ -595,7 +596,7 @@ export async function updateDoc(
   await ensureSystemSession();
   const result = await internalRequest(
     'PUT',
-    `/resource/${doctype}/${name}`,
+    `/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`,
     { doctype, name, ...doc },
     userSession
   );
@@ -610,7 +611,7 @@ export async function deleteDoc(
   await ensureSystemSession();
   await internalRequest(
     'DELETE',
-    `/resource/${doctype}/${name}`,
+    `/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`,
     undefined,
     userSession
   );

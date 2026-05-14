@@ -26,6 +26,12 @@ function isNotFoundError(error: unknown): boolean {
   return /404|not found|does not exist|غير مسموح|not permitted/i.test(msg);
 }
 
+function isFieldPermissionError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const msg = error.message || '';
+  return /Field not permitted in query|DataError/i.test(msg);
+}
+
 // GET - List documents
 export async function GET(
   request: NextRequest,
@@ -55,7 +61,7 @@ export async function GET(
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل تحميل البيانات';
     // معالجة أنواع المستندات غير الموجودة — إرجاع قائمة فارغة بدلاً من خطأ
-    if (GRACEFUL_404_DOTYPES.has(doctype) || isNotFoundError(error)) {
+    if (GRACEFUL_404_DOTYPES.has(doctype) || isNotFoundError(error) || isFieldPermissionError(error)) {
       return NextResponse.json({ success: true, data: [] });
     }
     return NextResponse.json({ success: false, error: msg }, { status: 500 });

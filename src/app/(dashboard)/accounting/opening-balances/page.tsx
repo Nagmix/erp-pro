@@ -523,7 +523,7 @@ export default function OpeningBalancesPage() {
       posting_date: new Date().toISOString().split('T')[0],
       voucher_type: 'Opening Entry',
       title: 'الأرصدة الافتتاحية',
-      user_remark: 'قيد أرصدة افتتاحية — من ERP Pro',
+      user_remark: 'قيد أرصدة افتتاحية',
       lines,
     });
 

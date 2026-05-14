@@ -87,7 +87,7 @@ type ErpBudgetRow = {
   budget_against: string;
   cost_center?: string;
   project?: string;
-  fiscal_year: string;
+  fiscal_year?: string;
   company: string;
   monthly_distribution?: string;
   action_if_annual_budget_exceeded?: string;
@@ -175,7 +175,6 @@ export default function BudgetsPage() {
       'budget_against',
       'cost_center',
       'project',
-      'fiscal_year',
       'company',
       'monthly_distribution',
       'action_if_annual_budget_exceeded',
@@ -251,7 +250,7 @@ export default function BudgetsPage() {
         id: row.name,
         name: row.cost_center || row.project || row.name,
         costCenter: row.cost_center || row.project || row.budget_against,
-        fiscalYear: row.fiscal_year,
+        fiscalYear: row.fiscal_year || new Date().getFullYear().toString(),
         period: 'سنوي' as Budget['period'],
         allocatedAmount,
         actualSpent,
@@ -1078,7 +1077,7 @@ export default function BudgetsPage() {
       </Dialog>
 
       {/* ═══ Delete Confirmation ═══ */}
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => { if (!deleting) setDeleteOpen(open); }}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -1095,8 +1094,10 @@ export default function BudgetsPage() {
               variant="destructive"
               onClick={confirmDelete}
               disabled={deleting}
+              className="gap-1.5"
             >
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'حذف'}
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {deleting ? 'جاري الحذف...' : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

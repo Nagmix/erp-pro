@@ -28,15 +28,11 @@ function toIsoDate(date: Date): string {
 }
 
 function formatDateLabel(date: Date): string {
-  // تنسيق ميلادي بأرقام إنجليزية وأسماء أشهر عربية
-  const day = date.getDate()
+  // تنسيق ميلادي بأرقام: dd/mm/yyyy
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
   const year = date.getFullYear()
-  const arabicMonths = [
-    'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-  ]
-  const month = arabicMonths[date.getMonth()] || ''
-  return `${day} ${month} ${year}`
+  return `${day}/${month}/${year}`
 }
 
 /** DatePicker يدعم عرض ميلادي/هجري مع إخراج قيمة ISO (yyyy-MM-dd). */

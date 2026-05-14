@@ -400,7 +400,7 @@ export default function MultiCurrencyPage() {
   const handleUpdateRates = useCallback(async () => {
     refetchCurrencies();
     refetchExchange();
-    toast.success('تم تحديث الأسعار', { description: 'تم جلب الأسعار من ERPNext بنجاح' });
+    toast.success('تم تحديث الأسعار', { description: 'تم جلب الأسعار بنجاح' });
   }, [refetchCurrencies, refetchExchange, toast]);
 
   /* ── Conversion Logic ── */

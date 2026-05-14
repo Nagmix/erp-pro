@@ -382,7 +382,7 @@ export default function PeriodClosingV2Page() {
         period_start_date: form.period_start_date,
         period_end_date: form.period_end_date,
         closing_account_head: form.closing_account_head,
-        remarks: form.remarks || `إقفال فترة (${form.closing_type === 'monthly' ? 'شهري' : form.closing_type === 'quarterly' ? 'ربعي' : 'سنوي'}) — من ERP Pro`,
+        remarks: form.remarks || `إقفال فترة (${form.closing_type === 'monthly' ? 'شهري' : form.closing_type === 'quarterly' ? 'ربعي' : 'سنوي'})`,
       }),
       {
         onSuccess: () => {

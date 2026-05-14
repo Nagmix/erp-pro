@@ -10,18 +10,12 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 
-// الأشهر بالعربية لعرض التواريخ ميلادياً بأسماء عربية
-const ARABIC_MONTHS = [
-  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
-];
-
-/** تنسيق التاريخ ميلادي بأسماء أشهر عربية */
+/** تنسيق التاريخ ميلادي بأرقام: dd/mm/yyyy */
 function formatDateAr(date: Date): string {
-  const day = date.getDate();
-  const month = ARABIC_MONTHS[date.getMonth()] || '';
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
-  return `${day} ${month} ${year}`;
+  return `${day}/${month}/${year}`;
 }
 
 interface DateRangeValue {

@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Trash2, Send, Undo2, Eye, Upload, FileSpreadsheet, Minus } from 'lucide-react';
+import { Plus, Trash2, Send, Undo2, Eye, Upload, FileSpreadsheet, Minus, Loader2 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -296,7 +296,7 @@ export default function JournalEntryPage() {
                 <Undo2 className="h-3 w-3 ms-1" />إلغاء
               </Button>
             )}
-            {asNumber(row.docstatus) < 2 && (
+            {asNumber(row.docstatus) === 0 && (
               <Button
                 type="button"
                 size="sm"
@@ -452,7 +452,7 @@ export default function JournalEntryPage() {
       />
 
       {/* ─ـ حوار تأكيد الحذف ─ـ */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!deleteMutation.isPending) setDeleteDialogOpen(open); }}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
@@ -466,21 +466,21 @@ export default function JournalEntryPage() {
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (selectedEntry) {
                   deleteMutation.mutate(selectedEntry.name, {
-                    onSuccess: () => { toast.success('تم حذف القيد'); void refetch(); },
+                    onSuccess: () => { toast.success('تم حذف القيد'); setDeleteDialogOpen(false); void refetch(); },
                     onError: () => toast.error('حدث خطأ أثناء الحذف'),
                   });
-                  setDeleteDialogOpen(false);
                 }
               }}
               variant="destructive" className="gap-1.5"
+              disabled={deleteMutation.isPending}
             >
-              <Trash2 className="h-3.5 w-3.5" />
-              حذف
+              {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              {deleteMutation.isPending ? 'جاري الحذف...' : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

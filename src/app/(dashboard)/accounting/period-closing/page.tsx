@@ -120,7 +120,7 @@ export default function PeriodClosingPage() {
       period_start_date: '',
       period_end_date: '',
       closing_account_head: '',
-      remarks: 'إقفال فترة — من ERP Pro',
+      remarks: 'إقفال فترة',
     },
   });
 

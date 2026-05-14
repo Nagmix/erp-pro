@@ -192,7 +192,7 @@ function ExpenseTypesManager() {
           <AlertDescription className="space-y-2">
             <p className="text-sm">{error instanceof Error ? error.message : 'خطأ غير معروف'}</p>
             <p className="text-xs text-muted-foreground">
-              قد تكون وحدة الموارد البشرية (HR) غير مثبتة على الخادم. أنواع المصروفات تتطلب وجود وحدة HR في ERPNext.
+              قد تكون وحدة الموارد البشرية (HR) غير مثبتة على الخادم. أنواع المصروفات تتطلب تفعيل وحدة الموارد البشرية في النظام.
             </p>
             <Button variant="outline" size="sm" onClick={() => refetch()}>إعادة المحاولة</Button>
           </AlertDescription>

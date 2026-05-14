@@ -33,7 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, ArrowUpLeft, ArrowDownLeft, ArrowLeftRight, Trash2, CreditCard, Send, Undo2, Eye, CalendarDays, Users, Wallet, ArrowRightLeft, Hash, MessageSquare, Landmark, Receipt, FileText } from 'lucide-react';
+import { Plus, ArrowUpLeft, ArrowDownLeft, ArrowLeftRight, Trash2, CreditCard, Send, Undo2, Eye, CalendarDays, Users, Wallet, ArrowRightLeft, Hash, MessageSquare, Landmark, Receipt, FileText, Loader2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PageHeader } from '@/components/erp/page-header';
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
@@ -490,7 +490,7 @@ export default function PaymentEntryPage() {
               <Undo2 className="h-3 w-3 ms-1" />إلغاء
             </Button>
           )}
-          {Number(row.docstatus) < 2 && (
+          {Number(row.docstatus) === 0 && (
             <Button
               type="button"
               size="sm"
@@ -849,7 +849,7 @@ export default function PaymentEntryPage() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!deleteMutation.isPending) setDeleteDialogOpen(open); }}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
@@ -863,17 +863,16 @@ export default function PaymentEntryPage() {
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>إلغاء</AlertDialogCancel>
             <AlertDialogAction onClick={() => {
               if (selectedEntry) {
                 deleteMutation.mutate(selectedEntry.name, {
-                  onSuccess: () => toast.success('تم حذف السند'),
+                  onSuccess: () => { toast.success('تم حذف السند'); setDeleteDialogOpen(false); },
                   onError: () => toast.error('حدث خطأ أثناء الحذف')});
-                setDeleteDialogOpen(false);
               }
-            }} variant="destructive" className="gap-1.5">
-              <Trash2 className="h-3.5 w-3.5" />
-              حذف
+            }} variant="destructive" className="gap-1.5" disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              {deleteMutation.isPending ? 'جاري الحذف...' : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

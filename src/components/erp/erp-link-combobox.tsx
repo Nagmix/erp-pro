@@ -9,14 +9,13 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
-  CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Check, ChevronsUpDown, Loader2, Plus } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2, Plus, SearchIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getErpDocCreateShortcut } from '@/lib/erp/erp-link-create-route';
+import { Command as CommandPrimitive } from 'cmdk';
 
 type Row = { name: string; label: string };
 
@@ -202,14 +201,30 @@ export function ErpLinkCombobox({
         avoidCollisions={true}
         side="bottom"
         sticky="always"
+        onOpenAutoFocus={(e) => {
+          // منع التركيز التلقائي على مدخل البحث لمنع قفز الصفحة على الجوال
+          e.preventDefault();
+        }}
       >
         <Command shouldFilter={false}>
-          <CommandInput
-            placeholder="بحث حي بالاسم..."
-            value={search}
-            onValueChange={setSearch}
-          />
-          <CommandList className="max-h-[min(280px,60vh)] overflow-y-auto scroll-smooth overscroll-behavior-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y]">
+          <div className="flex h-9 items-center gap-2 border-b px-3 shrink-0">
+            <SearchIcon className="size-4 shrink-0 opacity-50" />
+            <CommandPrimitive.Input
+              data-slot="command-input"
+              className="placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-right text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="بحث حي بالاسم..."
+              value={search}
+              onValueChange={setSearch}
+            />
+          </div>
+          <div
+            className="max-h-[min(280px,60vh)] overflow-y-auto overscroll-behavior-contain"
+            style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+            onPointerDown={(e) => {
+              // منع اختفاء القائمة عند اللمس على الجوال
+              e.stopPropagation();
+            }}
+          >
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
               {isLoading || isFetching ? 'جارٍ التحميل...' : searchTerm ? 'لا نتائج مطابقة' : 'لا نتائج'}
             </CommandEmpty>
@@ -223,6 +238,10 @@ export function ErpLinkCombobox({
                     onChange(o.name);
                     setOpen(false);
                   }}
+                  onPointerDown={(e) => {
+                    // منع فقدان التركيز من مربع البحث عند اللمس
+                    e.preventDefault();
+                  }}
                 >
                   <Check className={cn('h-4 w-4 shrink-0 text-primary', value === o.name ? 'opacity-100' : 'opacity-0')} />
                   <span className="truncate flex-1">{o.label}</span>
@@ -234,7 +253,7 @@ export function ErpLinkCombobox({
                 </CommandItem>
               ))}
             </CommandGroup>
-          </CommandList>
+          </div>
           {createShortcut && (
             <div className="border-t border-border/40 bg-muted/40 p-2">
               <Button variant="secondary" size="sm" className="w-full h-9 gap-2 text-[12px] font-semibold" asChild>
