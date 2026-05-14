@@ -29,7 +29,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Plus, FolderTree, FileText, Trash2, Edit, ChevronDown, Search, X } from 'lucide-react';
+import { Plus, FolderTree, FileText, Trash2, Edit, ChevronDown, Search, X, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -466,7 +466,7 @@ export default function CostCentersPage() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!deleteMutation.isPending) setDeleteDialogOpen(open); }}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
@@ -480,10 +480,10 @@ export default function CostCentersPage() {
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} variant="destructive" className="gap-1.5">
-              <Trash2 className="h-3.5 w-3.5" />
-              حذف
+            <AlertDialogCancel disabled={deleteMutation.isPending}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} variant="destructive" className="gap-1.5" disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              {deleteMutation.isPending ? 'جاري الحذف...' : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

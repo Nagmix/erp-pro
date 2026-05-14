@@ -47,7 +47,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils';
-import { RefreshCw, Play, Pause, Trash2, Plus, CalendarClock, Activity, Ban, Clock, X } from 'lucide-react';
+import { RefreshCw, Play, Pause, Trash2, Plus, CalendarClock, Activity, Ban, Clock, X, Loader2 } from 'lucide-react';
 
 // ============================================================
 // Types
@@ -456,7 +456,7 @@ export default function RecurringEntriesPage() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!deleteMutation.isPending) setDeleteDialogOpen(open); }}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
@@ -472,10 +472,10 @@ export default function RecurringEntriesPage() {
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} variant="destructive" className="gap-1.5">
-              <Trash2 className="h-3.5 w-3.5" />
-              حذف
+            <AlertDialogCancel disabled={deleteMutation.isPending}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} variant="destructive" className="gap-1.5" disabled={deleteMutation.isPending}>
+              {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              {deleteMutation.isPending ? 'جاري الحذف...' : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -79,6 +79,7 @@ import {
   Landmark,
   Banknote,
   FileDown,
+  Loader2,
 } from 'lucide-react';
 import { buildJournalEntry, type JournalLineInput } from '@/lib/erp/erpnext-payloads';
 
@@ -789,8 +790,8 @@ export default function OpeningBalancesPage() {
                 disabled={deleteJournal.isPending}
                 onClick={() => handleDeleteJE(row.name)}
               >
-                <Trash2 className="h-3 w-3" />
-                حذف
+                {deleteJournal.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                {deleteJournal.isPending ? 'جاري الحذف...' : 'حذف'}
               </Button>
             </>
           )}

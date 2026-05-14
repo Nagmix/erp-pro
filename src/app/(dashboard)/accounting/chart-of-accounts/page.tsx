@@ -52,6 +52,7 @@ import {
   Info,
   X,
   SlidersHorizontal,
+  Loader2,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '@/lib/core/helpers';
@@ -1197,7 +1198,7 @@ export default function ChartOfAccountsPage() {
       </Dialog>
 
       {/* ─── Delete Confirmation ─── */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!deleteMutation.isPending) setDeleteDialogOpen(open); }}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
@@ -1214,13 +1215,14 @@ export default function ChartOfAccountsPage() {
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               variant="destructive" className="gap-1.5"
+              disabled={deleteMutation.isPending}
             >
-              <Trash2 className="h-3.5 w-3.5" />
-              حذف
+              {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              {deleteMutation.isPending ? 'جاري الحذف...' : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

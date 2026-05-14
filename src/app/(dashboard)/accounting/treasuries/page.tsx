@@ -11,6 +11,7 @@ import {
   PlusCircle,
   RefreshCw,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -329,7 +330,7 @@ export default function TreasuriesPage() {
       />
 
       {/* Delete Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => { if (!deleteMutation.isPending) setDeleteDialogOpen(open); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>تأكيد حذف الخزينة</AlertDialogTitle>
@@ -343,8 +344,11 @@ export default function TreasuriesPage() {
             <AlertDialogAction
               onClick={() => void handleDelete()}
               variant="destructive"
+              disabled={deleteMutation.isPending}
+              className="gap-1.5"
             >
-              حذف
+              {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+              {deleteMutation.isPending ? 'جاري الحذف...' : 'حذف'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
