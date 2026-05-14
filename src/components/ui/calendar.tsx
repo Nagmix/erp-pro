@@ -36,8 +36,16 @@ function Calendar({
       )}
       captionLayout={captionLayout}
       formatters={{
-        formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
+        formatMonthDropdown: (date) => {
+          // عرض رقم الشهر بدلاً من اسمه
+          return String(date.getMonth() + 1).padStart(2, '0');
+        },
+        formatCaption: (date, options) => {
+          // عرض رأس التقويم بصيغة رقمية: yyyy/mm
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          return `${year}/${month}`;
+        },
         ...formatters,
       }}
       classNames={{
