@@ -370,6 +370,12 @@ export default function ExpensesPage() {
       toast.error('يرجى إضافة بند مصروف واحد على الأقل');
       return;
     }
+    // التحقق من صحة المبالغ
+    const invalidItems = items.filter((i) => i.expense_type && (!i.amount || i.amount <= 0));
+    if (invalidItems.length > 0) {
+      toast.error('يجب أن يكون مبلغ كل بند أكبر من صفر');
+      return;
+    }
     if (!defaultCompany) {
       toast.error('تعذر تحديد الشركة');
       return;
@@ -548,11 +554,21 @@ export default function ExpensesPage() {
         exportFileName="expenses.csv"
         printTitle="المصروفات"
         onEdit={(row) => {
+          // حماية: لا يمكن تعديل مستند مرحّل أو ملغي
+          if (Number(row.docstatus) !== 0) {
+            toast.error('لا يمكن تعديل مستند مرحّل أو ملغي — استخدم إلغاء الترحيل أولاً');
+            return;
+          }
           const href = docDetailPath('Expense Claim', row.name);
           if (href) router.push(href);
-          else toast.success('تعذر فتح التفصيل');
+          else toast.error('تعذر فتح التفصيل');
         }}
         onDelete={(row) => {
+          // حماية: لا يمكن حذف مستند مرحّل أو ملغي
+          if (Number(row.docstatus) !== 0) {
+            toast.error('لا يمكن حذف مستند مرحّل أو ملغي — فقط المسودات يمكن حذفها');
+            return;
+          }
           setSelected(row);
           setDeleteDialogOpen(true);
         }}
@@ -679,6 +695,8 @@ export default function ExpensesPage() {
                         className="md:col-span-2 h-8 text-xs font-mono tabular-nums"
                         type="number"
                         dir="ltr"
+                        min={0.01}
+                        step="any"
                         placeholder="0.00"
                         value={item.amount || ''}
                         onChange={(e) => updateItem(idx, 'amount', Number(e.target.value) || 0)}

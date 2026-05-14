@@ -1190,12 +1190,15 @@ export function buildPaymentEntry(input: {
   reference_no?: string;
   reference_date?: string;
   references?: PaymentReferenceInput[];
+  /** تسلسل تسمية قيد الدفع (اختياري؛ إن وُجد يُمرَّر للخادم) */
+  naming_series?: string;
   /** ERPNext: سعر صرف الحساب المدفوع منه / إليه عند تعدد العملات */
   source_exchange_rate?: number;
   target_exchange_rate?: number;
 }): Record<string, unknown> {
   const d: Record<string, unknown> = {
     doctype: 'Payment Entry',
+    naming_series: input.naming_series?.trim() || 'ACC-PE-.YYYY.-',
     company: input.company,
     payment_type: input.payment_type,
     posting_date: input.posting_date,
