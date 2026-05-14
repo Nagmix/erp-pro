@@ -83,7 +83,7 @@ function validateToken(token: string): { userId: string; fullName: string; email
     userId: String(decoded.userId),
     fullName: String(decoded.fullName || decoded.userId),
     email: String(decoded.email || ''),
-    roles: Array.isArray(decoded.roles) ? (decoded.roles as string[]) : [],
+    roles: Array.isArray(decoded.roles) ? (decoded.roles as string[]).filter((r): r is string => typeof r === 'string' && Boolean(r)) : [],
     exp,
   };
 }

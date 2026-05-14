@@ -51,12 +51,25 @@ RUN mkdir -p /home/frappe/logs \
     && echo "Directories created with proper permissions!"
 
 # ------------------------------------------------------------------
+# تثبيت yarn عالمياً (مطلوب لـ bench get-app الذي يشغّل yarn install)
+# إنشاء symlinks في env/bin ليتمكن bench من الوصول لـ yarn و npm
+# ------------------------------------------------------------------
+RUN npm install -g yarn \
+    && YARN_REAL=$(which yarn) \
+    && NPM_REAL=$(which npm) \
+    && ln -sf "${YARN_REAL}" /home/frappe/frappe-bench/env/bin/yarn \
+    && ln -sf "${NPM_REAL}" /home/frappe/frappe-bench/env/bin/npm \
+    && echo "yarn symlink: ${YARN_REAL} -> /home/frappe/frappe-bench/env/bin/yarn" \
+    && echo "npm symlink: ${NPM_REAL} -> /home/frappe/frappe-bench/env/bin/npm"
+
+# ------------------------------------------------------------------
 # تثبيت تطبيق HRMS (الموارد البشرية)
 # ERPNext v16 أصبح يعتمد على تطبيق HRMS منفصل
 # ملاحظة: bench يرفض العمل كـ root، لذلك نتحول لمستخدم frappe
+# --skip-assets لتسريع البناء (assets تُبنى لاحقاً في entrypoint)
 # ------------------------------------------------------------------
 RUN chown -R frappe:frappe /home/frappe/frappe-bench \
-    && su - frappe -c "cd /home/frappe/frappe-bench && bench get-app hrms --branch version-16"
+    && su - frappe -c "export PATH=/usr/local/bin:$PATH && cd /home/frappe/frappe-bench && bench get-app hrms --branch version-16 --skip-assets"
 
 # ------------------------------------------------------------------
 # نسخ ملفات الإعداد

@@ -3,7 +3,7 @@ import { getReportDef } from '@/lib/reports/catalog';
 export function ensureReportAllowed(reportId: string, roles: string[]): { ok: boolean; reason?: string } {
   const def = getReportDef(reportId);
   if (!def) return { ok: false, reason: 'التقرير غير معروف' };
-  const norm = roles.map((r) => r.toLowerCase());
+  const norm = roles.map((r) => (r && typeof r === 'string') ? r.toLowerCase() : '').filter(Boolean);
   const allowed = def.allowedRoles.some((x) => {
     const key = x.toLowerCase();
     return norm.some((r) => r.includes(key) || key.includes(r));

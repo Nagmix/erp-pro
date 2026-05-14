@@ -45,7 +45,7 @@ chown -R frappe:frappe "$LOGS_DIR" 2>/dev/null || true
 chown -R frappe:frappe "${BENCH_DIR}/logs" 2>/dev/null || true
 chown -R frappe:frappe "$SITES_DIR" 2>/dev/null || true
 
-# ضمان وجود symlinks لـ bench و node
+# ضمان وجود symlinks لـ bench و node و yarn و npm
 if [ ! -L "/home/frappe/frappe-bench/env/bin/bench" ] && [ ! -f "/home/frappe/frappe-bench/env/bin/bench" ]; then
     BENCH_REAL=$(which bench 2>/dev/null || echo "/usr/local/bin/bench")
     ln -sf "${BENCH_REAL}" /home/frappe/frappe-bench/env/bin/bench 2>/dev/null || true
@@ -55,6 +55,16 @@ if [ ! -L "/home/frappe/frappe-bench/env/bin/node" ] && [ ! -f "/home/frappe/fra
     NODE_REAL=$(which node 2>/dev/null || echo "/usr/local/bin/node")
     ln -sf "${NODE_REAL}" /home/frappe/frappe-bench/env/bin/node 2>/dev/null || true
     log "Created node symlink -> ${NODE_REAL}"
+fi
+if [ ! -L "/home/frappe/frappe-bench/env/bin/yarn" ] && [ ! -f "/home/frappe/frappe-bench/env/bin/yarn" ]; then
+    YARN_REAL=$(which yarn 2>/dev/null || echo "/usr/local/bin/yarn")
+    ln -sf "${YARN_REAL}" /home/frappe/frappe-bench/env/bin/yarn 2>/dev/null || true
+    log "Created yarn symlink -> ${YARN_REAL}"
+fi
+if [ ! -L "/home/frappe/frappe-bench/env/bin/npm" ] && [ ! -f "/home/frappe/frappe-bench/env/bin/npm" ]; then
+    NPM_REAL=$(which npm 2>/dev/null || echo "/usr/local/bin/npm")
+    ln -sf "${NPM_REAL}" /home/frappe/frappe-bench/env/bin/npm 2>/dev/null || true
+    log "Created npm symlink -> ${NPM_REAL}"
 fi
 
 # ----------------------------------------------------------
@@ -580,7 +590,7 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
                 if [ -z "$DB_ROOT_PASS" ]; then
                     log "[BG] WARNING: MYSQL_ROOT_PASSWORD is not set!"
                     log "[BG] Trying bench new-site without root credentials (may fail)..."
-                    su - frappe -c "cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
+                    su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
                         --db-host ${DB_HOST} \
                         --db-port ${DB_PORT:-3306} \
                         --db-name ${DB_NAME} \
@@ -595,7 +605,7 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
                         --verbose" 2>&1
                 else
                     log "[BG] Using root credentials for bench new-site..."
-                    su - frappe -c "cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
+                    su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench new-site ${SITE_NAME} \
                         --db-host ${DB_HOST} \
                         --db-port ${DB_PORT:-3306} \
                         --db-root-username ${DB_ROOT_USER} \
@@ -616,9 +626,25 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
                 if [ $SITE_RESULT -ne 0 ]; then
                     log "[BG] bench new-site FAILED with exit code ${SITE_RESULT}"
                     log "[BG] Trying migrate as fallback..."
-                    su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} migrate" 2>&1 || log "[BG] Migration also had errors"
+                    su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} migrate" 2>&1 || log "[BG] Migration also had errors"
+
+                    # ★ محاولة تثبيت HRMS يدوياً إذا فشل تثبيته مع new-site
+                    log "[BG] Checking if HRMS needs manual installation..."
+                    HRMS_IN_NEW_SITE=false
+                    if su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} list-apps" 2>&1 | grep -q "hrms"; then
+                        HRMS_IN_NEW_SITE=true
+                        log "[BG] HRMS was installed with new-site."
+                    fi
+                    if [ "$HRMS_IN_NEW_SITE" = "false" ] && [ -d "/home/frappe/frappe-bench/apps/hrms" ]; then
+                        log "[BG] HRMS not on site but app exists — installing manually..."
+                        su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} install-app hrms" 2>&1 || log "[BG] HRMS manual install had errors"
+                    fi
                 else
                     log "[BG] Site '${SITE_NAME}' created successfully!"
+
+                    # ★ بناء assets بعد إنشاء الموقع (لأننا استخدمنا --skip-assets في Dockerfile)
+                    log "[BG] Building assets (may take a few minutes)..."
+                    su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench build" 2>&1 || log "[BG] Asset build had warnings (non-fatal)"
                 fi
             fi
 
@@ -627,7 +653,7 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
 
             # ★ تعيين الموقع كافتراضي بالطريقة الصحيحة لـ v16
             log "[BG] Setting default site via 'bench use'..."
-            su - frappe -c "cd /home/frappe/frappe-bench && bench use ${SITE_NAME}" 2>&1 || log "[BG] bench use had warnings"
+            su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench use ${SITE_NAME}" 2>&1 || log "[BG] bench use had warnings"
 
             # ★ إضافة نطاق Railway للموقع — هذا الحل الأساسي!
             # بدون هذا، ERPNext ما يتعرف على النطاق الخارجي
@@ -638,7 +664,7 @@ if [ "$SITE_INITIALIZED" = "false" ]; then
 
             if [ -n "$RAILWAY_PUB_DOMAIN" ]; then
                 log "[BG] Adding Railway domain '${RAILWAY_PUB_DOMAIN}' to site '${SITE_NAME}'..."
-                su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUB_DOMAIN}" 2>&1 || log "[BG] add-domain had warnings (may already exist)"
+                su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUB_DOMAIN}" 2>&1 || log "[BG] add-domain had warnings (may already exist)"
             else
                 log "[BG] RAILWAY_PUBLIC_DOMAIN not set — skipping add-domain"
             fi
@@ -654,7 +680,7 @@ else
     # ERPNext v16 أصبح يعتمد على تطبيق HRMS منفصل للموارد البشرية
     log "Checking if HRMS app is installed on site '${SITE_NAME}'..."
     HRMS_INSTALLED=false
-    if su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} list-apps" 2>&1 | grep -q "hrms"; then
+    if su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} list-apps" 2>&1 | grep -q "hrms"; then
         HRMS_INSTALLED=true
         log "HRMS app is already installed on site '${SITE_NAME}'."
     else
@@ -662,14 +688,14 @@ else
         # التحقق من وجود تطبيق HRMS في bench
         if [ -d "/home/frappe/frappe-bench/apps/hrms" ]; then
             log "HRMS app directory exists. Running bench install-app..."
-            su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} install-app hrms" 2>&1 || log "WARNING: HRMS installation had errors (may need manual intervention)"
+            su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} install-app hrms" 2>&1 || log "WARNING: HRMS installation had errors (may need manual intervention)"
         else
             log "WARNING: HRMS app directory not found at /home/frappe/frappe-bench/apps/hrms"
             log "Trying to get HRMS app first..."
-            su - frappe -c "cd /home/frappe/frappe-bench && bench get-app hrms --branch version-16" 2>&1 || log "WARNING: Could not get HRMS app"
+            su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench get-app hrms --branch version-16 --skip-assets" 2>&1 || log "WARNING: Could not get HRMS app"
             if [ -d "/home/frappe/frappe-bench/apps/hrms" ]; then
                 log "HRMS app downloaded. Installing on site '${SITE_NAME}'..."
-                su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} install-app hrms" 2>&1 || log "WARNING: HRMS installation had errors"
+                su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} install-app hrms" 2>&1 || log "WARNING: HRMS installation had errors"
             else
                 log "WARNING: Could not download HRMS app. HR module will not be available."
             fi
@@ -678,9 +704,9 @@ else
 
     # حتى لو الموقع موجود، نتأكد من إعدادات التوجيه
     log "Ensuring serve_default_site is configured..."
-    su - frappe -c "cd /home/frappe/frappe-bench && bench set-config -g serve_default_site 1" 2>&1 || true
-    su - frappe -c "cd /home/frappe/frappe-bench && bench set-config -g default_site ${SITE_NAME}" 2>&1 || true
-    su - frappe -c "cd /home/frappe/frappe-bench && bench set-config -g allow_cors '*'" 2>&1 || true
+    su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench set-config -g serve_default_site 1" 2>&1 || true
+    su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench set-config -g default_site ${SITE_NAME}" 2>&1 || true
+    su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench set-config -g allow_cors '*'" 2>&1 || true
 
     # إضافة نطاق Railway لو موجود
     RAILWAY_PUB_DOMAIN="${RAILWAY_PUBLIC_DOMAIN:-}"
@@ -690,7 +716,7 @@ else
 
     if [ -n "$RAILWAY_PUB_DOMAIN" ]; then
         log "Adding Railway domain '${RAILWAY_PUB_DOMAIN}' to existing site..."
-        su - frappe -c "cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUB_DOMAIN}" 2>&1 || log "add-domain had warnings (may already exist)"
+        su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} add-domain ${RAILWAY_PUB_DOMAIN}" 2>&1 || log "add-domain had warnings (may already exist)"
     fi
 fi
 
@@ -700,7 +726,7 @@ fi
 
 if [ "${FORCE_SITE_MIGRATE}" = "true" ] && [ -d "$SITE_DIR" ]; then
     (
-        bench --site "$SITE_NAME" migrate 2>&1 || log "[BG] Migration had warnings"
+        su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} migrate" 2>&1 || log "[BG] Migration had warnings"
         log "[BG] Migration completed."
     ) &
 fi

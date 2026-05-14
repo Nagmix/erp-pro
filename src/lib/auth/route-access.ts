@@ -4,11 +4,11 @@
  */
 
 function normRoles(roles: string[]): string[] {
-  return roles.map(r => r.toLowerCase());
+  return roles.map(r => (r && typeof r === 'string') ? r.toLowerCase() : '').filter(Boolean);
 }
 
 function isSuperAdmin(roles: string[]): boolean {
-  return roles.some(r => /system manager|administrator|مدير النظام/i.test(r));
+  return roles.some(r => r && typeof r === 'string' && /system manager|administrator|مدير النظام/i.test(r));
 }
 
 type Rule = { prefix: string; test: (roles: string[]) => boolean };
