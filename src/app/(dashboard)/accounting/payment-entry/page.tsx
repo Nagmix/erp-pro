@@ -8,6 +8,7 @@ import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -692,7 +693,7 @@ export default function PaymentEntryPage() {
                       <SectionFieldset legend="المراجع والتفاصيل" icon={Hash} title="المراجع والتفاصيل" accent="success">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <FormField label="التاريخ" icon={CalendarDays} error={form.formState.errors.posting_date?.message} required hint="تاريخ ترحيل السند">
-                            <Input type="date" dir="ltr" {...form.register('posting_date')} />
+                            <DatePicker value={form.watch('posting_date')} onChange={(v) => form.setValue('posting_date', v)} className="h-9" />
                           </FormField>
                           <FormField label="رقم المرجع (شيك/تأكيد)" icon={Hash} hint="رقم الشيك أو رقم التأكيد البنكي">
                             <Input placeholder="رقم المرجع" dir="ltr" {...form.register('reference_no')} />
@@ -700,7 +701,7 @@ export default function PaymentEntryPage() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <FormField label="تاريخ المرجع" icon={CalendarDays} hint="تاريخ الشيك أو المستند المرجعي">
-                            <Input type="date" dir="ltr" {...form.register('reference_date')} />
+                            <DatePicker value={form.watch('reference_date')} onChange={(v) => form.setValue('reference_date', v)} className="h-9" />
                           </FormField>
                           <FormField label="ملاحظات" icon={MessageSquare} hint="ملاحظات إضافية على السند">
                             <Input placeholder="ملاحظات إضافية" {...form.register('remarks')} />

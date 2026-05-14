@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Calendar, SlidersHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react';
@@ -55,14 +56,14 @@ export function ErpListDateStatusFilters({
               <Calendar className="h-3 w-3" />
               من تاريخ
             </Label>
-            <Input type="date" dir="ltr" className="h-9 w-[150px] text-xs rounded-lg" value={dateFrom} onChange={(e) => onDateFromChange(e.target.value)} />
+            <DatePicker value={dateFrom} onChange={onDateFromChange} className="h-9 w-[150px] text-xs rounded-lg" />
           </div>
           <div className="space-y-1">
             <Label className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Calendar className="h-3 w-3" />
               إلى تاريخ
             </Label>
-            <Input type="date" dir="ltr" className="h-9 w-[150px] text-xs rounded-lg" value={dateTo} onChange={(e) => onDateToChange(e.target.value)} />
+            <DatePicker value={dateTo} onChange={onDateToChange} className="h-9 w-[150px] text-xs rounded-lg" />
           </div>
           {(dateFrom || dateTo) && (
             <Button type="button" variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={() => { onDateFromChange(''); onDateToChange(''); }}>
@@ -134,11 +135,11 @@ export function ErpListDateStatusFilters({
             <div className="flex items-center gap-2 pt-3">
               <div className="flex-1 space-y-1">
                 <Label className="text-[10px] text-muted-foreground">من تاريخ</Label>
-                <Input type="date" dir="ltr" className="h-9 text-xs rounded-lg w-full" value={dateFrom} onChange={(e) => onDateFromChange(e.target.value)} />
+                <DatePicker value={dateFrom} onChange={onDateFromChange} className="h-9 text-xs rounded-lg w-full" />
               </div>
               <div className="flex-1 space-y-1">
                 <Label className="text-[10px] text-muted-foreground">إلى تاريخ</Label>
-                <Input type="date" dir="ltr" className="h-9 text-xs rounded-lg w-full" value={dateTo} onChange={(e) => onDateToChange(e.target.value)} />
+                <DatePicker value={dateTo} onChange={onDateToChange} className="h-9 text-xs rounded-lg w-full" />
               </div>
             </div>
 

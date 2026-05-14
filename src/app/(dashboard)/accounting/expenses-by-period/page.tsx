@@ -20,6 +20,7 @@ import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -507,22 +508,20 @@ export default function ExpensesByPeriodPage() {
           <div className="flex flex-wrap items-end gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">من تاريخ</Label>
-              <Input
-                type="date"
-                dir="ltr"
-                className="h-9 w-36 text-xs"
+              <DatePicker
                 value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
+                onChange={setDateFrom}
+                className="h-9 w-36 text-xs"
+                placeholder="من تاريخ"
               />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">إلى تاريخ</Label>
-              <Input
-                type="date"
-                dir="ltr"
-                className="h-9 w-36 text-xs"
+              <DatePicker
                 value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
+                onChange={setDateTo}
+                className="h-9 w-36 text-xs"
+                placeholder="إلى تاريخ"
               />
             </div>
             <div className="space-y-1.5">

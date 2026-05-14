@@ -412,9 +412,9 @@ export default function SettingsIntegrationsPage() {
   {statusData && !statusData.backendAvailable && (
   <Alert className="border-chart-2/20 bg-chart-2/5">
    <AlertTriangle className="h-4 w-4 text-chart-2" />
-   <AlertTitle className="text-sm text-chart-2">خادم ERPNext غير متاح</AlertTitle>
+   <AlertTitle className="text-sm text-chart-2">خادم النظام غير متاح</AlertTitle>
    <AlertDescription className="text-xs text-chart-2 leading-relaxed">
-   تعذّر الاتصال بخادم ERPNext. يتم عرض حالة التكاملات المحلية فقط. تحقق من صفحة إعداد الخادم.
+   تعذّر الاتصال بخادم النظام. يتم عرض حالة التكاملات المحلية فقط. تحقق من صفحة إعداد الخادم.
    </AlertDescription>
   </Alert>
   )}
@@ -493,7 +493,7 @@ export default function SettingsIntegrationsPage() {
      {erpDocCount > 0 && (
      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
       <Database className="h-3 w-3" />
-      <span>{erpDocCount} سجل في ERPNext</span>
+      <span>{erpDocCount} سجل في النظام</span>
      </div>
      )}
 
@@ -635,7 +635,7 @@ export default function SettingsIntegrationsPage() {
   <Link2 className="h-4 w-4" />
   <AlertTitle className="text-sm">ملاحظات حول التكاملات</AlertTitle>
   <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
-   حالات الاتصال تُجلب مباشرة من سجلات ERPNext (إعدادات الرسائل، حساب البريد، بوابة الدفع، خطاف الويب...).
+   حالات الاتصال تُجلب مباشرة من سجلات النظام (إعدادات الرسائل، حساب البريد، بوابة الدفع، خطاف الويب...).
    مزامنة الطلبات والمخزون مع سلة / زيد / شوبفاي تتطلب مفاتيح API وواجهة خلفية مخصصة.
    لتفعيل البريد الصادر، انتقل إلى صفحة إعدادات SMTP. لبوابات الدفع، تأكد من ضبط مفاتيح API من صفحة بوابات الدفع.
   </AlertDescription>
@@ -655,7 +655,7 @@ export default function SettingsIntegrationsPage() {
     { label: 'بوابات الدفع', href: '/settings/payment-gateways', icon: CreditCard },
     { label: 'التجارة الإلكترونية', href: '/settings/ecommerce-integration', icon: Globe },
     { label: 'واجهة المطور', href: '/operations/developer-api', icon: Webhook },
-    { label: 'الخلفية ERPNext', href: '/settings/erp-backend', icon: Shield },
+    { label: 'إعداد الخادم', href: '/settings/erp-backend', icon: Shield },
    ].map((link) => {
     const LIcon = link.icon;
     return (
@@ -699,7 +699,7 @@ export default function SettingsIntegrationsPage() {
     {statusMap[configKey]!.erpNextDocCount > 0 && (
      <p className="text-[10px] text-muted-foreground flex items-center gap-1">
      <Database className="h-3 w-3" />
-     {statusMap[configKey]!.erpNextDocCount} سجل في ERPNext
+     {statusMap[configKey]!.erpNextDocCount} سجل في النظام
      </p>
     )}
     </div>
@@ -746,7 +746,7 @@ export default function SettingsIntegrationsPage() {
    {configKey === 'email' && (
     <div className="space-y-3">
     <p className="text-xs text-muted-foreground">
-     لإعداد البريد الصادر، انتقل إلى صفحة إعدادات SMTP المخصصة أو تحقق من حسابات البريد في ERPNext.
+     لإعداد البريد الصادر، انتقل إلى صفحة إعدادات SMTP المخصصة أو تحقق من حسابات البريد في النظام.
     </p>
     <Link href="/settings/email-smtp">
      <Button variant="outline" size="sm" className="gap-1.5">
@@ -759,7 +759,7 @@ export default function SettingsIntegrationsPage() {
    {configKey === 'payment' && (
     <div className="space-y-3">
     <p className="text-xs text-muted-foreground">
-     لإعداد بوابات الدفع الإلكتروني، انتقل إلى صفحة بوابات الدفع أو تحقق من إعدادات PayPal/Stripe/Razorpay في ERPNext.
+     لإعداد بوابات الدفع الإلكتروني، انتقل إلى صفحة بوابات الدفع أو تحقق من إعدادات PayPal/Stripe/Razorpay في النظام.
     </p>
     <Link href="/settings/payment-gateways">
      <Button variant="outline" size="sm" className="gap-1.5">
@@ -772,7 +772,7 @@ export default function SettingsIntegrationsPage() {
    {configKey === 'webhooks' && (
     <div className="space-y-3">
     <p className="text-xs text-muted-foreground">
-     لإعداد خطافات الويب، انتقل إلى صفحة واجهة المطور حيث يمكنك إدارة نقاط النهاية. يمكنك أيضاً إنشاء خطافات ويب مباشرة في ERPNext.
+     لإعداد خطافات الويب، انتقل إلى صفحة واجهة المطور حيث يمكنك إدارة نقاط النهاية. يمكنك أيضاً إنشاء خطافات ويب مباشرة في النظام.
     </p>
     <Link href="/operations/developer-api">
      <Button variant="outline" size="sm" className="gap-1.5">

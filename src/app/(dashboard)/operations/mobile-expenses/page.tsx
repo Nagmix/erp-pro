@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -497,22 +498,20 @@ export default function MobileExpensesPage() {
         </div>
         <div className="w-40">
           <Label className="text-xs text-muted-foreground mb-1">من تاريخ</Label>
-          <Input
-            type="date"
-            dir="ltr"
-            className="h-8 text-xs"
+          <DatePicker
             value={filterDateFrom}
-            onChange={(e) => setFilterDateFrom(e.target.value)}
+            onChange={setFilterDateFrom}
+            placeholder="من تاريخ"
+            className="h-8 text-xs"
           />
         </div>
         <div className="w-40">
           <Label className="text-xs text-muted-foreground mb-1">إلى تاريخ</Label>
-          <Input
-            type="date"
-            dir="ltr"
-            className="h-8 text-xs"
+          <DatePicker
             value={filterDateTo}
-            onChange={(e) => setFilterDateTo(e.target.value)}
+            onChange={setFilterDateTo}
+            placeholder="إلى تاريخ"
+            className="h-8 text-xs"
           />
         </div>
         {(filterEmployee !== 'all' || filterStatus !== 'all' || filterDateFrom || filterDateTo) && (
@@ -602,7 +601,7 @@ export default function MobileExpensesPage() {
               {/* تاريخ المطالبة */}
               <div>
                 <Label className="text-sm font-medium">تاريخ المطالبة</Label>
-                <Input type="date" dir="ltr" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} />
+                <DatePicker value={postingDate} onChange={setPostingDate} className="h-9" />
               </div>
               {/* نوع المصروف */}
               <div>

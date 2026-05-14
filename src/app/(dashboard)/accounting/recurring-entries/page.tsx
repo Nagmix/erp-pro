@@ -9,6 +9,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -420,14 +421,14 @@ export default function RecurringEntriesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">تاريخ البداية *</Label>
-                <Input type="date" dir="ltr" {...form.register('start_date')} />
+                <DatePicker value={form.watch('start_date')} onChange={(v) => form.setValue('start_date', v)} />
                 {form.formState.errors.start_date && (
                   <p className="text-[10px] text-destructive">{form.formState.errors.start_date.message}</p>
                 )}
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium">تاريخ النهاية</Label>
-                <Input type="date" dir="ltr" {...form.register('end_date')} />
+                <DatePicker value={form.watch('end_date')} onChange={(v) => form.setValue('end_date', v)} />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

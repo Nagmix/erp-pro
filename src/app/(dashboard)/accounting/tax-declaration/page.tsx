@@ -8,6 +8,7 @@ import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -614,12 +615,10 @@ export default function TaxDeclarationPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">تاريخ التقديم *</Label>
-                  <Input
+                  <DatePicker
                     className="h-9"
-                    type="date"
-                    dir="ltr"
                     value={declForm.filingDate}
-                    onChange={(e) => setDeclForm((f) => ({ ...f, filingDate: e.target.value }))}
+                    onChange={(v) => setDeclForm((f) => ({ ...f, filingDate: v }))}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -701,22 +700,18 @@ export default function TaxDeclarationPage() {
               <div className="flex flex-wrap items-end gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">من تاريخ</Label>
-                  <Input
+                  <DatePicker
                     className="h-9"
-                    type="date"
-                    dir="ltr"
                     value={reportFrom}
-                    onChange={(e) => setReportFrom(e.target.value)}
+                    onChange={setReportFrom}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs">إلى تاريخ</Label>
-                  <Input
+                  <DatePicker
                     className="h-9"
-                    type="date"
-                    dir="ltr"
                     value={reportTo}
-                    onChange={(e) => setReportTo(e.target.value)}
+                    onChange={setReportTo}
                   />
                 </div>
                 <Button

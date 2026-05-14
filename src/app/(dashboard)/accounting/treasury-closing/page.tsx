@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { PageHeader } from '@/components/erp/page-header';
@@ -247,11 +248,9 @@ export default function TreasuryClosingPage() {
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1.5">
               <Label className="text-xs">التاريخ</Label>
-              <Input
-                type="date"
+              <DatePicker
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                dir="ltr"
+                onChange={setSelectedDate}
                 className="h-9 w-[150px] text-xs"
               />
             </div>

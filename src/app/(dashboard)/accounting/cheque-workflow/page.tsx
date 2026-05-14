@@ -9,6 +9,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -694,7 +695,7 @@ export default function ChequeWorkflowPage() {
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">تاريخ الشيك <span className="text-destructive text-xs">*</span></Label>
-                <Input type="date" dir="ltr" value={formRefDate} onChange={(e) => setFormRefDate(e.target.value)} />
+                <DatePicker value={formRefDate} onChange={setFormRefDate} />
               </div>
             </div>
 
@@ -724,7 +725,7 @@ export default function ChequeWorkflowPage() {
 
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">تاريخ الاستحقاق</Label>
-              <Input type="date" dir="ltr" value={formDueDate} onChange={(e) => setFormDueDate(e.target.value)} />
+              <DatePicker value={formDueDate} onChange={setFormDueDate} />
             </div>
           </div>
 
@@ -768,7 +769,7 @@ export default function ChequeWorkflowPage() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">تاريخ الإيداع <span className="text-destructive text-xs">*</span></Label>
-              <Input type="date" dir="ltr" value={depositDate} onChange={(e) => setDepositDate(e.target.value)} />
+              <DatePicker value={depositDate} onChange={setDepositDate} />
             </div>
           </div>
           <div className="flex items-center justify-end gap-2 pt-4 border-t border-border/40">

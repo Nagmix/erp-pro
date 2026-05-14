@@ -5,6 +5,7 @@ import { DataTable, type Column } from '@/components/erp/data-table';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -639,11 +640,9 @@ export default function DebtReschedulePage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">تاريخ البدء <span className="text-destructive text-xs">*</span></Label>
-                    <Input
-                      type="date"
-                      dir="ltr"
+                    <DatePicker
                       value={rescheduleForm.startDate}
-                      onChange={(e) => setRescheduleForm(prev => ({ ...prev, startDate: e.target.value }))}
+                      onChange={(v) => setRescheduleForm(prev => ({ ...prev, startDate: v }))}
                     />
                   </div>
                 </div>

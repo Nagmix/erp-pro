@@ -16,7 +16,7 @@ export function HrmsRequiredBanner() {
         <div className="space-y-2">
           <h2 className="text-xl font-bold">تطبيق HRMS غير مثبت</h2>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            وحدة الموارد البشرية تتطلب تطبيق HRMS المنفصل. هذا التطبيق غير مثبت حالياً على خادم ERPNext.
+            وحدة الموارد البشرية تتطلب تطبيق HRMS المنفصل. هذا التطبيق غير مثبت حالياً على الخادم.
           </p>
         </div>
         <div className="bg-muted/50 rounded-lg p-4 text-start space-y-3">
@@ -29,7 +29,7 @@ export function HrmsRequiredBanner() {
         </div>
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <Download className="h-3.5 w-3.5" />
-          <span>ERPNext v16+ يستخدم تطبيق HRMS منفصل للموارد البشرية</span>
+          <span>يستخدم النظام تطبيق HRMS منفصل للموارد البشرية</span>
         </div>
       </div>
     </div>

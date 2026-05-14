@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { ErpTabbedForm, type ErpTabDef } from '@/components/erp/erp-tabbed-form';
 import {
@@ -235,12 +236,10 @@ export default function AgingReportPage() {
                 <CalendarClock className="h-3.5 w-3.5" />
                 كما في تاريخ
               </Label>
-              <Input
-                type="date"
-                dir="ltr"
-                className="h-9 w-full"
+              <DatePicker
                 value={reportDate}
-                onChange={(e) => setReportDate(e.target.value)}
+                onChange={setReportDate}
+                className="h-9 w-full"
               />
             </div>
           </div>

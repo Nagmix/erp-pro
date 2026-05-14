@@ -185,8 +185,8 @@ const extensionLinks = [
 const systemLinks = [
  {
  href: '/settings/erp-backend',
- title: 'خادم ERPNext',
- desc: 'إعدادات الاتصال بخادم ERPNext الخلفي',
+ title: 'إعداد الخادم',
+ desc: 'إعدادات الاتصال بالخادم',
  icon: Server,
  color: 'bg-destructive/10 text-destructive',
  },

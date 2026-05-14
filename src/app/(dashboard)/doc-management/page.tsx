@@ -346,7 +346,7 @@ export default function DocManagementPage() {
               size="sm"
               className="gap-1.5 text-xs"
               onClick={() => {
-                toast.success('رفع الملفات', { description: 'يمكنك رفع الملفات من خلال واجهة ERPNext مباشرة' });
+                toast.success('رفع الملفات', { description: 'يمكنك رفع الملفات من خلال واجهة النظام مباشرة' });
               }}
             >
               <Upload className="h-3.5 w-3.5" />
@@ -585,7 +585,7 @@ export default function DocManagementPage() {
                 onDelete={(row) => deleteFile(row as ERPFile)}
                 addLabel="رفع مستند"
                 onAdd={() => {
-                  toast.success('رفع الملفات', { description: 'يمكنك رفع الملفات من خلال واجهة ERPNext مباشرة' });
+                  toast.success('رفع الملفات', { description: 'يمكنك رفع الملفات من خلال واجهة النظام مباشرة' });
                 }}
                 exportFileName="documents"
               />

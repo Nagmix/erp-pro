@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/erp/page-header';
 
@@ -350,11 +351,11 @@ export default function CashFlowPage() {
         </div>
         <div className="space-y-1">
           <Label className="text-xs">من تاريخ</Label>
-          <Input type="date" dir="ltr" className="h-8 w-40 text-xs" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          <DatePicker value={dateFrom} onChange={setDateFrom} className="h-8 w-40 text-xs" />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">إلى تاريخ</Label>
-          <Input type="date" dir="ltr" className="h-8 w-40 text-xs" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          <DatePicker value={dateTo} onChange={setDateTo} className="h-8 w-40 text-xs" />
         </div>
       </div>
 

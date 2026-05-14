@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { DataTable, type Column } from '@/components/erp/data-table';
@@ -324,15 +325,15 @@ export default function PeriodClosingPage() {
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">تاريخ العملية *</Label>
-                      <Input type="date" dir="rtl" {...form.register('transaction_date')} />
+                      <DatePicker value={form.watch('transaction_date')} onChange={(v) => form.setValue('transaction_date', v)} />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">بداية الفترة *</Label>
-                      <Input type="date" dir="rtl" {...form.register('period_start_date')} />
+                      <DatePicker value={form.watch('period_start_date')} onChange={(v) => form.setValue('period_start_date', v)} />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">نهاية الفترة *</Label>
-                      <Input type="date" dir="rtl" {...form.register('period_end_date')} />
+                      <DatePicker value={form.watch('period_end_date')} onChange={(v) => form.setValue('period_end_date', v)} />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
                       <Label className="text-sm font-medium">حساب رأس إقفال *</Label>

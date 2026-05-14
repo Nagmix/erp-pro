@@ -51,6 +51,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Info } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
 import { AnimatePresence, motion } from 'framer-motion';
 
 /* ─── Section fieldset header component ─── */
@@ -546,7 +547,10 @@ export default function ExpensesPage() {
                     />
                   </FormField>
                   <FormField label="تاريخ الترحيل" icon={CalendarDays} error={form.formState.errors.posting_date?.message} required hint="تاريخ تسجيل المطالبة">
-                    <Input type="date" dir="ltr" {...form.register('posting_date')} />
+                    <DatePicker
+                      value={form.watch('posting_date')}
+                      onChange={(v) => form.setValue('posting_date', v)}
+                    />
                   </FormField>
                   <FormField label="مركز التكلفة" icon={Building2} hint="مركز التكلفة الافتراضي للبنود">
                     <ErpLinkCombobox
@@ -606,12 +610,10 @@ export default function ExpensesPage() {
                   {items.map((item, idx) => (
                     <div key={idx} className={`px-3 py-2 grid grid-cols-1 md:grid-cols-12 gap-2 items-center border-b border-border/30 last:border-b-0 transition-colors hover:bg-muted/20 ${idx % 2 === 0 ? 'bg-background' : 'bg-muted/[0.03]'}`}>
                       <div className="md:col-span-2">
-                        <Input
+                        <DatePicker
                           className="h-8 text-xs"
-                          type="date"
-                          dir="ltr"
                           value={item.expense_date}
-                          onChange={(e) => updateItem(idx, 'expense_date', e.target.value)}
+                          onChange={(v) => updateItem(idx, 'expense_date', v)}
                         />
                       </div>
                       <div className="md:col-span-3">
@@ -741,7 +743,10 @@ export default function ExpensesPage() {
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium">تاريخ الترحيل *</Label>
-                <Input type="date" dir="ltr" value={importDate} onChange={(e) => setImportDate(e.target.value)} />
+                <DatePicker
+                  value={importDate}
+                  onChange={setImportDate}
+                />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -247,12 +248,12 @@ export default function FinancialStatementsPage() {
             {/* From date */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">من تاريخ</Label>
-              <Input type="date" dir="ltr" className="h-9 w-full" value={from} onChange={(e) => setFrom(e.target.value)} />
+              <DatePicker value={from} onChange={setFrom} className="h-9 w-full" />
             </div>
             {/* To date */}
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
-              <Input type="date" dir="ltr" className="h-9 w-full" value={to} onChange={(e) => setTo(e.target.value)} />
+              <DatePicker value={to} onChange={setTo} className="h-9 w-full" />
             </div>
             {/* Periodicity */}
             {tab !== 'trial-balance' ? (

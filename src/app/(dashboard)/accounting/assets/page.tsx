@@ -6,6 +6,7 @@ import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -448,7 +449,7 @@ export default function AssetsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-sm font-medium">تاريخ الشراء *</Label>
-          <Input type="date" dir="ltr" {...form.register('purchase_date')} />
+          <DatePicker value={form.watch('purchase_date')} onChange={(v) => form.setValue('purchase_date', v)} />
         </div>
         <div className="space-y-2">
           <Label className="text-sm font-medium">قيمة الشراء *</Label>

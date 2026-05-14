@@ -44,6 +44,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -587,7 +588,7 @@ export function JournalEntryNewEditor() {
             <SectionFieldset legend="المعلومات الأساسية" icon={Receipt} title="المعلومات الأساسية" accent="primary">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <FormField label="تاريخ القيد" icon={CalendarDays} error={form.formState.errors.posting_date?.message} required hint="تاريخ ترحيل القيد">
-                  <Input type="date" dir="ltr" className="h-9" {...form.register('posting_date')} />
+                  <DatePicker value={form.watch('posting_date')} onChange={(v) => form.setValue('posting_date', v)} className="h-9" />
                 </FormField>
                 <FormField label="نوع القيد" icon={Landmark} error={form.formState.errors.voucher_type?.message} required hint="نوع السند المحاسبي">
                   <Select dir="rtl" value={form.watch('voucher_type')} onValueChange={(v) => form.setValue('voucher_type', v)}>

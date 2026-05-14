@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/erp/page-header';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { formatDate } from '@/lib/core/helpers';
@@ -275,11 +276,11 @@ export default function FiscalYearPage() {
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">بداية السنة *</Label>
-                      <Input type="date" dir="rtl" {...form.register('year_start_date')} />
+                      <DatePicker value={form.watch('year_start_date')} onChange={(v) => form.setValue('year_start_date', v)} />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">نهاية السنة *</Label>
-                      <Input type="date" dir="rtl" {...form.register('year_end_date')} />
+                      <DatePicker value={form.watch('year_end_date')} onChange={(v) => form.setValue('year_end_date', v)} />
                     </div>
                   </div>
                   <div className="flex items-center justify-end gap-2">

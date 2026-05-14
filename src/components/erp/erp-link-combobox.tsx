@@ -209,7 +209,7 @@ export function ErpLinkCombobox({
             value={search}
             onValueChange={setSearch}
           />
-          <CommandList className="max-h-[min(280px,60vh)] overflow-y-auto scroll-smooth">
+          <CommandList className="max-h-[min(280px,60vh)] overflow-y-auto scroll-smooth overscroll-behavior-contain [-webkit-overflow-scrolling:touch] [touch-action:pan-y]">
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
               {isLoading || isFetching ? 'جارٍ التحميل...' : searchTerm ? 'لا نتائج مطابقة' : 'لا نتائج'}
             </CommandEmpty>

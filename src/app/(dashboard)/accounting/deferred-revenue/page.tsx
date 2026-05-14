@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
@@ -301,15 +302,15 @@ export default function DeferredRevenuePage() {
             </div>
             <div className="space-y-1.5">
               <Label>تاريخ الترحيل *</Label>
-              <Input type="date" dir="ltr" className="h-9" {...form.register('posting_date')} />
+              <DatePicker value={form.watch('posting_date')} onChange={(v) => form.setValue('posting_date', v)} className="h-9" />
             </div>
             <div className="space-y-1.5">
               <Label>بداية فترة الخدمة *</Label>
-              <Input type="date" dir="ltr" className="h-9" {...form.register('start_date')} />
+              <DatePicker value={form.watch('start_date')} onChange={(v) => form.setValue('start_date', v)} className="h-9" />
             </div>
             <div className="space-y-1.5">
               <Label>نهاية فترة الخدمة *</Label>
-              <Input type="date" dir="ltr" className="h-9" {...form.register('end_date')} />
+              <DatePicker value={form.watch('end_date')} onChange={(v) => form.setValue('end_date', v)} className="h-9" />
               {form.formState.errors.end_date && (
                 <p className="text-[10px] text-destructive">{form.formState.errors.end_date.message}</p>
               )}

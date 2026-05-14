@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
@@ -676,29 +677,23 @@ export default function PeriodClosingV2Page() {
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">تاريخ العملية *</Label>
-                      <Input
-                        type="date"
-                        dir="rtl"
+                      <DatePicker
                         value={form.transaction_date}
-                        onChange={(e) => setForm((p) => ({ ...p, transaction_date: e.target.value }))}
+                        onChange={(v) => setForm((p) => ({ ...p, transaction_date: v }))}
                       />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">بداية الفترة *</Label>
-                      <Input
-                        type="date"
-                        dir="rtl"
+                      <DatePicker
                         value={form.period_start_date}
-                        onChange={(e) => setForm((p) => ({ ...p, period_start_date: e.target.value }))}
+                        onChange={(v) => setForm((p) => ({ ...p, period_start_date: v }))}
                       />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">نهاية الفترة *</Label>
-                      <Input
-                        type="date"
-                        dir="rtl"
+                      <DatePicker
                         value={form.period_end_date}
-                        onChange={(e) => setForm((p) => ({ ...p, period_end_date: e.target.value }))}
+                        onChange={(v) => setForm((p) => ({ ...p, period_end_date: v }))}
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -1066,20 +1061,16 @@ export default function PeriodClosingV2Page() {
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-sm font-medium">تاريخ البداية *</Label>
-                  <Input
-                    type="date"
-                    dir="rtl"
+                  <DatePicker
                     value={fyForm.year_start_date}
-                    onChange={(e) => setFyForm((p) => ({ ...p, year_start_date: e.target.value }))}
+                    onChange={(v) => setFyForm((p) => ({ ...p, year_start_date: v }))}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-sm font-medium">تاريخ النهاية *</Label>
-                  <Input
-                    type="date"
-                    dir="rtl"
+                  <DatePicker
                     value={fyForm.year_end_date}
-                    onChange={(e) => setFyForm((p) => ({ ...p, year_end_date: e.target.value }))}
+                    onChange={(v) => setFyForm((p) => ({ ...p, year_end_date: v }))}
                   />
                 </div>
               </div>

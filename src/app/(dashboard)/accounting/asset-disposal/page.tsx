@@ -8,6 +8,7 @@ import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -268,7 +269,7 @@ export default function AssetDisposalPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-sm font-medium">تاريخ البيع *</Label>
-                <Input type="date" dir="ltr" {...saleForm.register('sale_date')} />
+                <DatePicker value={saleForm.watch('sale_date')} onChange={(v) => saleForm.setValue('sale_date', v)} />
                 {saleForm.formState.errors.sale_date && (
                   <p className="text-[10px] text-destructive">{saleForm.formState.errors.sale_date.message}</p>
                 )}
@@ -338,7 +339,7 @@ export default function AssetDisposalPage() {
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium">تاريخ الاستهلاك *</Label>
-              <Input type="date" dir="ltr" {...scrapForm.register('scrap_date')} />
+              <DatePicker value={scrapForm.watch('scrap_date')} onChange={(v) => scrapForm.setValue('scrap_date', v)} />
               {scrapForm.formState.errors.scrap_date && (
                 <p className="text-[10px] text-destructive">{scrapForm.formState.errors.scrap_date.message}</p>
               )}

@@ -7,6 +7,7 @@ import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -370,11 +371,11 @@ export default function BankReconciliationPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">من تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
+            <DatePicker value={dateFrom} onChange={setDateFrom} className="h-8 text-xs w-36" />
           </div>
           <div className="space-y-1">
             <Label className="text-xs">إلى تاريخ</Label>
-            <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
+            <DatePicker value={dateTo} onChange={setDateTo} className="h-8 text-xs w-36" />
           </div>
           {(bankAccount || dateFrom || dateTo) && (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-xs gap-1">
@@ -645,7 +646,7 @@ export default function BankReconciliationPage() {
             </div>
             <div className="space-y-2">
               <Label className="text-sm font-medium">التاريخ *</Label>
-              <Input type="date" dir="ltr" {...form.register('date')} />
+              <DatePicker value={form.watch('date')} onChange={(v) => form.setValue('date', v)} />
               {form.formState.errors.date && (
                 <p className="text-xs text-destructive">{form.formState.errors.date.message}</p>
               )}

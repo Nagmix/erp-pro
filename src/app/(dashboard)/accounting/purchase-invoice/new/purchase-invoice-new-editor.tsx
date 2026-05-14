@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -216,20 +217,18 @@ export function PurchaseInvoiceNewEditor() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" dir="rtl">
               <div className="space-y-2.5">
                 <Label className="text-xs font-semibold text-foreground/90">تاريخ الفاتورة</Label>
-                <Input
-                  type="date"
-                  dir="ltr"
+                <DatePicker
+                  value={form.watch('posting_date')}
+                  onChange={(v) => form.setValue('posting_date', v)}
                   className="h-9 border-border/60 bg-background/50 transition-colors focus:bg-background"
-                  {...form.register('posting_date')}
                 />
               </div>
               <div className="space-y-2.5">
                 <Label className="text-xs font-semibold text-foreground/90">الاستحقاق</Label>
-                <Input
-                  type="date"
-                  dir="ltr"
+                <DatePicker
+                  value={form.watch('due_date')}
+                  onChange={(v) => form.setValue('due_date', v)}
                   className="h-9 border-border/60 bg-background/50 transition-colors focus:bg-background"
-                  {...form.register('due_date')}
                 />
               </div>
               {form.formState.errors.due_date && (
