@@ -172,6 +172,7 @@ export function ErpLinkCombobox({
       onOpenChange={(next) => {
         setOpen(next);
         if (next) {
+          setSearch('');
           void queryClient.invalidateQueries({ queryKey: ['docList', doctype] });
         }
       }}
@@ -205,9 +206,13 @@ export function ErpLinkCombobox({
           // منع التركيز التلقائي على مدخل البحث لمنع قفز الصفحة على الجوال
           e.preventDefault();
         }}
+        onCloseAutoFocus={(e) => {
+          // منع قفز التركيز عند إغلاق القائمة
+          e.preventDefault();
+        }}
       >
         <Command shouldFilter={false}>
-          <div className="flex h-9 items-center gap-2 border-b px-3 shrink-0">
+          <div className="flex h-9 items-center gap-2 border-b px-3 shrink-0 sticky top-0 bg-popover z-10">
             <SearchIcon className="size-4 shrink-0 opacity-50" />
             <CommandPrimitive.Input
               data-slot="command-input"
@@ -220,9 +225,13 @@ export function ErpLinkCombobox({
           <div
             className="max-h-[min(280px,60vh)] overflow-y-auto overscroll-behavior-contain"
             style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
-            onPointerDown={(e) => {
-              // منع اختفاء القائمة عند اللمس على الجوال
+            onTouchStart={(e) => {
+              // منع اختفاء القائمة عند اللمس على الجوال بدون التأثير على الscroll
               e.stopPropagation();
+            }}
+            onMouseDown={(e) => {
+              // منع اختفاء القائمة عند النقر داخل منطقة القائمة
+              e.preventDefault();
             }}
           >
             <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
@@ -238,9 +247,11 @@ export function ErpLinkCombobox({
                     onChange(o.name);
                     setOpen(false);
                   }}
-                  onPointerDown={(e) => {
-                    // منع فقدان التركيز من مربع البحث عند اللمس
+                  onTouchEnd={(e) => {
+                    // منع السلوك الافتراضي على الجوال (مثل التمرير) عند تحديد عنصر
                     e.preventDefault();
+                    onChange(o.name);
+                    setOpen(false);
                   }}
                 >
                   <Check className={cn('h-4 w-4 shrink-0 text-primary', value === o.name ? 'opacity-100' : 'opacity-0')} />
@@ -255,7 +266,7 @@ export function ErpLinkCombobox({
             </CommandGroup>
           </div>
           {createShortcut && (
-            <div className="border-t border-border/40 bg-muted/40 p-2">
+            <div className="border-t border-border/40 bg-muted/40 p-2 sticky bottom-0">
               <Button variant="secondary" size="sm" className="w-full h-9 gap-2 text-[12px] font-semibold" asChild>
                 <Link
                   href={createShortcut.href}
