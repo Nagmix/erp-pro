@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, type ReactNode } from 'react';
+import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { useRouter } from 'next/navigation';
 import { DataTable, type Column } from '@/components/erp/data-table';
@@ -239,6 +239,35 @@ export default function ExpensesPage() {
   const createMutation = useCreateDoc('Expense Claim');
   const deleteMutation = useDeleteDoc('Expense Claim');
 
+  // تحقق من توفر نوع المستند على الخادم
+  const [doctypeAvailable, setDoctypeAvailable] = useState<boolean | null>(null);
+  const [doctypeCheckMessage, setDoctypeCheckMessage] = useState<string>('');
+
+  // فحص توفر Expense Claim عند تحميل الصفحة
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/data/Expense%20Claim?fields=["name"]&limit=1');
+        const j = await res.json();
+        if (!cancelled) {
+          if (j.success) {
+            setDoctypeAvailable(true);
+          } else {
+            setDoctypeAvailable(false);
+            setDoctypeCheckMessage(j.error || 'نوع المستند غير متوفر على الخادم');
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setDoctypeAvailable(false);
+          setDoctypeCheckMessage('تعذر الاتصال بالخادم');
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const form = useForm<ExpenseFormInput, any, ExpenseFormOutput>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
@@ -367,7 +396,7 @@ export default function ExpensesPage() {
         form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1 });
         setItems([emptyItem(t)]);
       },
-      onError: () => toast.error('حدث خطأ أثناء إنشاء مطالبة المصروفات')});
+      onError: () => toast.error('حدث خطأ أثناء إنشاء مطالبة المصروفات — تأكد من تثبيت وحدة الموارد البشرية (HRMS) على الخادم')});
   };
 
   const applyExpenseLinesFromExcel = async (buffer: ArrayBuffer) => {
@@ -405,6 +434,27 @@ export default function ExpensesPage() {
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
+
+      {/* تنبيه بعدم توفر نوع المستند */}
+      {doctypeAvailable === false && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3" dir="rtl">
+          <div className="h-8 w-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center shrink-0 mt-0.5">
+            <Info className="h-4 w-4" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <p className="text-sm font-bold text-destructive">نوع المستند «مطالبة مصروفات» غير متوفر</p>
+            <p className="text-xs text-muted-foreground">
+              {doctypeCheckMessage || 'لا يمكن الوصول إلى نوع المستند على الخادم الخلفي. هذا يتطلب تثبيت وحدة الموارد البشرية (HRMS) على ERPNext.'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              الحل: انتقل إلى صفحة إعداد الخادم وتأكد من تثبيت HRMS، أو نفّذ الأوامر التالية على الخادم:
+            </p>
+            <code className="block bg-muted/50 px-3 py-2 rounded-lg text-[11px] font-mono mt-2" dir="ltr">
+              bench get-app hrms{'\n'}bench install-app hrms{'\n'}bench migrate
+            </code>
+          </div>
+        </div>
+      )}
 
       <PageHeader
         title="المصروفات"

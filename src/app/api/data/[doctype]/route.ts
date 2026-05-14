@@ -18,6 +18,21 @@ const GRACEFUL_404_DOTYPES = new Set([
   'Bank Transaction',
   'Loyalty Point Entry',
   'Expense Claim Type',
+  'Expense Claim',
+]);
+
+// DocTypes that require HRMS module — specific error message when not available
+const HRMS_DOTYPES = new Set([
+  'Expense Claim',
+  'Expense Claim Type',
+  'Employee Advance',
+  'Travel Request',
+  'Training Event',
+  'Training Result',
+  'Attendance',
+  'Leave Application',
+  'Salary Slip',
+  'Salary Structure',
 ]);
 
 function isNotFoundError(error: unknown): boolean {
@@ -73,8 +88,8 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ doctype: string }> }
 ) {
+  const { doctype } = await params;
   try {
-    const { doctype } = await params;
     const userSession = getFrappeSidFromRequest(request);
     const body = await request.json();
 
@@ -82,6 +97,19 @@ export async function POST(
     return NextResponse.json({ success: true, data }, { status: 201 });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل إنشاء السجل';
+    // تحقق إن كان نوع المستند غير موجود (يتطلب HRMS)
+    if (HRMS_DOTYPES.has(doctype) && isNotFoundError(error)) {
+      return NextResponse.json({
+        success: false,
+        error: 'نوع المستند «' + doctype + '» غير متوفر على الخادم. تأكد من تثبيت وحدة الموارد البشرية (HRMS) وإعادة تشغيل الخادم، ثم أعد المحاولة من صفحة إعداد الخادم.',
+      }, { status: 500 });
+    }
+    if (isNotFoundError(error)) {
+      return NextResponse.json({
+        success: false,
+        error: 'نوع المستند «' + doctype + '» غير موجود على الخادم. تحقق من إعدادات النظام.',
+      }, { status: 500 });
+    }
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

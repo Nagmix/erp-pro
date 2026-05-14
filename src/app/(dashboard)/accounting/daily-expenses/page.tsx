@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,11 +16,12 @@ import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/er
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
+import { buildExpenseClaimCreate } from '@/lib/erp/erpnext-payloads';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
 import { toast } from 'sonner';
-import { Plus, Receipt, Send, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Receipt, Send, CheckCircle2, XCircle, Info } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 
@@ -60,6 +61,34 @@ export default function DailyExpensesPage() {
   const createExpense = useCreateDoc('Expense Claim');
   const submitExpense = useSubmitDoc('Expense Claim');
   const cancelExpense = useCancelDoc('Expense Claim');
+
+  // تحقق من توفر نوع المستند على الخادم
+  const [doctypeAvailable, setDoctypeAvailable] = useState<boolean | null>(null);
+  const [doctypeCheckMessage, setDoctypeCheckMessage] = useState<string>('');
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/data/Expense%20Claim?fields=["name"]&limit=1');
+        const j = await res.json();
+        if (!cancelled) {
+          if (j.success) {
+            setDoctypeAvailable(true);
+          } else {
+            setDoctypeAvailable(false);
+            setDoctypeCheckMessage(j.error || 'نوع المستند غير متوفر على الخادم');
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setDoctypeAvailable(false);
+          setDoctypeCheckMessage('تعذر الاتصال بالخادم');
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -142,14 +171,21 @@ export default function DailyExpensesPage() {
     }
     setBusy(true);
     try {
-      await createExpense.mutateAsync({
-        doctype: 'Expense Claim',
+      const doc = buildExpenseClaimCreate({
         employee,
-        expense_claim_date: expenseDate,
-        expenses: [{ expense_type: expenseType, amount: amt, cost_center: costCenter || undefined }],
-        remark,
         company: defaultCompany,
+        posting_date: expenseDate || today,
+        remark: remark?.trim() || undefined,
+        cost_center: costCenter?.trim() || undefined,
+        expenses: [{
+          expense_date: expenseDate || today,
+          expense_type: expenseType,
+          amount: amt,
+          description: remark?.trim() || undefined,
+          cost_center: costCenter?.trim() || undefined,
+        }],
       });
+      await createExpense.mutateAsync(doc);
       toast.success('تم إنشاء المصروف بنجاح');
       setEmployee('');
       setExpenseType('');
@@ -280,6 +316,24 @@ export default function DailyExpensesPage() {
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
+
+      {/* تنبيه بعدم توفر نوع المستند */}
+      {doctypeAvailable === false && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
+          <div className="h-8 w-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center shrink-0 mt-0.5">
+            <Info className="h-4 w-4" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <p className="text-sm font-bold text-destructive">نوع المستند «مطالبة مصروفات» غير متوفر</p>
+            <p className="text-xs text-muted-foreground">
+              {doctypeCheckMessage || 'لا يمكن الوصول إلى نوع المستند على الخادم الخلفي. هذا يتطلب تثبيت وحدة الموارد البشرية (HRMS) على ERPNext.'}
+            </p>
+            <code className="block bg-muted/50 px-3 py-2 rounded-lg text-[11px] font-mono mt-2" dir="ltr">
+              bench get-app hrms{'\n'}bench install-app hrms{'\n'}bench migrate
+            </code>
+          </div>
+        </div>
+      )}
 
       <PageHeader
         title="المصاريف اليومية"

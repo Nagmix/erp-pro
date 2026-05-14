@@ -34,6 +34,10 @@ const DOC_CACHE_TTL = Math.min(600, Math.max(0, parseInt(process.env.REDIS_CACHE
 let systemSession: string | null = null;
 let sessionExpiry: number = 0;
 
+// تتبع فشل مفاتيح API لتجنب محاولة التوكن المعطل مع كل طلب
+let apiTokenFailedAt: number = 0;
+const API_TOKEN_FAIL_COOLDOWN = 10 * 60 * 1000; // 10 دقائق قبل إعادة محاولة التوكن
+
 // ============================================================
 // ERPNext Version Detection (v15 ↔ v16 compatibility)
 // ============================================================
@@ -274,7 +278,8 @@ async function internalRequest(
     headers['Cookie'] = `sid=${userSession}`;
   } else {
     const pair = getFrappeApiTokenPair();
-    if (pair) {
+    const tokenInCooldown = apiTokenFailedAt > 0 && (Date.now() - apiTokenFailedAt) < API_TOKEN_FAIL_COOLDOWN;
+    if (pair && !tokenInCooldown) {
       headers['Authorization'] = `token ${pair.key}:${pair.secret}`;
     } else if (systemSession && Date.now() < sessionExpiry) {
       headers['Cookie'] = `sid=${systemSession}`;
@@ -293,9 +298,10 @@ async function internalRequest(
       });
 
       if (response.status === 401 && !userSession) {
-        // إذا كانت مفاتيح API لا تعمل، نحاول تسجيل الدخول بالكلمة السرية بدلاً منها
+        // إذا كانت مفاتيح API لا تعمل، نسجل وقت الفشل ونحاول تسجيل الدخول بالجلسة
         if (usesFrappeTokenAuth()) {
-          console.warn('[Internal API] API token auth returned 401, falling back to session login');
+          apiTokenFailedAt = Date.now();
+          console.warn('[Internal API] API token auth returned 401, falling back to session login (token disabled for 10 min)');
         }
         systemSession = null;
         // مسح cache حتى نقرأ ملف الاتصال المحدث
