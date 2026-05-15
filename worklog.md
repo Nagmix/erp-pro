@@ -52,3 +52,22 @@ Stage Summary:
 - Critical accounting safeguard: docstatus protection on edit/delete
 - Payment Entry now has proper naming series support
 - All TypeScript checks pass
+---
+Task ID: 1
+Agent: Main Agent
+Task: إصلاح مشكلة "تعذر الحفظ" في صفحة المصروفات عند إنشاء مطالبة جديدة
+
+Work Log:
+- فحص كامل لملفات صفحة المصروفات (expenses, daily-expenses, mobile-expenses)
+- تحليل مسار البيانات: Component → useCreateDoc → apiCreateDoc → POST /api/data/Expense Claim → createDoc → ERPNext REST API
+- اكتشاف السبب الرئيسي: buildExpenseClaimCreate() يستخدم naming_series ثابت 'HR-EXP-.YYYY.-' الذي قد لا يكون موجوداً في ERPNext
+- اكتشاف أن Employee builder يعالج نفس المشكلة بعدم تحديد naming_series
+- اكتشاف خطأ في فحص doctypeAvailable بسبب GRACEFUL_404_DOTYPES
+
+Stage Summary:
+- إزالة naming_series الثابت من buildExpenseClaimCreate() — ERPNext يستخدم الافتراضي تلقائياً
+- إضافة NamingSeriesSelect في حوار إنشاء المطالبة لاختيار التسلسل من الخادم
+- تحسين فحص doctypeAvailable باستخدام naming-series API بدلاً من طريقة GET القديمة
+- تحسين رسائل الخطأ لعرض رسالة ERPNext الفعلية مع تلميح HRMS
+- تطبيق الإصلاحات على 3 صفحات: expenses, daily-expenses, mobile-expenses
+- البناء والنشر بنجاح على GitHub
