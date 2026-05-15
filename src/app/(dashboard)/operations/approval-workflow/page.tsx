@@ -574,7 +574,7 @@ export default function ApprovalWorkflowPage() {
         {/* ────── Tab 2: All Workflows ────── */}
         <TabsContent value="workflows" className="mt-4 space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">سير العمل المعرف في ERPNext</p>
+            <p className="text-sm text-muted-foreground">سير العمل المعرف في النظام</p>
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => refetchWorkflows()}>
               <RefreshCw className={cn('h-3.5 w-3.5', loadingWorkflows && 'animate-spin')} /> تحديث
             </Button>

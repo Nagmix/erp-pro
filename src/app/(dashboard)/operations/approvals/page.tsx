@@ -391,7 +391,7 @@ export default function ApprovalsPage() {
         {/* ────── Tab 3: Approval Rules ────── */}
         <TabsContent value="rules" className="mt-4 space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">قواعد الموافقة معرّفة في ERPNext (Workflow & Authorization Rule)</p>
+            <p className="text-sm text-muted-foreground">قواعد الموافقة معرّفة في النظام (Workflow & Authorization Rule)</p>
             <Button size="sm" variant="outline" className="gap-1.5" onClick={fetchRules}>
               <RefreshCw className={cn('h-3.5 w-3.5', rulesLoading && 'animate-spin')} /> تحديث
             </Button>
@@ -489,12 +489,12 @@ export default function ApprovalsPage() {
             </div>
             <h3 className="text-lg font-semibold text-foreground">تفويض الصلاحيات</h3>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              يتم إدارة تفويض صلاحيات الموافقة من خلال إعدادات المستخدم في ERPNext.
-              يمكنك تفويض صلاحياتك لمستخدم آخر لفترة محددة عبر واجهة ERPNext.
+              يتم إدارة تفويض صلاحيات الموافقة من خلال إعدادات المستخدم في النظام.
+              يمكنك تفويض صلاحياتك لمستخدم آخر لفترة محددة عبر واجهة النظام.
             </p>
             <div className="mt-4 flex items-center gap-3">
               <a href="/api/method/frappe.desk.form.assign_to.add" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline">
-                <ExternalLink className="h-3.5 w-3.5" /> فتح إعدادات التفويض في ERPNext
+                <ExternalLink className="h-3.5 w-3.5" /> فتح إعدادات التفويض في النظام
               </a>
             </div>
             <p className="mt-4 text-xs text-muted-foreground max-w-sm">

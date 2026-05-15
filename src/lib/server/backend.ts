@@ -629,12 +629,21 @@ export async function submitDoc(
   userSession?: string
 ): Promise<unknown> {
   await ensureSystemSession();
-  // [v16 NOTE] frappe.client.submit is a core Frappe method and is stable across v15/v16.
-  // If v16 changes this, the version fallback mechanism would handle it.
+  // نحتاج جلب أحدث نسخة من المستند قبل الترحيل لأن Frappe يتحقق من حقل modified
+  // ويرفض الترحيل إذا كان المستند قد تم تعديله بعد فتحه (TimestampMismatchError)
+  let latestDoc: Record<string, unknown> | null = null;
+  try {
+    latestDoc = (await getDoc(doctype, name, userSession)) as Record<string, unknown>;
+  } catch {
+    // إذا فشل جلب المستند، نحاول الترحيل بدون modified
+  }
+  const docToSubmit = latestDoc
+    ? { doctype, name, modified: latestDoc.modified }
+    : { doctype, name };
   const result = await internalRequest(
     'POST',
     '/method/frappe.client.submit',
-    { doc: { doctype, name } },
+    { doc: docToSubmit },
     userSession
   );
   return (result as { data: unknown }).data;
@@ -646,11 +655,20 @@ export async function cancelDoc(
   userSession?: string
 ): Promise<unknown> {
   await ensureSystemSession();
-  // [v16 NOTE] frappe.client.cancel is a core Frappe method and is stable across v15/v16.
+  // جلب أحدث نسخة من المستند قبل الإلغاء لتجنب TimestampMismatchError
+  let latestDoc: Record<string, unknown> | null = null;
+  try {
+    latestDoc = (await getDoc(doctype, name, userSession)) as Record<string, unknown>;
+  } catch {
+    // إذا فشل جلب المستند، نحاول الإلغاء بدون modified
+  }
+  const docToCancel = latestDoc
+    ? { doctype, name, modified: latestDoc.modified }
+    : { doctype, name };
   const result = await internalRequest(
     'POST',
     '/method/frappe.client.cancel',
-    { doc: { doctype, name } },
+    { doc: docToCancel },
     userSession
   );
   return (result as { data: unknown }).data;

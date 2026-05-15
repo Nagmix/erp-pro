@@ -1303,7 +1303,7 @@ export default function WorkOrdersOpsPage() {
                       variant="outline"
                       className="mt-2 gap-1.5 text-xs"
                       onClick={() =>
-                        toast.info('يمكنك رفع المرفقات من سجل المستند في ERPNext')
+                        toast.info('يمكنك رفع المرفقات من سجل المستند في النظام')
                       }
                     >
                       <Paperclip className="h-3.5 w-3.5" />

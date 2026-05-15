@@ -347,7 +347,7 @@ export default function DeveloperApiPage() {
           <div className="flex gap-2">
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void erpNextWebhooksQuery.refetch()}>
               <Database className="h-3.5 w-3.5" />
-              تحديث ERPNext
+              تحديث النظام
             </Button>
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void load()}>
               <RefreshCw className="h-3.5 w-3.5" />
@@ -550,11 +550,11 @@ export default function DeveloperApiPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Database className="h-4 w-4" />
-                  خطافات الويب من ERPNext ({erpNextWebhooks.length})
+                  خطافات الويب من النظام ({erpNextWebhooks.length})
                 </CardTitle>
                 <Badge variant="outline" className="text-[10px] gap-1">
                   <Database className="h-2.5 w-2.5" />
-                  ERPNext
+                  النظام
                 </Badge>
               </div>
             </CardHeader>
@@ -565,14 +565,14 @@ export default function DeveloperApiPage() {
                 </div>
               ) : erpNextWebhooksQuery.isError ? (
                 <div className="text-center py-8">
-                  <p className="text-xs text-muted-foreground">تعذر تحميل خطافات الويب من ERPNext</p>
+                  <p className="text-xs text-muted-foreground">تعذر تحميل خطافات الويب من النظام</p>
                   <Button size="sm" variant="outline" className="mt-2 gap-1.5" onClick={() => void erpNextWebhooksQuery.refetch()}>
                     <RefreshCw className="h-3 w-3" />
                     إعادة المحاولة
                   </Button>
                 </div>
               ) : erpNextWebhooks.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">لا توجد خطافات ويب في ERPNext بعد</p>
+                <p className="text-xs text-muted-foreground text-center py-8">لا توجد خطافات ويب في النظام بعد</p>
               ) : (
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {erpNextWebhooks.map((hook) => (
@@ -596,7 +596,7 @@ export default function DeveloperApiPage() {
                         </div>
                         <Badge variant="outline" className="text-[9px] gap-1">
                           <Database className="h-2.5 w-2.5" />
-                          ERPNext
+                          النظام
                         </Badge>
                       </div>
                     </div>

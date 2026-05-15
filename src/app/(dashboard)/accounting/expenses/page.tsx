@@ -673,7 +673,7 @@ export default function ExpensesPage() {
                   </FormField>
                 </div>
                 <div className="flex items-center gap-3">
-                  <FormField label="سلسلة التسمية" icon={Hash} hint="ترقيم المطالبة — الافتراضي من ERPNext">
+                  <FormField label="سلسلة التسمية" icon={Hash} hint="ترقيم المطالبة — الافتراضي من النظام">
                     <NamingSeriesSelect
                       doctype="Expense Claim"
                       value={namingSeries}

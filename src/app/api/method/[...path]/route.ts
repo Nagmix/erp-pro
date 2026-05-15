@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callMethod } from '@/lib/server/backend';
+import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
 // Prevent static analysis during build
 export const dynamic = 'force-dynamic';
@@ -74,7 +75,8 @@ export async function POST(
   }
 
   try {
-    const result = await callMethod(method, body);
+    const userSession = getFrappeSidFromRequest(request);
+    const result = await callMethod(method, body, userSession);
     return NextResponse.json(
       { success: true, data: result },
       {

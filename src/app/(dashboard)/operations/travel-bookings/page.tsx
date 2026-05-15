@@ -409,7 +409,7 @@ export default function TravelBookingsPage() {
       {/* ── Page Header ── */}
       <PageHeader
         title="حجوزات السفر"
-        description="إدارة طلبات السفر والموافقات وسلف السفر عبر نظام ERPNext"
+        description="إدارة طلبات السفر والموافقات وسلف السفر عبر النظام"
         iconify="solar:earth-bold-duotone"
         accent="primary"
         breadcrumbs={[

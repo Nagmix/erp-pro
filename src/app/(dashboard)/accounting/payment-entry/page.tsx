@@ -472,7 +472,14 @@ export default function PaymentEntryPage() {
               className="h-7 text-xs px-2"
               onClick={() => submitMutation.mutate(row.name, {
                 onSuccess: () => { toast.success('تم ترحيل السند'); void refetch(); },
-                onError: () => toast.error('فشل الترحيل — تحقق من البيانات')})}
+                onError: (err: Error) => {
+                  const msg = err?.message || '';
+                  const isTimestamp = /modified after|TimestampMismatch/i.test(msg);
+                  toast.error(isTimestamp ? 'السند تم تعديله مؤخراً — يرجى تحديث الصفحة وإعادة المحاولة' : 'فشل الترحيل — تحقق من البيانات', {
+                    description: isTimestamp ? undefined : msg,
+                    duration: 6000,
+                  });
+                }})}
             >
               <Send className="h-3 w-3 ms-1" />ترحيل
             </Button>
@@ -485,7 +492,10 @@ export default function PaymentEntryPage() {
               className="h-7 text-xs px-2"
               onClick={() => cancelMutation.mutate(row.name, {
                 onSuccess: () => { toast.success('تم إلغاء السند'); void refetch(); },
-                onError: () => toast.error('فشل الإلغاء')})}
+                onError: (err: Error) => {
+                  const msg = err?.message || '';
+                  toast.error('فشل الإلغاء', { description: msg, duration: 6000 });
+                }})}
             >
               <Undo2 className="h-3 w-3 ms-1" />إلغاء
             </Button>

@@ -312,7 +312,7 @@ export default function EcommerceIntegrationPage() {
      </div>
      <div>
      <h2 className="text-sm font-semibold">إعدادات التجارة الإلكترونية</h2>
-     <p className="text-xs text-muted-foreground">تكوين إعدادات المتجر الإلكتروني من ERPNext</p>
+     <p className="text-xs text-muted-foreground">تكوين إعدادات المتجر الإلكتروني من النظام</p>
      </div>
     </div>
 
