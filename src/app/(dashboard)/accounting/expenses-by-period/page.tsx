@@ -19,6 +19,8 @@ import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
@@ -232,6 +234,9 @@ function PieChartLegend({ payload }: { payload?: Array<{ value: string; color: s
 
 /* ─── Main Component ─── */
 export default function ExpensesByPeriodPage() {
+  // فحص HRMS
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
@@ -481,6 +486,11 @@ export default function ExpensesByPeriodPage() {
 
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
+      {/* تنبيه بعدم توفر HRMS — مع زر تثبيت */}
+      {hrmsLoaded && !hrmsInstalled && (
+        <HrmsRequiredBanner />
+      )}
+
       <PageHeader
         title="المصروفات بالمدة الزمنية"
         description="تحليل المصروفات حسب الفترة الزمنية مع مقارنة الأداء وتفصيل التصنيفات"

@@ -24,6 +24,8 @@ import { toast } from 'sonner';
 import { Plus, Receipt, Send, CheckCircle2, XCircle, Info } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 type ExpenseRow = {
   name: string;
@@ -62,19 +64,30 @@ export default function DailyExpensesPage() {
   const submitExpense = useSubmitDoc('Expense Claim');
   const cancelExpense = useCancelDoc('Expense Claim');
 
-  // تحقق من توفر نوع المستند على الخادم — باستخدام فحص فعلي للـ DocType
+  // فحص HRMS — نوع مستند Expense Claim يتطلب تطبيق HRMS
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  // تحقق من توفر نوع المستند
   const [doctypeAvailable, setDoctypeAvailable] = useState<boolean | null>(null);
   const [doctypeCheckMessage, setDoctypeCheckMessage] = useState<string>('');
 
   useEffect(() => {
+    if (hrmsLoaded && hrmsInstalled) {
+      setDoctypeAvailable(true);
+      return;
+    }
+    if (hrmsLoaded && !hrmsInstalled) {
+      setDoctypeAvailable(false);
+      setDoctypeCheckMessage('نوع المستند يتطلب تطبيق HRMS الذي لم يتم تثبيته بعد.');
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
-        // فحص فعلي: نستخدم naming-series API لأنه يستدعي frappe.client.get_value
         const res = await fetch('/api/settings/naming-series?doctype=' + encodeURIComponent('Expense Claim'));
         const j = await res.json();
         if (!cancelled) {
-          if (j?.success && j?.data?.hasNamingSeries) {
+          if (j?.success && (j?.data?.docTypeExists === true || j?.data?.hasNamingSeries)) {
             setDoctypeAvailable(true);
           } else if (j?.success) {
             setDoctypeAvailable(false);
@@ -86,25 +99,13 @@ export default function DailyExpensesPage() {
         }
       } catch {
         if (!cancelled) {
-          // Fallback: نحاول الطريقة القديمة
-          try {
-            const res2 = await fetch('/api/data/Expense%20Claim?fields=["name"]&limit=1');
-            const j2 = await res2.json();
-            if (!cancelled) {
-              setDoctypeAvailable(j2?.success ? true : false);
-              if (!j2?.success) setDoctypeCheckMessage(j2?.error || 'تعذر التحقق من توفر نوع المستند');
-            }
-          } catch {
-            if (!cancelled) {
-              setDoctypeAvailable(false);
-              setDoctypeCheckMessage('تعذر الاتصال بالخادم');
-            }
-          }
+          setDoctypeAvailable(false);
+          setDoctypeCheckMessage('تعذر الاتصال بالخادم');
         }
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [hrmsLoaded, hrmsInstalled]);
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -333,22 +334,9 @@ export default function DailyExpensesPage() {
     <div className="erp-page-enter space-y-5" dir="rtl">
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
-      {/* تنبيه بعدم توفر نوع المستند */}
+      {/* تنبيه بعدم توفر نوع المستند — مع زر تثبيت HRMS */}
       {doctypeAvailable === false && (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3">
-          <div className="h-8 w-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center shrink-0 mt-0.5">
-            <Info className="h-4 w-4" />
-          </div>
-          <div className="flex-1 space-y-1">
-            <p className="text-sm font-bold text-destructive">نوع المستند «مطالبة مصروفات» غير متوفر</p>
-            <p className="text-xs text-muted-foreground">
-              {doctypeCheckMessage || 'لا يمكن الوصول إلى نوع المستند على الخادم الخلفي. هذا يتطلب تثبيت وحدة الموارد البشرية (HRMS) على ERPNext.'}
-            </p>
-            <code className="block bg-muted/50 px-3 py-2 rounded-lg text-[11px] font-mono mt-2" dir="ltr">
-              bench get-app hrms{'\n'}bench install-app hrms{'\n'}bench migrate
-            </code>
-          </div>
-        </div>
+        <HrmsRequiredBanner />
       )}
 
       <PageHeader

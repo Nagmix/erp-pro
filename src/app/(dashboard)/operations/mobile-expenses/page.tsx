@@ -27,6 +27,8 @@ import { buildExpenseClaimCreate } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/core/helpers';
 import { toast } from 'sonner';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 import {
   Camera,
   Receipt,
@@ -97,6 +99,9 @@ const EXPENSE_STATUS_AR: Record<string, string> = {
 
 export default function MobileExpensesPage() {
   const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
+
+  // فحص HRMS
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
   // ── حالة النموذج ──
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -444,6 +449,11 @@ export default function MobileExpensesPage() {
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <ListQueryAlert error={expenses.isError ? expenses.error : null} onRetry={() => expenses.refetch()} />
+
+      {/* تنبيه بعدم توفر HRMS — مع زر تثبيت */}
+      {hrmsLoaded && !hrmsInstalled && (
+        <HrmsRequiredBanner />
+      )}
 
       <PageHeader
         title="مصروفات الجوال"

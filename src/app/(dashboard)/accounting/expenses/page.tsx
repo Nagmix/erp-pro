@@ -55,6 +55,8 @@ import {
 import { Info } from 'lucide-react';
 import { DatePicker } from '@/components/ui/date-picker';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 /* ─── Section fieldset header component ─── */
 
@@ -213,6 +215,9 @@ export default function ExpensesPage() {
   const [items, setItems] = useState<ExpenseItem[]>(() => [emptyItem(new Date().toISOString().split('T')[0]!)]);
   const [namingSeries, setNamingSeries] = useState('');
 
+  // فحص HRMS — نوع مستند Expense Claim يتطلب تطبيق HRMS
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
   // جلب خيارات التسلسل المتسلسل من الخادم
   const { data: namingSeriesData } = useNamingSeriesForDoctype('Expense Claim');
 
@@ -247,23 +252,36 @@ export default function ExpensesPage() {
   const createMutation = useCreateDoc('Expense Claim');
   const deleteMutation = useDeleteDoc('Expense Claim');
 
-  // تحقق من توفر نوع المستند على الخادم — باستخدام فحص فعلي للـ DocType
+  // تحقق إضافي من توفر DocType على الخادم (مكمّل لفحص HRMS)
   const [doctypeAvailable, setDoctypeAvailable] = useState<boolean | null>(null);
   const [doctypeCheckMessage, setDoctypeCheckMessage] = useState<string>('');
 
   useEffect(() => {
+    // إذا فحص HRMS أظهر أن التطبيق مثبت، لا حاجة لفحص إضافي
+    if (hrmsLoaded && hrmsInstalled) {
+      setDoctypeAvailable(true);
+      return;
+    }
+    if (hrmsLoaded && !hrmsInstalled) {
+      setDoctypeAvailable(false);
+      setDoctypeCheckMessage('نوع المستند «مطالبة مصروفات» يتطلب تطبيق HRMS الذي لم يتم تثبيته بعد على الموقع.');
+      return;
+    }
+    // أثناء التحميل — فحص إضافي عبر naming-series API
     let cancelled = false;
     (async () => {
       try {
-        // فحص فعلي: نستخدم naming-series API لأنه يستدعي frappe.client.get_value
-        // للتحقق من وجود DocType — أوضح من محاولة جلب قائمة مستندات
         const res = await fetch('/api/settings/naming-series?doctype=' + encodeURIComponent('Expense Claim'));
         const j = await res.json();
         if (!cancelled) {
-          if (j?.success && j?.data?.hasNamingSeries) {
+          if (j?.success && j?.data?.docTypeExists === true) {
+            setDoctypeAvailable(true);
+          } else if (j?.success && j?.data?.docTypeExists === false) {
+            setDoctypeAvailable(false);
+            setDoctypeCheckMessage('نوع المستند «مطالبة مصروفات» غير متوفر على الخادم. تأكد من تثبيت وحدة الموارد البشرية (HRMS).');
+          } else if (j?.success && j?.data?.hasNamingSeries) {
             setDoctypeAvailable(true);
           } else if (j?.success) {
-            // naming series API نجح لكن DocType غير موجود
             setDoctypeAvailable(false);
             setDoctypeCheckMessage('نوع المستند «مطالبة مصروفات» غير متوفر على الخادم. تأكد من تثبيت وحدة الموارد البشرية (HRMS).');
           } else {
@@ -273,27 +291,13 @@ export default function ExpensesPage() {
         }
       } catch {
         if (!cancelled) {
-          // إذا فشل الطلب، نحاول الطريقة القديمة كـ fallback
-          try {
-            const res2 = await fetch('/api/data/Expense%20Claim?fields=["name"]&limit=1');
-            const j2 = await res2.json();
-            if (!cancelled) {
-              // حتى لو أعاد empty list، لا يعني أن Doctype غير موجود
-              // لذلك نعطّل التحذير إذا لم نستطع التأكد
-              setDoctypeAvailable(j2?.success ? true : false);
-              if (!j2?.success) setDoctypeCheckMessage(j2?.error || 'تعذر التحقق من توفر نوع المستند');
-            }
-          } catch {
-            if (!cancelled) {
-              setDoctypeAvailable(false);
-              setDoctypeCheckMessage('تعذر الاتصال بالخادم');
-            }
-          }
+          setDoctypeAvailable(false);
+          setDoctypeCheckMessage('تعذر الاتصال بالخادم للتحقق');
         }
       }
     })();
     return () => { cancelled = true; };
-  }, []);
+  }, [hrmsLoaded, hrmsInstalled]);
 
   // تعيين التسلسل الافتراضي من الخادم عند توفره
   useEffect(() => {
@@ -486,25 +490,9 @@ export default function ExpensesPage() {
     <div className="erp-page-enter space-y-5" dir="rtl">
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
-      {/* تنبيه بعدم توفر نوع المستند */}
+      {/* تنبيه بعدم توفر نوع المستند — مع زر تثبيت HRMS */}
       {doctypeAvailable === false && (
-        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-start gap-3" dir="rtl">
-          <div className="h-8 w-8 rounded-lg bg-destructive/10 text-destructive flex items-center justify-center shrink-0 mt-0.5">
-            <Info className="h-4 w-4" />
-          </div>
-          <div className="flex-1 space-y-1">
-            <p className="text-sm font-bold text-destructive">نوع المستند «مطالبة مصروفات» غير متوفر</p>
-            <p className="text-xs text-muted-foreground">
-              {doctypeCheckMessage || 'لا يمكن الوصول إلى نوع المستند على الخادم الخلفي. هذا يتطلب تثبيت وحدة الموارد البشرية (HRMS) على ERPNext.'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              الحل: انتقل إلى صفحة إعداد الخادم وتأكد من تثبيت HRMS، أو نفّذ الأوامر التالية على الخادم:
-            </p>
-            <code className="block bg-muted/50 px-3 py-2 rounded-lg text-[11px] font-mono mt-2" dir="ltr">
-              bench get-app hrms{'\n'}bench install-app hrms{'\n'}bench migrate
-            </code>
-          </div>
-        </div>
+        <HrmsRequiredBanner />
       )}
 
       <PageHeader

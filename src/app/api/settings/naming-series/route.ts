@@ -83,17 +83,38 @@ export async function POST(request: NextRequest) {
 
 async function getNamingSeriesForDoctype(doctype: string, userSession?: string) {
   try {
-    // Check if the DocType exists (don't query naming_series as it may not be permitted)
+    // Check if the DocType exists on the server
     let hasNamingSeries = false;
+    let docTypeExists = false;
     try {
       const meta = await callMethod('frappe.client.get_value', {
         doctype: 'DocType',
         fieldname: 'name',
         name: doctype,
       }, userSession) as Record<string, unknown> | null;
-      hasNamingSeries = meta != null;
+      docTypeExists = meta != null && (meta.name != null || meta?.name !== undefined);
+      hasNamingSeries = docTypeExists;
     } catch {
-      // DocType might not be accessible
+      // DocType might not be accessible or doesn't exist
+      docTypeExists = false;
+      hasNamingSeries = false;
+    }
+
+    // إذا نوع المستند غير موجود على الخادم، أرجع القيم الافتراضية مباشرة
+    if (!docTypeExists) {
+      const doctypeInfo = NAMING_SERIES_DOCTYPES.find(d => d.doctype === doctype);
+      return NextResponse.json({
+        success: true,
+        data: {
+          doctype,
+          label: doctypeInfo?.label || doctype,
+          defaultPrefix: doctypeInfo?.defaultPrefix || '',
+          seriesOptions: doctypeInfo ? [doctypeInfo.defaultPrefix] : [],
+          counterInfo: {},
+          hasNamingSeries: false,
+          docTypeExists: false,
+        },
+      });
     }
 
     // Try to get existing series options from Naming Series DocType
@@ -139,6 +160,7 @@ async function getNamingSeriesForDoctype(doctype: string, userSession?: string) 
         seriesOptions,
         counterInfo,
         hasNamingSeries,
+        docTypeExists: true,
       },
     });
   } catch (error) {
@@ -153,6 +175,7 @@ async function getNamingSeriesForDoctype(doctype: string, userSession?: string) 
         seriesOptions: doctypeInfo ? [doctypeInfo.defaultPrefix] : [],
         counterInfo: {},
         hasNamingSeries: false,
+        docTypeExists: false,
       },
     });
   }
