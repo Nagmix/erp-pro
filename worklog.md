@@ -47,3 +47,26 @@ Stage Summary:
 - Modified: src/app/(dashboard)/accounting/daily-expenses/page.tsx (improved error handling)
 - Modified: src/app/(dashboard)/operations/mobile-expenses/page.tsx (improved error handling)
 - Commit: 9ecb395 pushed to origin/main
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix payment entry submit/cancel, 403 errors, remove ERPNext branding, add Arabic account translations
+
+Work Log:
+- Read server logs: TimestampMismatchError on Payment Entry submit + 403 on get_balance_on
+- Fixed submitDoc() in backend.ts: fetch latest doc before submit to include 'modified' timestamp
+- Fixed cancelDoc() in backend.ts: same fix for cancel operations
+- Fixed /api/method/[...path]/route.ts: pass userSession to callMethod() to fix 403 errors
+- Improved error handling in payment-entry/page.tsx: detailed Arabic messages for submit/cancel errors
+- Verified all user-visible "ERPNext" text already replaced with "النظام" across dashboard pages
+- Added 200+ new Arabic account name translations in arabic-labels.ts (ACCOUNT_NAME_MAP)
+- Covers all standard ERPNext accounts with company suffixes (شركة الأفق, SH, CMP)
+- Removed 18 duplicate keys that were causing TypeScript build errors
+- Built and pushed successfully
+
+Stage Summary:
+- Fixed: Payment Entry submit/cancel TimestampMismatchError
+- Fixed: 403 errors on erpnext.accounts.utils.get_balance_on
+- Verified: No ERPNext branding in user-visible text
+- Added: 200+ Arabic account name translations
+- Commit: 9a06cd9 pushed to origin/main
