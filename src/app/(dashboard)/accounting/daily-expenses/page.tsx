@@ -62,7 +62,7 @@ export default function DailyExpensesPage() {
   const submitExpense = useSubmitDoc('Expense Claim');
   const cancelExpense = useCancelDoc('Expense Claim');
 
-  // تحقق من توفر نوع المستند على الخادم
+  // تحقق من توفر نوع المستند على الخادم — باستخدام فحص فعلي للـ DocType
   const [doctypeAvailable, setDoctypeAvailable] = useState<boolean | null>(null);
   const [doctypeCheckMessage, setDoctypeCheckMessage] = useState<string>('');
 
@@ -70,20 +70,36 @@ export default function DailyExpensesPage() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/data/Expense%20Claim?fields=["name"]&limit=1');
+        // فحص فعلي: نستخدم naming-series API لأنه يستدعي frappe.client.get_value
+        const res = await fetch('/api/settings/naming-series?doctype=' + encodeURIComponent('Expense Claim'));
         const j = await res.json();
         if (!cancelled) {
-          if (j.success) {
+          if (j?.success && j?.data?.hasNamingSeries) {
             setDoctypeAvailable(true);
+          } else if (j?.success) {
+            setDoctypeAvailable(false);
+            setDoctypeCheckMessage('نوع المستند «مطالبة مصروفات» غير متوفر على الخادم. تأكد من تثبيت وحدة الموارد البشرية (HRMS).');
           } else {
             setDoctypeAvailable(false);
-            setDoctypeCheckMessage(j.error || 'نوع المستند غير متوفر على الخادم');
+            setDoctypeCheckMessage(j?.error || 'نوع المستند غير متوفر على الخادم');
           }
         }
       } catch {
         if (!cancelled) {
-          setDoctypeAvailable(false);
-          setDoctypeCheckMessage('تعذر الاتصال بالخادم');
+          // Fallback: نحاول الطريقة القديمة
+          try {
+            const res2 = await fetch('/api/data/Expense%20Claim?fields=["name"]&limit=1');
+            const j2 = await res2.json();
+            if (!cancelled) {
+              setDoctypeAvailable(j2?.success ? true : false);
+              if (!j2?.success) setDoctypeCheckMessage(j2?.error || 'تعذر التحقق من توفر نوع المستند');
+            }
+          } catch {
+            if (!cancelled) {
+              setDoctypeAvailable(false);
+              setDoctypeCheckMessage('تعذر الاتصال بالخادم');
+            }
+          }
         }
       }
     })();

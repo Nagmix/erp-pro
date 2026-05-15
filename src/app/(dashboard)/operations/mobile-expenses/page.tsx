@@ -336,7 +336,14 @@ export default function MobileExpensesPage() {
         setReceiptFile(null);
         void expenses.refetch();
       },
-      onError: () => toast.error('تعذر حفظ المصروف'),
+      onError: (err: Error) => {
+        const msg = err?.message || '';
+        const isHrmsError = /not found|does not exist|naming.?series|غير مسموح|not permitted/i.test(msg);
+        toast.error(msg || 'تعذر حفظ المصروف', {
+          description: isHrmsError ? 'تأكد من تثبيت وحدة الموارد البشرية (HRMS) وإعداد سلسلة التسمية' : undefined,
+          duration: 6000,
+        });
+      },
     });
   };
 

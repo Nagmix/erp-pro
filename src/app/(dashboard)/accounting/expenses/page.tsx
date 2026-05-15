@@ -39,6 +39,8 @@ import { z } from 'zod/v4';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { buildExpenseClaimCreate } from '@/lib/erp/erpnext-payloads';
 import { apiCreateDoc } from '@/lib/client/api';
+import { NamingSeriesSelect } from '@/components/erp/naming-series-select';
+import { useNamingSeriesForDoctype } from '@/lib/client/naming-series-hooks';
 import type { ParsedExpenseLine } from '@/lib/erp/parse-expense-import-xlsx';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -191,7 +193,9 @@ const expenseSchema = z.object({
   cost_center: z.string(),
   remark: z.string(),
   currency: z.string().min(1, 'العملة مطلوبة'),
-  exchange_rate: z.coerce.number().min(0.000001, 'سعر الصرف يجب أن يكون موجباً')});
+  exchange_rate: z.coerce.number().min(0.000001, 'سعر الصرف يجب أن يكون موجباً'),
+  naming_series: z.string(),
+});
 
 type ExpenseFormInput = z.input<typeof expenseSchema>;
 type ExpenseFormOutput = z.output<typeof expenseSchema>;
@@ -207,6 +211,10 @@ export default function ExpensesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selected, setSelected] = useState<ExpenseRow | null>(null);
   const [items, setItems] = useState<ExpenseItem[]>(() => [emptyItem(new Date().toISOString().split('T')[0]!)]);
+  const [namingSeries, setNamingSeries] = useState('');
+
+  // جلب خيارات التسلسل المتسلسل من الخادم
+  const { data: namingSeriesData } = useNamingSeriesForDoctype('Expense Claim');
 
   // استيراد مباشر من Excel
   const headerImportRef = useRef<HTMLInputElement>(null);
@@ -239,34 +247,60 @@ export default function ExpensesPage() {
   const createMutation = useCreateDoc('Expense Claim');
   const deleteMutation = useDeleteDoc('Expense Claim');
 
-  // تحقق من توفر نوع المستند على الخادم
+  // تحقق من توفر نوع المستند على الخادم — باستخدام فحص فعلي للـ DocType
   const [doctypeAvailable, setDoctypeAvailable] = useState<boolean | null>(null);
   const [doctypeCheckMessage, setDoctypeCheckMessage] = useState<string>('');
 
-  // فحص توفر Expense Claim عند تحميل الصفحة
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch('/api/data/Expense%20Claim?fields=["name"]&limit=1');
+        // فحص فعلي: نستخدم naming-series API لأنه يستدعي frappe.client.get_value
+        // للتحقق من وجود DocType — أوضح من محاولة جلب قائمة مستندات
+        const res = await fetch('/api/settings/naming-series?doctype=' + encodeURIComponent('Expense Claim'));
         const j = await res.json();
         if (!cancelled) {
-          if (j.success) {
+          if (j?.success && j?.data?.hasNamingSeries) {
             setDoctypeAvailable(true);
+          } else if (j?.success) {
+            // naming series API نجح لكن DocType غير موجود
+            setDoctypeAvailable(false);
+            setDoctypeCheckMessage('نوع المستند «مطالبة مصروفات» غير متوفر على الخادم. تأكد من تثبيت وحدة الموارد البشرية (HRMS).');
           } else {
             setDoctypeAvailable(false);
-            setDoctypeCheckMessage(j.error || 'نوع المستند غير متوفر على الخادم');
+            setDoctypeCheckMessage(j?.error || 'نوع المستند غير متوفر على الخادم');
           }
         }
       } catch {
         if (!cancelled) {
-          setDoctypeAvailable(false);
-          setDoctypeCheckMessage('تعذر الاتصال بالخادم');
+          // إذا فشل الطلب، نحاول الطريقة القديمة كـ fallback
+          try {
+            const res2 = await fetch('/api/data/Expense%20Claim?fields=["name"]&limit=1');
+            const j2 = await res2.json();
+            if (!cancelled) {
+              // حتى لو أعاد empty list، لا يعني أن Doctype غير موجود
+              // لذلك نعطّل التحذير إذا لم نستطع التأكد
+              setDoctypeAvailable(j2?.success ? true : false);
+              if (!j2?.success) setDoctypeCheckMessage(j2?.error || 'تعذر التحقق من توفر نوع المستند');
+            }
+          } catch {
+            if (!cancelled) {
+              setDoctypeAvailable(false);
+              setDoctypeCheckMessage('تعذر الاتصال بالخادم');
+            }
+          }
         }
       }
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // تعيين التسلسل الافتراضي من الخادم عند توفره
+  useEffect(() => {
+    if (namingSeriesData?.defaultPrefix && !namingSeries) {
+      setNamingSeries(namingSeriesData.defaultPrefix);
+    }
+  }, [namingSeriesData, namingSeries]);
 
   const form = useForm<ExpenseFormInput, any, ExpenseFormOutput>({
     resolver: zodResolver(expenseSchema),
@@ -276,7 +310,9 @@ export default function ExpensesPage() {
       cost_center: '',
       remark: '',
       currency: 'YER',
-      exchange_rate: 1}});
+      exchange_rate: 1,
+      naming_series: '',
+    }});
 
   const expenses = data || [];
   const docstatusTabs: ErpStatusTab[] = [
@@ -381,6 +417,7 @@ export default function ExpensesPage() {
       return;
     }
     const doc = buildExpenseClaimCreate({
+      naming_series: namingSeries?.trim() || undefined,
       employee: formData.employee,
       company: defaultCompany,
       posting_date: formData.posting_date,
@@ -399,10 +436,18 @@ export default function ExpensesPage() {
         toast.success('تم إنشاء مطالبة المصروفات بنجاح');
         setDialogOpen(false);
         const t = new Date().toISOString().split('T')[0]!;
-        form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1 });
+        form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1, naming_series: '' });
         setItems([emptyItem(t)]);
       },
-      onError: () => toast.error('حدث خطأ أثناء إنشاء مطالبة المصروفات — تأكد من تثبيت وحدة الموارد البشرية (HRMS) على الخادم')});
+      onError: (err: Error) => {
+        const msg = err?.message || '';
+        // عرض رسالة الخطأ الفعلية من ERPNext مع إضافة تلميح HRMS إن كانت متعلقة
+        const isHrmsError = /not found|does not exist|naming.?series|غير مسموح|not permitted/i.test(msg);
+        toast.error(msg || 'حدث خطأ أثناء إنشاء مطالبة المصروفات', {
+          description: isHrmsError ? 'تأكد من تثبيت وحدة الموارد البشرية (HRMS) وإعداد سلسلة التسمية' : undefined,
+          duration: 6000,
+        });
+      }});
   };
 
   const applyExpenseLinesFromExcel = async (buffer: ArrayBuffer) => {
@@ -493,7 +538,7 @@ export default function ExpensesPage() {
               disabled={companyLoading}
               onClick={() => {
                 const t = new Date().toISOString().split('T')[0]!;
-                form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1 });
+                form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1, naming_series: namingSeriesData?.defaultPrefix || '' });
                 setItems([emptyItem(t)]);
                 setDialogOpen(true);
               }}
@@ -624,6 +669,16 @@ export default function ExpensesPage() {
                       value={form.watch('cost_center')}
                       onChange={(v) => form.setValue('cost_center', v)}
                       placeholder="اختياري"
+                    />
+                  </FormField>
+                </div>
+                <div className="flex items-center gap-3">
+                  <FormField label="سلسلة التسمية" icon={Hash} hint="ترقيم المطالبة — الافتراضي من ERPNext">
+                    <NamingSeriesSelect
+                      doctype="Expense Claim"
+                      value={namingSeries}
+                      onChange={setNamingSeries}
+                      defaultSeries="HR-EXP-.YYYY.-"
                     />
                   </FormField>
                 </div>

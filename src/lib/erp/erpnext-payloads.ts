@@ -695,6 +695,10 @@ export function buildPurchaseInvoice(input: {
 /**
  * مطالبة مصروفات — Expense Claim (HRMS).
  * يطابق الحقول القياسية: naming_series، employee، company، posting_date، remark، cost_center، expenses.
+ *
+ * ⚠️ لا نحدد naming_series افتراضياً — ندع ERPNext/HRMS يستخدم الإعداد الافتراضي
+ * لتجنب أخطاء "naming series not found" أو تعارض الأرقام.
+ * يمكن تمرير naming_series صراحة إن عُرفت من الخادم.
  */
 export function buildExpenseClaimCreate(input: {
   naming_series?: string;
@@ -715,7 +719,6 @@ export function buildExpenseClaimCreate(input: {
     cost_center?: string;
   }[];
 }): Record<string, unknown> {
-  const naming_series = input.naming_series?.trim() || 'HR-EXP-.YYYY.-';
   const currency = input.currency?.trim() || 'YER';
   const exchange_rate = input.exchange_rate ?? 1;
   const expenses = input.expenses
@@ -737,7 +740,10 @@ export function buildExpenseClaimCreate(input: {
     });
   const doc: Record<string, unknown> = {
     doctype: 'Expense Claim',
-    naming_series,
+    // لا نحدد naming_series تلقائياً — ندع ERPNext/HRMS يستخدم الإعداد الافتراضي
+    // لتجنب أخطاء "naming series not found" أو تعارض الأرقام
+    // يُضاف فقط إن تم تمريره صراحة من NamingSeriesSelect
+    ...(input.naming_series?.trim() ? { naming_series: input.naming_series.trim() } : {}),
     employee: input.employee,
     company: input.company,
     posting_date: input.posting_date,
