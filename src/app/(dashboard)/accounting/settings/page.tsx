@@ -37,6 +37,7 @@ import {
   Pencil,
   Loader2,
   Receipt,
+  AlertTriangle,
 } from 'lucide-react';
 
 function SettingsCard({ icon, title, description, href, badge }: { icon: string; title: string; description: string; href: string; badge?: string }) {
@@ -79,6 +80,7 @@ function KpiStat({ icon: Icon, label, value, accent }: { icon: React.ElementType
 type ExpenseTypeRow = {
   name: string;
   expense_claim_type_name?: string;
+  default_account?: string;
 };
 
 /** أنواع المصروفات الافتراضية الشائعة للمؤسسات اليمنية */
@@ -102,7 +104,7 @@ const DEFAULT_EXPENSE_TYPES = [
 
 function ExpenseTypesManager() {
   const { data: expenseTypes = [], isLoading, isError, error, refetch } = useDocList<ExpenseTypeRow>('Expense Claim Type', {
-    fields: ['name'],
+    fields: ['name', 'default_account'],
     limit: 200,
   });
 
@@ -111,10 +113,12 @@ function ExpenseTypesManager() {
 
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [newTypeName, setNewTypeName] = useState('');
+  const [newTypeAccount, setNewTypeAccount] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [toDelete, setToDelete] = useState<ExpenseTypeRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [seedingDefaults, setSeedingDefaults] = useState(false);
+  const [configuringAccounts, setConfiguringAccounts] = useState(false);
 
   /** إضافة أنواع المصروفات الافتراضية دفعة واحدة */
   const handleSeedDefaults = useCallback(async () => {
@@ -140,7 +144,34 @@ function ExpenseTypesManager() {
     if (failed > 0) toast.warning(`فشل إضافة ${failed} نوع`);
     refetch();
     setSeedingDefaults(false);
+    // بعد إنشاء الأنواع، نعين الحسابات الافتراضية تلقائياً
+    if (created > 0) {
+      handleConfigureAccounts();
+    }
   }, [expenseTypes, createMutation, refetch]);
+
+  /** تعيين الحسابات الافتراضية تلقائياً لأنواع المصروفات */
+  const handleConfigureAccounts = useCallback(async () => {
+    setConfiguringAccounts(true);
+    try {
+      const res = await fetch('/api/setup/configure-expense-accounts', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        if (data.updated > 0) {
+          toast.success(data.message || `تم تعيين الحسابات لـ ${data.updated} نوع مصروف`);
+        } else {
+          toast.info(data.message || 'جميع أنواع المصروفات لديها حسابات بالفعل');
+        }
+        refetch();
+      } else {
+        toast.error(data.error || 'فشل تعيين الحسابات الافتراضية');
+      }
+    } catch {
+      toast.error('تعذر الاتصال بالخادم لتعيين الحسابات');
+    } finally {
+      setConfiguringAccounts(false);
+    }
+  }, [refetch]);
 
   const handleAdd = useCallback(async () => {
     if (!newTypeName.trim()) {
@@ -149,11 +180,16 @@ function ExpenseTypesManager() {
     }
     try {
       // ERPNext Expense Claim Type uses the document name as the type name
-      await createMutation.mutateAsync({
+      const payload: Record<string, unknown> = {
         name: newTypeName.trim(),
-      });
+      };
+      if (newTypeAccount?.trim()) {
+        payload.default_account = newTypeAccount.trim();
+      }
+      await createMutation.mutateAsync(payload);
       toast.success(`تم إضافة نوع المصروف "${newTypeName.trim()}" بنجاح`);
       setNewTypeName('');
+      setNewTypeAccount('');
       setAddDialogOpen(false);
       refetch();
     } catch (err) {
@@ -213,7 +249,11 @@ function ExpenseTypesManager() {
             إدارة أنواع وتصنيفات المصروفات المستخدمة في مطالبات المصروفات
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" className="gap-2" onClick={handleConfigureAccounts} disabled={configuringAccounts}>
+            {configuringAccounts ? <Loader2 className="h-4 w-4 animate-spin" /> : <Landmark className="h-4 w-4" />}
+            {configuringAccounts ? 'جاري التعيين...' : 'تعيين الحسابات الافتراضية'}
+          </Button>
           <Button variant="outline" className="gap-2" onClick={handleSeedDefaults} disabled={seedingDefaults}>
             {seedingDefaults ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
             {seedingDefaults ? 'جاري الإضافة...' : 'إضافة الأنواع الافتراضية'}
@@ -226,6 +266,24 @@ function ExpenseTypesManager() {
       </div>
 
       <Separator />
+
+      {/* تنبيه إذا كانت هناك أنواع بدون حسابات افتراضية */}
+      {!isLoading && expenseTypes.length > 0 && expenseTypes.some(t => !t.default_account) && (
+        <Alert className="border-amber-500/40 bg-amber-500/5">
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <AlertTitle className="text-amber-700">أنواع مصروفات بدون حسابات افتراضية</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p className="text-sm">
+              يوجد {expenseTypes.filter(t => !t.default_account).length} نوع مصروف بدون حساب افتراضي.
+              لن يمكن حفظ مطالبات المصروفات لهذه الأنواع ما لم يتم تعيين حساب افتراضي لكل نوع.
+            </p>
+            <Button variant="outline" size="sm" onClick={handleConfigureAccounts} disabled={configuringAccounts} className="gap-1.5">
+              {configuringAccounts ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Landmark className="h-3.5 w-3.5" />}
+              تعيين الحسابات تلقائياً
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -252,20 +310,29 @@ function ExpenseTypesManager() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {expenseTypes.map((type) => (
-            <Card key={type.name} className="border-border/40 hover:border-primary/20 transition-all duration-200 group">
+            <Card key={type.name} className={`border-border/40 hover:border-primary/20 transition-all duration-200 group ${!type.default_account ? 'border-amber-500/30 bg-amber-500/5' : ''}`}>
               <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <Receipt className="h-4 w-4 text-primary" />
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${type.default_account ? 'bg-primary/10' : 'bg-amber-500/10'}`}>
+                    {type.default_account ? (
+                      <Receipt className="h-4 w-4 text-primary" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    )}
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">{type.name}</p>
+                    {type.default_account ? (
+                      <p className="text-[11px] text-muted-foreground truncate">{type.default_account}</p>
+                    ) : (
+                      <p className="text-[11px] text-amber-600">بدون حساب افتراضي</p>
+                    )}
                   </div>
                 </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                   onClick={() => { setToDelete(type); setDeleteDialogOpen(true); }}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -301,6 +368,18 @@ function ExpenseTypesManager() {
                 onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
               />
               <p className="text-xs text-muted-foreground">سيتم استخدام هذا الاسم في تصنيف مطالبات المصروفات</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="expense-type-account">الحساب الافتراضي (اختياري)</Label>
+              <Input
+                id="expense-type-account"
+                value={newTypeAccount}
+                onChange={(e) => setNewTypeAccount(e.target.value)}
+                placeholder="اسم حساب المصروف من شجرة الحسابات"
+              />
+              <p className="text-xs text-muted-foreground">
+                الحساب الافتراضي الذي ستُسجل فيه مطالبات هذا النوع. إن لم تدخل حساباً، يمكنك تعيينه لاحقاً عبر زر «تعيين الحسابات الافتراضية».
+              </p>
             </div>
           </div>
           <DialogFooter>

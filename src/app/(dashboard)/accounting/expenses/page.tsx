@@ -445,11 +445,23 @@ export default function ExpensesPage() {
       },
       onError: (err: Error) => {
         const msg = err?.message || '';
-        // عرض رسالة الخطأ الفعلية من ERPNext مع إضافة تلميح HRMS إن كانت متعلقة
+        // عرض رسالة الخطأ الفعلية من ERPNext مع إضافة تلميح مناسب
         const isHrmsError = /not found|does not exist|naming.?series|غير مسموح|not permitted/i.test(msg);
+        const isAccountError = /default account|Set the default account|الحساب الافتراضي/i.test(msg);
+        const isValidationError = /ValidationError|Validation Error/i.test(msg);
+        
+        let description: string | undefined;
+        if (isAccountError) {
+          description = 'يجب تعيين حساب افتراضي لنوع المصروف. اذهب إلى إعدادات المحاسبة ← أنواع المصروفات ← تعيين الحسابات الافتراضية';
+        } else if (isHrmsError) {
+          description = 'تأكد من تثبيت وحدة الموارد البشرية (HRMS) وإعداد سلسلة التسمية';
+        } else if (isValidationError) {
+          description = 'تحقق من صحة البيانات المدخلة وتأكد من اكتمال الحقول المطلوبة';
+        }
+        
         toast.error(msg || 'حدث خطأ أثناء إنشاء مطالبة المصروفات', {
-          description: isHrmsError ? 'تأكد من تثبيت وحدة الموارد البشرية (HRMS) وإعداد سلسلة التسمية' : undefined,
-          duration: 6000,
+          description,
+          duration: 8000,
         });
       }});
   };

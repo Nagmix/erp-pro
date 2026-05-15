@@ -213,7 +213,11 @@ export default function DailyExpensesPage() {
       void refetch();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      toast.error('فشل إنشاء المصروف', { description: msg });
+      const isAccountError = /default account|Set the default account|الحساب الافتراضي/i.test(msg);
+      const description = isAccountError
+        ? 'يجب تعيين حساب افتراضي لنوع المصروف. اذهب إلى إعدادات المحاسبة ← أنواع المصروفات ← تعيين الحسابات الافتراضية'
+        : msg;
+      toast.error('فشل إنشاء المصروف', { description, duration: 8000 });
     } finally {
       setBusy(false);
     }

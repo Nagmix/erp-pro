@@ -344,9 +344,16 @@ export default function MobileExpensesPage() {
       onError: (err: Error) => {
         const msg = err?.message || '';
         const isHrmsError = /not found|does not exist|naming.?series|غير مسموح|not permitted/i.test(msg);
+        const isAccountError = /default account|Set the default account|الحساب الافتراضي/i.test(msg);
+        let description: string | undefined;
+        if (isAccountError) {
+          description = 'يجب تعيين حساب افتراضي لنوع المصروف. اذهب إلى إعدادات المحاسبة ← أنواع المصروفات ← تعيين الحسابات الافتراضية';
+        } else if (isHrmsError) {
+          description = 'تأكد من تثبيت وحدة الموارد البشرية (HRMS) وإعداد سلسلة التسمية';
+        }
         toast.error(msg || 'تعذر حفظ المصروف', {
-          description: isHrmsError ? 'تأكد من تثبيت وحدة الموارد البشرية (HRMS) وإعداد سلسلة التسمية' : undefined,
-          duration: 6000,
+          description,
+          duration: 8000,
         });
       },
     });
