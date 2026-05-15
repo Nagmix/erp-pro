@@ -53,6 +53,7 @@ import {
   X,
   SlidersHorizontal,
   Loader2,
+  Languages,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '@/lib/core/helpers';
@@ -630,6 +631,7 @@ export default function ChartOfAccountsPage() {
   const [filterRoot, setFilterRoot] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [arabizing, setArabizing] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -797,6 +799,24 @@ export default function ChartOfAccountsPage() {
     void refetch();
   };
 
+  const handleArabize = async () => {
+    setArabizing(true);
+    try {
+      const res = await fetch('/api/accounting/arabize-accounts', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`تم تعريب ${data.renamed} حساب من أصل ${data.total}`);
+        void refetch();
+      } else {
+        toast.error(data.error || 'فشل تعريب الحسابات');
+      }
+    } catch {
+      toast.error('فشل الاتصال بالخادم');
+    } finally {
+      setArabizing(false);
+    }
+  };
+
   const handleDelete = () => {
     if (!selectedAccount) return;
     deleteMutation.mutate(selectedAccount.name, {
@@ -861,6 +881,17 @@ export default function ChartOfAccountsPage() {
             >
               <Upload className="h-3.5 w-3.5" />
               استيراد CSV
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              disabled={arabizing}
+              onClick={handleArabize}
+            >
+              {arabizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Languages className="h-3.5 w-3.5" />}
+              {arabizing ? 'جاري التعريب...' : 'تعريب الحسابات'}
             </Button>
             <Button
               size="sm"

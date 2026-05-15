@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Trash2, Send, Undo2, Eye, Upload, FileSpreadsheet, Minus, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Send, Undo2, Eye, Upload, FileSpreadsheet, Minus, Loader2, Pencil } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -90,6 +90,7 @@ export default function JournalEntryPage() {
   const [search, setSearch] = useState('');
   const [selectedEntry, setSelectedEntry] = useState<JournalRow | null>(null);
   const [importing, setImporting] = useState(false);
+  const [submittingName, setSubmittingName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { company: defaultCompany } = useDefaultCompanyName();
   const { data, isLoading, isError, error, refetch } = useDocList<JournalRow>('Journal Entry', {
@@ -270,16 +271,30 @@ export default function JournalEntryPage() {
                 type="button"
                 size="sm"
                 className="h-7 text-xs px-2"
-                onClick={() =>
+                disabled={submittingName === row.name}
+                onClick={() => {
+                  setSubmittingName(row.name);
                   submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast.success('تم ترحيل القيد'); void refetch(); },
-                    onError: () => toast.error('فشل الترحيل — تحقق من البيانات'),
-                  })
-                }
+                    onSuccess: () => { setSubmittingName(null); toast.success('تم ترحيل القيد'); void refetch(); },
+                    onError: () => { setSubmittingName(null); toast.error('فشل الترحيل — تحقق من البيانات'); },
+                  });
+                }}
               >
-                <Send className="h-3 w-3 ms-1" />ترحيل
+                {submittingName === row.name ? (
+                  <><Loader2 className="h-3 w-3 ms-1 animate-spin" />جاري الترحيل...</>
+                ) : (
+                  <><Send className="h-3 w-3 ms-1" />ترحيل</>
+                )}
               </Button>
             )}
+            {asNumber(row.docstatus) === 0 && (() => {
+              const editHref = docDetailPath('Journal Entry', row.name);
+              return editHref ? (
+                <Button asChild size="sm" variant="outline" className="h-7 px-2 text-xs">
+                  <Link href={editHref}><Pencil className="h-3 w-3 ms-1" />تعديل</Link>
+                </Button>
+              ) : null;
+            })()}
             {asNumber(row.docstatus) === 1 && (
               <Button
                 type="button"
@@ -310,7 +325,7 @@ export default function JournalEntryPage() {
           </div>
         )},
     ],
-    [submitMutation, cancelMutation, refetch, toast]
+    [submitMutation, cancelMutation, refetch, toast, submittingName]
   );
 
   const clearFilters = () => {

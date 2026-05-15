@@ -33,12 +33,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, ArrowUpLeft, ArrowDownLeft, ArrowLeftRight, Trash2, CreditCard, Send, Undo2, Eye, CalendarDays, Users, Wallet, ArrowRightLeft, Hash, MessageSquare, Landmark, Receipt, FileText, Loader2 } from 'lucide-react';
+import { Plus, ArrowUpLeft, ArrowDownLeft, ArrowLeftRight, Trash2, CreditCard, Send, Undo2, Eye, CalendarDays, Users, Wallet, ArrowRightLeft, Hash, MessageSquare, Landmark, Receipt, FileText, Loader2, Edit } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PageHeader } from '@/components/erp/page-header';
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { buildPaymentEntry, type PaymentReferenceInput } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -189,7 +189,24 @@ const paymentSchema = z.object({
   reference_date: z.string(),
   source_exchange_rate: z.coerce.number().min(0.000001, 'سعر صرف المصدر يجب أن يكون موجباً'),
   target_exchange_rate: z.coerce.number().min(0.000001, 'سعر صرف الهدف يجب أن يكون موجباً'),
-  remarks: z.string()});
+  remarks: z.string()
+}).refine(
+  (data) => {
+    if (data.payment_type !== 'Internal Transfer') {
+      return !!data.party_type && data.party_type.trim() !== '';
+    }
+    return true;
+  },
+  { message: 'نوع الطرف مطلوب لسندات القبض والصرف', path: ['party_type'] }
+).refine(
+  (data) => {
+    if (data.payment_type !== 'Internal Transfer') {
+      return !!data.party && data.party.trim() !== '';
+    }
+    return true;
+  },
+  { message: 'يرجى اختيار الطرف', path: ['party'] }
+);
 
 type PaymentFormInput = z.input<typeof paymentSchema>;
 type PaymentFormOutput = z.output<typeof paymentSchema>;
@@ -234,9 +251,13 @@ export default function PaymentEntryPage() {
     limit: 500,
   });
   const createMutation = useCreateDoc('Payment Entry');
+  const updateMutation = useUpdateDoc('Payment Entry');
   const deleteMutation = useDeleteDoc('Payment Entry');
   const submitMutation = useSubmitDoc<PaymentRow>('Payment Entry');
   const cancelMutation = useCancelDoc<PaymentRow>('Payment Entry');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<PaymentRow | null>(null);
+  const [submittingName, setSubmittingName] = useState<string | null>(null);
 
   const form = useForm<PaymentFormInput, any, PaymentFormOutput>({
     resolver: zodResolver(paymentSchema),
@@ -342,9 +363,15 @@ export default function PaymentEntryPage() {
   }, [toast, form]);
 
   const handleCreate = (formData: PaymentFormOutput) => {
-    if (formData.payment_type !== 'Internal Transfer' && !formData.party) {
-      toast.error('يرجى اختيار الطرف');
-      return;
+    if (formData.payment_type !== 'Internal Transfer') {
+      if (!formData.party_type || formData.party_type.trim() === '') {
+        toast.error('نوع الطرف مطلوب لسندات القبض والصرف');
+        return;
+      }
+      if (!formData.party || formData.party.trim() === '') {
+        toast.error('يرجى اختيار الطرف');
+        return;
+      }
     }
     if (!defaultCo) {
       toast.error('تعذر تحديد الشركة');
@@ -395,6 +422,57 @@ export default function PaymentEntryPage() {
         setPeRefs([]);
       },
       onError: () => toast.error('حدث خطأ أثناء إنشاء عملية الدفع')});
+  };
+
+  const handleEdit = (formData: PaymentFormOutput) => {
+    if (!editingEntry) return;
+    if (formData.payment_type !== 'Internal Transfer') {
+      if (!formData.party_type || formData.party_type.trim() === '') {
+        toast.error('نوع الطرف مطلوب لسندات القبض والصرف');
+        return;
+      }
+      if (!formData.party || formData.party.trim() === '') {
+        toast.error('يرجى اختيار الطرف');
+        return;
+      }
+    }
+    const updateData: Record<string, unknown> = {
+      payment_type: formData.payment_type,
+      posting_date: formData.posting_date,
+      mode_of_payment: formData.mode_of_payment,
+      paid_amount: formData.paid_amount,
+      received_amount: formData.received_amount,
+      remarks: formData.remarks || undefined,
+    };
+    if (formData.payment_type !== 'Internal Transfer') {
+      updateData.party_type = formData.party_type;
+      updateData.party = formData.party;
+    } else {
+      updateData.party_type = '';
+      updateData.party = '';
+    }
+    if (formData.paid_from) updateData.paid_from = formData.paid_from;
+    if (formData.paid_to) updateData.paid_to = formData.paid_to;
+    if (formData.reference_no) updateData.reference_no = formData.reference_no;
+    if (formData.reference_date) updateData.reference_date = formData.reference_date;
+    const srcFx = Number(formData.source_exchange_rate) || 1;
+    const tgtFx = peFxUnified ? srcFx : Number(formData.target_exchange_rate) || 1;
+    if (srcFx !== 1) updateData.source_exchange_rate = srcFx;
+    if (tgtFx !== 1) updateData.target_exchange_rate = tgtFx;
+    updateMutation.mutate(
+      { name: editingEntry.name, doc: updateData },
+      {
+        onSuccess: () => {
+          toast.success('تم تعديل السند بنجاح');
+          setEditDialogOpen(false);
+          setEditingEntry(null);
+          form.reset();
+          setPeRefs([]);
+          void refetch();
+        },
+        onError: () => toast.error('حدث خطأ أثناء تعديل السند'),
+      }
+    );
   };
 
   // Columns with actions
@@ -470,18 +548,24 @@ export default function PaymentEntryPage() {
               type="button"
               size="sm"
               className="h-7 text-xs px-2"
-              onClick={() => submitMutation.mutate(row.name, {
-                onSuccess: () => { toast.success('تم ترحيل السند'); void refetch(); },
-                onError: (err: Error) => {
-                  const msg = err?.message || '';
-                  const isTimestamp = /modified after|TimestampMismatch/i.test(msg);
-                  toast.error(isTimestamp ? 'السند تم تعديله مؤخراً — يرجى تحديث الصفحة وإعادة المحاولة' : 'فشل الترحيل — تحقق من البيانات', {
-                    description: isTimestamp ? undefined : msg,
-                    duration: 6000,
-                  });
-                }})}
+              disabled={submittingName === row.name}
+              onClick={() => {
+                setSubmittingName(row.name);
+                submitMutation.mutate(row.name, {
+                  onSuccess: () => { toast.success('تم ترحيل السند'); setSubmittingName(null); void refetch(); },
+                  onError: (err: Error) => {
+                    setSubmittingName(null);
+                    const msg = err?.message || '';
+                    const isTimestamp = /modified after|TimestampMismatch/i.test(msg);
+                    toast.error(isTimestamp ? 'السند تم تعديله مؤخراً — يرجى تحديث الصفحة وإعادة المحاولة' : 'فشل الترحيل — تحقق من البيانات', {
+                      description: isTimestamp ? undefined : msg,
+                      duration: 6000,
+                    });
+                  }});
+              }}
             >
-              <Send className="h-3 w-3 ms-1" />ترحيل
+              {submittingName === row.name ? <Loader2 className="h-3 w-3 ms-1 animate-spin" /> : <Send className="h-3 w-3 ms-1" />}
+              {submittingName === row.name ? 'جاري الترحيل...' : 'ترحيل'}
             </Button>
           )}
           {Number(row.docstatus) === 1 && (
@@ -498,6 +582,38 @@ export default function PaymentEntryPage() {
                 }})}
             >
               <Undo2 className="h-3 w-3 ms-1" />إلغاء
+            </Button>
+          )}
+          {Number(row.docstatus) === 0 && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={() => {
+                setEditingEntry(row);
+                form.reset({
+                  payment_type: row.payment_type || 'Receive',
+                  party_type: row.party_type || 'Customer',
+                  party: row.party || '',
+                  mode_of_payment: row.mode_of_payment || '',
+                  paid_from: row.paid_from || '',
+                  paid_to: row.paid_to || '',
+                  paid_amount: row.paid_amount || 0,
+                  received_amount: row.received_amount || 0,
+                  posting_date: row.posting_date || new Date().toISOString().split('T')[0],
+                  reference_no: row.reference_no || '',
+                  reference_date: row.reference_date || '',
+                  source_exchange_rate: 1,
+                  target_exchange_rate: 1,
+                  remarks: row.remarks || '',
+                });
+                setPeFxUnified(true);
+                setPeRefs([]);
+                setEditDialogOpen(true);
+              }}
+            >
+              <Edit className="h-3 w-3" />
             </Button>
           )}
           {Number(row.docstatus) === 0 && (
@@ -853,6 +969,144 @@ export default function PaymentEntryPage() {
             <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
               <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
               <Button type="submit" disabled={createMutation.isPending} className="gap-1.5 min-w-[130px]">{createMutation.isPending ? 'جاري الحفظ...' : 'حفظ كمسودة'}</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={(open) => { if (!updateMutation.isPending) setEditDialogOpen(open); }}>
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                <Edit className="h-5 w-5" />
+              </div>
+              <div>
+                <span>تعديل السند</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">تعديل بيانات السند &quot;{editingEntry?.name}&quot;</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={form.handleSubmit(handleEdit)}>
+            <ErpTabbedForm
+              tabs={[
+                {
+                  value: 'main',
+                  label: 'معلومات الدفع',
+                  icon: <CreditCard className="h-3.5 w-3.5" />,
+                  content: (
+                    <div className="space-y-5 py-4">
+                      <SectionFieldset legend="معلومات الدفع الأساسية" icon={CreditCard} title="معلومات الدفع الأساسية" accent="primary">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="النوع" icon={ArrowRightLeft} required>
+                            <Select value={watchPaymentType} onValueChange={v => {
+                              form.setValue('payment_type', v);
+                              if (v === 'Internal Transfer') { form.setValue('party_type', ''); form.setValue('party', ''); }
+                              else { form.setValue('party_type', 'Customer'); form.setValue('party', ''); }
+                            }}>
+                              <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Receive">تحصيل (سند قبض)</SelectItem>
+                                <SelectItem value="Pay">صرف (سند صرف)</SelectItem>
+                                <SelectItem value="Internal Transfer">تحويل داخلي</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormField>
+                          <FormField label="طريقة الدفع" icon={Wallet} required>
+                            <ErpLinkCombobox doctype="Mode of Payment" value={form.watch('mode_of_payment')} onChange={(v) => form.setValue('mode_of_payment', v)} placeholder="اختر طريقة الدفع" />
+                          </FormField>
+                        </div>
+                        {watchPaymentType !== 'Internal Transfer' && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField label="نوع الطرف" icon={Users}>
+                              <Select value={watchPartyType} onValueChange={v => { form.setValue('party_type', v); form.setValue('party', ''); }}>
+                                <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Customer">عميل</SelectItem>
+                                  <SelectItem value="Supplier">مورد</SelectItem>
+                                  <SelectItem value="Employee">موظف</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </FormField>
+                            <FormField label="الطرف" icon={Users} required>
+                              <ErpLinkCombobox doctype={watchPartyType === 'Customer' ? 'Customer' : watchPartyType === 'Supplier' ? 'Supplier' : 'Employee'} value={form.watch('party')} onChange={(v) => form.setValue('party', v)} displayKey={watchPartyType === 'Customer' ? 'customer_name' : watchPartyType === 'Supplier' ? 'supplier_name' : 'employee_name'} placeholder="الطرف" />
+                            </FormField>
+                          </div>
+                        )}
+                      </SectionFieldset>
+                      <SectionFieldset legend="المبالغ والحسابات" icon={Landmark} title="المبالغ والحسابات" accent="info">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="الحساب الدافع (من)" icon={Landmark}>
+                            <ErpLinkCombobox doctype="Account" value={form.watch('paid_from')} onChange={(v) => form.setValue('paid_from', v)} placeholder="الحساب المدفوع منه" />
+                          </FormField>
+                          <FormField label="الحساب المستلم (إلى)" icon={Landmark}>
+                            <ErpLinkCombobox doctype="Account" value={form.watch('paid_to')} onChange={(v) => form.setValue('paid_to', v)} placeholder="الحساب المستلم فيه" />
+                          </FormField>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="المبلغ المدفوع" icon={Wallet} required>
+                            <Input type="number" placeholder="0.00" dir="ltr" {...form.register('paid_amount', { valueAsNumber: true })} />
+                          </FormField>
+                          <FormField label="المبلغ المستلم" icon={Wallet}>
+                            <Input type="number" placeholder="0.00" dir="ltr" {...form.register('received_amount', { valueAsNumber: true })} />
+                          </FormField>
+                        </div>
+                      </SectionFieldset>
+                      <SectionFieldset legend="المراجع والتفاصيل" icon={Hash} title="المراجع والتفاصيل" accent="success">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="التاريخ" icon={CalendarDays} required>
+                            <DatePicker value={form.watch('posting_date')} onChange={(v) => form.setValue('posting_date', v)} className="h-9" />
+                          </FormField>
+                          <FormField label="رقم المرجع" icon={Hash}>
+                            <Input placeholder="رقم المرجع" dir="ltr" {...form.register('reference_no')} />
+                          </FormField>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField label="تاريخ المرجع" icon={CalendarDays}>
+                            <DatePicker value={form.watch('reference_date')} onChange={(v) => form.setValue('reference_date', v)} className="h-9" />
+                          </FormField>
+                          <FormField label="ملاحظات" icon={MessageSquare}>
+                            <Input placeholder="ملاحظات إضافية" {...form.register('remarks')} />
+                          </FormField>
+                        </div>
+                      </SectionFieldset>
+                    </div>
+                  ),
+                },
+                {
+                  value: 'summary',
+                  label: 'ملخص',
+                  icon: <FileText className="h-3.5 w-3.5" />,
+                  content: (
+                    <div className="space-y-4 py-4">
+                      <div className="rounded-lg border border-border/40 bg-muted/20 p-4 text-xs space-y-2">
+                        <div className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">نوع العملية</span>
+                          <span className="font-medium">{watchPaymentType === 'Receive' ? 'سند قبض' : watchPaymentType === 'Pay' ? 'سند صرف' : 'تحويل داخلي'}</span>
+                        </div>
+                        {watchPaymentType !== 'Internal Transfer' && (
+                          <div className="flex justify-between gap-2">
+                            <span className="text-muted-foreground">الطرف</span>
+                            <span className="font-mono text-[11px] truncate max-w-[60%]" dir="ltr">{form.watch('party') || '—'}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between gap-2">
+                          <span className="text-muted-foreground">المبلغ</span>
+                          <span className="font-bold tabular-nums">{formatCurrency(Number(form.watch('paid_amount') || 0))}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ),
+                },
+              ]}
+            />
+            <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+              <Button type="button" variant="ghost" onClick={() => setEditDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+              <Button type="submit" disabled={updateMutation.isPending} className="gap-1.5 min-w-[130px]">
+                {updateMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Edit className="h-3.5 w-3.5" />}
+                {updateMutation.isPending ? 'جاري التحديث...' : 'تحديث السند'}
+              </Button>
             </div>
           </form>
         </DialogContent>

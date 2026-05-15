@@ -462,7 +462,7 @@ export default function AccountingSettingsPage() {
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting/dashboard' }, { label: 'الإعدادات' }]}
       />
 
-      {/* ── Live ERPNext Status ── */}
+      {/* ── الوضع المحاسبي الحالي ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
