@@ -140,7 +140,15 @@ export default function ChequesPage() {
   }, [rows, typeFilter, dateFrom, dateTo, statusFilter, lifecycleFilter, includeLifecycle]);
 
   const onStageChange = useCallback(
-    (name: string, stage: string) => {
+    (name: string, stage: string, docstatus: number) => {
+      if (docstatus === 1) {
+        toast.error('لا يمكن تعديل مرحلة شيك مرحّل — ألغِ الترحيل أولاً');
+        return;
+      }
+      if (docstatus === 2) {
+        toast.error('لا يمكن تعديل مرحلة شيك ملغي');
+        return;
+      }
       updatePe.mutate(
         { name, doc: { [CHEQUE_LIFECYCLE_FIELD]: stage || null } },
         {
@@ -148,10 +156,12 @@ export default function ChequesPage() {
             toast.success('تم تحديث مرحلة الشيك');
             void qc.invalidateQueries({ queryKey: ['docList', 'Payment Entry'] });
           },
-          onError: () => toast.error('فشل الحفظ')}
+          onError: (err: Error) =>
+            toast.error('فشل الحفظ', { description: err.message || 'خطأ غير معروف' }),
+        }
       );
     },
-    [qc, toast, updatePe]
+    [qc, updatePe]
   );
 
   const columns: Column<PERow>[] = useMemo(() => {
@@ -196,7 +206,7 @@ export default function ChequesPage() {
             value={cur || '__unset__'}
             onValueChange={(val) => {
               const next = val === '__unset__' ? '' : val;
-              onStageChange(row.name, next);
+              onStageChange(row.name, next, row.docstatus);
             }}
             disabled={updatePe.isPending}
           >

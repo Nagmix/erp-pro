@@ -276,7 +276,7 @@ export default function JournalEntryPage() {
                   setSubmittingName(row.name);
                   submitMutation.mutate(row.name, {
                     onSuccess: () => { setSubmittingName(null); toast.success('تم ترحيل القيد'); void refetch(); },
-                    onError: () => { setSubmittingName(null); toast.error('فشل الترحيل — تحقق من البيانات'); },
+                    onError: (err: Error) => { setSubmittingName(null); toast.error('فشل الترحيل — تحقق من البيانات', { description: err?.message || '', duration: 6000 }); },
                   });
                 }}
               >
@@ -304,7 +304,7 @@ export default function JournalEntryPage() {
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('تم إلغاء القيد'); void refetch(); },
-                    onError: () => toast.error('فشل الإلغاء'),
+                    onError: (err: Error) => toast.error('فشل الإلغاء', { description: err?.message || '', duration: 6000 }),
                   })
                 }
               >

@@ -421,7 +421,7 @@ export default function PaymentEntryPage() {
         form.reset();
         setPeRefs([]);
       },
-      onError: () => toast.error('حدث خطأ أثناء إنشاء عملية الدفع')});
+      onError: (err: Error) => toast.error('حدث خطأ أثناء إنشاء عملية الدفع', { description: err?.message || '', duration: 6000 })});
   };
 
   const handleEdit = (formData: PaymentFormOutput) => {
@@ -470,7 +470,7 @@ export default function PaymentEntryPage() {
           setPeRefs([]);
           void refetch();
         },
-        onError: () => toast.error('حدث خطأ أثناء تعديل السند'),
+        onError: (err: Error) => toast.error('حدث خطأ أثناء تعديل السند', { description: err?.message || '', duration: 6000 }),
       }
     );
   };

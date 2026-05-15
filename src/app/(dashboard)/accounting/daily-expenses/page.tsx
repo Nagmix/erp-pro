@@ -14,14 +14,24 @@ import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
-import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { buildExpenseClaimCreate } from '@/lib/erp/erpnext-payloads';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
 import { toast } from 'sonner';
-import { Plus, Receipt, Send, CheckCircle2, XCircle, Info } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Plus, Receipt, Send, CheckCircle2, XCircle, Info, Loader2, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
@@ -63,6 +73,7 @@ export default function DailyExpensesPage() {
   const createExpense = useCreateDoc('Expense Claim');
   const submitExpense = useSubmitDoc('Expense Claim');
   const cancelExpense = useCancelDoc('Expense Claim');
+  const deleteMutation = useDeleteDoc('Expense Claim');
 
   // فحص HRMS — نوع مستند Expense Claim يتطلب تطبيق HRMS
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
@@ -117,6 +128,9 @@ export default function DailyExpensesPage() {
   const [costCenter, setCostCenter] = useState('');
   const [remark, setRemark] = useState('');
   const [busy, setBusy] = useState(false);
+  const [submittingName, setSubmittingName] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<ExpenseRow | null>(null);
 
   // Filter state
   const [dateFrom, setDateFrom] = useState('');
@@ -225,27 +239,47 @@ export default function DailyExpensesPage() {
 
   // Submit expense
   const handleSubmit = useCallback(async (name: string) => {
+    setSubmittingName(name);
     try {
       await submitExpense.mutateAsync(name);
       toast.success('تم اعتماد المصروف');
       void refetch();
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      toast.error('فشل الاعتماد', { description: msg });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : undefined;
+      toast.error('فشل الاعتماد', { description: error?.message || '', duration: 6000 });
+    } finally {
+      setSubmittingName(null);
     }
   }, [submitExpense, refetch]);
 
   // Cancel expense
   const handleCancel = useCallback(async (name: string) => {
+    setSubmittingName(name);
     try {
       await cancelExpense.mutateAsync(name);
       toast.success('تم إلغاء المصروف');
       void refetch();
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      toast.error('فشل الإلغاء', { description: msg });
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : undefined;
+      toast.error('فشل الإلغاء', { description: error?.message || '', duration: 6000 });
+    } finally {
+      setSubmittingName(null);
     }
   }, [cancelExpense, refetch]);
+
+  // Delete expense (draft only)
+  const handleDelete = useCallback(async (row: ExpenseRow) => {
+    try {
+      await deleteMutation.mutateAsync(row.name);
+      toast.success('تم حذف المصروف');
+      setDeleteDialogOpen(false);
+      setSelectedEntry(null);
+      void refetch();
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : undefined;
+      toast.error('فشل الحذف', { description: error?.message || '', duration: 6000 });
+    }
+  }, [deleteMutation, refetch]);
 
   // Table columns
   const columns: Column<ExpenseRow>[] = useMemo(
@@ -291,15 +325,30 @@ export default function DailyExpensesPage() {
         render: (_v, row) => (
           <div className="flex items-center gap-1">
             {row.docstatus === 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 gap-1 text-xs text-emerald-600 hover:text-emerald-700"
-                onClick={() => handleSubmit(row.name)}
-              >
-                <CheckCircle2 className="h-3 w-3" />
-                اعتماد
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 gap-1 text-xs text-emerald-600 hover:text-emerald-700"
+                  onClick={() => handleSubmit(row.name)}
+                  disabled={submittingName === row.name}
+                >
+                  {submittingName === row.name ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-3 w-3" />
+                  )}
+                  {submittingName === row.name ? 'جاري الاعتماد...' : 'اعتماد'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 gap-1 text-xs text-destructive hover:text-destructive/80"
+                  onClick={() => { setSelectedEntry(row); setDeleteDialogOpen(true); }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </>
             )}
             {row.docstatus === 1 && (
               <Button
@@ -307,9 +356,14 @@ export default function DailyExpensesPage() {
                 size="sm"
                 className="h-7 gap-1 text-xs text-destructive hover:text-destructive/80"
                 onClick={() => handleCancel(row.name)}
+                disabled={submittingName === row.name}
               >
-                <XCircle className="h-3 w-3" />
-                إلغاء
+                {submittingName === row.name ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <XCircle className="h-3 w-3" />
+                )}
+                {submittingName === row.name ? 'جاري الإلغاء...' : 'إلغاء'}
               </Button>
             )}
             {(() => {
@@ -320,7 +374,7 @@ export default function DailyExpensesPage() {
         ),
       },
     ],
-    [handleSubmit, handleCancel]
+    [handleSubmit, handleCancel, deleteMutation, submittingName]
   );
 
   const hasActiveFilters = dateFrom || dateTo || docstatusFilter !== 'all' || search || employeeFilter || expenseTypeFilter;
@@ -511,6 +565,27 @@ export default function DailyExpensesPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base">تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs mt-1">
+              هل أنت متأكد من حذف المصروف {selectedEntry?.name}؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => selectedEntry && handleDelete(selectedEntry)}
+              variant="destructive"
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
