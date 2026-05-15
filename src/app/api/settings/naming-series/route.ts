@@ -118,6 +118,7 @@ async function getNamingSeriesForDoctype(doctype: string, userSession?: string) 
     }
 
     // Try to get existing series options from Naming Series DocType
+    // ⚠️ في Frappe v16، Naming Series DocType قد لا يكون متاحاً (تم حذفه أو نقله)
     let seriesOptions: string[] = [];
     try {
       const namingSeriesDoc = await getDoc('Naming Series', doctype, userSession) as Record<string, unknown>;
@@ -127,9 +128,11 @@ async function getNamingSeriesForDoctype(doctype: string, userSession?: string) 
       }
     } catch {
       // Naming Series doc might not exist yet for this doctype
+      // في v16، هذا طبيعي — نستخدم القيم الافتراضية
     }
 
-    // Get current counter values from tabSeries
+    // Get current counter values — في v16، Series قد لا يكون DocType متاحاً
+    // نحاول عبر طريقة بديلة: frappe.client.get_list على tabSeries مباشرة
     let counterInfo: Record<string, number> = {};
     try {
       const seriesRows = await getList('Series', {
@@ -187,37 +190,52 @@ async function getAllNamingSeries(userSession?: string) {
   for (const dt of NAMING_SERIES_DOCTYPES) {
     let seriesOptions: string[] = [dt.defaultPrefix];
     let counterInfo: Record<string, number> = {};
+    let docTypeExists = false;
 
+    // فحص هل DocType موجود على الخادم
     try {
-      const namingSeriesDoc = await getDoc('Naming Series', dt.doctype, userSession) as Record<string, unknown>;
-      const seriesData = namingSeriesDoc?.series as string;
-      if (seriesData) {
-        seriesOptions = seriesData.split('\n').filter((s: string) => s.trim());
-      }
+      const meta = await callMethod('frappe.client.get_value', {
+        doctype: 'DocType',
+        fieldname: 'name',
+        name: dt.doctype,
+      }, userSession) as Record<string, unknown> | null;
+      docTypeExists = meta != null && (meta.name != null || meta?.name !== undefined);
     } catch {
-      // Use defaults
+      docTypeExists = false;
     }
 
-    // Get counter values for matching series
-    try {
-      const allSeries = await getList('Series', {
-        fields: ['name', 'current'],
-        limit: 500,
-      }, userSession);
-      if (Array.isArray(allSeries)) {
-        for (const row of allSeries as Record<string, unknown>[]) {
-          const name = String(row.name || '');
-          for (const prefix of seriesOptions) {
-            // Match series that start with the prefix base
-            const basePrefix = prefix.replace(/\.YYYY\.-?$/, '').replace(/\.YYYY\.?$/, '').replace(/\.####$/, '').replace(/-$/, '');
-            if (name.startsWith(basePrefix) || name === prefix) {
-              counterInfo[name] = Number(row.current || 0);
+    if (docTypeExists) {
+      // محاولة جلب Naming Series — قد لا تعمل في v16
+      try {
+        const namingSeriesDoc = await getDoc('Naming Series', dt.doctype, userSession) as Record<string, unknown>;
+        const seriesData = namingSeriesDoc?.series as string;
+        if (seriesData) {
+          seriesOptions = seriesData.split('\n').filter((s: string) => s.trim());
+        }
+      } catch {
+        // Naming Series غير متاح في v16 — نستخدم القيم الافتراضية
+      }
+
+      // جلب قيم العدادات — قد لا تعمل في v16
+      try {
+        const allSeries = await getList('Series', {
+          fields: ['name', 'current'],
+          limit: 500,
+        }, userSession);
+        if (Array.isArray(allSeries)) {
+          for (const row of allSeries as Record<string, unknown>[]) {
+            const name = String(row.name || '');
+            for (const prefix of seriesOptions) {
+              const basePrefix = prefix.replace(/\.YYYY\.-?$/, '').replace(/\.YYYY\.?$/, '').replace(/\.####$/, '').replace(/-$/, '');
+              if (name.startsWith(basePrefix) || name === prefix) {
+                counterInfo[name] = Number(row.current || 0);
+              }
             }
           }
         }
+      } catch {
+        // Series غير متاح في v16 — نستخدم قيم فارغة
       }
-    } catch {
-      // Counter info not available
     }
 
     results.push({
@@ -226,6 +244,7 @@ async function getAllNamingSeries(userSession?: string) {
       defaultPrefix: dt.defaultPrefix,
       seriesOptions,
       counterInfo,
+      docTypeExists,
     });
   }
 

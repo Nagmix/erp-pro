@@ -11,40 +11,75 @@ import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 export const dynamic = 'force-dynamic';
 
 /**
- * فحص هل HRMS مثبت على الموقع بالفعل
+ * فحص هل HRMS مثبت على الموقع بالفعل AND DocTypes موجودة
+ * مهم: التطبيق قد يكون مثبتاً لكن DocTypes لم تُنشأ بعد migrate
  */
-async function isHrmsAlreadyInstalled(userSession?: string): Promise<boolean> {
-  // الطريقة 1: فحص وحدة HR (تدل على HRMS مثبت)
+async function isHrmsFullyInstalled(userSession?: string): Promise<{
+  installed: boolean;
+  docTypesCreated: boolean;
+  details: string;
+}> {
+  let appInstalled = false;
+  let docTypesCreated = false;
+
+  // الطريقة 1: فحص وحدة HR (تدل على HRMS مثبت كتطبيق)
   try {
     const hrModule = await getDoc('Module Def', 'HR', userSession) as Record<string, unknown>;
-    if (hrModule?.name) return true;
+    if (hrModule?.name) appInstalled = true;
   } catch { /* غير موجود */ }
 
-  // الطريقة 2: فحص DocType Expense Claim
+  // الطريقة 2: فحص DocType Expense Claim — هذا هو الفحص الحقيقي
+  // التطبيق قد يكون "مثبتاً" لكن DocTypes لم تُنشأ بعد
   try {
-    const meta = await callMethod('frappe.client.get_value', {
-      doctype: 'DocType',
-      fieldname: 'name',
-      name: 'Expense Claim',
-    }, userSession) as Record<string, unknown> | null;
-    if (meta?.name) return true;
-  } catch { /* غير موجود */ }
-
-  // الطريقة 3: فحص Installed Applications
-  try {
-    const installedApps = await getList('Installed Application', {
-      fields: ['app_name'],
-      limit: 50,
+    // في Frappe v16، frappe.client.get_value قد لا يعمل كما نتوقع
+    // نستخدم بدلاً من ذلك محاولة جلب قائمة من Expense Claim
+    const expenseClaims = await getList('Expense Claim', {
+      fields: ['name'],
+      limit: 1,
     }, userSession);
-    if (Array.isArray(installedApps)) {
-      return installedApps.some((app) => {
-        const record = app as Record<string, unknown>;
-        return String(record.app_name || '').toLowerCase() === 'hrms';
-      });
+    // إذا وصلنا هنا بدون خطأ، فالـ DocType موجود
+    docTypesCreated = true;
+  } catch (error) {
+    // DocType غير موجود
+    const msg = error instanceof Error ? error.message : String(error);
+    if (/404|not found|does not exist|غير موجود/i.test(msg)) {
+      docTypesCreated = false;
+    } else {
+      // خطأ آخر (صلاحيات مثلاً) — لا نستطيع التأكد
+      docTypesCreated = false;
     }
-  } catch { /* تجاهل */ }
+  }
 
-  return false;
+  // الطريقة 3: فحص Installed Applications كـ fallback
+  if (!appInstalled) {
+    try {
+      const installedApps = await getList('Installed Application', {
+        fields: ['app_name'],
+        limit: 50,
+      }, userSession);
+      if (Array.isArray(installedApps)) {
+        appInstalled = installedApps.some((app) => {
+          const record = app as Record<string, unknown>;
+          return String(record.app_name || '').toLowerCase() === 'hrms';
+        });
+      }
+    } catch { /* تجاهل */ }
+  }
+
+  let details = '';
+  if (appInstalled && docTypesCreated) {
+    details = 'HRMS مثبت بالكامل — التطبيق و DocTypes متوفرة';
+  } else if (appInstalled && !docTypesCreated) {
+    details = 'HRMS مثبت كتطبيق لكن DocTypes لم تُنشأ — يجب تشغيل bench migrate';
+  } else {
+    details = 'HRMS غير مثبت على الموقع';
+  }
+
+  return {
+    installed: appInstalled,
+    docTypesCreated,
+    details,
+  };
 }
 
 /**
@@ -102,19 +137,35 @@ async function installHrmsOnSite(userSession?: string): Promise<{ success: boole
 }
 
 /**
- * POST — تثبيت HRMS على الموقع
+ * POST — تثبيت HRMS على الموقع أو تشغيل migrate لإنشاء DocTypes
  */
 export async function POST(request: NextRequest) {
   try {
     const userSession = getFrappeSidFromRequest(request);
 
-    // فحص أولاً هل HRMS مثبت بالفعل
-    const alreadyInstalled = await isHrmsAlreadyInstalled(userSession);
-    if (alreadyInstalled) {
+    // فحص شامل هل HRMS مثبت بالكامل
+    const status = await isHrmsFullyInstalled(userSession);
+
+    if (status.installed && status.docTypesCreated) {
       return NextResponse.json({
         success: true,
-        message: 'HRMS مثبت بالفعل على الموقع',
+        message: 'HRMS مثبت بالكامل — التطبيق و DocTypes متوفرة',
         alreadyInstalled: true,
+        docTypesCreated: true,
+        details: status.details,
+      });
+    }
+
+    if (status.installed && !status.docTypesCreated) {
+      // التطبيق مثبت لكن DocTypes لم تُنشأ — نحتاج migrate
+      // لا يمكن تشغيل migrate عبر API (ليس whitelisted)
+      // الحل: إعادة نشر الخادم مع FORCE_SITE_MIGRATE=true
+      return NextResponse.json({
+        success: false,
+        message: 'HRMS مثبت كتطبيق لكن DocTypes لم تُنشأ بعد. يجب إعادة نشر الخادم الخلفي (backend) على Railway مع تعيين FORCE_SITE_MIGRATE=true، أو تشغيل bench migrate يدوياً على الخادم.',
+        alreadyInstalled: true,
+        docTypesCreated: false,
+        details: status.details,
       });
     }
 
@@ -125,6 +176,8 @@ export async function POST(request: NextRequest) {
       success: result.success,
       message: result.message,
       alreadyInstalled: false,
+      docTypesCreated: false,
+      details: status.details,
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل تثبيت HRMS';
@@ -138,7 +191,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const userSession = getFrappeSidFromRequest(request);
-    const installed = await isHrmsAlreadyInstalled(userSession);
+    const status = await isHrmsFullyInstalled(userSession);
 
     // جمع معلومات تشخيصية
     const diagnostics: Record<string, unknown> = {};
@@ -176,7 +229,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      hrmsInstalled: installed,
+      hrmsInstalled: status.installed,
+      docTypesCreated: status.docTypesCreated,
+      details: status.details,
       diagnostics,
     });
   } catch (error) {

@@ -702,6 +702,31 @@ else
         fi
     fi
 
+    # ★ فحص صحة DocTypes — التأكد من أن Expense Claim موجود
+    # في بعض الحالات، يكون HRMS مثبتاً كتطبيق لكن DocTypes لم تُنشأ
+    # بسبب عدم تشغيل migrate بعد التثبيت
+    log "Checking if HRMS DocTypes are properly created..."
+    EXPENSE_CLAIM_EXISTS=$(su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} execute 'frappe.client.get_value' --kwargs='{\"doctype\":\"DocType\",\"fieldname\":\"name\",\"name\":\"Expense Claim\"}'" 2>&1 || echo "")
+    if echo "$EXPENSE_CLAIM_EXISTS" | grep -q "Expense Claim"; then
+        log "HRMS DocTypes are properly created (Expense Claim exists)."
+    else
+        log "WARNING: Expense Claim DocType not found! HRMS DocTypes may be missing."
+        log "Running bench migrate to recreate missing DocTypes..."
+        su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} migrate" 2>&1 || log "WARNING: Migration had errors"
+        log "Migration completed. Verifying Expense Claim..."
+        EXPENSE_CLAIM_CHECK=$(su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} execute 'frappe.client.get_value' --kwargs='{\"doctype\":\"DocType\",\"fieldname\":\"name\",\"name\":\"Expense Claim\"}'" 2>&1 || echo "")
+        if echo "$EXPENSE_CLAIM_CHECK" | grep -q "Expense Claim"; then
+            log "SUCCESS: Expense Claim DocType now exists after migration."
+        else
+            log "WARNING: Expense Claim still not found after migration. Trying reinstall..."
+            # محاولة إعادة تثبيت HRMS
+            if [ -d "/home/frappe/frappe-bench/apps/hrms" ]; then
+                su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} install-app hrms" 2>&1 || log "WARNING: HRMS reinstall had errors"
+                su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench --site ${SITE_NAME} migrate" 2>&1 || log "WARNING: Second migration had errors"
+            fi
+        fi
+    fi
+
     # حتى لو الموقع موجود، نتأكد من إعدادات التوجيه
     log "Ensuring serve_default_site is configured..."
     su - frappe -c "export PATH=/usr/local/bin:\$PATH && cd /home/frappe/frappe-bench && bench set-config -g serve_default_site 1" 2>&1 || true
