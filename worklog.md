@@ -70,3 +70,36 @@ Stage Summary:
 - Verified: No ERPNext branding in user-visible text
 - Added: 200+ Arabic account name translations
 - Commit: 9a06cd9 pushed to origin/main
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix accounting unit issues - voucher posting, edit, loading indicators, account Arabization, ERPNext branding removal, audit
+
+Work Log:
+- Analyzed Payment Entry posting error: "Party Type is mandatory" from ERPNext validate()
+- Root cause: Zod schema included party_type/party as z.string() but .refine() was missing to enforce them for Receive/Pay
+- Added .refine() validation to paymentSchema for party_type and party when payment_type !== Internal Transfer
+- Added explicit party_type/party validation in handleCreate and handleEdit
+- Added useUpdateDoc import and updateMutation hook to payment-entry page
+- Created handleEdit function for updating draft payment entries
+- Added Edit button (pencil icon) in actions column for draft entries
+- Added full Edit Dialog with same form as Create Dialog
+- Added submittingName state for loading indicator on submit button
+- Submit button now shows Loader2 spinner + "جاري الترحيل..." when submitting
+- Created /api/accounting/arabize-accounts API endpoint (GET + POST) with 79 English-to-Arabic account mappings
+- Added "تعريب الحسابات" button to chart-of-accounts page with Languages icon
+- Fixed ERPNext branding: changed "Live ERPNext Status" comment to Arabic in settings page
+- Audited all accounting pages for similar issues
+- Fixed daily-expenses: added delete button, loading indicators for submit/cancel, improved error messages
+- Fixed cheques: added docstatus guard on onStageChange to prevent editing submitted/cancelled cheques
+- Fixed journal-entry: improved submit/cancel error messages with ERPNext error details
+- Fixed payment-entry: improved create/edit error messages with ERPNext error details
+- All changes build successfully and pushed to git
+
+Stage Summary:
+- Voucher posting error fixed with proper party_type/party validation
+- Edit dialog added for draft payment entries
+- Loading indicators added on submit buttons across accounting pages
+- Account Arabization API + button added to chart of accounts
+- ERPNext branding removed from user-visible text
+- Full accounting audit completed with critical/high/medium fixes applied
