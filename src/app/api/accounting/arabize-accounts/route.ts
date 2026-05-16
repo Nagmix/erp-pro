@@ -97,28 +97,75 @@ const ACCOUNT_NAME_MAP: Record<string, string> = {
   'Employee': 'الموظف',
 };
 
-// GET /api/accounting/arabize-accounts — list accounts that still have English names
+/**
+ * إزالة لاحقة الشركة من اسم الحساب
+ * ERPNext يضيف لاحقة الشركة تلقائياً (مثل " - EP") لاسم الحساب
+ * يجب إزالتها قبل المطابقة مع خريطة التعريب
+ * ويجب عدم إضافتها يدوياً عند التعيين لأن ERPNext يضيفها تلقائياً
+ */
+function stripCompanySuffix(accountName: string, companyAbbr: string): string {
+  if (!companyAbbr) return accountName;
+  // إزالة " - COMPANY_ABBR" من نهاية اسم الحساب
+  const suffix = ` - ${companyAbbr}`;
+  if (accountName.endsWith(suffix)) {
+    return accountName.slice(0, -suffix.length);
+  }
+  return accountName;
+}
+
+/**
+ * التحقق مما إذا كان اسم الحساب باللغة الإنجليزية (يحتاج تعريب)
+ */
+function isEnglishName(name: string): boolean {
+  // إذا كان الاسم يحتوي على أحرف لاتينية فقط (بدون عربي)
+  return /^[A-Za-z\s\-\/\(\)\d.,&]+$/.test(name);
+}
+
+// GET /api/accounting/arabize-accounts — قائمة الحسابات التي لازالت بأسماء إنجليزية
 export async function GET(request: NextRequest) {
   try {
     const sid = getFrappeSidFromRequest(request);
+    
+    // جلب اختصار الشركة
+    let companyAbbr = '';
+    try {
+      const companies = await getList('Company', {
+        fields: ['name', 'abbr'],
+        limit: 10,
+      }, sid) as { name: string; abbr: string }[];
+      if (companies.length > 0) {
+        companyAbbr = companies[0]!.abbr;
+      }
+    } catch {
+      // تجاهل — قد لا يكون الاختصار متوفراً
+    }
+
     const accounts = await getList('Account', {
       fields: ['name', 'account_name', 'company'],
       limit: 5000,
     }, sid) as { name: string; account_name: string; company: string }[];
 
-    const unmapped = accounts.filter(
-      (account) => account.account_name in ACCOUNT_NAME_MAP
-    );
+    // مطابقة الحسابات الإنجليزية بعد إزالة لاحقة الشركة
+    const toRename = accounts.filter((account) => {
+      const baseName = stripCompanySuffix(account.account_name, companyAbbr);
+      return baseName in ACCOUNT_NAME_MAP && isEnglishName(baseName);
+    });
 
     return NextResponse.json({
       success: true,
-      count: unmapped.length,
-      data: unmapped.map((account) => ({
-        name: account.name,
-        account_name: account.account_name,
-        arabic_name: ACCOUNT_NAME_MAP[account.account_name],
-        company: account.company,
-      })),
+      companyAbbr,
+      count: toRename.length,
+      total: accounts.length,
+      data: toRename.map((account) => {
+        const baseName = stripCompanySuffix(account.account_name, companyAbbr);
+        return {
+          name: account.name,
+          account_name: account.account_name,
+          base_name: baseName,
+          arabic_name: ACCOUNT_NAME_MAP[baseName],
+          company: account.company,
+        };
+      }),
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'فشل تحميل الحسابات';
@@ -126,26 +173,51 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/accounting/arabize-accounts — batch rename English account names to Arabic
+// POST /api/accounting/arabize-accounts — تعريب أسماء الحسابات الإنجليزية دفعة واحدة
 export async function POST(request: NextRequest) {
   try {
     const sid = getFrappeSidFromRequest(request);
+    
+    // جلب اختصار الشركة
+    let companyAbbr = '';
+    try {
+      const companies = await getList('Company', {
+        fields: ['name', 'abbr'],
+        limit: 10,
+      }, sid) as { name: string; abbr: string }[];
+      if (companies.length > 0) {
+        companyAbbr = companies[0]!.abbr;
+      }
+    } catch {
+      // تجاهل
+    }
+
     const accounts = await getList('Account', {
       fields: ['name', 'account_name', 'company'],
       limit: 5000,
     }, sid) as { name: string; account_name: string; company: string }[];
 
-    const toRename = accounts.filter(
-      (account) => account.account_name in ACCOUNT_NAME_MAP
-    );
+    // مطابقة الحسابات الإنجليزية بعد إزالة لاحقة الشركة
+    const toRename = accounts.filter((account) => {
+      const baseName = stripCompanySuffix(account.account_name, companyAbbr);
+      return baseName in ACCOUNT_NAME_MAP && isEnglishName(baseName);
+    });
 
     let renamedCount = 0;
+    let skippedCount = 0;
     const errors: { name: string; error: string }[] = [];
 
     for (const account of toRename) {
+      const baseName = stripCompanySuffix(account.account_name, companyAbbr);
+      const arabicName = ACCOUNT_NAME_MAP[baseName];
+      if (!arabicName) {
+        skippedCount++;
+        continue;
+      }
       try {
+        // تعيين الاسم العربي بدون لاحقة الشركة — ERPNext يضيفها تلقائياً
         await updateDoc('Account', account.name, {
-          account_name: ACCOUNT_NAME_MAP[account.account_name],
+          account_name: arabicName,
         }, sid);
         renamedCount++;
       } catch (err) {
@@ -160,6 +232,7 @@ export async function POST(request: NextRequest) {
       success: true,
       renamed: renamedCount,
       total: toRename.length,
+      skipped: skippedCount,
       ...(errors.length > 0 && { errors }),
     });
   } catch (error) {

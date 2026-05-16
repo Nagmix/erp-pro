@@ -258,6 +258,7 @@ export default function PaymentEntryPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<PaymentRow | null>(null);
   const [submittingName, setSubmittingName] = useState<string | null>(null);
+  const [cancelingName, setCancelingName] = useState<string | null>(null);
 
   const form = useForm<PaymentFormInput, any, PaymentFormOutput>({
     resolver: zodResolver(paymentSchema),
@@ -574,14 +575,21 @@ export default function PaymentEntryPage() {
               size="sm"
               variant="outline"
               className="h-7 text-xs px-2"
-              onClick={() => cancelMutation.mutate(row.name, {
-                onSuccess: () => { toast.success('تم إلغاء السند'); void refetch(); },
-                onError: (err: Error) => {
-                  const msg = err?.message || '';
-                  toast.error('فشل الإلغاء', { description: msg, duration: 6000 });
-                }})}
+              disabled={cancelingName === row.name}
+              onClick={() => {
+                setCancelingName(row.name);
+                cancelMutation.mutate(row.name, {
+                  onSuccess: () => { toast.success('تم إلغاء السند'); setCancelingName(null); void refetch(); },
+                  onError: (err: Error) => {
+                    setCancelingName(null);
+                    const msg = err?.message || '';
+                    toast.error('فشل الإلغاء', { description: msg, duration: 6000 });
+                  }
+                });
+              }}
             >
-              <Undo2 className="h-3 w-3 ms-1" />إلغاء
+              {cancelingName === row.name ? <Loader2 className="h-3 w-3 ms-1 animate-spin" /> : <Undo2 className="h-3 w-3 ms-1" />}
+              {cancelingName === row.name ? 'جاري الإلغاء...' : 'إلغاء'}
             </Button>
           )}
           {Number(row.docstatus) === 0 && (
@@ -629,7 +637,7 @@ export default function PaymentEntryPage() {
           )}
         </div>
       )},
-  ], [submitMutation, cancelMutation, refetch, toast]);
+  ], [submitMutation, cancelMutation, refetch, toast, submittingName, cancelingName]);
   const clearFilters = () => { setDateFrom(''); setDateTo(''); setStatusFilter('all'); setPaymentTypeFilter('all'); };
   const hasActiveFilters = dateFrom || dateTo || statusFilter !== 'all' || paymentTypeFilter !== 'all';
 

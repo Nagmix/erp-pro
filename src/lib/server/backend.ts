@@ -629,16 +629,17 @@ export async function submitDoc(
   userSession?: string
 ): Promise<unknown> {
   await ensureSystemSession();
-  // نحتاج جلب أحدث نسخة من المستند قبل الترحيل لأن Frappe يتحقق من حقل modified
-  // ويرفض الترحيل إذا كان المستند قد تم تعديله بعد فتحه (TimestampMismatchError)
+  // جلب المستند الكامل من الخادم — يجب إرسال المستند الكامل لـ frappe.client.submit
+  // لأن Frappe يتحقق من جميع الحقول المطلوبة أثناء الترحيل
   let latestDoc: Record<string, unknown> | null = null;
   try {
     latestDoc = (await getDoc(doctype, name, userSession)) as Record<string, unknown>;
   } catch {
-    // إذا فشل جلب المستند، نحاول الترحيل بدون modified
+    // إذا فشل جلب المستند، نحاول الترحيل بالمستند الأساسي
   }
+  // إرسال المستند الكامل مع تحديث حقل modified لتجنب TimestampMismatchError
   const docToSubmit = latestDoc
-    ? { doctype, name, modified: latestDoc.modified }
+    ? { ...latestDoc, doctype, name, modified: latestDoc.modified }
     : { doctype, name };
   const result = await internalRequest(
     'POST',
@@ -655,15 +656,17 @@ export async function cancelDoc(
   userSession?: string
 ): Promise<unknown> {
   await ensureSystemSession();
-  // جلب أحدث نسخة من المستند قبل الإلغاء لتجنب TimestampMismatchError
+  // جلب المستند الكامل من الخادم — يجب إرسال المستند الكامل لـ frappe.client.cancel
+  // لأن Frappe يتحقق من جميع الحقول المطلوبة أثناء الإلغاء
   let latestDoc: Record<string, unknown> | null = null;
   try {
     latestDoc = (await getDoc(doctype, name, userSession)) as Record<string, unknown>;
   } catch {
-    // إذا فشل جلب المستند، نحاول الإلغاء بدون modified
+    // إذا فشل جلب المستند، نحاول الإلغاء بالمستند الأساسي
   }
+  // إرسال المستند الكامل مع تحديث حقل modified لتجنب TimestampMismatchError
   const docToCancel = latestDoc
-    ? { doctype, name, modified: latestDoc.modified }
+    ? { ...latestDoc, doctype, name, modified: latestDoc.modified }
     : { doctype, name };
   const result = await internalRequest(
     'POST',

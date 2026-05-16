@@ -31,7 +31,7 @@ import { Plus, Receipt, Trash2, Upload, FileSpreadsheet, Loader2, CalendarDays, 
 import { PageHeader } from '@/components/erp/page-header';
 import { ErpListDateStatusFilters, type ErpStatusTab } from '@/components/erp/erp-list-date-status-filters';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
@@ -251,6 +251,9 @@ export default function ExpensesPage() {
   });
   const createMutation = useCreateDoc('Expense Claim');
   const deleteMutation = useDeleteDoc('Expense Claim');
+  const updateMutation = useUpdateDoc('Expense Claim');
+  const submitMutation = useSubmitDoc('Expense Claim');
+  const cancelMutation = useCancelDoc('Expense Claim');
 
   // تحقق إضافي من توفر DocType على الخادم (مكمّل لفحص HRMS)
   const [doctypeAvailable, setDoctypeAvailable] = useState<boolean | null>(null);
@@ -443,17 +446,56 @@ export default function ExpensesPage() {
         form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1, naming_series: '' });
         setItems([emptyItem(t)]);
       },
-      onError: (err: Error) => {
+      onError: async (err: Error) => {
         const msg = err?.message || '';
-        // عرض رسالة الخطأ الفعلية من ERPNext مع إضافة تلميح مناسب
-        const isHrmsError = /not found|does not exist|naming.?series|غير مسموح|not permitted/i.test(msg);
         const isAccountError = /default account|Set the default account|الحساب الافتراضي/i.test(msg);
+        
+        if (isAccountError) {
+          // محاولة تعيين الحسابات الافتراضية تلقائياً ثم إعادة المحاولة
+          try {
+            toast.info('جاري تعيين الحسابات الافتراضية تلقائياً لأنواع المصروفات...');
+            const configRes = await fetch('/api/setup/configure-expense-accounts', { method: 'POST' });
+            const configData = await configRes.json();
+            if (configData.success && configData.updated > 0) {
+              toast.success(`تم تعيين ${configData.updated} حساب افتراضي — جاري إعادة محاولة الحفظ...`);
+              // إعادة المحاولة بعد التعيين
+              createMutation.mutate(doc, {
+                onSuccess: () => {
+                  toast.success('تم إنشاء مطالبة المصروفات بنجاح');
+                  setDialogOpen(false);
+                  const t = new Date().toISOString().split('T')[0]!;
+                  form.reset({ employee: '', posting_date: t, cost_center: '', remark: '', currency: 'YER', exchange_rate: 1, naming_series: '' });
+                  setItems([emptyItem(t)]);
+                },
+                onError: (retryErr: Error) => {
+                  const retryMsg = retryErr?.message || '';
+                  toast.error(retryMsg || 'حدث خطأ أثناء إنشاء مطالبة المصروفات', {
+                    description: 'يجب تعيين حساب افتراضي لنوع المصروف يدوياً من إعدادات المحاسبة ← أنواع المصروفات',
+                    duration: 8000,
+                  });
+                },
+              });
+              return; // لا نعرض رسالة الخطأ الأولى لأننا أعدنا المحاولة
+            } else {
+              toast.error(msg || 'حدث خطأ أثناء إنشاء مطالبة المصروفات', {
+                description: 'يجب تعيين حساب افتراضي لنوع المصروف. اذهب إلى إعدادات المحاسبة ← أنواع المصروفات ← تعيين الحسابات الافتراضية',
+                duration: 8000,
+              });
+            }
+          } catch {
+            toast.error(msg || 'حدث خطأ أثناء إنشاء مطالبة المصروفات', {
+              description: 'يجب تعيين حساب افتراضي لنوع المصروف. اذهب إلى إعدادات المحاسبة ← أنواع المصروفات ← تعيين الحسابات الافتراضية',
+              duration: 8000,
+            });
+          }
+          return;
+        }
+        
+        const isHrmsError = /not found|does not exist|naming.?series|غير مسموح|not permitted/i.test(msg);
         const isValidationError = /ValidationError|Validation Error/i.test(msg);
         
         let description: string | undefined;
-        if (isAccountError) {
-          description = 'يجب تعيين حساب افتراضي لنوع المصروف. اذهب إلى إعدادات المحاسبة ← أنواع المصروفات ← تعيين الحسابات الافتراضية';
-        } else if (isHrmsError) {
+        if (isHrmsError) {
           description = 'تأكد من تثبيت وحدة الموارد البشرية (HRMS) وإعداد سلسلة التسمية';
         } else if (isValidationError) {
           description = 'تحقق من صحة البيانات المدخلة وتأكد من اكتمال الحقول المطلوبة';
@@ -604,9 +646,16 @@ export default function ExpensesPage() {
             toast.error('لا يمكن تعديل مستند مرحّل أو ملغي — استخدم إلغاء الترحيل أولاً');
             return;
           }
+          // محاولة فتح صفحة التفصيل
           const href = docDetailPath('Expense Claim', row.name);
-          if (href) router.push(href);
-          else toast.error('تعذر فتح التفصيل');
+          if (href) {
+            router.push(href);
+          } else {
+            toast.info('واجهة تعديل مطالبات المصروفات قيد التطوير', {
+              description: 'يمكنك حذف المسودة وإنشاء مطالبة جديدة بدلاً من ذلك',
+              duration: 5000,
+            });
+          }
         }}
         onDelete={(row) => {
           // حماية: لا يمكن حذف مستند مرحّل أو ملغي

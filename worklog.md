@@ -1,105 +1,112 @@
+# ERP Pro Worklog — 2026-03-04
+
+## Task 1: Fix arabize-accounts API ✅
+
+**File:** `src/app/api/accounting/arabize-accounts/route.ts`
+
+**Problem:** ERPNext automatically appends a company abbreviation suffix to account names (e.g., "Cash - EP" where "EP" is the company abbreviation). The old code matched exact names against `ACCOUNT_NAME_MAP`, so "Cash - EP" would never match "Cash", and the arabization would silently skip those accounts.
+
+**User Request:** "ولا تضف لاحقه الشركة بنفسك حيث يجب ان تكون تلقائيه" — Don't add the company suffix manually; it should be automatic (ERPNext handles it).
+
+**Changes Made:**
+1. Added `stripCompanySuffix(accountName, companyAbbr)` — strips ` - COMPANY_ABBR` suffix from account names before matching against the map.
+2. Added `isEnglishName(name)` — regex check to only arabize accounts still in English (prevents re-arabizing already-arabic names).
+3. Both GET and POST handlers now fetch the company abbreviation from the `Company` doctype first.
+4. Before matching, `account_name` is stripped of its suffix to get the base name.
+5. When setting the Arabic name, only the Arabic text is set (no suffix) — ERPNext appends the suffix automatically.
+6. GET response now includes `companyAbbr`, `total`, and `base_name` fields for transparency.
+7. POST response now includes `skipped` count.
+8. Removed unused `getDoc` import.
+
+**Verification:** `npx eslint` passed with no errors.
+
 ---
-Task ID: 2
-Agent: Main Agent
-Task: إصلاح خطأ صفحة المصروفات — HRMS مثبت لكن DocTypes لم تُنشأ
 
-Work Log:
-- تحليل ملف السجلات الجديد: لا يزال خطأ 404 على Expense Claim
-- فحص مباشر لخادم ERPNext عبر curl:
-  - HRMS مثبت كتطبيق (frappe 16.18.0, erpnext 16.18.1, hrms 16.7.0)
-  - Module Def HR موجود مع app_name=hrms
-  - Employee doctype يعمل (HR-EMP- prefix records)
-  - Expense Claim Type يعمل (5 سجلات عربية)
-  - لكن: DocType Expense Claim غير موجود! ("DocType Expense Claim غير موجود")
-  - لكن: لا توجد DocTypes في وحدة HR (قائمة فارغة!)
-  - Naming Series DocType لا يعمل في v16 (ImportError)
-  - Series DocType غير موجود
-- محاولة تشغيل migrate عبر API — جميع الطرق فشلت (not whitelisted)
-- تعديل entrypoint.sh: إضافة فحص Expense Claim DocType — إذا غير موجود، يشغل migrate تلقائياً
-- تحسين install-hrms API: إضافة isHrmsFullyInstalled() الذي يميز بين "التطبيق مثبت" و"DocTypes موجودة"
-- إصلاح naming-series route: إضافة docTypeExists لجميع النتائج وتجنب أخطاء Naming Series/Series في v16
-- تحديث HrmsRequiredBanner: عرض تعليمات واضحة لإعادة نشر الخادم مع FORCE_SITE_MIGRATE=true
+## Task 2: ERPNext/Frappe Branding Search 🔍
 
-Stage Summary:
-- السبب الجذري: HRMS مثبت كتطبيق لكن bench migrate لم يُشغّل بعد التثبيت
-- الحل المباشر: المستخدم يحتاج لإعادة نشر الخادم الخلفي مع FORCE_SITE_MIGRATE=true
-- الحل الدائم: entrypoint.sh سيفحص تلقائياً ويشغل migrate عند الحاجة في النشرات القادمة
-- الملفات المعدلة: 4 ملفات
----
-Task ID: 1
-Agent: Main Agent
-Task: Fix Expense Claim ValidationError - missing default account for Expense Claim Types
+Searched `src/app/(dashboard)/accounting/` and `src/components/erp/` for case-insensitive occurrences of "erpnext" and "frappe". All findings categorized below.
 
-Work Log:
-- Analyzed the ERPNext traceback: ValidationError "Set the default account for the Expense Claim Type مصاريف سفر وتنقل"
-- Identified root cause: Expense Claim Types were created with only `{ name: typeName }` without `default_account` field
-- ERPNext HRMS requires each Expense Claim Type to have a default_account configured, otherwise creating Expense Claims fails
-- Created API route `/api/setup/configure-expense-accounts` (GET + POST) that auto-assigns expense accounts from chart of accounts to Expense Claim Types without default accounts
-- Updated Settings page expense types tab: added warning alert, "Configure Default Accounts" button, account status per type, default_account field in create dialog
-- Improved error handling in all 3 expense pages (expenses, daily-expenses, mobile-expenses) to detect and show helpful Arabic messages for missing default account errors
-- Verified all 15 HR pages use HRMS module doctypes correctly - no migration needed
-- Built and pushed successfully
+### Summary: All occurrences are CODE-ONLY — none are user-visible branding
 
-Stage Summary:
-- New file: src/app/api/setup/configure-expense-accounts/route.ts
-- Modified: src/app/(dashboard)/accounting/settings/page.tsx (added account configuration UI)
-- Modified: src/app/(dashboard)/accounting/expenses/page.tsx (improved error handling)
-- Modified: src/app/(dashboard)/accounting/daily-expenses/page.tsx (improved error handling)
-- Modified: src/app/(dashboard)/operations/mobile-expenses/page.tsx (improved error handling)
-- Commit: 9ecb395 pushed to origin/main
----
-Task ID: 2
-Agent: Main Agent
-Task: Fix payment entry submit/cancel, 403 errors, remove ERPNext branding, add Arabic account translations
+No user-facing text contains "ERPNext" or "Frappe" brand names. All occurrences fall into these code-only categories:
 
-Work Log:
-- Read server logs: TimestampMismatchError on Payment Entry submit + 403 on get_balance_on
-- Fixed submitDoc() in backend.ts: fetch latest doc before submit to include 'modified' timestamp
-- Fixed cancelDoc() in backend.ts: same fix for cancel operations
-- Fixed /api/method/[...path]/route.ts: pass userSession to callMethod() to fix 403 errors
-- Improved error handling in payment-entry/page.tsx: detailed Arabic messages for submit/cancel errors
-- Verified all user-visible "ERPNext" text already replaced with "النظام" across dashboard pages
-- Added 200+ new Arabic account name translations in arabic-labels.ts (ACCOUNT_NAME_MAP)
-- Covers all standard ERPNext accounts with company suffixes (شركة الأفق, SH, CMP)
-- Removed 18 duplicate keys that were causing TypeScript build errors
-- Built and pushed successfully
+1. **Import paths** — referencing internal library files named with "erpnext" or "frappe" (e.g., `@/lib/erp/erpnext-payloads`, `@/lib/reports/normalize-frappe-report`)
+2. **Code comments** (Arabic + English) — developer-facing documentation explaining ERPNext API behavior
+3. **API method paths** — ERPNext server-side method identifiers (e.g., `erpnext.assets.doctype.asset.asset.sell_asset`)
+4. **JSDoc/type annotations** — developer-facing descriptions of data structures
 
-Stage Summary:
-- Fixed: Payment Entry submit/cancel TimestampMismatchError
-- Fixed: 403 errors on erpnext.accounts.utils.get_balance_on
-- Verified: No ERPNext branding in user-visible text
-- Added: 200+ Arabic account name translations
-- Commit: 9a06cd9 pushed to origin/main
----
-Task ID: 1
-Agent: Main Agent
-Task: Fix accounting unit issues - voucher posting, edit, loading indicators, account Arabization, ERPNext branding removal, audit
+### Detailed Findings
 
-Work Log:
-- Analyzed Payment Entry posting error: "Party Type is mandatory" from ERPNext validate()
-- Root cause: Zod schema included party_type/party as z.string() but .refine() was missing to enforce them for Receive/Pay
-- Added .refine() validation to paymentSchema for party_type and party when payment_type !== Internal Transfer
-- Added explicit party_type/party validation in handleCreate and handleEdit
-- Added useUpdateDoc import and updateMutation hook to payment-entry page
-- Created handleEdit function for updating draft payment entries
-- Added Edit button (pencil icon) in actions column for draft entries
-- Added full Edit Dialog with same form as Create Dialog
-- Added submittingName state for loading indicator on submit button
-- Submit button now shows Loader2 spinner + "جاري الترحيل..." when submitting
-- Created /api/accounting/arabize-accounts API endpoint (GET + POST) with 79 English-to-Arabic account mappings
-- Added "تعريب الحسابات" button to chart-of-accounts page with Languages icon
-- Fixed ERPNext branding: changed "Live ERPNext Status" comment to Arabic in settings page
-- Audited all accounting pages for similar issues
-- Fixed daily-expenses: added delete button, loading indicators for submit/cancel, improved error messages
-- Fixed cheques: added docstatus guard on onStageChange to prevent editing submitted/cancelled cheques
-- Fixed journal-entry: improved submit/cancel error messages with ERPNext error details
-- Fixed payment-entry: improved create/edit error messages with ERPNext error details
-- All changes build successfully and pushed to git
+#### `src/app/(dashboard)/accounting/` — 34 matches across 22 files
 
-Stage Summary:
-- Voucher posting error fixed with proper party_type/party validation
-- Edit dialog added for draft payment entries
-- Loading indicators added on submit buttons across accounting pages
-- Account Arabization API + button added to chart of accounts
-- ERPNext branding removed from user-visible text
-- Full accounting audit completed with critical/high/medium fixes applied
+| # | File | Line | Match | Category | User-Visible? |
+|---|------|------|-------|----------|---------------|
+| 1 | `chart-of-accounts/page.tsx` | 67 | `import { buildAccountCreate, buildAccountUpdate } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 2 | `expenses-by-period/page.tsx` | 253 | `/* ─── ERPNext Data Hooks ─── */` | Comment | No |
+| 3 | `aging-report/page.tsx` | 24 | `import { normalizeFrappeReportPayload } from '@/lib/reports/normalize-frappe-report'` | Import | No |
+| 4 | `aging-report/page.tsx` | 60 | `/** Parse aging data from ERPNext report rows */` | JSDoc comment | No |
+| 5 | `aging-report/page.tsx` | 116 | `() => normalizeFrappeReportPayload(reportQuery.data ?? null)` | Code | No |
+| 6 | `journal-entry/new/journal-entry-new-editor.tsx` | 63 | `import { buildJournalEntry, type JournalLineInput } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 7 | `journal-entry/page.tsx` | 33 | `import { buildJournalEntry } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 8 | `journal-entry/page.tsx` | 35 | `import type { JournalLineInput } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 9 | `period-closing/page.tsx` | 25 | `import { buildPeriodClosingVoucher } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 10 | `cost-centers/page.tsx` | 40 | `import { buildCostCenterCreate } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 11 | `bank-accounts/page.tsx` | 28 | `import { buildBankTransaction } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 12 | `cheque-books/page.tsx` | 50 | `/** دفاتر الشيكات — Cheque Book في ERPNext (M-30). */` | JSDoc comment | No |
+| 13 | `financial-statements/page.tsx` | 26 | `import { normalizeFrappeReportPayload } from '@/lib/reports/normalize-frappe-report'` | Import | No |
+| 14 | `financial-statements/page.tsx` | 27 | `import { normalizedColumnsToDataTable } from '@/lib/reports/frappe-report-columns'` | Import | No |
+| 15 | `financial-statements/page.tsx` | 49 | `/** catalogId = مُعرّف سجل … وليس اسم ERPNext مباشرة. */` | JSDoc comment | No |
+| 16 | `financial-statements/page.tsx` | 117 | `() => normalizeFrappeReportPayload(reportQuery.data ?? null)` | Code | No |
+| 17 | `settings/page.tsx` | 182 | `// ERPNext Expense Claim Type uses the document name as the type name` | Comment | No |
+| 18 | `settings/page.tsx` | 420 | `/* ── Fetch real ERPNext data ── */` | Comment | No |
+| 19 | `payment-entry/page.tsx` | 42 | `import { buildPaymentEntry, type PaymentReferenceInput } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 20 | `asset-disposal/page.tsx` | 123 | `// Try ERPNext's built-in Asset Capitalization method first` | Comment | No |
+| 21 | `asset-disposal/page.tsx` | 125 | `await apiCallMethod('erpnext.assets.doctype.asset.asset.sell_asset', {…})` | API method path | No |
+| 22 | `asset-disposal/page.tsx` | 167 | `// Try ERPNext's built-in scrap method first` | Comment | No |
+| 23 | `asset-disposal/page.tsx` | 169 | `await apiCallMethod('erpnext.assets.doctype.asset.asset.scrap_asset', {…})` | API method path | No |
+| 24 | `trial-balance/page.tsx` | 25 | `import { normalizeFrappeReportPayload } from '@/lib/reports/normalize-frappe-report'` | Import | No |
+| 25 | `trial-balance/page.tsx` | 26 | `import { normalizedColumnsToDataTable } from '@/lib/reports/frappe-report-columns'` | Import | No |
+| 26 | `trial-balance/page.tsx` | 84 | `() => normalizeFrappeReportPayload(reportQuery.data ?? null)` | Code | No |
+| 27 | `tax-report/page.tsx` | 31-32 | `import { normalizeFrappeReportPayload }` + `import { normalizedColumnsToDataTable }` | Imports | No |
+| 28 | `tax-report/page.tsx` | 90, 95 | `normalizeFrappeReportPayload(…)` | Code | No |
+| 29 | `assets/page.tsx` | 41 | `import { buildAssetCreate } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 30 | `assets/page.tsx` | 54 | `/** ERPNext: Asset Category (link) */` | JSDoc comment | No |
+| 31 | `assets/page.tsx` | 262 | `/** تعبئة حسابات فئة الأصل … في ERPNext). */` | JSDoc comment | No |
+| 32 | `fiscal-year/page.tsx` | 17 | `import { buildFiscalYear } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 33 | `advanced-reports/page.tsx` | 15-16 | `import { normalizeFrappeReportPayload }` + `import { normalizedColumnsToDataTable }` | Imports | No |
+| 34 | `advanced-reports/page.tsx` | 147 | `() => normalizeFrappeReportPayload(reportQuery.data ?? null)` | Code | No |
+| 35 | `purchase-invoice/new/purchase-invoice-new-editor.tsx` | 37 | `import { buildPurchaseInvoice } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 36 | `purchase-invoice/new/purchase-invoice-new-editor.tsx` | 118 | `/** عند قالب ضريبة … الضريبة في ERPNext */` | JSDoc comment | No |
+| 37 | `expenses/page.tsx` | 40 | `import { buildExpenseClaimCreate } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 38 | `deferred-revenue/page.tsx` | 20 | `import { buildProcessDeferredAccounting } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 39 | `profit-loss-monthly/page.tsx` | 31 | `import { normalizeFrappeReportPayload } from '@/lib/reports/normalize-frappe-report'` | Import | No |
+| 40 | `profit-loss-monthly/page.tsx` | 55 | `/** Parse P&L data from ERPNext into monthly structure */` | JSDoc comment | No |
+| 41 | `profit-loss-monthly/page.tsx` | 78 | `// Try common ERPNext column patterns for monthly data` | Comment | No |
+| 42 | `profit-loss-monthly/page.tsx` | 132 | `() => normalizeFrappeReportPayload(reportQuery.data ?? null)` | Code | No |
+| 43 | `profit-loss-monthly/page.tsx` | 345 | `{/* Report summary from ERPNext */}` | JSX comment | No |
+| 44 | `daily-expenses/page.tsx` | 19 | `import { buildExpenseClaimCreate } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 45 | `depreciation-run/page.tsx` | 225 | `// Note: The JE reference update on the Asset is handled by ERPNext automatically` | Comment | No |
+| 46 | `sales-invoice/new/sales-invoice-new-editor.tsx` | 50 | `import { buildSalesInvoice } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 47 | `sales-invoice/new/sales-invoice-new-editor.tsx` | 59 | `/** معرف مستقر … لا يُرسل لـ ERPNext */` | JSDoc comment | No |
+| 48 | `sales-invoice/new/sales-invoice-new-editor.tsx` | 67 | `/** إقران إيراد مؤجل … في ERPNext */` | JSDoc comment | No |
+| 49 | `sales-invoice/new/sales-invoice-new-editor.tsx` | 200 | `/** عند قالب ضريبة … الضريبة في ERPNext */` | JSDoc comment | No |
+| 50 | `multi-currency/page.tsx` | 74 | `/* ───────── ERPNext API raw row types ───────── */` | Comment | No |
+| 51 | `multi-currency/page.tsx` | 183 | `/* ─── Map currencies from ERPNext data ─── */` | Comment | No |
+| 52 | `budgets/page.tsx` | 84 | `/* ─── ERPNext API Budget Row (raw from API) ─── */` | Comment | No |
+| 53 | `budgets/page.tsx` | 166 | `/* ─── Fetch Budgets from ERPNext via hooks ─── */` | Comment | No |
+| 54 | `budgets/page.tsx` | 204 | `/* ─── Map ERPNext rows → UI Budgets ─── */` | Comment | No |
+| 55 | `period-closing-v2/page.tsx` | 23 | `import { buildPeriodClosingVoucher } from '@/lib/erp/erpnext-payloads'` | Import | No |
+| 56 | `opening-balances/page.tsx` | 84 | `import { buildJournalEntry, type JournalLineInput } from '@/lib/erp/erpnext-payloads'` | Import | No |
+
+#### `src/components/erp/` — 4 matches across 2 files
+
+| # | File | Line | Match | Category | User-Visible? |
+|---|------|------|-------|----------|---------------|
+| 1 | `invoice-print.tsx` | 16 | `/** اسم المستند في ERPNext */` | JSDoc comment | No |
+| 2 | `version-history.tsx` | 119 | `* Parse the data field from ERPNext Version doctype.` | JSDoc comment | No |
+| 3 | `version-history.tsx` | 128 | `// Try data.changed first (most common ERPNext format)` | Comment | No |
+| 4 | `version-history.tsx` | 182 | `const d = new Date(dateStr + 'Z'); // ERPNext dates are UTC` | Inline comment | No |
+
+### Conclusion
+
+**Zero user-visible ERPNext/Frappe branding found.** All 60 occurrences are in code-level contexts (imports, comments, API paths, type annotations) that are never rendered to end users. No action needed for branding removal in the accounting module or ERP components.
