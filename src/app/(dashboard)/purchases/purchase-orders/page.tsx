@@ -49,7 +49,6 @@ interface PORow {
   docstatus: number;
   per_billed?: number;
   per_received?: number;
-  branch?: string;
 }
 
 interface Line {
@@ -92,9 +91,8 @@ export default function PurchasesPurchaseOrdersPage() {
       'per_received',
       'status',
       'docstatus',
-      'branch',
     ],
-    filters: branchFilters,
+    filters: undefined,
     order_by: 'transaction_date desc',
     limit: 500,
   });
@@ -205,11 +203,6 @@ export default function PurchasesPurchaseOrdersPage() {
           );
         }},
       { key: 'supplier_name', header: 'المورد', sortable: true },
-      {
-        key: 'branch',
-        header: 'الفرع',
-        width: 'w-24',
-        render: (v) => (v ? <span className="text-xs text-muted-foreground">{String(v)}</span> : '—')},
       { key: 'transaction_date', header: 'التاريخ', sortable: true, render: (v) => formatDate(String(v)) },
       { key: 'base_grand_total', header: 'الإجمالي', sortable: true, render: (v) => <span className="font-semibold tabular-nums">{formatCurrency(Number(v))}</span> },
       { key: 'per_received', header: 'استلام', width: 'w-16', render: (v) => `${Number(v ?? 0)}%` },

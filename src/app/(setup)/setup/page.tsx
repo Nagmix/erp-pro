@@ -43,6 +43,8 @@ import {
   Handshake,
   Factory,
   Kanban,
+  CalendarDays,
+  Briefcase,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,7 +63,7 @@ import { setSetupConfig } from '@/lib/core/setup-config';
 
 // ─── أنواع ────────────────────────────────────────────────────
 
-type StepId = 'welcome' | 'branding' | 'server' | 'company' | 'modules' | 'fiscalYear' | 'warehouses' | 'paymentMethods' | 'tax' | 'admin' | 'employee' | 'review';
+type StepId = 'welcome' | 'branding' | 'server' | 'company' | 'modules' | 'hrmsSetup' | 'fiscalYear' | 'warehouses' | 'paymentMethods' | 'tax' | 'admin' | 'employee' | 'review';
 
 interface StepDef {
   id: StepId;
@@ -91,6 +93,13 @@ interface ModuleEntry {
 
 interface FieldError {
   [key: string]: string;
+}
+
+interface HrmsDefaults {
+  expenseClaimTypes: Array<{ name: string; englishName: string }>;
+  leaveTypes: Array<{ name: string; englishName: string; is_carry_forward: number; is_lwp: number; allow_encashment: number }>;
+  salaryComponents: Array<{ name: string; type: string }>;
+  employmentTypes: string[];
 }
 
 interface FormData {
@@ -132,6 +141,11 @@ interface FormData {
   companyTaxId: string;
   adminPasswordConfirm: string;
   dataConfirmed: boolean;
+  // حقول HRMS
+  hrmsSelectedExpenseTypes: Set<string>;
+  hrmsSelectedLeaveTypes: Set<string>;
+  hrmsSelectedSalaryComponents: Set<string>;
+  hrmsSelectedEmploymentTypes: Set<string>;
 }
 
 // ─── ثوابت ────────────────────────────────────────────────────
@@ -144,6 +158,7 @@ const STEPS: StepDef[] = [
   { id: 'server', title: 'الاتصال بالخادم', description: 'ربط نظام ERP Pro بالخادم', icon: Server },
   { id: 'company', title: 'الشركة', description: 'معلومات الشركة الأساسية', icon: Building2 },
   { id: 'modules', title: 'الوحدات', description: 'اختر الوحدات المطلوبة', icon: LayoutGrid },
+  { id: 'hrmsSetup', title: 'إعداد الموارد البشرية', description: 'تهيئة بيانات HRMS', icon: Users },
   { id: 'fiscalYear', title: 'السنة المالية', description: 'تحديد الفترة المالية', icon: Calendar },
   { id: 'warehouses', title: 'المستودعات', description: 'إنشاء المستودعات الافتراضية', icon: Warehouse },
   { id: 'paymentMethods', title: 'طرق الدفع', description: 'إعداد طرق الدفع', icon: CreditCard },
@@ -176,6 +191,45 @@ const DEFAULT_MODULES: ModuleEntry[] = [
   { id: 'crm', label: 'إدارة العملاء', description: 'العملاء المحتملون، الفرص، الاتصالات', icon: Handshake, enabled: true },
   { id: 'manufacturing', label: 'التصنيع', description: 'أوامر العمل، قوائم المواد، محطات العمل', icon: Factory, enabled: false },
   { id: 'projects', label: 'المشاريع', description: 'إدارة المشاريع، المهام، الجداول الزمنية', icon: Kanban, enabled: false },
+];
+
+/** البيانات الافتراضية لـ HRMS */
+const HRMS_DEFAULT_EXPENSE_TYPES = [
+  { name: 'مصاريف إدارية', englishName: 'Calls' },
+  { name: 'مصاريف سفر وتنقل', englishName: 'Travel' },
+  { name: 'مصاريف ضيافة', englishName: 'Food' },
+  { name: 'مصاريف طبية', englishName: 'Medical' },
+  { name: 'مصاريف متنوعة', englishName: 'Others' },
+  { name: 'مصاريف اتصالات', englishName: 'Communication' },
+  { name: 'مصاريف وقود', englishName: 'Fuel' },
+  { name: 'مصاريف صيانة', englishName: 'Maintenance' },
+  { name: 'مصاريف إيجار', englishName: 'Rent' },
+  { name: 'مصاريف قرطاسية ومستلزمات', englishName: 'Stationery' },
+  { name: 'مصاريف تسويق وإعلان', englishName: 'Marketing' },
+  { name: 'مصاريف تدريب وتطوير', englishName: 'Training' },
+  { name: 'مصاريف كهرباء وماء', englishName: 'Utilities' },
+  { name: 'مصاريف نقل وشحن', englishName: 'Shipping' },
+  { name: 'مصاريف مهنية وخدمية', englishName: 'Professional' },
+];
+
+const HRMS_DEFAULT_LEAVE_TYPES = [
+  { name: 'إجازة سنوية', englishName: 'Casual Leave', is_carry_forward: 1, is_lwp: 0, allow_encashment: 1 },
+  { name: 'إجازة مرضية', englishName: 'Sick Leave', is_carry_forward: 0, is_lwp: 0, allow_encashment: 0 },
+  { name: 'إجازة دورية', englishName: 'Privilege Leave', is_carry_forward: 0, is_lwp: 0, allow_encashment: 0 },
+  { name: 'إجازة بدون راتب', englishName: 'Leave Without Pay', is_carry_forward: 0, is_lwp: 1, allow_encashment: 0 },
+  { name: 'إجازة تعويضية', englishName: 'Compensatory Off', is_carry_forward: 0, is_lwp: 0, allow_encashment: 0 },
+];
+
+const HRMS_DEFAULT_SALARY_COMPONENTS = [
+  { name: 'الراتب الأساسي', type: 'Earning' },
+  { name: 'بدل سكن', type: 'Earning' },
+  { name: 'بدل نقل', type: 'Earning' },
+  { name: 'ضريبة الدخل', type: 'Deduction' },
+  { name: 'تقاعد', type: 'Deduction' },
+];
+
+const HRMS_DEFAULT_EMPLOYMENT_TYPES = [
+  'دوام كامل', 'دوام جزئي', 'فترة تجريبية', 'عقد مؤقت', 'عمولة', 'تدريب',
 ];
 
 const DEFAULT_WAREHOUSES: WarehouseEntry[] = [
@@ -480,6 +534,11 @@ export default function SetupWizardPage() {
     companyTaxId: '',
     adminPasswordConfirm: '',
     dataConfirmed: false,
+    // حقول HRMS
+    hrmsSelectedExpenseTypes: new Set(HRMS_DEFAULT_EXPENSE_TYPES.map(t => t.name)),
+    hrmsSelectedLeaveTypes: new Set(HRMS_DEFAULT_LEAVE_TYPES.map(t => t.name)),
+    hrmsSelectedSalaryComponents: new Set(HRMS_DEFAULT_SALARY_COMPONENTS.map(t => t.name)),
+    hrmsSelectedEmploymentTypes: new Set(HRMS_DEFAULT_EMPLOYMENT_TYPES),
   });
 
   const updateForm = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
@@ -536,6 +595,15 @@ export default function SetupWizardPage() {
     }
   }, [form.employeeEmail, form.employeeFirstName, form.employeeLastName]);
 
+  // ── هل وحدة HR مفعلة؟ ──
+  const hrModuleEnabled = useMemo(() => form.modules.some(m => m.id === 'hr' && m.enabled), [form.modules]);
+
+  // ── الخطوات الفعلية (إخفاء hrmsSetup إذا HR معطّل) ──
+  const visibleSteps = useMemo(() => {
+    if (hrModuleEnabled) return STEPS;
+    return STEPS.filter(s => s.id !== 'hrmsSetup');
+  }, [hrModuleEnabled]);
+
   // ── التحقق من صحة كل خطوة مع رسائل خطأ ───────────────
 
   const validateStep = useCallback(
@@ -560,6 +628,9 @@ export default function SetupWizardPage() {
           break;
         case 'modules':
           if (!form.modules.some((m) => m.enabled)) errors.modules = 'يجب تفعيل وحدة واحدة على الأقل';
+          break;
+        case 'hrmsSetup':
+          if (hrModuleEnabled && form.hrmsSelectedExpenseTypes.size === 0) errors.hrmsExpenseTypes = 'يجب تحديد نوع مصروفات واحد على الأقل';
           break;
         case 'fiscalYear':
           if (!form.fiscalYearStart.trim()) errors.fiscalYearStart = 'تاريخ بداية السنة المالية مطلوب';
@@ -599,7 +670,7 @@ export default function SetupWizardPage() {
 
       return { valid: Object.keys(errors).length === 0, errors };
     },
-    [form]
+    [form, hrModuleEnabled]
   );
 
   const isStepValid = useCallback(
@@ -635,11 +706,11 @@ export default function SetupWizardPage() {
       setTouched((prev) => ({ ...prev, ...newTouched }));
     }
 
-    if (valid && currentStep < STEPS.length - 1) {
+    if (valid && currentStep < visibleSteps.length - 1) {
       setCurrentStep((s) => s + 1);
       setStepErrors({});
     }
-  }, [currentStep, validateStep]);
+  }, [currentStep, validateStep, visibleSteps]);
 
   const goPrev = useCallback(() => {
     if (currentStep > 0) {
@@ -944,6 +1015,11 @@ export default function SetupWizardPage() {
         tax_name: form.taxName,
         enabled_modules: enabledModules,
         tax_id: form.companyTaxId,
+        // HRMS selections
+        hrms_expense_types: Array.from(form.hrmsSelectedExpenseTypes),
+        hrms_leave_types: Array.from(form.hrmsSelectedLeaveTypes),
+        hrms_salary_components: Array.from(form.hrmsSelectedSalaryComponents),
+        hrms_employment_types: Array.from(form.hrmsSelectedEmploymentTypes),
       } as Record<string, unknown>);
       const resultsArr = Array.isArray(result.results)
         ? (result.results as { step: string; status: string; message: string }[])
@@ -952,6 +1028,35 @@ export default function SetupWizardPage() {
       setSetupComplete(true);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 6000);
+
+      // ── HRMS Configuration (if HR is enabled) ──
+      if (enabledModules.includes('hr')) {
+        try {
+          const hrmsRes = await fetch('/api/setup/configure-hrms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              company: form.companyName,
+              selectedExpenseTypes: Array.from(form.hrmsSelectedExpenseTypes),
+              selectedLeaveTypes: Array.from(form.hrmsSelectedLeaveTypes),
+              selectedSalaryComponents: Array.from(form.hrmsSelectedSalaryComponents),
+              selectedEmploymentTypes: Array.from(form.hrmsSelectedEmploymentTypes),
+            }),
+          });
+          const hrmsData = await hrmsRes.json();
+          if (hrmsData.success) {
+            resultsArr.push({ step: 'hrmsSetup', status: 'ok', message: hrmsData.message || 'تم إعداد بيانات الموارد البشرية' });
+            setSetupResults([...resultsArr]);
+          } else {
+            resultsArr.push({ step: 'hrmsSetup', status: 'error', message: hrmsData.error || 'فشل إعداد بيانات الموارد البشرية' });
+            setSetupResults([...resultsArr]);
+          }
+        } catch {
+          resultsArr.push({ step: 'hrmsSetup', status: 'error', message: 'تعذر الاتصال لإعداد بيانات الموارد البشرية' });
+          setSetupResults([...resultsArr]);
+        }
+      }
+
       setSetupConfig({
         defaultCompany: form.companyName,
         branchesEnabled: false,
@@ -996,7 +1101,7 @@ export default function SetupWizardPage() {
 
   // ── علامة التقدم ──────────────────────────────────────────
 
-  const progressPercent = ((currentStep + 1) / STEPS.length) * 100;
+  const progressPercent = ((currentStep + 1) / visibleSteps.length) * 100;
 
   // ════════════════════════════════════════════════════════════
   // شاشة التحقق من حالة الإعداد
@@ -1506,7 +1611,7 @@ export default function SetupWizardPage() {
   // خطوات المعالج
   // ════════════════════════════════════════════════════════════
 
-  const stepDef = STEPS[currentStep];
+  const stepDef = visibleSteps[currentStep];
   const StepIcon = stepDef?.icon ?? Sparkles;
 
   const getStepStatus = (index: number): 'done' | 'current' | 'pending' => {
@@ -1531,7 +1636,7 @@ export default function SetupWizardPage() {
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto custom-scrollbar">
-          {STEPS.map((s, i) => {
+          {visibleSteps.map((s, i) => {
             const status = getStepStatus(i);
             const Icon = s.icon;
             return (
@@ -1595,12 +1700,12 @@ export default function SetupWizardPage() {
               <span className="font-bold text-sm">ERP Pro</span>
             </div>
             <span className="text-xs text-muted-foreground">
-              الخطوة {currentStep + 1} من {STEPS.length}
+              الخطوة {currentStep + 1} من {visibleSteps.length}
             </span>
           </div>
           <Progress value={progressPercent} className="h-1.5" />
           <div className="flex gap-1 overflow-x-auto pb-1 custom-scrollbar">
-            {STEPS.map((s, i) => {
+            {visibleSteps.map((s, i) => {
               const status = getStepStatus(i);
               const Icon = s.icon;
               return (
@@ -1645,8 +1750,8 @@ export default function SetupWizardPage() {
 
             <Separator />
 
-            {/* ── الخطوة 0: مرحباً ────────────────────────── */}
-            {currentStep === 0 && (
+            {/* ── الخطوة: مرحباً ────────────────────────── */}
+            {stepDef?.id === 'welcome' && (
               <div className="text-center space-y-8 py-6">
                 {/* الشعار مع تأثير متحرك */}
                 <div className="relative mx-auto w-24 h-24 md:w-32 md:h-32">
@@ -1688,8 +1793,8 @@ export default function SetupWizardPage() {
               </div>
             )}
 
-            {/* ── الخطوة 1: شعار الشركة ──────────────────── */}
-            {currentStep === 1 && (
+            {/* ── الخطوة: شعار الشركة ──────────────────── */}
+            {stepDef?.id === 'branding' && (
               <div className="space-y-6">
                 <Alert className="border-primary/20 bg-primary/5">
                   <Info className="h-4 w-4 text-primary" />
@@ -1811,7 +1916,7 @@ export default function SetupWizardPage() {
             )}
 
             {/* ── الخطوة 2: الاتصال بالخادم ──────────────────── */}
-            {currentStep === 2 && (
+            {stepDef?.id === 'server' && (
               <div className="space-y-5">
                 <p className="text-sm text-muted-foreground">
                   للعمل يحتاج النظام إلى الاتصال بخادم ERPNext. أدخل عنوان الخادم وبيانات الدخول.
@@ -1984,7 +2089,7 @@ export default function SetupWizardPage() {
             )}
 
             {/* ── الخطوة 3: الشركة ──────────────────────── */}
-            {currentStep === 3 && (
+            {stepDef?.id === 'company' && (
               <div className="space-y-5">
                 <Alert className="border-primary/20 bg-primary/5">
                   <Info className="h-4 w-4 text-primary" />
@@ -2106,7 +2211,7 @@ export default function SetupWizardPage() {
             )}
 
             {/* ── الخطوة 4: الوحدات ───────────────────────── */}
-            {currentStep === 4 && (
+            {stepDef?.id === 'modules' && (
               <div className="space-y-5">
                 <p className="text-sm text-muted-foreground">
                   اختر الوحدات التي تحتاجها. يمكنك تفعيل وحدات إضافية لاحقاً من الإعدادات.
@@ -2150,8 +2255,185 @@ export default function SetupWizardPage() {
               </div>
             )}
 
-            {/* ── الخطوة 5: السنة المالية ───────────────────── */}
-            {currentStep === 5 && (
+            {/* ── الخطوة: إعداد الموارد البشرية ──────────────── */}
+            {stepDef?.id === 'hrmsSetup' && (
+              <div className="space-y-5">
+                <Alert className="border-amber-200 bg-amber-50">
+                  <Users className="h-4 w-4 text-amber-600" />
+                  <AlertTitle className="text-amber-800">إعداد بيانات الموارد البشرية</AlertTitle>
+                  <AlertDescription className="text-amber-700 text-sm">
+                    وحدة الموارد البشرية تحتاج إلى بيانات أساسية لعملها: أنواع المصروفات، أنواع الإجازات، مكونات الرواتب، وأنواع التوظيف.
+                    حدد العناصر التي تريد إنشاءها — سيتم إعدادها بعد اكتمال الإعداد الرئيسي.
+                  </AlertDescription>
+                </Alert>
+
+                {touched.hrmsExpenseTypes && stepErrors.hrmsExpenseTypes && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{stepErrors.hrmsExpenseTypes}</AlertDescription>
+                  </Alert>
+                )}
+
+                {/* أنواع المصروفات */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Receipt className="h-4 w-4 text-amber-500" />
+                        أنواع المصروفات
+                      </CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          const allNames = HRMS_DEFAULT_EXPENSE_TYPES.map(t => t.name);
+                          const allSelected = allNames.every(n => form.hrmsSelectedExpenseTypes.has(n));
+                          updateForm('hrmsSelectedExpenseTypes', allSelected ? new Set() : new Set(allNames));
+                          setFieldTouched('hrmsExpenseTypes');
+                        }}
+                      >
+                        {HRMS_DEFAULT_EXPENSE_TYPES.every(t => form.hrmsSelectedExpenseTypes.has(t.name)) ? 'إلغاء التحديد' : 'تحديد الكل'}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {HRMS_DEFAULT_EXPENSE_TYPES.map((type) => (
+                        <label
+                          key={type.name}
+                          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors text-sm ${
+                            form.hrmsSelectedExpenseTypes.has(type.name) ? 'bg-amber-50 border border-amber-200' : 'hover:bg-muted/50'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={form.hrmsSelectedExpenseTypes.has(type.name)}
+                            onCheckedChange={() => {
+                              const next = new Set(form.hrmsSelectedExpenseTypes);
+                              if (next.has(type.name)) next.delete(type.name); else next.add(type.name);
+                              updateForm('hrmsSelectedExpenseTypes', next);
+                              setFieldTouched('hrmsExpenseTypes');
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium">{type.name}</span>
+                            <span className="text-muted-foreground text-xs ms-1">({type.englishName})</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      تم تحديد {form.hrmsSelectedExpenseTypes.size} من {HRMS_DEFAULT_EXPENSE_TYPES.length} نوع
+                    </p>
+                  </CardContent>
+                </Card>
+
+                {/* أنواع الإجازات */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4 text-blue-500" />
+                        أنواع الإجازات
+                      </CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          const allNames = HRMS_DEFAULT_LEAVE_TYPES.map(t => t.name);
+                          const allSelected = allNames.every(n => form.hrmsSelectedLeaveTypes.has(n));
+                          updateForm('hrmsSelectedLeaveTypes', allSelected ? new Set() : new Set(allNames));
+                        }}
+                      >
+                        {HRMS_DEFAULT_LEAVE_TYPES.every(t => form.hrmsSelectedLeaveTypes.has(t.name)) ? 'إلغاء التحديد' : 'تحديد الكل'}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {HRMS_DEFAULT_LEAVE_TYPES.map((type) => (
+                        <label
+                          key={type.name}
+                          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors text-sm ${
+                            form.hrmsSelectedLeaveTypes.has(type.name) ? 'bg-blue-50 border border-blue-200' : 'hover:bg-muted/50'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={form.hrmsSelectedLeaveTypes.has(type.name)}
+                            onCheckedChange={() => {
+                              const next = new Set(form.hrmsSelectedLeaveTypes);
+                              if (next.has(type.name)) next.delete(type.name); else next.add(type.name);
+                              updateForm('hrmsSelectedLeaveTypes', next);
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium">{type.name}</span>
+                            <span className="text-muted-foreground text-xs ms-1">({type.englishName})</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* مكونات الرواتب */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-emerald-500" />
+                        مكونات الرواتب
+                      </CardTitle>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          const allNames = HRMS_DEFAULT_SALARY_COMPONENTS.map(t => t.name);
+                          const allSelected = allNames.every(n => form.hrmsSelectedSalaryComponents.has(n));
+                          updateForm('hrmsSelectedSalaryComponents', allSelected ? new Set() : new Set(allNames));
+                        }}
+                      >
+                        {HRMS_DEFAULT_SALARY_COMPONENTS.every(t => form.hrmsSelectedSalaryComponents.has(t.name)) ? 'إلغاء التحديد' : 'تحديد الكل'}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {HRMS_DEFAULT_SALARY_COMPONENTS.map((comp) => (
+                        <label
+                          key={comp.name}
+                          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors text-sm ${
+                            form.hrmsSelectedSalaryComponents.has(comp.name) ? 'bg-emerald-50 border border-emerald-200' : 'hover:bg-muted/50'
+                          }`}
+                        >
+                          <Checkbox
+                            checked={form.hrmsSelectedSalaryComponents.has(comp.name)}
+                            onCheckedChange={() => {
+                              const next = new Set(form.hrmsSelectedSalaryComponents);
+                              if (next.has(comp.name)) next.delete(comp.name); else next.add(comp.name);
+                              updateForm('hrmsSelectedSalaryComponents', next);
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="font-medium">{comp.name}</span>
+                          </div>
+                          <Badge variant="secondary" className={`text-[10px] px-1.5 py-0 h-4 ${
+                            comp.type === 'Earning' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                          }`}>
+                            {comp.type === 'Earning' ? 'استحقاق' : 'استقطاع'}
+                          </Badge>
+                        </label>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* ── الخطوة: السنة المالية ───────────────────── */}
+            {stepDef?.id === 'fiscalYear' && (
               <div className="space-y-5">
                 <p className="text-sm text-muted-foreground">
                   حدد الفترة المالية الأولى لنظامك. يمكن إنشاء سنوات مالية إضافية لاحقاً.
@@ -2218,7 +2500,7 @@ export default function SetupWizardPage() {
             )}
 
             {/* ── الخطوة 6: المستودعات ─────────────────────── */}
-            {currentStep === 6 && (
+            {stepDef?.id === 'warehouses' && (
               <div className="space-y-5">
                 <p className="text-sm text-muted-foreground">
                   أضف المستودعات الافتراضية. يمكنك إضافة المزيد لاحقاً من الإعدادات.
@@ -2277,7 +2559,7 @@ export default function SetupWizardPage() {
             )}
 
             {/* ── الخطوة 7: طرق الدفع ─────────────────────── */}
-            {currentStep === 7 && (
+            {stepDef?.id === 'paymentMethods' && (
               <div className="space-y-5">
                 <p className="text-sm text-muted-foreground">
                   أضف طرق الدفع المتاحة. يمكنك تعديلها لاحقاً.
@@ -2353,7 +2635,7 @@ export default function SetupWizardPage() {
             )}
 
             {/* ── الخطوة 8: الضرائب ─────────────────────── */}
-            {currentStep === 8 && (
+            {stepDef?.id === 'tax' && (
               <div className="space-y-5">
                 {/* تنبيه إذا الدولة لا تدعم الضرائب في ERPNext */}
                 {!COUNTRY_CURRENCY_MAP[form.country]?.taxSupported && (
@@ -2427,7 +2709,7 @@ export default function SetupWizardPage() {
             )}
 
             {/* ── الخطوة 9: المستخدم الإداري ─────────────────── */}
-            {currentStep === 9 && (
+            {stepDef?.id === 'admin' && (
               <div className="space-y-5">
                 <p className="text-sm text-muted-foreground">
                   أنشئ حساب المدير الرئيسي للنظام. سيكون له صلاحيات كاملة.
@@ -2536,7 +2818,7 @@ export default function SetupWizardPage() {
             )}
 
             {/* ── الخطوة 10: الموظف الإداري ─────────────────── */}
-            {currentStep === 10 && (
+            {stepDef?.id === 'employee' && (
               <div className="space-y-5">
                 <p className="text-sm text-muted-foreground">
                   سجّل بيانات الموظف الإداري. سيُربط بحساب المدير.
@@ -2602,7 +2884,7 @@ export default function SetupWizardPage() {
             )}
 
             {/* ── الخطوة 11: مراجعة وتأكيد ───────────────── */}
-            {currentStep === 11 && (
+            {stepDef?.id === 'review' && (
               <div className="space-y-5">
                 <Alert variant="destructive" className="border-red-200 bg-red-50">
                   <AlertCircle className="h-4 w-4" />
@@ -2639,7 +2921,7 @@ export default function SetupWizardPage() {
                         {form.companyTaxId && <div><span className="text-muted-foreground">الرقم الضريبي:</span> {form.companyTaxId}</div>}
                         {form.companyAddress && <div className="col-span-2"><span className="text-muted-foreground">العنوان:</span> {form.companyAddress}</div>}
                       </div>
-                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(3); setStepErrors({}); }}>
+                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(visibleSteps.findIndex(s => s.id === 'company')); setStepErrors({}); }}>
                         تعديل ←
                       </Button>
                     </CardContent>
@@ -2664,7 +2946,7 @@ export default function SetupWizardPage() {
                       <div><span className="text-muted-foreground">العنوان:</span> <code className="bg-muted px-1 rounded text-xs">{form.backendHost}</code></div>
                       <div><span className="text-muted-foreground">المستخدم:</span> {form.serverAdminUser}</div>
                       <div><span className="text-muted-foreground">الاتصال:</span> <Badge variant="secondary" className="text-xs gap-1"><Check className="w-3 h-3" /> ناجح</Badge></div>
-                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(2); setStepErrors({}); }}>
+                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(visibleSteps.findIndex(s => s.id === 'server')); setStepErrors({}); }}>
                         تعديل ←
                       </Button>
                     </CardContent>
@@ -2694,7 +2976,7 @@ export default function SetupWizardPage() {
                           );
                         })}
                       </div>
-                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(4); setStepErrors({}); }}>
+                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(visibleSteps.findIndex(s => s.id === 'modules')); setStepErrors({}); }}>
                         تعديل ←
                       </Button>
                     </CardContent>
@@ -2719,7 +3001,7 @@ export default function SetupWizardPage() {
                       <div><span className="text-muted-foreground">الاسم:</span> {form.fiscalYearName}</div>
                       <div><span className="text-muted-foreground">من:</span> {form.fiscalYearStart}</div>
                       <div><span className="text-muted-foreground">إلى:</span> {form.fiscalYearEnd}</div>
-                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(5); setStepErrors({}); }}>
+                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(visibleSteps.findIndex(s => s.id === 'fiscalYear')); setStepErrors({}); }}>
                         تعديل ←
                       </Button>
                     </CardContent>
@@ -2746,7 +3028,7 @@ export default function SetupWizardPage() {
                           <Badge key={w.id} variant="secondary">{w.name}</Badge>
                         ))}
                       </div>
-                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(6); setStepErrors({}); }}>
+                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(visibleSteps.findIndex(s => s.id === 'warehouses')); setStepErrors({}); }}>
                         تعديل ←
                       </Button>
                     </CardContent>
@@ -2773,7 +3055,7 @@ export default function SetupWizardPage() {
                           <Badge key={p.id} variant="secondary">{p.name}</Badge>
                         ))}
                       </div>
-                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(7); setStepErrors({}); }}>
+                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(visibleSteps.findIndex(s => s.id === 'paymentMethods')); setStepErrors({}); }}>
                         تعديل ←
                       </Button>
                     </CardContent>
@@ -2815,7 +3097,7 @@ export default function SetupWizardPage() {
                           )}
                         </div>
                       )}
-                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(8); setStepErrors({}); }}>
+                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(visibleSteps.findIndex(s => s.id === 'tax')); setStepErrors({}); }}>
                         تعديل ←
                       </Button>
                     </CardContent>
@@ -2840,7 +3122,7 @@ export default function SetupWizardPage() {
                       <div><span className="text-muted-foreground">الاسم:</span> {form.adminFirstName} {form.adminLastName}</div>
                       <div><span className="text-muted-foreground">البريد:</span> <code className="bg-muted px-1 rounded text-xs">{form.adminEmail}</code></div>
                       <div><span className="text-muted-foreground">كلمة المرور:</span> {'•'.repeat(Math.min(form.adminPassword.length, 12))}</div>
-                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(9); setStepErrors({}); }}>
+                      <Button variant="link" size="sm" className="p-0 h-auto text-xs" onClick={() => { setCurrentStep(visibleSteps.findIndex(s => s.id === 'admin')); setStepErrors({}); }}>
                         تعديل ←
                       </Button>
                     </CardContent>
@@ -2902,7 +3184,7 @@ export default function SetupWizardPage() {
                 السابق
               </Button>
 
-              {currentStep === STEPS.length - 1 ? (
+              {currentStep === visibleSteps.length - 1 ? (
                 <Button
                   type="button"
                   onClick={executeSetup}
@@ -2926,7 +3208,7 @@ export default function SetupWizardPage() {
                 <Button
                   type="button"
                   onClick={goNext}
-                  disabled={currentStep === STEPS.length - 1}
+                  disabled={currentStep === visibleSteps.length - 1}
                   className="gap-2"
                 >
                   التالي

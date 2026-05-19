@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect, type ReactNode } from 'react';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { StatusBadge } from '@/components/erp/status-badge';
@@ -362,7 +363,10 @@ export default function ExpensesPage() {
         header: 'رقم المطالبة',
         sortable: true,
         width: 'w-28',
-        render: (value) => <span className="font-medium text-primary">{String(value)}</span>},
+        render: (value) => {
+          const href = docDetailPath('Expense Claim', String(value));
+          return href ? <Link href={href} className="font-medium text-primary hover:underline">{String(value)}</Link> : <span className="font-medium text-primary">{String(value)}</span>;
+        }},
       {
         key: 'company',
         header: 'الشركة',
@@ -646,15 +650,10 @@ export default function ExpensesPage() {
             toast.error('لا يمكن تعديل مستند مرحّل أو ملغي — استخدم إلغاء الترحيل أولاً');
             return;
           }
-          // محاولة فتح صفحة التفصيل
+          // فتح صفحة التفصيل مع وضع التعديل
           const href = docDetailPath('Expense Claim', row.name);
           if (href) {
             router.push(href);
-          } else {
-            toast.info('واجهة تعديل مطالبات المصروفات قيد التطوير', {
-              description: 'يمكنك حذف المسودة وإنشاء مطالبة جديدة بدلاً من ذلك',
-              duration: 5000,
-            });
           }
         }}
         onDelete={(row) => {

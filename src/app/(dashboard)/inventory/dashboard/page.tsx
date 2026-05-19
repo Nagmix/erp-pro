@@ -25,6 +25,7 @@ import {
   Layers,
   ShoppingBag,
   ArrowUpDown,
+  DollarSign,
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -32,7 +33,7 @@ import {
 /* ------------------------------------------------------------------ */
 const QUICK_ACTIONS = [
   { label: 'حركة مخزون جديدة', href: '/inventory/stock-entry?new=1', icon: ArrowRightLeft, color: 'bg-chart-4/10 text-chart-4' },
-  { label: 'جرد المخزون', href: '/inventory/stock-count', icon: ClipboardCheck, color: 'bg-primary/10 text-primary' },
+  { label: 'جرد المخزون', href: '/inventory/stock-levels', icon: ClipboardCheck, color: 'bg-primary/10 text-primary' },
   { label: 'الأصناف', href: '/inventory/items', icon: Package, color: 'bg-chart-1/10 text-chart-1' },
   { label: 'المستودعات', href: '/inventory/warehouses', icon: Warehouse, color: 'bg-chart-2/10 text-chart-2' },
 ];
@@ -88,7 +89,7 @@ export default function InventoryDashboardPage() {
   const { data: bins = [], isLoading: binsLoading } = useDocList<Record<string, unknown>>(
     'Bin',
     {
-      fields: ['name', 'item_code', 'warehouse', 'actual_qty', 'valuation_rate', 'stock_value', 'reorder_level', 'projected_qty'],
+      fields: ['name', 'item_code', 'warehouse', 'actual_qty', 'valuation_rate', 'stock_value', 'projected_qty'],
       limit: 500,
     }
   );
@@ -113,11 +114,12 @@ export default function InventoryDashboardPage() {
     [stockEntries, thisMonth]
   );
 
+  const LOW_STOCK_THRESHOLD = 5;
+
   const lowStockItems = useMemo(
     () => bins.filter((bin) => {
-      const reorder = Number(bin.reorder_level || 0);
       const actual = Number(bin.actual_qty || 0);
-      return reorder > 0 && actual > 0 && actual <= reorder;
+      return actual > 0 && actual <= LOW_STOCK_THRESHOLD;
     }),
     [bins]
   );
@@ -141,9 +143,8 @@ export default function InventoryDashboardPage() {
 
   const reorderRequired = useMemo(
     () => bins.filter((bin) => {
-      const reorder = Number(bin.reorder_level || 0);
       const projected = Number(bin.projected_qty || 0);
-      return reorder > 0 && projected <= reorder;
+      return projected <= LOW_STOCK_THRESHOLD && projected > 0;
     }).length,
     [bins]
   );
@@ -152,15 +153,14 @@ export default function InventoryDashboardPage() {
   const lowStockAlerts = useMemo(() => {
     return bins
       .filter((bin) => {
-        const reorder = Number(bin.reorder_level || 0);
         const actual = Number(bin.actual_qty || 0);
-        return reorder > 0 && actual > 0 && actual <= reorder;
+        return actual > 0 && actual <= LOW_STOCK_THRESHOLD;
       })
       .map((bin) => ({
         itemCode: String(bin.item_code),
         warehouse: String(bin.warehouse),
         actualQty: Number(bin.actual_qty || 0),
-        reorderLevel: Number(bin.reorder_level || 0),
+        reorderLevel: LOW_STOCK_THRESHOLD,
       }))
       .slice(0, 10);
   }, [bins]);
@@ -252,7 +252,62 @@ export default function InventoryDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
-      {/* ── KPI Row 2 ── */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Package className="h-4 w-4 text-primary" />
+              <span className="text-[11px] text-muted-foreground">الأصناف</span>
+            </div>
+            <p className="text-lg font-bold tabular-nums">{totalItems}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <DollarSign className="h-4 w-4 text-chart-3" />
+              <span className="text-[11px] text-muted-foreground">قيمة المخزون</span>
+            </div>
+            <p className="text-lg font-bold tabular-nums">{formatCurrency(totalStockValue)}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <Warehouse className="h-4 w-4 text-chart-2" />
+              <span className="text-[11px] text-muted-foreground">المستودعات</span>
+            </div>
+            <p className="text-lg font-bold tabular-nums">{warehousesCount}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <ArrowRightLeft className="h-4 w-4 text-chart-4" />
+              <span className="text-[11px] text-muted-foreground">حركات الشهر</span>
+            </div>
+            <p className="text-lg font-bold tabular-nums">{stockEntriesThisMonth}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <CircleAlert className="h-4 w-4 text-destructive" />
+              <span className="text-[11px] text-muted-foreground">نفذ المخزون</span>
+            </div>
+            <p className="text-lg font-bold tabular-nums">{outOfStockItems}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <ArrowUpDown className="h-4 w-4 text-chart-1" />
+              <span className="text-[11px] text-muted-foreground">تحويلات معلقة</span>
+            </div>
+            <p className="text-lg font-bold tabular-nums">{pendingTransfers}</p>
+          </CardContent>
+        </Card>
+      </div>
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

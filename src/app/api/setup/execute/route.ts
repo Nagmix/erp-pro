@@ -1053,6 +1053,67 @@ export async function POST(request: NextRequest) {
       results.push({ step: 'branding', status: 'skip', message: 'تعذر تحديث إعدادات الموقع' });
     }
 
+    // ── 12.5 إعداد HRMS (إذا كانت وحدة HR مفعّلة) ───────────
+    if (enabledModules.includes('hr')) {
+      try {
+        // جلب بيانات HRMS المحددة من الطلب
+        const hrmsExpenseTypes = Array.isArray(body.hrms_expense_types)
+          ? (body.hrms_expense_types as string[]).filter(Boolean)
+          : [];
+        const hrmsLeaveTypes = Array.isArray(body.hrms_leave_types)
+          ? (body.hrms_leave_types as string[]).filter(Boolean)
+          : [];
+        const hrmsSalaryComponents = Array.isArray(body.hrms_salary_components)
+          ? (body.hrms_salary_components as string[]).filter(Boolean)
+          : [];
+        const hrmsEmploymentTypes = Array.isArray(body.hrms_employment_types)
+          ? (body.hrms_employment_types as string[]).filter(Boolean)
+          : [];
+
+        if (hrmsExpenseTypes.length > 0 || hrmsLeaveTypes.length > 0 || hrmsSalaryComponents.length > 0 || hrmsEmploymentTypes.length > 0) {
+          // استدعاء منطق إعداد HRMS مباشرة عبر fetch داخلي
+          const hrmsPayload: Record<string, unknown> = {
+            company: companyDocName,
+            selectedExpenseTypes: hrmsExpenseTypes,
+            selectedLeaveTypes: hrmsLeaveTypes,
+            selectedSalaryComponents: hrmsSalaryComponents,
+            selectedEmploymentTypes: hrmsEmploymentTypes,
+          };
+
+          // بناء عنوان URL للطلب الداخلي
+          const baseUrl = process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : process.env.NEXT_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
+
+          const hrmsRes = await fetch(`${baseUrl}/api/setup/configure-hrms`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(hrmsPayload),
+          });
+
+          const hrmsData = await hrmsRes.json() as { success: boolean; message?: string; error?: string; summary?: { totalCreated: number; totalFailed: number } };
+
+          if (hrmsData.success) {
+            const created = hrmsData.summary?.totalCreated || 0;
+            const failed = hrmsData.summary?.totalFailed || 0;
+            results.push({
+              step: 'hrmsSetup',
+              status: failed > 0 ? 'ok' : 'ok',
+              message: `تم إعداد HRMS: إنشاء ${created} عنصر${failed > 0 ? `، فشل ${failed} عنصر` : ''}`,
+            });
+          } else {
+            results.push({ step: 'hrmsSetup', status: 'error', message: hrmsData.error || 'فشل إعداد HRMS' });
+          }
+        } else {
+          results.push({ step: 'hrmsSetup', status: 'skip', message: 'لم يتم تحديد عناصر HRMS للإعداد' });
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'فشل إعداد HRMS';
+        console.warn('[Setup Execute] HRMS setup warning:', msg);
+        results.push({ step: 'hrmsSetup', status: 'error', message: msg });
+      }
+    }
+
     // ── علامة اكتمال الإعداد ──────────────────────────────
     // [v16 compat] Store the detected backend version for future reference
     let detectedVersion = '';

@@ -59,7 +59,6 @@ type AppSettingsSection = 'general' | 'accounting' | 'sales' | 'purchases' | 'in
 type RoleData = {
  name: string;
  desk_access: boolean;
- search_bar: boolean;
  two_factor_auth: boolean;
  disabled: boolean;
  users: number;
@@ -794,13 +793,10 @@ export default function SettingsPage() {
        {r.desk_access && (
         <span className="text-[10px] text-chart-3">دخول سطح المكتب</span>
        )}
-       {r.search_bar && (
-        <span className="text-[10px] text-chart-1">شريط البحث</span>
-       )}
        {r.two_factor_auth && (
         <span className="text-[10px] text-chart-2">مصادقة ثنائية</span>
        )}
-       {!r.desk_access && !r.search_bar && !r.two_factor_auth && (
+       {!r.desk_access && !r.two_factor_auth && (
         <span className="text-[10px] text-muted-foreground">بدون صلاحيات إضافية</span>
        )}
        </div>
@@ -878,17 +874,6 @@ export default function SettingsPage() {
      <Switch
      checked={editingRole.desk_access}
      onCheckedChange={(v) => setEditingRole((prev) => prev ? { ...prev, desk_access: v } : prev)}
-     />
-    </div>
-
-    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/35">
-     <div>
-     <p className="text-sm font-medium">شريط البحث</p>
-     <p className="text-xs text-muted-foreground mt-0.5">السماح باستخدام شريط البحث العام</p>
-     </div>
-     <Switch
-     checked={editingRole.search_bar}
-     onCheckedChange={(v) => setEditingRole((prev) => prev ? { ...prev, search_bar: v } : prev)}
      />
     </div>
 

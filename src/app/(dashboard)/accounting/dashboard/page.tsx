@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
+import { ComponentHealthCheck } from '@/components/erp/component-health-check';
 import {
   DollarSign,
   TrendingUp,
@@ -175,15 +176,6 @@ export default function AccountingDashboardPage() {
     }
   );
 
-  const { data: glEntries = [], isLoading: glLoading } = useDocList<Record<string, unknown>>(
-    'GL Entry',
-    {
-      fields: ['name', 'account', 'debit', 'credit', 'posting_date', 'against'],
-      limit: 100,
-      order_by: 'posting_date desc',
-    }
-  );
-
   /* ---------- KPI calculations ---------- */
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -324,6 +316,9 @@ export default function AccountingDashboardPage() {
         accent="primary"
         breadcrumbs={[{ label: 'المحاسبة' }, { label: 'لوحة التحكم' }]}
       />
+
+      {/* ── Component Health Check ── */}
+      <ComponentHealthCheck />
 
       {/* ── KPI Row 1 ── */}
       <KpiStrip cols={4}>

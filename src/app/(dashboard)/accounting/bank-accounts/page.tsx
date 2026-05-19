@@ -366,7 +366,7 @@ export default function BankAccountsPage() {
         });
         try { await apiCreateDoc('Bank Transaction', doc); ok++; }
         catch (e) {
-          toast.success('توقف الاستيراد عند حركة فاشلة');
+          toast.error('توقف الاستيراد عند حركة فاشلة');
           break;
         }
       }

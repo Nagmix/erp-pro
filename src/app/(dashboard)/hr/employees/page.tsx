@@ -72,7 +72,7 @@ type EmployeeRow = {
   date_of_joining?: string;
   gender?: string;
   cell_number?: string;
-  prefered_email?: string;
+  personal_email?: string;
 };
 
 /* ────────────────────────────────────────────
@@ -205,7 +205,7 @@ const initialFormData = {
   date_of_birth: '',
   date_of_joining: '',
   cell_number: '',
-  prefered_email: '',
+  personal_email: '',
   status: 'Active',
 };
 
@@ -261,7 +261,7 @@ export default function EmployeesPage() {
         'date_of_joining',
         'gender',
         'cell_number',
-        'prefered_email',
+        'personal_email',
       ],
       limit: 500,
     });
@@ -344,7 +344,7 @@ export default function EmployeesPage() {
       department: formData.department || undefined,
       designation: formData.designation || undefined,
       cell_number: formData.cell_number || undefined,
-      company_email: formData.prefered_email || undefined,
+      company_email: formData.personal_email || undefined,
       date_of_birth: formData.date_of_birth || undefined,
       branch: formData.branch || undefined,
     });
@@ -598,11 +598,11 @@ export default function EmployeesPage() {
                         type="email"
                         placeholder="email@company.sa"
                         dir="ltr"
-                        value={formData.prefered_email}
+                        value={formData.personal_email}
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            prefered_email: e.target.value,
+                            personal_email: e.target.value,
                           }))
                         }
                       />

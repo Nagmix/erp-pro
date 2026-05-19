@@ -3,7 +3,7 @@
 // All requests are proxied internally - client never sees the backend
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getList, createDoc } from '@/lib/server/backend';
+import { getList, createDoc, getDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 
 // Prevent static analysis during build
@@ -35,6 +35,21 @@ const HRMS_DOTYPES = new Set([
   'Salary Structure',
 ]);
 
+// DocTypes that need auto-fill of company defaults (currency, exchange_rate, cost_center)
+const DOCTYPES_NEED_COMPANY_DEFAULTS = new Set([
+  'Sales Invoice',
+  'Purchase Invoice',
+  'Payment Entry',
+  'Journal Entry',
+  'Expense Claim',
+  'Purchase Order',
+  'Sales Order',
+  'Quotation',
+  'Supplier Quotation',
+  'Delivery Note',
+  'Purchase Receipt',
+]);
+
 function isNotFoundError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
   const msg = error.message || '';
@@ -45,6 +60,104 @@ function isFieldPermissionError(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
   const msg = error.message || '';
   return /Field not permitted in query|DataError/i.test(msg);
+}
+
+/**
+ * إضافة القيم الافتراضية للشركة تلقائياً عند إنشاء المستندات
+ * يشمل: currency, exchange_rate, cost_center
+ */
+async function autoFillCompanyDefaults(
+  doctype: string,
+  body: Record<string, unknown>,
+  userSession?: string
+): Promise<Record<string, unknown>> {
+  if (!DOCTYPES_NEED_COMPANY_DEFAULTS.has(doctype)) return body;
+
+  const result = { ...body };
+
+  try {
+    // جلب إعدادات الشركة الأولى
+    const companies = (await getList('Company', {
+      fields: ['name', 'default_currency', 'default_cost_center', 'cost_center'],
+      limit: 1,
+    }, userSession)) as Array<Record<string, unknown>>;
+
+    if (companies.length === 0) return result;
+    const company = companies[0]!;
+    const companyName = String(company.name);
+    const companyCurrency = String(company.default_currency || 'YER');
+
+    // تعيين اسم الشركة إذا لم يكن موجوداً
+    if (!result.company) result.company = companyName;
+
+    // تعيين العملة وسعر الصرف للفواتير والمستندات المالية
+    if (!result.currency) {
+      result.currency = companyCurrency;
+    }
+    if (!result.exchange_rate && result.exchange_rate !== 0) {
+      result.exchange_rate = 1;
+    }
+
+    // تعيين مركز التكلفة الافتراضي للعناصر الفرعية
+    // جلب مركز التكلفة الورقي (غير المجمّع)
+    if (!result.cost_center) {
+      try {
+        const costCenters = (await getList('Cost Center', {
+          fields: ['name', 'is_group'],
+          filters: [['is_group', '=', '0'], ['company', '=', companyName]],
+          limit: 1,
+        }, userSession)) as Array<Record<string, unknown>>;
+
+        if (costCenters.length > 0) {
+          result.cost_center = String(costCenters[0]!.name);
+        }
+      } catch { /* تجاهل */ }
+    }
+
+    // تعيين مركز التكلفة للعناصر الفرعية (items, expenses, accounts)
+    const childTableFields = ['items', 'expenses', 'accounts'];
+    for (const field of childTableFields) {
+      const children = result[field];
+      if (Array.isArray(children)) {
+        result[field] = children.map((child: Record<string, unknown>) => {
+          if (!child.cost_center && result.cost_center) {
+            return { ...child, cost_center: result.cost_center };
+          }
+          return child;
+        });
+      }
+    }
+
+    // إعدادات خاصة بمطالبات المصروفات
+    if (doctype === 'Expense Claim') {
+      if (!result.approval_status) {
+        result.approval_status = 'Approved';
+      }
+      // payable_account من إعدادات الشركة
+      if (!result.payable_account) {
+        try {
+          const companyDoc = (await getDoc('Company', companyName, userSession)) as Record<string, unknown>;
+          if (companyDoc.default_expense_claim_payable_account) {
+            result.payable_account = String(companyDoc.default_expense_claim_payable_account);
+          }
+        } catch { /* تجاهل */ }
+      }
+    }
+
+    // إعدادات خاصة بقسائم الدفع
+    if (doctype === 'Payment Entry') {
+      if (!result.party_type) {
+        // محاولة استنتاج party_type من party
+        // إذا لم يتم تحديده، لن نعينه تلقائياً لأنه إلزامي
+      }
+    }
+
+  } catch (error) {
+    // لا نوقف إنشاء المستند بسبب فشل جلب الإعدادات الافتراضية
+    console.warn('[autoFillCompanyDefaults] Failed:', error instanceof Error ? error.message : error);
+  }
+
+  return result;
 }
 
 // GET - List documents
@@ -91,7 +204,10 @@ export async function POST(
   const { doctype } = await params;
   try {
     const userSession = getFrappeSidFromRequest(request);
-    const body = await request.json();
+    let body = await request.json() as Record<string, unknown>;
+
+    // ✅ إضافة القيم الافتراضية تلقائياً (currency, exchange_rate, cost_center, etc.)
+    body = await autoFillCompanyDefaults(doctype, body, userSession);
 
     const data = await createDoc(doctype, body, userSession);
     return NextResponse.json({ success: true, data }, { status: 201 });

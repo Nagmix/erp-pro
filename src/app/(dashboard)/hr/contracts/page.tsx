@@ -8,6 +8,7 @@ import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -104,6 +105,7 @@ interface ContractFormState {
   contract_type: string;
   start_date: string;
   end_date: string;
+  contract_terms: string;
 }
 
 const initialForm: ContractFormState = {
@@ -111,6 +113,7 @@ const initialForm: ContractFormState = {
   contract_type: 'Fixed Term',
   start_date: new Date().toISOString().split('T')[0] || '',
   end_date: '',
+  contract_terms: '',
 };
 
 export default function ContractsPage() {
@@ -220,6 +223,7 @@ export default function ContractsPage() {
       contract_type: row.contract_type || 'Fixed Term',
       start_date: row.start_date || '',
       end_date: row.end_date || '',
+      contract_terms: '',
     });
     setDialogOpen(true);
   };
@@ -245,6 +249,10 @@ export default function ContractsPage() {
       toast.error('تاريخ البدء مطلوب');
       return;
     }
+    if (!formData.contract_terms) {
+      toast.error('شروط العقد مطلوبة');
+      return;
+    }
     const doc = prepareFrappeDocForCreate({
       doctype: 'Contract',
       party_type: 'Employee',
@@ -252,6 +260,7 @@ export default function ContractsPage() {
       contract_type: formData.contract_type,
       start_date: formData.start_date,
       end_date: formData.end_date || undefined,
+      contract_terms: formData.contract_terms,
       company,
     });
     createMutation.mutate(doc, {
@@ -276,6 +285,7 @@ export default function ContractsPage() {
           contract_type: formData.contract_type,
           start_date: formData.start_date,
           end_date: formData.end_date || undefined,
+          contract_terms: formData.contract_terms || undefined,
         },
       },
       {
@@ -624,6 +634,17 @@ export default function ContractsPage() {
                   }
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">شروط العقد <span className="text-destructive">*</span></Label>
+              <Textarea
+                placeholder="أدخل شروط العقد..."
+                value={formData.contract_terms}
+                onChange={(e) =>
+                  setFormData((p) => ({ ...p, contract_terms: e.target.value }))
+                }
+                rows={4}
+              />
             </div>
           </div>
           <DialogFooter>

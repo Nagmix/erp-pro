@@ -55,7 +55,7 @@ const emptyItem = (): InvoiceItem => ({
   qty: 1,
   rate: 0,
   amount: 0,
-  warehouse: 'المستودع الرئيسي',
+  warehouse: '',
 });
 
 const invoiceSchema = z
@@ -114,7 +114,7 @@ export function PurchaseInvoiceNewEditor() {
   const taxesAndCharges = form.watch('taxes_and_charges');
   const discountAmount = form.watch('discount_amount') || 0;
   const netTotal = useMemo(() => items.reduce((s, i) => s + i.amount, 0), [items]);
-  const estimatedVat = useMemo(() => (taxesAndCharges?.trim() ? 0 : netTotal * 0.15), [netTotal, taxesAndCharges]);
+  const estimatedVat = useMemo(() => (taxesAndCharges?.trim() ? 0 : netTotal * 0.05), [netTotal, taxesAndCharges]);
   /** عند قالب ضريبة: لا نخمّن الضريبة محلياً — الإجمالي المعروض = صافي − خصم (الضريبة في ERPNext) */
   const grandTotalPreview = useMemo(() => {
     const base = netTotal - discountAmount;
@@ -163,7 +163,7 @@ export function PurchaseInvoiceNewEditor() {
           router.push('/purchases/purchase-invoices');
           router.refresh();
         },
-        onError: () => toast.error('تعذر الحفظ'),
+        onError: (err: Error) => toast.error('تعذر الحفظ', { description: err?.message || '' }),
       }
     );
   };
@@ -396,7 +396,7 @@ export function PurchaseInvoiceNewEditor() {
               <div className="flex items-center justify-between rounded-lg bg-background/40 px-4 py-3 backdrop-blur-sm">
                 <div className="flex items-center gap-2">
                   <Percent className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-sm font-medium text-muted-foreground">ض.ق.م (15%)</span>
+                  <span className="text-sm font-medium text-muted-foreground">ض.ق.م (5%)</span>
                 </div>
                 <span className="text-base font-bold tabular-nums text-primary">
                   {formatCurrency(estimatedVat)}
@@ -437,7 +437,7 @@ export function PurchaseInvoiceNewEditor() {
               <p className="mt-3 text-[10px] font-medium leading-relaxed text-muted-foreground/80">
                 {taxesAndCharges?.trim()
                   ? 'الإجمالي المعروض قبل الضريبة؛ الضريبة والإجمالي النهائي يُحسبان من القالب عند الحفظ في النظام.'
-                  : 'القيم المعروضة تقديرية قبل الحفظ النهائي (بدون قالب ضريبة يُعرض تقدير 15% للعرض فقط).'}
+                  : 'تقدير 5% ضريبة قيمة مضافة — القيم المعروضة تقديرية قبل الحفظ النهائي.'}
               </p>
               <p className="mt-1 text-[10px] text-muted-foreground/80">
                 العملة: <span className="font-semibold">{form.watch('currency') || 'YER'}</span> | سعر الصرف: {form.watch('exchange_rate') || 1}
@@ -494,7 +494,7 @@ export function PurchaseInvoiceNewEditor() {
                 <AnimatePresence initial={false}>
                   {items.map((item, idx) => (
                     <motion.tr
-                      key={idx}
+                      key={item.item_code + '-' + idx}
                       layout
                       initial={{ opacity: 0, x: -12 }}
                       animate={{ opacity: 1, x: 0 }}

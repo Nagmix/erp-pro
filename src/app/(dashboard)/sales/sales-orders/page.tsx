@@ -28,6 +28,7 @@ import {
 import { FormField } from '@/components/erp/form-field';
 import { Plus, Trash2, ShoppingCart, Send, Undo2, FileText, Truck, User, Calendar, Coins, Hash, Filter, ChevronDown, Upload, X } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -117,7 +118,24 @@ export default function SalesOrdersPage() {
   const deleteMutation = useDeleteDoc('Sales Order');
 
   const rows = data || [];
-  const filtered = filter === 'all' ? rows : rows.filter((o) => o.status === filter);
+  const filtered = useMemo(() => {
+    let list = rows;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((row: any) =>
+        String(row.name || '').toLowerCase().includes(q) ||
+        String(row.customer_name || '').toLowerCase().includes(q)
+      );
+    }
+    if (dateFrom || dateTo) {
+      list = list.filter((row: any) => rowInDateRangeISO(row.transaction_date, dateFrom, dateTo));
+    }
+    const effectiveStatus = orderStatusFilter !== 'all' ? orderStatusFilter : (filter !== 'all' ? filter : 'all');
+    if (effectiveStatus !== 'all') {
+      list = list.filter((row: any) => row.status === effectiveStatus);
+    }
+    return list;
+  }, [rows, search, dateFrom, dateTo, orderStatusFilter, filter]);
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {

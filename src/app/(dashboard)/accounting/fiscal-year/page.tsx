@@ -44,6 +44,9 @@ const schema = z.object({
   year_start_date: z.string().min(1),
   year_end_date: z.string().min(1),
   company: z.string().optional(),
+}).refine(d => d.year_end_date >= d.year_start_date, {
+  message: 'تاريخ نهاية السنة يجب أن يكون بعد تاريخ البداية',
+  path: ['year_end_date'],
 });
 
 type Form = z.infer<typeof schema>;

@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/table';
 import { Plus, Trash2, FileText, Send, Undo2, ShoppingCart, Filter, ChevronDown, Upload, X } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -115,7 +116,24 @@ export default function QuotationsPage() {
   const deleteMutation = useDeleteDoc('Quotation');
 
   const rows = data || [];
-  const filtered = filter === 'all' ? rows : rows.filter((q) => q.status === filter);
+  const filtered = useMemo(() => {
+    let list = rows;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((row: any) =>
+        String(row.name || '').toLowerCase().includes(q) ||
+        String(row.party_name || '').toLowerCase().includes(q)
+      );
+    }
+    if (dateFrom || dateTo) {
+      list = list.filter((row: any) => rowInDateRangeISO(row.transaction_date, dateFrom, dateTo));
+    }
+    const effectiveStatus = quotationStatusFilter !== 'all' ? quotationStatusFilter : (filter !== 'all' ? filter : 'all');
+    if (effectiveStatus !== 'all') {
+      list = list.filter((row: any) => row.status === effectiveStatus);
+    }
+    return list;
+  }, [rows, search, dateFrom, dateTo, quotationStatusFilter, filter]);
 
   const subtotal = useMemo(
     () => lines.reduce((s, l) => s + l.qty * l.rate, 0),

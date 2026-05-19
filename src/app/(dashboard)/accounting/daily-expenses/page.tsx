@@ -142,7 +142,7 @@ export default function DailyExpensesPage() {
 
   // Fetch expenses
   const { data: expenses = [], isLoading, isError, error, refetch } = useDocList<ExpenseRow>('Expense Claim', {
-    fields: ['name', 'posting_date', 'employee', 'employee_name', 'total_claimed_amount', 'total_sanctioned_amount', 'status', 'remark', 'docstatus'],
+    fields: ['name', 'posting_date', 'employee', 'employee_name', 'total_claimed_amount', 'total_sanctioned_amount', 'status', 'remark', 'docstatus', 'expense_type'],
     order_by: 'posting_date desc',
     limit: 200,
   });

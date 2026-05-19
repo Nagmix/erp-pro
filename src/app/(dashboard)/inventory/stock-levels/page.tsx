@@ -405,7 +405,7 @@ export default function StockLevelsPage() {
 
       <PageHeader
         title="مستويات المخزون"
-        description="عرض كميات المخزون حسب المستودع مع تنبيهات المخزون المنخفق والمنفذ مع إمكانيات الفلترة والتصدير"
+        description="عرض كميات المخزون حسب المستودع مع تنبيهات المخزون المنخفض والمنفذ مع إمكانيات الفلترة والتصدير"
         iconify="solar:box-bold-duotone"
         accent="info"
         breadcrumbs={[{ label: 'المخزون', href: '/inventory' }, { label: 'مستويات المخزون' }]}

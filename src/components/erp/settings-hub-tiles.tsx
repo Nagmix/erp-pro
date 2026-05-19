@@ -20,6 +20,7 @@ import {
   Mail,
   ClipboardList,
   Hash,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +42,7 @@ const tiles = [
   { href: '/settings/local-audit-log', label: 'سجل تدقيق محلي', desc: 'أحداث إعدادات عند SQLite', icon: ClipboardList, color: 'bg-muted text-foreground' },
   { href: '/settings/tax-rates', label: 'الضرائب', desc: 'معدلات وقواعد الضريبة', icon: Percent, color: 'bg-orange-500/10 text-orange-800 dark:text-orange-200' },
   { href: '/settings/payment-methods', label: 'طرق الدفع', desc: 'إدارة وسائل الدفع', icon: CreditCard, color: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300' },
+  { href: '/settings/hrms-setup', label: 'إعداد الموارد البشرية', desc: 'تهيئة بيانات HRMS الافتراضية', icon: Users, color: 'bg-amber-500/10 text-amber-800 dark:text-amber-200' },
 ];
 
 /** بطاقات إعدادات مستوحاة من دفترة (المرحلة 12.1 — Tile-based Settings). */

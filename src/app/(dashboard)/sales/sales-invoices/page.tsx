@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { ErpListDateStatusFilters } from '@/components/erp/erp-list-date-status-filters';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
-import { AlertCircle, Clock, FileText, Plus, Filter, ChevronDown, Upload, X, Send, Undo2, Eye, Trash2 } from 'lucide-react';
+import { AlertCircle, Clock, FileText, Plus, Send, Undo2, Eye, Trash2 } from 'lucide-react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { Button } from '@/components/ui/button';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -15,7 +15,6 @@ import { useDocList, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/clie
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Label } from '@/components/ui/label';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +29,6 @@ import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { isBranchesEnabled } from '@/lib/core/setup-config';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 interface InvoiceRow {
@@ -61,11 +59,9 @@ export default function SalesInvoicesPage() {
   const [dateTo, setDateTo] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
   const [search, setSearch] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
-  const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setStatusFilter('all'); setInvoiceStatusFilter('all'); };
+  const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
   const branchesEnabled = isBranchesEnabled();
   const { company: defaultCompany } = useDefaultCompanyName();
   const { data, isLoading, isError, error, refetch } = useDocList<InvoiceRow>('Sales Invoice', {
@@ -95,18 +91,18 @@ export default function SalesInvoicesPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((row) =>
-        ['name', 'customer_name', 'company'].some(key => String((row as any)[key] ?? '').toLowerCase().includes(q))
+        String(row.name || '').toLowerCase().includes(q) ||
+        String(row.customer_name || '').toLowerCase().includes(q)
       );
     }
     if (dateFrom || dateTo) {
       list = list.filter((x) => rowInDateRangeISO(x.posting_date, dateFrom, dateTo));
     }
-    const effectiveStatus = invoiceStatusFilter !== 'all' ? invoiceStatusFilter : statusFilter;
-    if (effectiveStatus !== 'all') {
-      list = list.filter((x) => x.status === effectiveStatus);
+    if (statusFilter !== 'all') {
+      list = list.filter((x) => x.status === statusFilter);
     }
     return list;
-  }, [invoices, dateFrom, dateTo, statusFilter, search, invoiceStatusFilter]);
+  }, [invoices, dateFrom, dateTo, statusFilter, search]);
 
   // KPIs
   const totalInvoices = invoices.length;
@@ -255,57 +251,16 @@ export default function SalesInvoicesPage() {
         </div>
       </div>
 
-      {/* شريط البحث والفلاتر */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex-1 min-w-[200px]">
-            <Input placeholder="بحث بالرقم أو العميل..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
-          </div>
+      {/* شريط البحث */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex-1 min-w-[200px]">
+          <Input placeholder="بحث بالرقم أو العميل..." value={search} onChange={e => setSearch(e.target.value)} className="h-8 text-xs" />
         </div>
-
-        <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 h-7 text-xs">
-                <Filter className="h-3 w-3" /> فلاتر متقدمة
-                <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            {(dateFrom || dateTo || invoiceStatusFilter !== 'all' || search) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
-                <X className="h-3 w-3" /> مسح الفلاتر
-              </Button>
-            )}
-          </div>
-          <CollapsibleContent>
-            <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-                <Label className="text-xs">من تاريخ</Label>
-                <Input type="date" dir="ltr" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="h-8 text-xs w-36" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">إلى تاريخ</Label>
-                <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">الحالة</Label>
-                <Select value={invoiceStatusFilter} onValueChange={setInvoiceStatusFilter}>
-                  <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">الكل</SelectItem>
-                    <SelectItem value="Draft">مسودة</SelectItem>
-                    <SelectItem value="Unpaid">غير مدفوعة</SelectItem>
-                    <SelectItem value="Paid">مدفوعة</SelectItem>
-                    <SelectItem value="Overdue">متأخرة</SelectItem>
-                    <SelectItem value="Partly Paid">مدفوعة جزئياً</SelectItem>
-                    <SelectItem value="Return">مرتجع</SelectItem>
-                    <SelectItem value="Cancelled">ملغاة</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+        {(search || dateFrom || dateTo || statusFilter !== 'all') && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-xs gap-1">
+            مسح الفلاتر
+          </Button>
+        )}
       </div>
 
       <ErpListDateStatusFilters

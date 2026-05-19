@@ -64,7 +64,6 @@ interface ItemGroupRow {
   name: string;
   is_group: number | boolean;
   parent_item_group?: string;
-  disabled?: number | boolean;
 }
 
 /* ───────────────────────────── Tree Item ───────────────────────────── */
@@ -84,7 +83,6 @@ function ItemGroupTreeItem({
   const children = allGroups.filter(g => g.parent_item_group === group.name);
   const hasChildren = children.length > 0;
   const isGroup = Number(group.is_group) === 1 || group.is_group === true;
-  const isDisabled = Number(group.disabled) === 1 || group.disabled === true;
 
   return (
     <div>
@@ -115,11 +113,10 @@ function ItemGroupTreeItem({
           </div>
         )}
         <div className="flex items-center gap-2 shrink-0">
-          {isGroup && (
+          {isGroup ? (
             <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-chart-2/10/80 text-amber-700 dark:bg-chart-2/10 dark:text-amber-300">مجموعة</Badge>
-          )}
-          {isDisabled && (
-            <Badge variant="outline" className="text-[9px] px-1.5 py-0 text-muted-foreground">معطّلة</Badge>
+          ) : (
+            <Badge variant="outline" className="text-[9px] px-1.5 py-0">فرعية</Badge>
           )}
           <span className="text-muted-foreground text-xs max-w-[140px] truncate">{group.parent_item_group || '—'}</span>
           <button
@@ -157,7 +154,7 @@ export default function ItemGroupsPage() {
   const [groupName, setGroupName] = useState('');
   const [parentGroup, setParentGroup] = useState('');
   const [isGroup, setIsGroup] = useState(false);
-  const [isDisabled, setIsDisabled] = useState(false);
+
   const [busy, setBusy] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'tree'>('table');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -166,7 +163,7 @@ export default function ItemGroupsPage() {
   /* ── Filter state ── */
   const [filterParent, setFilterParent] = useState<string>('all');
   const [filterIsGroup, setFilterIsGroup] = useState<string>('all');
-  const [filterDisabled, setFilterDisabled] = useState<string>('all');
+
 
   useEffect(() => {
     consumeCreateQueryParam(() => setDialogOpen(true));
@@ -174,7 +171,7 @@ export default function ItemGroupsPage() {
 
   /* ── Data ── */
   const { data: rawData = [], isLoading, isError, error, refetch } = useDocList<ItemGroupRow>('Item Group', {
-    fields: ['name', 'is_group', 'parent_item_group', 'disabled'],
+    fields: ['name', 'is_group', 'parent_item_group'],
     order_by: 'name asc',
     limit: 500,
   });
@@ -195,16 +192,14 @@ export default function ItemGroupsPage() {
     if (filterParent !== 'all') result = result.filter(g => g.parent_item_group === filterParent);
     if (filterIsGroup === 'yes') result = result.filter(g => Number(g.is_group) === 1 || g.is_group === true);
     if (filterIsGroup === 'no') result = result.filter(g => Number(g.is_group) !== 1 && g.is_group !== true);
-    if (filterDisabled === 'yes') result = result.filter(g => Number(g.disabled) === 1 || g.disabled === true);
-    if (filterDisabled === 'no') result = result.filter(g => Number(g.disabled) !== 1 && g.disabled !== true);
     return result;
-  }, [groups, filterParent, filterIsGroup, filterDisabled]);
+  }, [groups, filterParent, filterIsGroup]);
 
   /* ── KPI calculations ── */
   const totalGroups = groups.length;
   const rootGroups = groups.filter(g => !g.parent_item_group || g.parent_item_group === 'All Item Groups').length;
   const parentGroupCount = groups.filter(g => Number(g.is_group) === 1 || g.is_group === true).length;
-  const disabledCount = groups.filter(g => Number(g.disabled) === 1 || g.disabled === true).length;
+
 
   /* ── Tree data ── */
   const rootItems = useMemo(
@@ -246,16 +241,6 @@ export default function ItemGroupsPage() {
           ),
       },
       {
-        key: 'disabled',
-        header: 'الحالة',
-        render: (v) =>
-          Number(v) === 1 || v === true ? (
-            <Badge variant="outline" className="text-[9px] text-muted-foreground">معطّلة</Badge>
-          ) : (
-            <Badge variant="secondary" className="text-[9px] bg-success/10 text-success">نشطة</Badge>
-          ),
-      },
-      {
         key: 'actions',
         header: 'إجراءات',
         width: 'w-20',
@@ -274,7 +259,6 @@ export default function ItemGroupsPage() {
     setGroupName('');
     setParentGroup('');
     setIsGroup(false);
-    setIsDisabled(false);
   };
 
   const handleCreate = async () => {
@@ -289,7 +273,7 @@ export default function ItemGroupsPage() {
         parent_item_group: parentGroup || 'All Item Groups',
         is_group: isGroup ? 1 : 0,
       };
-      if (isDisabled) doc.disabled = 1;
+
       await createMutation.mutateAsync(doc);
       setDialogOpen(false);
       resetForm();
@@ -323,11 +307,10 @@ export default function ItemGroupsPage() {
   const clearFilters = () => {
     setFilterParent('all');
     setFilterIsGroup('all');
-    setFilterDisabled('all');
     setSearch('');
   };
 
-  const hasActiveFilters = filterParent !== 'all' || filterIsGroup !== 'all' || filterDisabled !== 'all';
+  const hasActiveFilters = filterParent !== 'all' || filterIsGroup !== 'all';
 
   /* ── Render ── */
   return (
@@ -414,13 +397,6 @@ export default function ItemGroupsPage() {
                         <span className="text-xs text-muted-foreground block">تحتوي على مجموعات فرعية — لا يُضاف إليها أصناف مباشرة</span>
                       </div>
                     </label>
-                    <label className="flex items-center gap-3 cursor-pointer hover:bg-accent/30 rounded-lg px-2 py-1.5 transition-colors">
-                      <Checkbox checked={isDisabled} onCheckedChange={(checked) => setIsDisabled(!!checked)} />
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium">معطّلة</span>
-                        <span className="text-xs text-muted-foreground block">لن تظهر عند إضافة أصناف جديدة</span>
-                      </div>
-                    </label>
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
@@ -486,7 +462,7 @@ export default function ItemGroupsPage() {
 
         {/* Filter Controls */}
         {filtersOpen && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border/30">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-border/30">
             <div className="space-y-1.5">
               <Label className="text-sm font-medium text-muted-foreground">المجموعة الأب</Label>
               <Select value={filterParent} onValueChange={setFilterParent}>
@@ -514,19 +490,7 @@ export default function ItemGroupsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-muted-foreground">الحالة</Label>
-              <Select value={filterDisabled} onValueChange={setFilterDisabled}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">الكل</SelectItem>
-                  <SelectItem value="yes">معطّلة</SelectItem>
-                  <SelectItem value="no">نشطة</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
           </div>
         )}
       </div>

@@ -21,6 +21,7 @@ import { Plus, Clock, UserCheck, UserX, Filter, ChevronDown, Upload, X } from 'l
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc } from '@/lib/client/hooks';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { buildAttendanceCreate, buildEmployeeCheckinCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -102,9 +103,27 @@ export default function AttendancePage() {
 
   const attendanceRecords = data || [];
 
-  let filtered = attendanceRecords;
-  if (statusFilter !== 'all') filtered = filtered.filter((a) => a.status === statusFilter);
-  if (dateFilter) filtered = filtered.filter((a) => a.attendance_date === dateFilter);  const halfDayCount = attendanceRecords.filter((a) => a.status === 'Half Day').length;  const handleCreate = () => {
+  const filtered = useMemo(() => {
+    let result = attendanceRecords;
+    // Tab status filter
+    if (statusFilter !== 'all') result = result.filter((a) => a.status === statusFilter);
+    // Exact date filter (legacy)
+    if (dateFilter) result = result.filter((a) => a.attendance_date === dateFilter);
+    // Search by employee_name and name
+    if (search) {
+      const s = search.toLowerCase();
+      result = result.filter((a) =>
+        (a.employee_name || '').toLowerCase().includes(s) ||
+        (a.name || '').toLowerCase().includes(s) ||
+        (a.employee || '').toLowerCase().includes(s)
+      );
+    }
+    // Date range filter
+    result = result.filter((a) => rowInDateRangeISO(a.attendance_date, dateFrom, dateTo));
+    // Advanced status filter
+    if (attendanceStatusFilter !== 'all') result = result.filter((a) => a.status === attendanceStatusFilter);
+    return result;
+  }, [attendanceRecords, statusFilter, dateFilter, search, dateFrom, dateTo, attendanceStatusFilter]);  const halfDayCount = attendanceRecords.filter((a) => a.status === 'Half Day').length;  const handleCreate = () => {
     if (!formData.employee) { toast.error('يرجى اختيار الموظف'); return; }
     if (!formData.attendance_date) { toast.error('يرجى تحديد التاريخ'); return; }
     const mapped = buildAttendanceCreate({

@@ -80,7 +80,9 @@ function KpiStat({ icon: Icon, label, value, accent }: { icon: React.ElementType
 type ExpenseTypeRow = {
   name: string;
   expense_claim_type_name?: string;
+  expense_type?: string;
   default_account?: string;
+  accounts?: Array<{ company: string; default_account: string }>;
 };
 
 /** أنواع المصروفات الافتراضية الشائعة للمؤسسات اليمنية */
@@ -103,8 +105,9 @@ const DEFAULT_EXPENSE_TYPES = [
 ];
 
 function ExpenseTypesManager() {
+  const { company: defaultCompany } = useDefaultCompanyName();
   const { data: expenseTypes = [], isLoading, isError, error, refetch } = useDocList<ExpenseTypeRow>('Expense Claim Type', {
-    fields: ['name', 'default_account'],
+    fields: ['name', 'expense_type'],
     limit: 200,
   });
 
@@ -134,7 +137,8 @@ function ExpenseTypesManager() {
     let failed = 0;
     for (const typeName of toCreate) {
       try {
-        await createMutation.mutateAsync({ name: typeName });
+        // ✅ استخدام `expense_type` كحقل التسمية
+        await createMutation.mutateAsync({ expense_type: typeName });
         created++;
       } catch {
         failed++;
@@ -179,12 +183,19 @@ function ExpenseTypesManager() {
       return;
     }
     try {
-      // ERPNext Expense Claim Type uses the document name as the type name
+      // ✅ Expense Claim Type uses `expense_type` as the naming field (autoname: "field:expense_type")
       const payload: Record<string, unknown> = {
-        name: newTypeName.trim(),
+        expense_type: newTypeName.trim(),
       };
       if (newTypeAccount?.trim()) {
-        payload.default_account = newTypeAccount.trim();
+        // ✅ الحساب الافتراضي يُضاف عبر الجدول الفرعي accounts
+        const company = defaultCompany || '';
+        if (company) {
+          payload.accounts = [{
+            company: company,
+            default_account: newTypeAccount.trim(),
+          }];
+        }
       }
       await createMutation.mutateAsync(payload);
       toast.success(`تم إضافة نوع المصروف "${newTypeName.trim()}" بنجاح`);
@@ -268,13 +279,20 @@ function ExpenseTypesManager() {
       <Separator />
 
       {/* تنبيه إذا كانت هناك أنواع بدون حسابات افتراضية */}
-      {!isLoading && expenseTypes.length > 0 && expenseTypes.some(t => !t.default_account) && (
+      {!isLoading && expenseTypes.length > 0 && expenseTypes.some(t => {
+        // فحص الحسابات — إما من child table accounts أو من default_account المباشر
+        const hasAccount = !!t.default_account || (Array.isArray(t.accounts) && t.accounts.some(a => a.default_account));
+        return !hasAccount;
+      }) && (
         <Alert className="border-amber-500/40 bg-amber-500/5">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
           <AlertTitle className="text-amber-700">أنواع مصروفات بدون حسابات افتراضية</AlertTitle>
           <AlertDescription className="space-y-2">
             <p className="text-sm">
-              يوجد {expenseTypes.filter(t => !t.default_account).length} نوع مصروف بدون حساب افتراضي.
+              يوجد {expenseTypes.filter(t => {
+                const hasAccount = !!t.default_account || (Array.isArray(t.accounts) && t.accounts.some(a => a.default_account));
+                return !hasAccount;
+              }).length} نوع مصروف بدون حساب افتراضي.
               لن يمكن حفظ مطالبات المصروفات لهذه الأنواع ما لم يتم تعيين حساب افتراضي لكل نوع.
             </p>
             <Button variant="outline" size="sm" onClick={handleConfigureAccounts} disabled={configuringAccounts} className="gap-1.5">
@@ -309,12 +327,18 @@ function ExpenseTypesManager() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {expenseTypes.map((type) => (
-            <Card key={type.name} className={`border-border/40 hover:border-primary/20 transition-all duration-200 group ${!type.default_account ? 'border-amber-500/30 bg-amber-500/5' : ''}`}>
+          {expenseTypes.map((type) => {
+            // فحص الحسابات من child table أو default_account المباشر
+            const hasAccount = !!type.default_account || (Array.isArray(type.accounts) && type.accounts.some(a => a.default_account));
+            const accountDisplay = type.default_account
+              || (Array.isArray(type.accounts) && type.accounts.find(a => a.default_account)?.default_account)
+              || '';
+            return (
+            <Card key={type.name} className={`border-border/40 hover:border-primary/20 transition-all duration-200 group ${!hasAccount ? 'border-amber-500/30 bg-amber-500/5' : ''}`}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${type.default_account ? 'bg-primary/10' : 'bg-amber-500/10'}`}>
-                    {type.default_account ? (
+                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${hasAccount ? 'bg-primary/10' : 'bg-amber-500/10'}`}>
+                    {hasAccount ? (
                       <Receipt className="h-4 w-4 text-primary" />
                     ) : (
                       <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -322,8 +346,8 @@ function ExpenseTypesManager() {
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">{type.name}</p>
-                    {type.default_account ? (
-                      <p className="text-[11px] text-muted-foreground truncate">{type.default_account}</p>
+                    {accountDisplay ? (
+                      <p className="text-[11px] text-muted-foreground truncate">{accountDisplay}</p>
                     ) : (
                       <p className="text-[11px] text-amber-600">بدون حساب افتراضي</p>
                     )}
@@ -339,7 +363,8 @@ function ExpenseTypesManager() {
                 </Button>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 

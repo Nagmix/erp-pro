@@ -117,6 +117,15 @@ export default function ItemsPage() {
   if (groupFilter !== 'all') filtered = filtered.filter((i) => i.item_group === groupFilter);
   if (stockFilter === 'stock') filtered = filtered.filter((i) => isStockFlag(i.is_stock_item));
   else if (stockFilter === 'service') filtered = filtered.filter((i) => !isStockFlag(i.is_stock_item));
+  if (search.trim()) {
+    const s = search.trim().toLowerCase();
+    filtered = filtered.filter(
+      (i) =>
+        i.item_code.toLowerCase().includes(s) ||
+        i.item_name.toLowerCase().includes(s) ||
+        i.item_group.toLowerCase().includes(s)
+    );
+  }
 
   const groups = [...new Set(items.map((i) => i.item_group).filter(Boolean))];
 
@@ -250,11 +259,11 @@ export default function ItemsPage() {
       setFileImporting(false);
       void queryClient.invalidateQueries({ queryKey: ['docList', 'Item'] });
       void refetch();
-      toast.error('انتهى الاستيراد', { description: `نجح ${ok}، فشل ${fail}، تخطي ${skipped}` });
+      toast.success('انتهى الاستيراد', { description: `نجح ${ok}، فشل ${fail}، تخطي ${skipped}` });
     },
     [company, queryClient, refetch, toast]
   );
-  const clearFilters = () => { setSearch(''); setStockFilter('all'); };
+  const clearFilters = () => { setSearch(''); setStockFilter('all'); setGroupFilter('all'); };
 
 
   return (
@@ -330,17 +339,6 @@ export default function ItemsPage() {
           </div>
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
-              <div className="space-y-1">
-            <Label className="text-xs">النوع</Label>
-            <Select value={stockFilter} onValueChange={setStockFilter}>
-              <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="1">مخزني</SelectItem>
-                <SelectItem value="0">خدمي/غير مخزني</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
             </div>
           </CollapsibleContent>
         </Collapsible>

@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -25,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Trash2, Send, Undo2, FileText, FileInput, Truck, Package, Calculator, Upload, Filter, ChevronDown, X } from 'lucide-react';
+import { Plus, Trash2, Send, Undo2, FileText, FileInput, Truck, Package, Calculator, Upload, Filter, ChevronDown, X, Coins } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
@@ -135,7 +136,7 @@ export default function PurchasesPurchaseInvoicesPage() {
       'status',
       'docstatus',
     ],
-    filters: branchFilter.trim() ? [['branch', '=', branchFilter.trim()]] : undefined,
+    filters: undefined,
     order_by: 'posting_date desc',
     limit: 500,
   });
@@ -150,7 +151,7 @@ export default function PurchasesPurchaseInvoicesPage() {
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter((row: any) =>
-        ['name', 'supplier_name'].some(key => String(row.docstatus ?? '').toLowerCase().includes(q))
+        ['name', 'supplier_name'].some(key => String(row[key] ?? '').toLowerCase().includes(q))
       );
     }
     if (dateFrom || dateTo) {
@@ -161,9 +162,9 @@ export default function PurchasesPurchaseInvoicesPage() {
     }
     
     if (piStatusFilter !== 'all') {
-      list = list.filter((row: any) => String(row.docstatus) === piStatusFilter);
+      list = list.filter((row: any) => row.status === piStatusFilter);
     }return list;
-  }, [invoices, dateFrom, dateTo, statusFilter]);
+  }, [invoices, dateFrom, dateTo, statusFilter, search, piStatusFilter]);
 
   const netTotal = useMemo(
     () => lines.reduce((s, l) => s + (l.item_code ? l.qty * l.rate : 0), 0),
@@ -549,7 +550,241 @@ export default function PurchasesPurchaseInvoicesPage() {
               </div>
             </DialogTitle>
           </DialogHeader>
-                  </DialogContent>
+          <Tabs defaultValue="header" className="w-full">
+            <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/40 p-1">
+              <TabsTrigger value="header" className="text-xs">
+                رأس المستند
+              </TabsTrigger>
+              <TabsTrigger value="lines" className="text-xs">
+                البنود
+              </TabsTrigger>
+              <TabsTrigger value="summary" className="text-xs">
+                ملخص
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="header" className="space-y-4 mt-4 outline-none">
+              <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+                <div className="bg-gradient-to-l from-warning/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                  <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                    <span className="h-5 w-5 rounded-md bg-warning/10 flex items-center justify-center">
+                      <Truck className="h-3 w-3 text-warning" />
+                    </span>
+                    بيانات الفاتورة
+                  </h4>
+                </div>
+                <div className="p-4 space-y-4 bg-card/50">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">المورد <span className="text-destructive text-xs">*</span></Label>
+                      <ErpLinkCombobox doctype="Supplier" value={supplier} onChange={setSupplier} displayKey="supplier_name" className="h-9" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">تاريخ الفاتورة</Label>
+                      <Input type="date" dir="ltr" value={postingDate} onChange={(e) => setPostingDate(e.target.value)} className="h-9" />
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">تاريخ الاستحقاق</Label>
+                      <Input type="date" dir="ltr" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="h-9" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">رقم الفاتورة</Label>
+                      <Input value={billNo} onChange={(e) => setBillNo(e.target.value)} className="h-9" placeholder="رقم فاتورة المورد" />
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">مركز تكلفة <span className="text-destructive text-xs">*</span></Label>
+                      <ErpLinkCombobox doctype="Cost Center" value={costCenter} onChange={setCostCenter} className="h-9" />
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+                <div className="bg-gradient-to-l from-success/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                  <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                    <span className="h-5 w-5 rounded-md bg-success/10 flex items-center justify-center">
+                      <Coins className="h-3 w-3 text-success" />
+                    </span>
+                    العملة والتحويل
+                  </h4>
+                </div>
+                <div className="p-4 space-y-4 bg-card/50">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">العملة</Label>
+                      <ErpLinkCombobox doctype="Currency" value={currency} onChange={setCurrency} placeholder="YER" className="h-9 text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">سعر التحويل</Label>
+                      <Input
+                        type="number"
+                        dir="ltr"
+                        step="any"
+                        min={0}
+                        value={exchangeRate || ''}
+                        onChange={(e) => setExchangeRate(Math.max(0.000001, Number(e.target.value) || 1))}
+                        className="h-9"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+                <div className="bg-gradient-to-l from-info/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                  <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                    <span className="h-5 w-5 rounded-md bg-info/10 flex items-center justify-center">
+                      <Calculator className="h-3 w-3 text-info" />
+                    </span>
+                    الضرائب والخصومات
+                  </h4>
+                </div>
+                <div className="p-4 space-y-4 bg-card/50">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">قالب الضرائب</Label>
+                      <ErpLinkCombobox doctype="Purchase Taxes and Charges Template" value={taxesAndCharges} onChange={setTaxesAndCharges} className="h-9 text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">خصم إضافي</Label>
+                      <Input
+                        type="number"
+                        dir="ltr"
+                        step="any"
+                        min={0}
+                        value={discountAmount || ''}
+                        onChange={(e) => setDiscountAmount(Math.max(0, Number(e.target.value) || 0))}
+                        className="h-9"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+                <div className="bg-gradient-to-l from-info/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                  <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                    <span className="h-5 w-5 rounded-md bg-info/10 flex items-center justify-center">
+                      <FileText className="h-3 w-3 text-info" />
+                    </span>
+                    الشروط والملاحظات
+                  </h4>
+                </div>
+                <div className="p-4 bg-card/50">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">الشروط</Label>
+                    <Textarea value={terms} onChange={(e) => setTerms(e.target.value)} className="min-h-[80px] text-sm" />
+                  </div>
+                </div>
+              </fieldset>
+            </TabsContent>
+            <TabsContent value="lines" className="mt-4 outline-none">
+              <div className="border rounded-lg">
+                <div className="bg-muted/50 px-3 py-2 flex justify-between items-center">
+                  <span className="text-xs font-semibold">البنود</span>
+                  <div className="flex gap-1">
+                    <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => purchaseLinesImportRef.current?.click()}>
+                      <Upload className="h-3 w-3" />
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setLines((p) => [...p, emptyLine()])}>
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">الصنف</TableHead>
+                      <TableHead className="text-xs w-20">الكمية</TableHead>
+                      <TableHead className="text-xs w-20">السعر</TableHead>
+                      <TableHead className="text-xs">مستودع</TableHead>
+                      <TableHead className="w-8" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {lines.map((line, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell>
+                          <ErpLinkCombobox doctype="Item" value={line.item_code} onChange={(v) => updateLine(idx, { item_code: v })} />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            className="h-8 text-xs"
+                            value={line.qty}
+                            onChange={(e) => updateLine(idx, { qty: Math.max(0, Number(e.target.value)) })}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            className="h-8 text-xs"
+                            value={line.rate}
+                            onChange={(e) => updateLine(idx, { rate: Math.max(0, Number(e.target.value)) })}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <ErpLinkCombobox
+                            doctype="Warehouse"
+                            value={line.warehouse}
+                            onChange={(v) => updateLine(idx, { warehouse: v })}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => { if (lines.length > 1) setLines((p) => p.filter((_, j) => j !== idx)); }} disabled={lines.length === 1}>
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+            <TabsContent value="summary" className="mt-4 outline-none">
+              <div className="rounded-lg border border-border/40 bg-muted/20 p-4 text-xs space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">بنود بصنف</span>
+                  <span className="font-semibold">{lines.filter((l) => l.item_code).length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">إجمالي صافي</span>
+                  <span className="font-semibold tabular-nums">{formatCurrency(netTotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">ضريبة (15%)</span>
+                  <span className="font-semibold tabular-nums">{taxesAndCharges.trim() ? '— (قالب)' : formatCurrency(taxTotal)}</span>
+                </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">خصم</span>
+                    <span className="font-semibold tabular-nums text-destructive">-{formatCurrency(discountAmount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-border/40 pt-2">
+                  <span className="font-bold">الإجمالي الكلي</span>
+                  <span className="font-bold tabular-nums">{formatCurrency(grandTotal)}</span>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">
+              إلغاء
+            </Button>
+            <Button onClick={handleCreate} disabled={createMutation.isPending} className="gap-1.5 min-w-[130px]">
+              {createMutation.isPending ? (
+                <>
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                  جاري الحفظ...
+                </>
+              ) : (
+                'حفظ فاتورة الشراء'
+              )}
+            </Button>
+          </div>
+        </DialogContent>
       </Dialog>
     </div>
   );

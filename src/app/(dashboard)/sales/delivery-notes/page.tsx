@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/table';
 import { Plus, Trash2, Truck, Send, Undo2, FileText, Filter, ChevronDown, Upload, X } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -101,7 +102,24 @@ export default function DeliveryNotesPage() {
   const deleteMutation = useDeleteDoc('Delivery Note');
 
   const rows = data || [];
-  const filtered = filter === 'all' ? rows : rows.filter((d) => d.status === filter);
+  const filtered = useMemo(() => {
+    let list = rows;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((row: any) =>
+        String(row.name || '').toLowerCase().includes(q) ||
+        String(row.customer_name || '').toLowerCase().includes(q)
+      );
+    }
+    if (dateFrom || dateTo) {
+      list = list.filter((row: any) => rowInDateRangeISO(row.posting_date, dateFrom, dateTo));
+    }
+    const effectiveStatus = dnStatusFilter !== 'all' ? dnStatusFilter : (filter !== 'all' ? filter : 'all');
+    if (effectiveStatus !== 'all') {
+      list = list.filter((row: any) => row.status === effectiveStatus);
+    }
+    return list;
+  }, [rows, search, dateFrom, dateTo, dnStatusFilter, filter]);
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {

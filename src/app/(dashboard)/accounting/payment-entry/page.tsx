@@ -295,10 +295,10 @@ export default function PaymentEntryPage() {
     if (paymentTypeFilter !== 'all') list = list.filter(p => p.payment_type === paymentTypeFilter);
     return list;
   }, [entries, statusFilter, dateFrom, dateTo, paymentTypeFilter]);
-  const totalReceived = entries.filter(p => p.payment_type === 'Receive' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
-  const totalPaid = entries.filter(p => p.payment_type === 'Pay' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
-  const totalTransfers = entries.filter(p => p.payment_type === 'Internal Transfer' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
-  const totalVouchers = entries.length;
+  const totalReceived = filteredData.filter(p => p.payment_type === 'Receive' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
+  const totalPaid = filteredData.filter(p => p.payment_type === 'Pay' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
+  const totalTransfers = filteredData.filter(p => p.payment_type === 'Internal Transfer' && p.docstatus === 1).reduce((s, p) => s + p.paid_amount, 0);
+  const totalVouchers = filteredData.length;
 
   const watchPaymentType = form.watch('payment_type');
   const watchPartyType = form.watch('party_type');
@@ -449,8 +449,8 @@ export default function PaymentEntryPage() {
       updateData.party_type = formData.party_type;
       updateData.party = formData.party;
     } else {
-      updateData.party_type = '';
-      updateData.party = '';
+      updateData.party_type = 'Company';
+      updateData.party = updateData.paid_to || '';
     }
     if (formData.paid_from) updateData.paid_from = formData.paid_from;
     if (formData.paid_to) updateData.paid_to = formData.paid_to;

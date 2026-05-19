@@ -35,15 +35,17 @@ import {
   TrendingDown,
   Send,
   Trash2,
+  Edit,
 } from 'lucide-react';
 import {
   useDocList,
   useDeleteDoc,
   useSubmitDoc,
+  useUpdateDoc,
 } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
-import { apiCreateDoc, apiSubmitDoc } from '@/lib/client/api';
+import { apiCreateDoc, apiSubmitDoc, apiUpdateDoc } from '@/lib/client/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
@@ -115,6 +117,9 @@ function BoolBadge({ value, trueLabel, falseLabel }: { value: unknown; trueLabel
 export default function SalaryComponentsPage() {
   const [tab, setTab] = useState('components');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<SalaryComponentRow | null>(null);
+  const [editFormData, setEditFormData] = useState<FormData>({ ...initialForm });
   const [deleteDialog, setDeleteDialog] = useState<SalaryComponentRow | null>(null);
   const [typeFilter, setTypeFilter] = useState<'all' | 'Earning' | 'Deduction'>('all');
   const [formData, setFormData] = useState<FormData>({ ...initialForm });
@@ -156,6 +161,7 @@ export default function SalaryComponentsPage() {
 
   const deleteMutation = useDeleteDoc('Salary Component');
   const submitMutation = useSubmitDoc('Salary Component');
+  const updateMutation = useUpdateDoc('Salary Component');
 
   const components = data || [];
 
@@ -206,6 +212,68 @@ export default function SalaryComponentsPage() {
   const handleDialogClose = (open: boolean) => {
     setDialogOpen(open);
     if (!open) setFormData({ ...initialForm });
+  };
+
+  /* ── Edit handlers ── */
+  const openEditDialog = (row: SalaryComponentRow) => {
+    if (Number(row.docstatus) !== 0) {
+      toast.error('لا يمكن تعديل مكوّن معتمد');
+      return;
+    }
+    setEditingDoc(row);
+    setEditFormData({
+      salary_component: row.salary_component || '',
+      type: (row.type === 'Deduction' ? 'Deduction' : 'Earning') as 'Earning' | 'Deduction',
+      salary_component_abbr: '',
+      depends_on_lwp: Number(row.depends_on_lwp) === 1,
+      is_tax_applicable: Number(row.is_tax_applicable) === 1,
+      is_flexible_benefit: Number(row.is_flexible_benefit) === 1,
+      statistical_component: Number(row.statistical_component) === 1,
+      description: row.description || '',
+      condition: '',
+      formula: '',
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSave = () => {
+    if (!editingDoc) return;
+    updateMutation.mutate(
+      {
+        name: editingDoc.name,
+        doc: {
+          salary_component: editFormData.salary_component.trim(),
+          type: editFormData.type,
+          salary_component_abbr: editFormData.salary_component_abbr.trim() || undefined,
+          depends_on_lwp: editFormData.depends_on_lwp ? 1 : 0,
+          is_tax_applicable: editFormData.is_tax_applicable ? 1 : 0,
+          is_flexible_benefit: editFormData.is_flexible_benefit ? 1 : 0,
+          statistical_component: editFormData.statistical_component ? 1 : 0,
+          description: editFormData.description.trim() || undefined,
+          condition: editFormData.condition.trim() || undefined,
+          formula: editFormData.formula.trim() || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('تم تعديل المكوّن');
+          setEditDialogOpen(false);
+          setEditingDoc(null);
+          qc.invalidateQueries({ queryKey: ['docList', 'Salary Component'] });
+        },
+        onError: () => {
+          toast.error('فشل تعديل المكوّن');
+        },
+      },
+    );
+  };
+
+  const handleEditDialogClose = (open: boolean) => {
+    setEditDialogOpen(open);
+    if (!open) {
+      setEditingDoc(null);
+      setEditFormData({ ...initialForm });
+    }
   };
 
   /* ── Columns ── */
@@ -414,6 +482,135 @@ export default function SalaryComponentsPage() {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* ─── Edit Dialog ─── */}
+          <Dialog open={editDialogOpen} onOpenChange={handleEditDialogClose}>
+            <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Edit className="h-4 w-4" />
+                  تعديل المكوّن — {editingDoc?.name}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-3">
+                {/* اسم المكوّن */}
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">
+                    اسم المكوّن <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    placeholder="مثال: الراتب الأساسي"
+                    value={editFormData.salary_component}
+                    onChange={(e) => setEditFormData((p) => ({ ...p, salary_component: e.target.value }))}
+                  />
+                </div>
+
+                {/* النوع والاختصار */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">النوع</Label>
+                    <select
+                      className="w-full h-9 rounded-md border bg-background px-2 text-sm"
+                      value={editFormData.type}
+                      onChange={(e) => setEditFormData((p) => ({ ...p, type: e.target.value as 'Earning' | 'Deduction' }))}
+                    >
+                      <option value="Earning">استحقاق</option>
+                      <option value="Deduction">استقطاع</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">الاختصار</Label>
+                    <Input
+                      placeholder="مثال: BS, HA"
+                      dir="ltr"
+                      value={editFormData.salary_component_abbr}
+                      onChange={(e) => setEditFormData((p) => ({ ...p, salary_component_abbr: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                {/* Checkboxes */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="edit_depends_on_lwp"
+                      checked={editFormData.depends_on_lwp}
+                      onCheckedChange={(v) => setEditFormData((p) => ({ ...p, depends_on_lwp: !!v }))}
+                    />
+                    <Label htmlFor="edit_depends_on_lwp" className="text-xs">يعتمد على الإجازة بدون راتب</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="edit_is_tax_applicable"
+                      checked={editFormData.is_tax_applicable}
+                      onCheckedChange={(v) => setEditFormData((p) => ({ ...p, is_tax_applicable: !!v }))}
+                    />
+                    <Label htmlFor="edit_is_tax_applicable" className="text-xs">خاضع للضريبة</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="edit_is_flexible_benefit"
+                      checked={editFormData.is_flexible_benefit}
+                      onCheckedChange={(v) => setEditFormData((p) => ({ ...p, is_flexible_benefit: !!v }))}
+                    />
+                    <Label htmlFor="edit_is_flexible_benefit" className="text-xs">ميزة مرنة</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="edit_statistical_component"
+                      checked={editFormData.statistical_component}
+                      onCheckedChange={(v) => setEditFormData((p) => ({ ...p, statistical_component: !!v }))}
+                    />
+                    <Label htmlFor="edit_statistical_component" className="text-xs">مكوّن إحصائي</Label>
+                  </div>
+                </div>
+
+                {/* الوصف */}
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">الوصف</Label>
+                  <Input
+                    placeholder="وصف اختياري للمكوّن"
+                    value={editFormData.description}
+                    onChange={(e) => setEditFormData((p) => ({ ...p, description: e.target.value }))}
+                  />
+                </div>
+
+                {/* الشرط والصيغة */}
+                <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
+                  <p className="text-[10px] text-muted-foreground font-medium">الشرط والصيغة</p>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">الشرط</Label>
+                    <Input
+                      placeholder="مثال: base > 100000"
+                      dir="ltr"
+                      className="text-xs font-mono"
+                      value={editFormData.condition}
+                      onChange={(e) => setEditFormData((p) => ({ ...p, condition: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">الصيغة</Label>
+                    <Input
+                      placeholder="مثال: base * 0.1"
+                      dir="ltr"
+                      className="text-xs font-mono"
+                      value={editFormData.formula}
+                      onChange={(e) => setEditFormData((p) => ({ ...p, formula: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                {/* Save */}
+                <Button
+                  className="w-full"
+                  onClick={handleEditSave}
+                  disabled={updateMutation.isPending}
+                >
+                  {updateMutation.isPending ? 'جاري الحفظ...' : 'حفظ التعديل'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* ─── Tab: المكوّنات ─── */}
@@ -454,15 +651,12 @@ export default function SalaryComponentsPage() {
               onDelete={(row) => Number(row.docstatus) === 0 && setDeleteDialog(row)}
               onEdit={(row) => {
                 if (Number(row.docstatus) !== 0) return;
-                submitMutation.mutate(row.name, {
-                  onSuccess: () => toast.success('تم ترحيل المكوّن'),
-                  onError: () => toast.error('فشل ترحيل المكوّن'),
-                });
+                openEditDialog(row);
               }}
             />
           </PageShell>
           <p className="text-[10px] text-muted-foreground">
-            للمسودات: من القائمة «تعديل» لترحيل المكوّن، أو «حذف» لإزالة المسودة.
+            للمسودات: من القائمة «تعديل» لتعديل المكوّن، أو «حذف» لإزالة المسودة.
           </p>
         </TabsContent>
 

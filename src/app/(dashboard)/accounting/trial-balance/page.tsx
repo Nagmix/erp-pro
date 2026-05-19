@@ -153,7 +153,7 @@ export default function TrialBalanceDetailPage() {
             if (!Number.isFinite(num) || num === 0) return <span className="text-muted-foreground">—</span>;
             return (
               <span className={cn('tabular-nums', num < 0 && 'text-destructive')}>
-                {formatCurrency(Math.abs(num), 'YER')}
+                {formatCurrency(num, 'YER')}
               </span>
             );
           },

@@ -656,15 +656,35 @@ export async function cancelDoc(
   userSession?: string
 ): Promise<unknown> {
   await ensureSystemSession();
-  // جلب المستند الكامل من الخادم — يجب إرسال المستند الكامل لـ frappe.client.cancel
-  // لأن Frappe يتحقق من جميع الحقول المطلوبة أثناء الإلغاء
+  // ✅ ERPNext v16: frappe.client.cancel يتطلب doctype و name كمعاملات مباشرة
+  // وليس ككائن doc (تغيير عن v15)
+  // نحاول أولاً بطريقة v16 (doctype + name مباشرة)، ثم نتراجع لطريقة v15
+  if (isBackendV16OrLater()) {
+    try {
+      const result = await internalRequest(
+        'POST',
+        '/method/frappe.client.cancel',
+        { doctype, name },
+        userSession
+      );
+      return (result as { data: unknown }).data;
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : '';
+      // إذا فشلت طريقة v16، نحاول طريقة v15 مع كائن doc
+      if (msg.includes('missing') || msg.includes('required') || msg.includes('positional')) {
+        console.log('[cancelDoc] v16 method failed, falling back to v15 doc-based cancel');
+      } else {
+        throw error;
+      }
+    }
+  }
+  // v15 fallback: إرسال المستند الكامل
   let latestDoc: Record<string, unknown> | null = null;
   try {
     latestDoc = (await getDoc(doctype, name, userSession)) as Record<string, unknown>;
   } catch {
     // إذا فشل جلب المستند، نحاول الإلغاء بالمستند الأساسي
   }
-  // إرسال المستند الكامل مع تحديث حقل modified لتجنب TimestampMismatchError
   const docToCancel = latestDoc
     ? { ...latestDoc, doctype, name, modified: latestDoc.modified }
     : { doctype, name };

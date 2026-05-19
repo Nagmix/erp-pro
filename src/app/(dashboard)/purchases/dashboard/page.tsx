@@ -218,7 +218,104 @@ export default function PurchasesDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-chart-2/10 shrink-0">
+                <CircleDollarSign className="h-4.5 w-4.5 text-chart-2" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-muted-foreground">مشتريات الشهر</p>
+                <p className="text-sm font-bold tabular-nums">{formatCurrency(totalPurchases)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-chart-1/10 shrink-0">
+                <ClipboardList className="h-4.5 w-4.5 text-chart-1" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-muted-foreground">أوامر شراء مفتوحة</p>
+                <p className="text-sm font-bold tabular-nums">{openPurchaseOrders}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                <Users className="h-4.5 w-4.5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-muted-foreground">الموردون النشطون</p>
+                <p className="text-sm font-bold tabular-nums">{activeSuppliers}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10 shrink-0">
+                <AlertTriangle className="h-4.5 w-4.5 text-destructive" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-muted-foreground">مبالغ مستحقة</p>
+                <p className="text-sm font-bold tabular-nums text-rose-600">{formatCurrency(unpaidAmount)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* ── KPI Row 2 ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-chart-3/10 shrink-0">
+                <Truck className="h-4.5 w-4.5 text-chart-3" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-muted-foreground">استلامات معلّقة</p>
+                <p className="text-sm font-bold tabular-nums">{pendingReceipts}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/10 shrink-0">
+                <RotateCcw className="h-4.5 w-4.5 text-warning" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-muted-foreground">مرتجعات الشهر</p>
+                <p className="text-sm font-bold tabular-nums">{returnsThisMonth}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-chart-4/10 shrink-0">
+                <BarChart3 className="h-4.5 w-4.5 text-chart-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] text-muted-foreground">نسبة الصرف</p>
+                <p className="text-sm font-bold tabular-nums">{supplierPaymentSummary.paidRatio}%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

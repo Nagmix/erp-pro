@@ -51,8 +51,6 @@ type Policy = {
   company?: string;
   is_active?: number;
   docstatus?: number;
-  annual_allocation?: number;
-  leave_type?: string;
 };
 
 type Allocation = {
@@ -127,7 +125,7 @@ export default function LeavePoliciesPage() {
 
   /* ── Data fetching ── */
   const policies = useDocList<Policy>('Leave Policy', {
-    fields: ['name', 'title', 'company', 'is_active', 'docstatus', 'annual_allocation', 'leave_type'],
+    fields: ['name', 'title', 'company', 'is_active', 'docstatus'],
     limit: 300,
   });
 
@@ -188,17 +186,6 @@ export default function LeavePoliciesPage() {
         key: 'title',
         header: 'العنوان',
         render: (_, r) => <span className="font-medium">{r.title || r.name}</span>,
-      },
-      {
-        key: 'leave_type',
-        header: 'نوع الإجازة',
-        render: (v) => <span>{String(v ?? '—')}</span>,
-      },
-      {
-        key: 'annual_allocation',
-        header: 'التخصيص السنوي',
-        sortable: true,
-        render: (v) => <span className="tabular-nums font-medium">{Number(v ?? 0)}</span>,
       },
       {
         key: 'company',
@@ -391,8 +378,8 @@ export default function LeavePoliciesPage() {
     if (policy) {
       setEditingPolicy(policy);
       setPolicyTitle(policy.title || policy.name);
-      setPolicyLeaveType(policy.leave_type || '');
-      setPolicyAnnual(policy.annual_allocation ?? 0);
+      setPolicyLeaveType('');
+      setPolicyAnnual(0);
       setPolicyCompany(policy.company || '');
     } else {
       setEditingPolicy(null);
@@ -428,7 +415,7 @@ export default function LeavePoliciesPage() {
     if (!useCompany || !policyTitle) return toast.error('الشركة والعنوان مطلوبان');
     if (editingPolicy) {
       updatePolicy.mutate(
-        { name: editingPolicy.name, doc: { title: policyTitle, annual_allocation: policyAnnual, leave_type: policyLeaveType, company: useCompany } },
+        { name: editingPolicy.name, doc: { title: policyTitle, company: useCompany } },
         {
           onSuccess: () => { toast.success('تم تعديل السياسة'); setOpenPolicy(false); setEditingPolicy(null); },
           onError: () => toast.error('فشل التعديل'),
@@ -436,7 +423,7 @@ export default function LeavePoliciesPage() {
       );
     } else {
       createPolicy.mutate(
-        prepareFrappeDocForCreate(buildLeavePolicyCreate({ title: policyTitle, company: useCompany, annual_allocation: policyAnnual })),
+        prepareFrappeDocForCreate(buildLeavePolicyCreate({ title: policyTitle, company: useCompany, leave_type: policyLeaveType || undefined, annual_allocation: policyAnnual || undefined })),
         {
           onSuccess: () => { toast.success('تم إنشاء السياسة'); setOpenPolicy(false); setPolicyTitle(''); setPolicyAnnual(0); },
           onError: () => toast.error('فشل الإنشاء'),

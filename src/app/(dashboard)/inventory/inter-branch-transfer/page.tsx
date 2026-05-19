@@ -78,7 +78,7 @@ export default function InterBranchTransferPage() {
     }
     const doc = buildStockEntry({
       company,
-      stock_entry_type: 'Material Transfer',
+      purpose: 'Material Transfer',
       posting_date: postingDate,
       from_warehouse: fromWh,
       to_warehouse: toWh,

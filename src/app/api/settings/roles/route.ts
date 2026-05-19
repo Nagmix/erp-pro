@@ -12,7 +12,6 @@ export const dynamic = 'force-dynamic';
 type RoleRow = {
   name: string;
   desk_access: number;
-  search_bar: number;
   two_factor_auth: number;
   disabled: number;
 };
@@ -25,7 +24,6 @@ type HasRoleRow = {
 type EnrichedRole = {
   name: string;
   desk_access: boolean;
-  search_bar: boolean;
   two_factor_auth: boolean;
   disabled: boolean;
   users: number;
@@ -39,7 +37,7 @@ export async function GET(request: NextRequest) {
     // Fetch roles and Has Role child-table entries in parallel
     const [rawRoles, rawHasRoles] = await Promise.all([
       getList('Role', {
-        fields: ['name', 'desk_access', 'search_bar', 'two_factor_auth', 'disabled'],
+        fields: ['name', 'desk_access', 'two_factor_auth', 'disabled'],
         limit: 500,
         order_by: 'name asc',
       }, userSession).catch(() => []) as Promise<RoleRow[]>,
@@ -63,7 +61,6 @@ export async function GET(request: NextRequest) {
     const roles: EnrichedRole[] = (rawRoles || []).map((r) => ({
       name: r.name,
       desk_access: !!r.desk_access,
-      search_bar: !!r.search_bar,
       two_factor_auth: !!r.two_factor_auth,
       disabled: !!r.disabled,
       users: usersPerRole.get(r.name)?.size || 0,
@@ -90,7 +87,6 @@ export async function PUT(request: NextRequest) {
     // Build update payload with only valid Role fields
     const updateData: Record<string, unknown> = {};
     if (typeof fields.desk_access === 'boolean') updateData.desk_access = fields.desk_access ? 1 : 0;
-    if (typeof fields.search_bar === 'boolean') updateData.search_bar = fields.search_bar ? 1 : 0;
     if (typeof fields.two_factor_auth === 'boolean') updateData.two_factor_auth = fields.two_factor_auth ? 1 : 0;
     if (typeof fields.disabled === 'boolean') updateData.disabled = fields.disabled ? 1 : 0;
 

@@ -125,7 +125,7 @@ export default function StockEntryPage() {
     }
     const doc = buildStockEntry({
       company,
-      stock_entry_type: entryType,
+      purpose: entryType,
       posting_date: postingDate,
       from_warehouse: fromWh || undefined,
       to_warehouse: toWh || undefined,

@@ -90,6 +90,8 @@ export function buildJournalEntry(input: {
   user_remark: string;
   /** تسلسل تسمية القيد (اختياري؛ إن وُجد يُمرَّر للخادم) */
   naming_series?: string;
+  /** قيد افتتاحي */
+  is_opening?: number;
   lines: JournalLineInput[];
 }): Record<string, unknown> {
   let multiCurrency = false;
@@ -128,6 +130,7 @@ export function buildJournalEntry(input: {
   if (input.naming_series?.trim()) {
     doc.naming_series = input.naming_series.trim();
   }
+  if (input.is_opening) doc.is_opening = input.is_opening;
   if (multiCurrency) doc.multi_currency = 1;
   return doc;
 }
@@ -875,13 +878,13 @@ export function buildRequestForQuotation(input: {
 /** حركة مخزون — إدخال / إخراج / تحويل / تصنيع */
 export function buildStockEntry(input: {
   company: string;
-  stock_entry_type: string;
+  purpose: string;
   posting_date: string;
   from_warehouse?: string;
   to_warehouse?: string;
   items: { item_code: string; qty: number; s_warehouse?: string; t_warehouse?: string; basic_rate?: number }[];
 }): Record<string, unknown> {
-  const st = input.stock_entry_type;
+  const st = input.purpose;
   const items = input.items
     .filter((i) => i.item_code)
     .map((i, idx) => {
@@ -904,7 +907,7 @@ export function buildStockEntry(input: {
   return {
     doctype: 'Stock Entry',
     company: input.company,
-    stock_entry_type: st,
+    purpose: st,
     posting_date: input.posting_date,
     from_warehouse: input.from_warehouse || undefined,
     to_warehouse: input.to_warehouse || undefined,
@@ -1213,8 +1216,12 @@ export function buildPaymentEntry(input: {
     received_amount: input.received_amount,
   };
   if (input.payment_type !== 'Internal Transfer') {
-    d.party_type = input.party_type;
-    d.party = input.party;
+    // ضمان تعيين party_type — ERPNext يرفض الترحيل بدونه
+    const pt = input.party_type?.trim() || (
+      input.payment_type === 'Receive' ? 'Customer' : input.payment_type === 'Pay' ? 'Supplier' : 'Customer'
+    );
+    d.party_type = pt;
+    d.party = input.party || '';
   }
   if (input.paid_from) d.paid_from = input.paid_from;
   if (input.paid_to) d.paid_to = input.paid_to;

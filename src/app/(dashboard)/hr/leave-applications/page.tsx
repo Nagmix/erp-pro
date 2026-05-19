@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { StatusBadge } from '@/components/erp/status-badge';
@@ -28,13 +28,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, CheckCircle, Clock, FileX, Calendar, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import { Plus, CheckCircle, Clock, FileX, Calendar, Filter, ChevronDown, Upload, X, Undo2 } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useUpdateDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useUpdateDoc, useCancelDoc } from '@/lib/client/hooks';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { buildLeaveApplicationCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { toast } from 'sonner';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
@@ -92,6 +93,7 @@ export default function LeaveApplicationsPage() {
   const deleteMutation = useDeleteDoc('Leave Application');
   const submitMut = useSubmitDoc('Leave Application');
   const updateMut = useUpdateDoc('Leave Application');
+  const cancelMut = useCancelDoc('Leave Application');
   const balanceQuery = useDocList<{ name: string; employee?: string; leave_type?: string; leaves?: number }>('Leave Ledger Entry', {
     fields: ['name', 'employee', 'leave_type', 'leaves'],
     filters: balanceEmployee ? [['employee', '=', balanceEmployee]] : [],
@@ -116,7 +118,24 @@ export default function LeaveApplicationsPage() {
   }
 
   const leaveApplications = data ?? [];
-  const filtered = filter === 'all' ? leaveApplications : leaveApplications.filter((l) => l.status === filter);  const calculateDays = () => {
+  const filtered = useMemo(() => {
+    let result = leaveApplications;
+    // Tab filter (status)
+    if (filter !== 'all') result = result.filter((l) => l.status === filter);
+    // Search by employee_name and name
+    if (search) {
+      const s = search.toLowerCase();
+      result = result.filter((l) =>
+        (l.employee_name || '').toLowerCase().includes(s) ||
+        (l.name || '').toLowerCase().includes(s)
+      );
+    }
+    // Date range filter
+    result = result.filter((l) => rowInDateRangeISO(l.from_date, dateFrom, dateTo));
+    // Status filter from advanced filters
+    if (leaveStatusFilter !== 'all') result = result.filter((l) => l.status === leaveStatusFilter);
+    return result;
+  }, [leaveApplications, filter, search, dateFrom, dateTo, leaveStatusFilter]);  const calculateDays = () => {
     if (formData.from_date && formData.to_date) {
       const start = new Date(formData.from_date);
       const end = new Date(formData.to_date);
@@ -291,7 +310,7 @@ export default function LeaveApplicationsPage() {
 
       {draftLeaves.length > 0 && (
         <div className="border rounded-lg overflow-hidden">
-          <div className="bg-muted/35 px-4 py-2 text-xs font-semibold">مسودات — ترحيل للموافقة</div>
+          <div className="bg-muted/35 px-4 py-2 text-xs font-semibold">مسودات — ترحيل للموافقة أو رفض</div>
           {draftLeaves.map((leave) => (
             <div key={leave.name} className="px-4 py-3 flex items-center justify-between border-b last:border-b-0">
               <div className="flex-1">
@@ -299,9 +318,25 @@ export default function LeaveApplicationsPage() {
                 <span className="text-muted-foreground text-xs me-2">- {leave.leave_type}</span>
                 <span className="text-muted-foreground text-xs block">{leave.description}</span>
               </div>
-              <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => handleSubmitForApproval(leave)} disabled={submitMut.isPending}><CheckCircle className="h-3 w-3" />ترحيل</Button>
-              <Button size="sm" variant="outline" className="text-xs" onClick={() => updateMut.mutate({ name: leave.name, doc: { status: 'Approved' } }, { onSuccess: () => toast.success('تمت الموافقة'), onError: () => toast.error('تعذر الموافقة') })}>موافقة</Button>
-              <Button size="sm" variant="outline" className="text-xs text-destructive" onClick={() => updateMut.mutate({ name: leave.name, doc: { status: 'Rejected' } }, { onSuccess: () => toast.success('تم الرفض'), onError: () => toast.error('تعذر الرفض') })}>رفض</Button>
+              <div className="flex items-center gap-1">
+                <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => handleSubmitForApproval(leave)} disabled={submitMut.isPending}><CheckCircle className="h-3 w-3" />موافقة (ترحيل)</Button>
+                <Button size="sm" variant="outline" className="text-xs text-destructive" onClick={() => updateMut.mutate({ name: leave.name, doc: { status: 'Rejected' } }, { onSuccess: () => { toast.success('تم الرفض'); void refetch(); }, onError: () => toast.error('تعذر الرفض') })}>رفض</Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {leaveApplications.filter((l) => Number(l.docstatus) === 1).length > 0 && (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="bg-muted/35 px-4 py-2 text-xs font-semibold">مُرحّلة — إلغاء</div>
+          {leaveApplications.filter((l) => Number(l.docstatus) === 1).map((leave) => (
+            <div key={leave.name} className="px-4 py-3 flex items-center justify-between border-b last:border-b-0">
+              <div className="flex-1">
+                <span className="font-medium text-sm">{leave.employee_name}</span>
+                <span className="text-muted-foreground text-xs me-2">- {leave.leave_type}</span>
+                <span className="text-muted-foreground text-xs block">{leave.status}</span>
+              </div>
+              <Button size="sm" variant="outline" className="text-xs gap-1" onClick={() => cancelMut.mutate(leave.name, { onSuccess: () => { toast.success('تم إلغاء الطلب'); void refetch(); }, onError: () => toast.error('تعذر الإلغاء') })} disabled={cancelMut.isPending}><Undo2 className="h-3 w-3" />إلغاء</Button>
             </div>
           ))}
         </div>

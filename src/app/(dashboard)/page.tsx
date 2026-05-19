@@ -10,6 +10,7 @@ import { useContextRail } from '@/components/erp/context-rail';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
+import { ComponentHealthCheck } from '@/components/erp/component-health-check';
 import {
   DollarSign,
   TrendingUp,
@@ -627,6 +628,9 @@ export default function DashboardPage() {
           </Button>
         }
       />
+
+      {/* ── Component Health Check ── */}
+      <ComponentHealthCheck />
 
       <div className="flex flex-wrap items-center gap-2 px-0.5">
         <span className="text-[11px] text-muted-foreground shrink-0">اختصارات:</span>

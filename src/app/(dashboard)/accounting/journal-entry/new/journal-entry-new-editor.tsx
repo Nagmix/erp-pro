@@ -499,10 +499,11 @@ export function JournalEntryNewEditor() {
     const payload = buildJournalEntry({
       company: defaultCompany,
       posting_date: formData.posting_date,
-      voucher_type: formData.voucher_type,
+      voucher_type: formData.is_opening ? 'Opening Entry' : formData.voucher_type,
       title: formData.title,
       user_remark: formData.user_remark,
       naming_series: namingSeries,
+      is_opening: formData.is_opening ? 1 : 0,
       lines,
     });
     createMutation.mutate(payload, {
@@ -514,7 +515,7 @@ export function JournalEntryNewEditor() {
         router.push('/accounting/journal-entry');
         router.refresh();
       },
-      onError: () => toast.error('حدث خطأ أثناء إنشاء القيد'),
+      onError: (err: Error) => toast.error('حدث خطأ أثناء إنشاء القيد', { description: err?.message || '' }),
     });
   };
 
