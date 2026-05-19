@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -16,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { DataTable } from '@/components/erp/data-table';
 import { ExportButton } from '@/components/erp/export-button';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   BarChart3,
   TrendingUp,
@@ -299,12 +299,10 @@ export default function ReportsPage() {
                   {!hideDateFilters && !singleDateMode && (
                     <div className="space-y-1">
                       <Label className="text-xs">من تاريخ</Label>
-                      <Input
-                        type="date"
-                        dir="ltr"
-                        className="h-8 w-36 text-xs"
+                      <DatePicker
                         value={dateFrom}
-                        onChange={(e) => setDateFrom(e.target.value)}
+                        onChange={setDateFrom}
+                        className="h-8 w-36 text-xs"
                       />
                     </div>
                   )}
@@ -317,12 +315,10 @@ export default function ReportsPage() {
                             ? 'إلى الفترة'
                             : 'إلى تاريخ'}
                       </Label>
-                      <Input
-                        type="date"
-                        dir="ltr"
-                        className="h-8 w-36 text-xs"
+                      <DatePicker
                         value={dateTo}
-                        onChange={(e) => setDateTo(e.target.value)}
+                        onChange={setDateTo}
+                        className="h-8 w-36 text-xs"
                       />
                     </div>
                   )}

@@ -210,6 +210,8 @@ export default function AccountingDashboardPage() {
     [purchaseInvoices]
   );
 
+  // Cash balance: net of received vs paid payments (approximation from Payment Entries)
+  // Note: For exact bank/cash balance, use the Cash Flow report or GL Entry query
   const cashBalance = useMemo(
     () => paymentEntries
       .filter((pe) => Number(pe.docstatus) === 1)
@@ -232,7 +234,7 @@ export default function AccountingDashboardPage() {
     [salesInvoices]
   );
 
-  const unreconciledPayments = useMemo(
+  const draftPayments = useMemo(
     () => paymentEntries.filter((pe) => Number(pe.docstatus) === 0).length,
     [paymentEntries]
   );
@@ -383,8 +385,8 @@ export default function AccountingDashboardPage() {
           compact
         />
         <KpiCard
-          title="مدفوعات غير مسواة"
-          value={formatNumber(unreconciledPayments)}
+          title="مدفوعات مسودة"
+          value={formatNumber(draftPayments)}
           icon={Clock}
           changeType="neutral"
           accent="info"

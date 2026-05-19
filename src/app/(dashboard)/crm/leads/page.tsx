@@ -48,9 +48,10 @@ import {
   MapPin,
   Tag,
   Eye,
+  Pencil,
 } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
-import { useDocList, useCreateDoc, useDeleteDoc, useErpMethodCall } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc, useErpMethodCall } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -165,9 +166,11 @@ const emptyForm = {
 
 export default function LeadsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selected, setSelected] = useState<LeadRow | null>(null);
   const [formData, setFormData] = useState(emptyForm);
+  const [editForm, setEditForm] = useState(emptyForm);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [convertBusy, setConvertBusy] = useState<string | null>(null);
 
@@ -186,6 +189,7 @@ export default function LeadsPage() {
   });
   const createMutation = useCreateDoc('Lead');
   const deleteMutation = useDeleteDoc('Lead');
+  const updateMutation = useUpdateDoc('Lead');
   const convertMethod = useErpMethodCall(['Lead', 'Customer']);
 
   const leads = data || [];
@@ -322,9 +326,46 @@ export default function LeadsPage() {
   const handleDelete = () => {
     if (!selected) return;
     deleteMutation.mutate(selected.name, {
-      onSuccess: () => { toast.success('تم الحذف'); setDeleteDialogOpen(false); setSelected(null); },
+      onSuccess: () => { toast.success('تم الحذف'); setDeleteDialogOpen(false); setSelected(null); void refetch(); },
       onError: () => toast.error('فشل الحذف'),
     });
+  };
+
+  const openEditDialog = (row: LeadRow) => {
+    setSelected(row);
+    setEditForm({
+      salutation: row.salutation || '',
+      first_name: row.first_name || '',
+      last_name: row.last_name || '',
+      company_name: row.company_name || '',
+      source: row.source || '',
+      status: row.status || 'Lead',
+      email_id: row.email_id || '',
+      phone: row.phone || row.mobile_no || '',
+      territory: row.territory || '',
+      lead_owner: row.lead_owner || '',
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdate = () => {
+    if (!selected) return;
+    const doc: Record<string, unknown> = {
+      status: editForm.status || undefined,
+      email_id: editForm.email_id || undefined,
+      phone: editForm.phone || undefined,
+      territory: editForm.territory || undefined,
+      lead_owner: editForm.lead_owner || undefined,
+      source: editForm.source || undefined,
+      salutation: editForm.salutation || undefined,
+    };
+    updateMutation.mutate(
+      { name: selected.name, doc },
+      {
+        onSuccess: () => { toast.success('تم تحديث العميل المحتمل'); setEditDialogOpen(false); setSelected(null); void refetch(); },
+        onError: () => toast.error('فشل التحديث'),
+      }
+    );
   };
 
   const handleConvertToCustomer = async (lead: LeadRow) => {
@@ -637,6 +678,7 @@ export default function LeadsPage() {
           columns={columns}
           searchable
           loading={isLoading}
+          onEdit={(row) => openEditDialog(row)}
           onDelete={(row) => { setSelected(row); setDeleteDialogOpen(true); }}
           tableId="crm-leads"
           exportFileName="leads.csv"
@@ -663,6 +705,153 @@ export default function LeadsPage() {
 
       {/* ─── Quick Convert Floating Actions ─── */}
       {/* Show inline convert button on selected lead via table actions */}
+
+      {/* ─── Edit Dialog ─── */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                <Pencil className="h-5 w-5" />
+              </div>
+              <div>
+                <span>تعديل العميل المحتمل</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">تعديل: {selected?.lead_name || selected?.name}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[65vh] overflow-y-auto">
+            <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="bg-gradient-to-l from-info/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-info/10 flex items-center justify-center">
+                    <UserPlus className="h-3 w-3 text-info" />
+                  </span>
+                  البيانات الشخصية
+                </h4>
+              </div>
+              <div className="p-4 space-y-4 bg-card/50">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">اللقب</Label>
+                    <Select value={editForm.salutation} onValueChange={v => setEditForm(p => ({ ...p, salutation: v }))}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="اللقب" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SALUTATION_OPTIONS.map(s => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">الاسم الأول</Label>
+                    <Input value={editForm.first_name} onChange={(e) => setEditForm((p) => ({ ...p, first_name: e.target.value }))} className="h-9" disabled />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">اسم العائلة</Label>
+                    <Input value={editForm.last_name} onChange={(e) => setEditForm((p) => ({ ...p, last_name: e.target.value }))} className="h-9" disabled />
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="bg-gradient-to-l from-info/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-info/10 flex items-center justify-center">
+                    <Building2 className="h-3 w-3 text-info" />
+                  </span>
+                  معلومات الاتصال والمصدر
+                </h4>
+              </div>
+              <div className="p-4 space-y-4 bg-card/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">البريد الإلكتروني</Label>
+                    <Input dir="ltr" type="email" value={editForm.email_id} onChange={(e) => setEditForm((p) => ({ ...p, email_id: e.target.value }))} className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">رقم الجوال</Label>
+                    <Input dir="ltr" value={editForm.phone} onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))} className="h-9" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">المصدر</Label>
+                    <Select value={editForm.source || '_none'} onValueChange={v => setEditForm(p => ({ ...p, source: v === '_none' ? '' : v }))}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="اختر المصدر" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">— بدون —</SelectItem>
+                        {SOURCE_OPTIONS.map(s => (
+                          <SelectItem key={s} value={s}>{SOURCE_AR[s]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">الحالة</Label>
+                    <Select value={editForm.status} onValueChange={v => setEditForm(p => ({ ...p, status: v }))}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATUS_OPTIONS.map(s => (
+                          <SelectItem key={s} value={s}>{STATUS_AR[s] || s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="bg-gradient-to-l from-success/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-success/10 flex items-center justify-center">
+                    <MapPin className="h-3 w-3 text-success" />
+                  </span>
+                  المنطقة والمسؤول
+                </h4>
+              </div>
+              <div className="p-4 space-y-4 bg-card/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">المنطقة</Label>
+                    <ErpLinkCombobox
+                      doctype="Territory"
+                      value={editForm.territory}
+                      onChange={v => setEditForm(p => ({ ...p, territory: v }))}
+                      placeholder="اختر المنطقة..."
+                      showCreateShortcut={false}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">مسؤول العميل</Label>
+                    <ErpLinkCombobox
+                      doctype="User"
+                      value={editForm.lead_owner}
+                      onChange={v => setEditForm(p => ({ ...p, lead_owner: v }))}
+                      placeholder="اختر المسؤول..."
+                      showCreateShortcut={false}
+                    />
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button type="button" variant="ghost" onClick={() => setEditDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+            <Button disabled={updateMutation.isPending} onClick={handleUpdate} className="gap-1.5 min-w-[130px]">
+              {updateMutation.isPending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ─── Delete Confirmation ─── */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

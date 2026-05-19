@@ -43,7 +43,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -239,6 +239,7 @@ export default function EmployeesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<EmployeeRow | null>(null);
   const [formData, setFormData] = useState({ ...initialFormData });
+  const [editingDoc, setEditingDoc] = useState<EmployeeRow | null>(null);
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -267,6 +268,7 @@ export default function EmployeesPage() {
     });
 
   const createMutation = useCreateDoc('Employee');
+  const updateMutation = useUpdateDoc('Employee');
   const deleteMutation = useDeleteDoc('Employee');
 
   const employees = data || [];
@@ -320,8 +322,61 @@ export default function EmployeesPage() {
     setSearch('');
   };
 
-  /* ── إنشاء موظف ── */
-  const handleCreate = () => {
+  /* ── فتح حوار التعديل ── */
+  const openEditDialog = (row: EmployeeRow) => {
+    setEditingDoc(row);
+    setFormData({
+      first_name: row.first_name || '',
+      last_name: row.last_name || '',
+      department: row.department || '',
+      designation: row.designation || '',
+      branch: row.branch || '',
+      company: row.company || defaultCompany || '',
+      gender: row.gender || 'Male',
+      date_of_birth: '',
+      date_of_joining: row.date_of_joining || '',
+      cell_number: row.cell_number || '',
+      personal_email: row.personal_email || '',
+      status: row.status || 'Active',
+    });
+    setDialogOpen(true);
+  };
+
+  /* ── حفظ (إنشاء أو تعديل) ── */
+  const handleSave = () => {
+    if (editingDoc) {
+      // تعديل موظف
+      updateMutation.mutate(
+        {
+          name: editingDoc.name,
+          doc: {
+            first_name: formData.first_name,
+            last_name: formData.last_name,
+            gender: formData.gender,
+            date_of_joining: formData.date_of_joining || undefined,
+            status: formData.status,
+            department: formData.department || undefined,
+            designation: formData.designation || undefined,
+            cell_number: formData.cell_number || undefined,
+            personal_email: formData.personal_email || undefined,
+            branch: formData.branch || undefined,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success('تم تعديل بيانات الموظف');
+            setDialogOpen(false);
+            setEditingDoc(null);
+            setFormData({ ...initialFormData });
+          },
+          onError: (error: Error) => {
+            toast.error('خطأ في تعديل الموظف', { description: error?.message || '' });
+          },
+        },
+      );
+      return;
+    }
+    // إنشاء موظف جديد
     if (!formData.first_name || !formData.last_name) {
       toast.error('يرجى إدخال الاسم الأول واسم العائلة');
       return;
@@ -376,6 +431,15 @@ export default function EmployeesPage() {
     });
   };
 
+  /* ── إغلاق الحوار ── */
+  const handleDialogClose = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingDoc(null);
+      setFormData({ ...initialFormData });
+    }
+  };
+
   /* ── حذف موظف ── */
   const handleDelete = (row: EmployeeRow) => {
     deleteMutation.mutate(row.name, {
@@ -405,7 +469,7 @@ export default function EmployeesPage() {
           { label: 'الموظفون' },
         ]}
         actions={
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1.5" disabled={coLoading}>
                 <Plus className="h-3.5 w-3.5" />
@@ -419,7 +483,7 @@ export default function EmployeesPage() {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5 text-primary" />
-                  إضافة موظف جديد
+                  {editingDoc ? `تعديل بيانات الموظف — ${editingDoc.name}` : 'إضافة موظف جديد'}
                 </DialogTitle>
               </DialogHeader>
               <Tabs defaultValue="personal" className="w-full">
@@ -653,10 +717,10 @@ export default function EmployeesPage() {
               </Tabs>
               <Button
                 className="w-full"
-                onClick={handleCreate}
-                disabled={createMutation.isPending || coLoading}
+                onClick={handleSave}
+                disabled={createMutation.isPending || updateMutation.isPending || coLoading}
               >
-                {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ الموظف'}
+                {createMutation.isPending || updateMutation.isPending ? 'جاري الحفظ...' : editingDoc ? 'حفظ التعديل' : 'حفظ الموظف'}
               </Button>
             </DialogContent>
           </Dialog>
@@ -814,6 +878,7 @@ export default function EmployeesPage() {
         tableId="hr-employees"
         exportFileName="الموظفين"
         onDelete={(row) => setDeleteDialog(row)}
+        onEdit={(row) => openEditDialog(row)}
       />
 
       {/* ═══ حوار تأكيد الحذف ═══ */}

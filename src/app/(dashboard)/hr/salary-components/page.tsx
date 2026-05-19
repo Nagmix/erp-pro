@@ -125,24 +125,7 @@ export default function SalaryComponentsPage() {
   const [formData, setFormData] = useState<FormData>({ ...initialForm });
   const qc = useQueryClient();
 
-  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
-
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="مكوّنات الرواتب"
-          description="إدارة مكوّنات الاستحقاق والاستقطاع — الأساس لكل هيكل رواتب"
-          iconify="solar:widget-2-bold-duotone"
-          accent="purple"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'مكوّنات الرواتب' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
-  /* ── Data ── */
+  /* ── Data ── (all hooks must be called before any conditional return) */
   const { data, isLoading, isError, error, refetch } = useDocList<SalaryComponentRow>('Salary Component', {
     fields: [
       'name',
@@ -207,6 +190,23 @@ export default function SalaryComponentsPage() {
       toast.error(e.message || 'تعذر إنشاء المكوّن');
     },
   });
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="مكوّنات الرواتب"
+          description="إدارة مكوّنات الاستحقاق والاستقطاع — الأساس لكل هيكل رواتب"
+          iconify="solar:widget-2-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'مكوّنات الرواتب' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── Handlers ── */
   const handleDialogClose = (open: boolean) => {

@@ -118,7 +118,9 @@ export default function TrialBalanceDetailPage() {
       accountCount++;
     }
 
-    const difference = (closingDebit + openingDebit) - (closingCredit + openingCredit);
+    // Closing already includes opening, so difference = closing debit - closing credit
+    // (should be zero if books are balanced)
+    const difference = closingDebit - closingCredit;
 
     return { totalDebit, totalCredit, openingDebit, openingCredit, closingDebit, closingCredit, accountCount, difference };
   }, [normalized.rows]);

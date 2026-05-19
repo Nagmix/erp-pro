@@ -50,7 +50,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
-import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { buildWarehouseCreate } from '@/lib/erp/erpnext-payloads';
@@ -168,6 +168,7 @@ export default function WarehousesPage() {
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'tree'>('table');
+  const [editingDoc, setEditingDoc] = useState<WhRow | null>(null);
 
   /* ── Filter state ── */
   const [filterCompany, setFilterCompany] = useState<string>('all');
@@ -185,6 +186,7 @@ export default function WarehousesPage() {
     limit: 500,
   });
   const createMutation = useCreateDoc('Warehouse');
+  const updateMutation = useUpdateDoc('Warehouse');
   const deleteMutation = useDeleteDoc('Warehouse');
 
   const rows = data || [];
@@ -291,9 +293,54 @@ export default function WarehousesPage() {
     setWhAccount('');
     setIsGroup(false);
     setIsDisabled(false);
+    setEditingDoc(null);
   };
 
-  const handleCreate = () => {
+  const openEditDialog = (row: WhRow) => {
+    setEditingDoc(row);
+    setWhName(row.warehouse_name || row.name);
+    setParent(row.parent_warehouse || '');
+    setWhCompany(row.company || '');
+    setWhAccount(row.account || '');
+    setIsGroup(Number(row.is_group) === 1 || row.is_group === true);
+    setIsDisabled(Number(row.disabled) === 1 || row.disabled === true);
+    setDialogOpen(true);
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      resetForm();
+    }
+  };
+
+  const handleSave = () => {
+    if (editingDoc) {
+      // تعديل مستودع
+      updateMutation.mutate(
+        {
+          name: editingDoc.name,
+          doc: {
+            warehouse_name: whName.trim(),
+            parent_warehouse: parent || undefined,
+            account: whAccount || undefined,
+            is_group: isGroup ? 1 : 0,
+            disabled: isDisabled ? 1 : 0,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success('تم تعديل المستودع');
+            setDialogOpen(false);
+            resetForm();
+            void refetch();
+          },
+          onError: () => toast.error('تعذر تعديل المستودع'),
+        },
+      );
+      return;
+    }
+    // إنشاء مستودع جديد
     const effectiveCompany = whCompany || company;
     if (!effectiveCompany || !whName.trim()) {
       toast.error('الشركة واسم المستودع مطلوبان');
@@ -496,6 +543,7 @@ export default function WarehousesPage() {
             searchable
             loading={isLoading}
             onDelete={(r) => openDelete(r)}
+            onEdit={(r) => openEditDialog(r)}
             tableId="inventory-warehouses"
             exportFileName="warehouses.csv"
             printTitle="المستودعات"
@@ -564,7 +612,7 @@ export default function WarehousesPage() {
       </AlertDialog>
 
       {/* ─── Create Dialog ─── */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent dir="rtl" className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-lg font-bold">
@@ -572,8 +620,8 @@ export default function WarehousesPage() {
                 <Plus className="h-5 w-5" />
               </div>
               <div>
-                <span>مستودع جديد</span>
-                <p className="text-xs font-normal text-muted-foreground mt-0.5">أدخل بيانات المستودع</p>
+                <span>{editingDoc ? `تعديل المستودع — ${editingDoc.name}` : 'مستودع جديد'}</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">{editingDoc ? 'تعديل بيانات المستودع' : 'أدخل بيانات المستودع'}</p>
               </div>
             </DialogTitle>
           </DialogHeader>
@@ -670,11 +718,11 @@ export default function WarehousesPage() {
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
-            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
-            <Button onClick={handleCreate} disabled={createMutation.isPending} className="gap-1.5 min-w-[130px]">
-              {createMutation.isPending ? (
+            <Button variant="ghost" onClick={() => handleDialogClose(false)} className="text-muted-foreground">إلغاء</Button>
+            <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending} className="gap-1.5 min-w-[130px]">
+              {createMutation.isPending || updateMutation.isPending ? (
                 <><Loader2 className="h-3.5 w-3.5 animate-spin" />جاري الحفظ...</>
-              ) : 'حفظ'}
+              ) : editingDoc ? 'حفظ التعديل' : 'حفظ'}
             </Button>
           </div>
         </DialogContent>

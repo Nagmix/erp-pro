@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/components/erp/page-header';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -158,6 +159,7 @@ function Spinner() {
 // ─── Main Page ───────────────────────────────────────────────────────────
 
 export default function ProjectsManagementPage() {
+  const { company: defaultCompany } = useDefaultCompanyName();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedProjectId, setSelectedProjectId] = useState('');
 
@@ -241,6 +243,7 @@ export default function ProjectsManagementPage() {
       const body: Record<string, unknown> = {
         project_name: projectForm.name,
         status: erpStatus,
+        company: defaultCompany || undefined,
         customer: projectForm.customer || undefined,
         expected_start_date: projectForm.startDate || undefined,
         expected_end_date: projectForm.endDate || undefined,

@@ -146,9 +146,15 @@ async function autoFillCompanyDefaults(
 
     // إعدادات خاصة بقسائم الدفع
     if (doctype === 'Payment Entry') {
-      if (!result.party_type) {
-        // محاولة استنتاج party_type من party
-        // إذا لم يتم تحديده، لن نعينه تلقائياً لأنه إلزامي
+      // ✅ استنتاج party_type تلقائياً من payment_type إذا لم يُحدد
+      if (!result.party_type || String(result.party_type).trim() === '') {
+        const paymentType = String(result.payment_type || '');
+        if (paymentType === 'Receive') {
+          result.party_type = 'Customer';
+        } else if (paymentType === 'Pay') {
+          result.party_type = 'Supplier';
+        }
+        // Internal Transfer لا يحتاج party_type
       }
     }
 

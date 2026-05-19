@@ -3,15 +3,16 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable } from '@/components/erp/data-table';
+import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { useRunReport } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
+import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { normalizeFrappeReportPayload } from '@/lib/reports/normalize-frappe-report';
 import { normalizedColumnsToDataTable } from '@/lib/reports/frappe-report-columns';
 import {
@@ -21,9 +22,8 @@ import {
   buildReceivablePayableFilters,
   buildSalesRegisterFilters,
 } from '@/lib/reports/accounting-advanced-filters';
-import { BookOpen, CalendarClock, FileSpreadsheet, ScrollText, TrendingUp } from 'lucide-react';
+import { BookOpen, CalendarClock, FileSpreadsheet, RotateCcw, ScrollText, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { translateAccountName, translateAccountType } from '@/lib/core/arabic-labels';
 
 type AdvancedTab =
   | 'general-ledger'
@@ -96,7 +96,10 @@ export default function AdvancedAccountingReportsPage() {
   const [from, setFrom] = useState(d0);
   const [to, setTo] = useState(d1);
   const [tab, setTab] = useState<AdvancedTab>('general-ledger');
+  const [selectedCompany, setSelectedCompany] = useState('');
   const { company: effectiveCompany } = useDefaultCompanyName();
+
+  const company = selectedCompany || effectiveCompany;
 
   const reportId = useMemo(
     () => TAB_META.find((t) => t.id === tab)?.catalogId ?? 'general-ledger',
@@ -104,41 +107,41 @@ export default function AdvancedAccountingReportsPage() {
   );
 
   const filters = useMemo(() => {
-    if (!effectiveCompany || !to) return null;
+    if (!company || !to) return null;
     if (tab === 'accounts-receivable' || tab === 'accounts-payable') {
       return buildReceivablePayableFilters({
-        company: effectiveCompany,
+        company,
         reportDate: to,
       });
     }
     if (!from) return null;
     if (tab === 'sales-profit') {
       return buildGrossProfitReportFilters({
-        company: effectiveCompany,
+        company,
         fromDate: from,
         toDate: to,
       });
     }
     if (tab === 'sales-register') {
       return buildSalesRegisterFilters({
-        company: effectiveCompany,
+        company,
         fromDate: from,
         toDate: to,
       });
     }
     if (tab === 'item-wise-sales-register') {
       return buildItemWiseSalesRegisterFilters({
-        company: effectiveCompany,
+        company,
         fromDate: from,
         toDate: to,
       });
     }
     return buildGeneralLedgerFilters({
-      company: effectiveCompany,
+      company,
       fromDate: from,
       toDate: to,
     });
-  }, [effectiveCompany, from, to, tab]);
+  }, [company, from, to, tab]);
 
   const filtersReady = Boolean(filters);
   const reportQuery = useRunReport(reportId, filters ?? {}, filtersReady);
@@ -170,41 +173,71 @@ export default function AdvancedAccountingReportsPage() {
 
       <Card className="border-border/40">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">معايير التقرير</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-end gap-4">
-          {!isReceivablePayable && (
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">من تاريخ</Label>
-              <DatePicker value={from} onChange={setFrom} className="h-9 w-40" />
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-base">معايير التقرير</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-[10px] gap-1"
+                onClick={() => {
+                  const { from: defFrom, to: defTo } = defaultDateRange();
+                  setFrom(defFrom);
+                  setTo(defTo);
+                  setSelectedCompany('');
+                }}
+              >
+                <RotateCcw className="h-3 w-3" />
+                إعادة تعيين
+              </Button>
+              <ExportButton
+                data={normalized.rows}
+                filename={TAB_META.find((t) => t.id === tab)?.label ?? 'advanced-report'}
+                columns={exportCols}
+              />
             </div>
-          )}
-          {isRegisterTab && (
-            <p className="text-[11px] text-muted-foreground max-w-md">
-              «سجل المبيعات» و«التحليلي» يستخدمان from_date / to_date حسب تعريف النظام.
-            </p>
-          )}
-
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground flex items-center gap-1">
-              {isReceivablePayable ? (
-                <>
-                  <CalendarClock className="h-3.5 w-3.5" />
-                  كما في تاريخ
-                </>
-              ) : (
-                'إلى تاريخ'
-              )}
-            </Label>
-            <DatePicker value={to} onChange={setTo} className="h-9 w-40" />
           </div>
-
-          <div className="ms-auto">
-            <ExportButton
-              data={normalized.rows}
-              filename={TAB_META.find((t) => t.id === tab)?.label ?? 'advanced-report'}
-              columns={exportCols}
-            />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Company selector */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">الشركة</Label>
+              <ErpLinkCombobox
+                doctype="Company"
+                value={selectedCompany}
+                onChange={setSelectedCompany}
+                placeholder={effectiveCompany || 'اختر الشركة...'}
+                className="h-9 text-xs"
+              />
+            </div>
+            {!isReceivablePayable && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">من تاريخ</Label>
+                <DatePicker value={from} onChange={setFrom} className="h-9 w-full" />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                {isReceivablePayable ? (
+                  <>
+                    <CalendarClock className="h-3.5 w-3.5" />
+                    كما في تاريخ
+                  </>
+                ) : (
+                  'إلى تاريخ'
+                )}
+              </Label>
+              <DatePicker value={to} onChange={setTo} className="h-9 w-full" />
+            </div>
+            {isRegisterTab && (
+              <div className="space-y-1.5 flex items-end">
+                <p className="text-[11px] text-muted-foreground max-w-md">
+                  «سجل المبيعات» و«التحليلي» يستخدمان from_date / to_date حسب تعريف النظام.
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

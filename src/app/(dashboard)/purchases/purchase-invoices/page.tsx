@@ -37,6 +37,7 @@ import { parseSalesInvoiceImportXlsx } from '@/lib/erp/parse-sales-invoice-impor
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { isBranchesEnabled } from '@/lib/core/setup-config';
+import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -47,6 +48,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogDescription,
 } from '@/components/ui/alert-dialog';
 
 interface InvRow {
@@ -105,9 +107,10 @@ export default function PurchasesPurchaseInvoicesPage() {
   const [dateTo, setDateTo] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
   const branchesEnabled = isBranchesEnabled();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvRow | null>(null);
   const purchaseLinesImportRef = useRef<HTMLInputElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteName, setDeleteName] = useState<string | null>(null);
   const [supplier, setSupplier] = useState('');
   const [postingDate, setPostingDate] = useState(() => new Date().toISOString().split('T')[0]!);
   const [dueDate, setDueDate] = useState(() => new Date().toISOString().split('T')[0]!);
@@ -120,9 +123,8 @@ export default function PurchasesPurchaseInvoicesPage() {
   const [exchangeRate, setExchangeRate] = useState(1);
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [piStatusFilter, setPiStatusFilter] = useState('all');
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
-  const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setStatusFilter('all'); setPiStatusFilter('all'); };
+  const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
 
   const { data, isLoading, isError, error, refetch } = useDocList<InvRow>('Purchase Invoice', {
     fields: [
@@ -160,11 +162,8 @@ export default function PurchasesPurchaseInvoicesPage() {
     if (statusFilter !== 'all') {
       list = list.filter((i) => i.status === statusFilter);
     }
-    
-    if (piStatusFilter !== 'all') {
-      list = list.filter((row: any) => row.status === piStatusFilter);
-    }return list;
-  }, [invoices, dateFrom, dateTo, statusFilter, search, piStatusFilter]);
+    return list;
+  }, [invoices, dateFrom, dateTo, statusFilter, search]);
 
   const netTotal = useMemo(
     () => lines.reduce((s, l) => s + (l.item_code ? l.qty * l.rate : 0), 0),
@@ -275,7 +274,19 @@ export default function PurchasesPurchaseInvoicesPage() {
 
   const columns: Column<InvRow>[] = useMemo(
     () => [
-      { key: 'name', header: 'الرقم', sortable: true, render: (v) => <span className="font-medium text-primary">{String(v)}</span> },
+      {
+        key: 'name',
+        header: 'الرقم',
+        sortable: true,
+        render: (v) => {
+          const nm = String(v);
+          const href = docDetailPath('Purchase Invoice', nm);
+          return href ? (
+            <Link href={href} className="font-medium text-primary hover:underline">{nm}</Link>
+          ) : (
+            <span className="font-medium text-primary">{nm}</span>
+          );
+        }},
       {
         key: 'company',
         header: 'الشركة',
@@ -294,23 +305,35 @@ export default function PurchasesPurchaseInvoicesPage() {
           const ds = Number(row.docstatus);
           if (ds === 0) {
             return (
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                className="h-7 text-xs gap-1"
-                onClick={() =>
-                  submitMutation.mutate(row.name, {
-                    onSuccess: () => {
-                      toast.success('تم الترحيل');
-                      void refetch();
-                    },
-                    onError: () => toast.error('تعذر الترحيل')})
-                }
-              >
-                <Send className="h-3 w-3" />
-                ترحيل
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 text-xs gap-1"
+                  disabled={submitMutation.isPending}
+                  onClick={() =>
+                    submitMutation.mutate(row.name, {
+                      onSuccess: () => {
+                        toast.success('تم الترحيل');
+                        void refetch();
+                      },
+                      onError: () => toast.error('تعذر الترحيل')})
+                  }
+                >
+                  <Send className="h-3 w-3" />
+                  ترحيل
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs text-destructive"
+                  onClick={() => { setSelectedInvoice(row); setDeleteDialogOpen(true); }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
             );
           }
           if (ds === 1) {
@@ -320,6 +343,7 @@ export default function PurchasesPurchaseInvoicesPage() {
                 size="sm"
                 variant="ghost"
                 className="h-7 text-xs gap-1"
+                disabled={cancelMutation.isPending}
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => {
@@ -337,7 +361,7 @@ export default function PurchasesPurchaseInvoicesPage() {
           return '—';
         }},
     ],
-    [submitMutation, cancelMutation, toast, refetch]
+    [submitMutation, cancelMutation, deleteMutation, toast, refetch]
   );
 
   return (
@@ -403,7 +427,7 @@ export default function PurchasesPurchaseInvoicesPage() {
                 <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
               </Button>
             </CollapsibleTrigger>
-            {(dateFrom || dateTo || piStatusFilter !== 'all' || search) && (
+            {(dateFrom || dateTo || search) && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
                 <X className="h-3 w-3" /> مسح الفلاتر
               </Button>
@@ -421,7 +445,7 @@ export default function PurchasesPurchaseInvoicesPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">الحالة</Label>
-            <Select value={piStatusFilter} onValueChange={setPiStatusFilter}>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">الكل</SelectItem>
@@ -478,27 +502,35 @@ export default function PurchasesPurchaseInvoicesPage() {
             }
           />
         </div>
-        <DataTable data={filtered} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
+        <DataTable data={filtered} columns={columns} searchable loading={isLoading} />
       </PageShell>
-      <AlertDialog open={!!deleteName} onOpenChange={() => setDeleteName(null)}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
-            <AlertDialogTitle>حذف الفاتورة؟</AlertDialogTitle>
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-base">تأكيد حذف فاتورة الشراء</AlertDialogTitle>
+                <AlertDialogDescription className="text-xs mt-1">هل أنت متأكد من حذف الفاتورة &quot;{selectedInvoice?.name}&quot;؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+              </div>
+            </div>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0">
+          <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                if (!deleteName) return;
-                deleteMutation.mutate(deleteName, {
-                  onSuccess: () => {
-                    toast.success('تم الحذف');
-                    setDeleteName(null);
-                    void refetch();
-                  },
-                  onError: () => toast.error('تعذر الحذف')});
+                if (selectedInvoice) {
+                  deleteMutation.mutate(selectedInvoice.name, {
+                    onSuccess: () => { toast.success('تم حذف الفاتورة'); void refetch(); },
+                    onError: () => toast.error('حدث خطأ أثناء الحذف')});
+                  setDeleteDialogOpen(false);
+                }
               }}
+              variant="destructive" className="gap-1.5"
             >
+              <Trash2 className="h-3.5 w-3.5" />
               حذف
             </AlertDialogAction>
           </AlertDialogFooter>

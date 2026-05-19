@@ -2,535 +2,528 @@
 
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
-import { PageHeader } from '@/components/erp/page-header';
-
-import { ListQueryAlert } from '@/components/erp/list-query-alert';
-import { ExportButton } from '@/components/erp/export-button';
-import { formatCurrency, CHART_PALETTE } from '@/lib/core/helpers';
-import { useDocList } from '@/lib/client/hooks';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Button } from '@/components/ui/button';
 import {
-  ArrowUpLeft,
-  ArrowDownLeft,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { PageHeader } from '@/components/erp/page-header';
+import { EmptyState } from '@/components/erp/empty-state';
+import { ExportButton } from '@/components/erp/export-button';
+import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { useRunReport, useDocList } from '@/lib/client/hooks';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
+import {
+  buildFinancialStatementFilters,
+  pickFiscalYearForDate,
+  type FiscalYearRow,
+  type Periodicity,
+} from '@/lib/reports/financial-filters';
+import { normalizeFrappeReportPayload } from '@/lib/reports/normalize-frappe-report';
+import { normalizedColumnsToDataTable } from '@/lib/reports/frappe-report-columns';
+import { formatCurrency } from '@/lib/core/helpers';
+import {
+  Printer,
+  RotateCcw,
   TrendingUp,
-  TrendingDown,
-  DollarSign,
   Building2,
   Landmark,
+  Wallet,
   RefreshCw,
   Info,
 } from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
+import { ListQueryAlert } from '@/components/erp/list-query-alert';
+import { cn } from '@/lib/utils';
 
-interface CashFlowRow {
-  label: string;
-  inflow: number;
-  outflow: number;
-  net: number;
+type PeriodicityOption = 'Yearly' | 'Half-Yearly' | 'Quarterly' | 'Monthly';
+
+const PERIODICITY_OPTIONS: { value: PeriodicityOption; label: string }[] = [
+  { value: 'Yearly', label: 'سنوي' },
+  { value: 'Half-Yearly', label: 'نصف سنوي' },
+  { value: 'Quarterly', label: 'ربع سنوي' },
+  { value: 'Monthly', label: 'شهري' },
+];
+
+function defaultDateRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return { from: fmt(start), to: fmt(now) };
 }
 
 export default function CashFlowPage() {
-  const [dateFrom, setDateFrom] = useState(() => {
-    const d = new Date();
-    d.setMonth(d.getMonth() - 3);
-    return d.toISOString().split('T')[0];
-  });
-  const [dateTo, setDateTo] = useState(() => new Date().toISOString().split('T')[0]);
+  const { from: d0, to: d1 } = defaultDateRange();
+  const [from, setFrom] = useState(d0);
+  const [to, setTo] = useState(d1);
+  const [selectedCompany, setSelectedCompany] = useState('');
+  const [periodicity, setPeriodicity] = useState<PeriodicityOption>('Yearly');
+  const { company: effectiveCompany } = useDefaultCompanyName();
 
-  // Fetch Payment Entries for operating flows
-  const { data: payments = [], isLoading: paymentsLoading, refetch: refetchPayments, error: paymentsError } = useDocList<Record<string, unknown>>('Payment Entry', {
-    fields: ['name', 'payment_type', 'posting_date', 'paid_amount', 'party_type', 'party_name', 'mode_of_payment'],
-    filters: [
-      ['docstatus', '=', '1'],
-      ['posting_date', '>=', dateFrom],
-      ['posting_date', '<=', dateTo],
-    ],
-    limit: 500,
-    order_by: 'posting_date desc',
-  });
+  const company = selectedCompany || effectiveCompany;
 
-  // Fetch Journal Entries for investing/financing flows
-  const { data: journals = [], isLoading: journalsLoading, refetch: refetchJournals, error: journalsError } = useDocList<Record<string, unknown>>('Journal Entry', {
-    fields: ['name', 'posting_date', 'total_debit', 'total_credit', 'voucher_type', 'user_remark'],
-    filters: [
-      ['docstatus', '=', '1'],
-      ['posting_date', '>=', dateFrom],
-      ['posting_date', '<=', dateTo],
-    ],
-    limit: 500,
-    order_by: 'posting_date desc',
-  });
-
-  // Fetch Sales Invoices for operating inflows
-  const { data: salesInvoices = [], isLoading: siLoading, error: siError } = useDocList<Record<string, unknown>>('Sales Invoice', {
-    fields: ['name', 'posting_date', 'grand_total'],
-    filters: [
-      ['docstatus', '=', '1'],
-      ['posting_date', '>=', dateFrom],
-      ['posting_date', '<=', dateTo],
-    ],
-    limit: 500,
-    order_by: 'posting_date desc',
-  });
-
-  // Fetch Purchase Invoices for operating outflows
-  const { data: purchaseInvoices = [], isLoading: piLoading, error: piError } = useDocList<Record<string, unknown>>('Purchase Invoice', {
-    fields: ['name', 'posting_date', 'grand_total'],
-    filters: [
-      ['docstatus', '=', '1'],
-      ['posting_date', '>=', dateFrom],
-      ['posting_date', '<=', dateTo],
-    ],
-    limit: 500,
-    order_by: 'posting_date desc',
-  });
-
-  // Fetch GL Entries to categorize Journal Entries into investing/financing
-  const { data: glEntries = [], isLoading: glLoading, error: glError } = useDocList<Record<string, unknown>>('GL Entry', {
-    fields: ['name', 'account', 'debit', 'credit', 'voucher_no', 'posting_date', 'against_voucher'],
-    filters: [
-      ['docstatus', '=', '1'],
-      ['posting_date', '>=', dateFrom],
-      ['posting_date', '<=', dateTo],
-      ['voucher_type', '=', 'Journal Entry'],
-    ],
-    limit: 1000,
-    order_by: 'posting_date desc',
-  });
-
-  // Fetch Account root types to classify GL entries
-  const { data: accountsRaw = [], isLoading: accountsLoading } = useDocList<Record<string, unknown>>('Account', {
-    fields: ['name', 'root_type', 'account_type'],
-    limit: 500,
-  });
-
-  // Build account → root_type map
-  const accountRootTypeMap = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const a of accountsRaw) {
-      map.set(String(a.name), String(a.root_type ?? ''));
-    }
-    return map;
-  }, [accountsRaw]);
-
-  // Fetch all GL Entries before dateFrom to compute opening balance
-  const { data: openingGlEntries = [] } = useDocList<Record<string, unknown>>('GL Entry', {
-    fields: ['account', 'debit', 'credit', 'posting_date'],
-    filters: [
-      ['docstatus', '=', '1'],
-      ['posting_date', '<', dateFrom],
-    ],
-    limit: 2000,
-    order_by: 'posting_date asc',
-  });
-
-  const loading = paymentsLoading || journalsLoading || siLoading || piLoading || glLoading || accountsLoading;
-  const error = paymentsError || journalsError || siError || piError || glError;
-
-  // Calculate cash flow sections using REAL data
-  const operatingInflows = useMemo(() =>
-    payments
-      .filter(p => String(p.payment_type) === 'Receive')
-      .reduce((sum, p) => sum + Number(p.paid_amount ?? 0), 0),
-    [payments]
-  );
-
-  const operatingOutflows = useMemo(() =>
-    payments
-      .filter(p => String(p.payment_type) === 'Pay')
-      .reduce((sum, p) => sum + Number(p.paid_amount ?? 0), 0),
-    [payments]
-  );
-
-  const salesInflow = useMemo(() =>
-    salesInvoices.reduce((sum, si) => sum + Number(si.grand_total ?? 0), 0),
-    [salesInvoices]
-  );
-
-  const purchaseOutflow = useMemo(() =>
-    purchaseInvoices.reduce((sum, pi) => sum + Number(pi.grand_total ?? 0), 0),
-    [purchaseInvoices]
-  );
-
-  // Classify Journal Entry GL entries into investing/financing based on account root types
-  const { investingInflows, investingOutflows, financingInflows, financingOutflows } = useMemo(() => {
-    let invIn = 0, invOut = 0, finIn = 0, finOut = 0;
-
-    // Group GL entries by voucher_no (Journal Entry)
-    const jeMap = new Map<string, { debits: { account: string; amount: number }[]; credits: { account: string; amount: number }[] }>();
-
-    for (const gl of glEntries) {
-      const voucherNo = String(gl.voucher_no ?? '');
-      if (!jeMap.has(voucherNo)) {
-        jeMap.set(voucherNo, { debits: [], credits: [] });
-      }
-      const entry = jeMap.get(voucherNo)!;
-      const debit = Number(gl.debit ?? 0);
-      const credit = Number(gl.credit ?? 0);
-      const account = String(gl.account ?? '');
-
-      if (debit > 0) {
-        entry.debits.push({ account, amount: debit });
-      }
-      if (credit > 0) {
-        entry.credits.push({ account, amount: credit });
-      }
-    }
-
-    // For each Journal Entry, classify based on the accounts involved
-    // - If an Asset account (root_type=Asset, not Bank/Cash) is debited → investing outflow (buying assets)
-    // - If an Asset account (root_type=Asset, not Bank/Cash) is credited → investing inflow (selling assets)
-    // - If a Liability or Equity account is credited → financing inflow (loans, capital)
-    // - If a Liability or Equity account is debited → financing outflow (repaying loans)
-    for (const [, entry] of jeMap) {
-      for (const d of entry.debits) {
-        const rootType = accountRootTypeMap.get(d.account) ?? '';
-        if (rootType === 'Asset') {
-          const acctInfo = accountsRaw.find(a => String(a.name) === d.account);
-          const acctType = String(acctInfo?.account_type ?? '');
-          // Skip Bank/Cash accounts - those are the cash effect itself
-          if (acctType !== 'Bank' && acctType !== 'Cash') {
-            invOut += d.amount;
-          }
-        } else if (rootType === 'Liability' || rootType === 'Equity') {
-          finOut += d.amount;
-        }
-      }
-      for (const c of entry.credits) {
-        const rootType = accountRootTypeMap.get(c.account) ?? '';
-        if (rootType === 'Asset') {
-          const acctInfo = accountsRaw.find(a => String(a.name) === c.account);
-          const acctType = String(acctInfo?.account_type ?? '');
-          if (acctType !== 'Bank' && acctType !== 'Cash') {
-            invIn += c.amount;
-          }
-        } else if (rootType === 'Liability' || rootType === 'Equity') {
-          finIn += c.amount;
-        }
-      }
-    }
-
-    return {
-      investingInflows: Math.round(invIn),
-      investingOutflows: Math.round(invOut),
-      financingInflows: Math.round(finIn),
-      financingOutflows: Math.round(finOut),
-    };
-  }, [glEntries, accountRootTypeMap, accountsRaw]);
-
-  const operatingNet = operatingInflows - operatingOutflows + salesInflow - purchaseOutflow;
-  const investingNet = investingInflows - investingOutflows;
-  const financingNet = financingInflows - financingOutflows;
-  const netChange = operatingNet + investingNet + financingNet;
-
-  // Opening balance: compute from GL entries for bank/cash accounts before dateFrom
-  const openingBalance = useMemo(() => {
-    const bankCashTypes = new Set(['Bank', 'Cash']);
-    let balance = 0;
-    for (const gl of openingGlEntries) {
-      const account = String(gl.account ?? '');
-      const acctInfo = accountsRaw.find(a => String(a.name) === account);
-      if (acctInfo && bankCashTypes.has(String(acctInfo.account_type ?? ''))) {
-        balance += Number(gl.debit ?? 0) - Number(gl.credit ?? 0);
-      }
-    }
-    return Math.round(balance);
-  }, [openingGlEntries, accountsRaw]);
-
-  const closingBalance = openingBalance + netChange;
-
-  // Summary rows
-  const summaryRows: CashFlowRow[] = [
-    { label: 'التدفقات التشغيلية', inflow: operatingInflows + salesInflow, outflow: operatingOutflows + purchaseOutflow, net: operatingNet },
-    { label: 'التدفقات الاستثمارية', inflow: investingInflows, outflow: investingOutflows, net: investingNet },
-    { label: 'التدفقات التمويلية', inflow: financingInflows, outflow: financingOutflows, net: financingNet },
-  ];
-
-  // Chart data - monthly breakdown
-  const chartData = useMemo(() => {
-    const months: Record<string, { month: string; operating: number; investing: number; financing: number }> = {};
-
-    payments.forEach(p => {
-      const m = String(p.posting_date ?? '').slice(0, 7);
-      if (!months[m]) months[m] = { month: m, operating: 0, investing: 0, financing: 0 };
-      const amt = Number(p.paid_amount ?? 0);
-      if (String(p.payment_type) === 'Receive') months[m].operating += amt;
-      else months[m].operating -= amt;
+  const filters = useMemo(() => {
+    if (!company || !from || !to) return null;
+    return buildFinancialStatementFilters({
+      company,
+      periodStart: from,
+      periodEnd: to,
+      periodicity,
     });
+  }, [company, from, to, periodicity]);
 
-    // Add JE-based investing/financing to chart
-    const jeMonthMap = new Map<string, { investing: number; financing: number }>();
-    for (const gl of glEntries) {
-      const m = String(gl.posting_date ?? '').slice(0, 7);
-      if (!jeMonthMap.has(m)) jeMonthMap.set(m, { investing: 0, financing: 0 });
-      const entry = jeMonthMap.get(m)!;
-      const debit = Number(gl.debit ?? 0);
-      const credit = Number(gl.credit ?? 0);
-      const rootType = accountRootTypeMap.get(String(gl.account ?? '')) ?? '';
-      const acctInfo = accountsRaw.find(a => String(a.name) === String(gl.account));
-      const acctType = String(acctInfo?.account_type ?? '');
+  const filtersReady = Boolean(filters);
+  const reportQuery = useRunReport('cash-flow', filters ?? {}, filtersReady);
 
-      if (rootType === 'Asset' && acctType !== 'Bank' && acctType !== 'Cash') {
-        entry.investing += credit - debit; // credit = inflow, debit = outflow
-      } else if (rootType === 'Liability' || rootType === 'Equity') {
-        entry.financing += credit - debit;
+  const normalized = useMemo(
+    () => normalizeFrappeReportPayload(reportQuery.data ?? null),
+    [reportQuery.data]
+  );
+
+  const tableColumns = useMemo(
+    () => normalizedColumnsToDataTable(normalized.columns),
+    [normalized.columns]
+  );
+
+  const exportCols = tableColumns.map((c) => ({ key: c.key, header: c.header }));
+
+  // Extract KPIs from report summary
+  const summaryKpis = useMemo(() => {
+    const summary = normalized.reportSummary;
+    let operatingNet = 0;
+    let investingNet = 0;
+    let financingNet = 0;
+    let netChange = 0;
+    let openingBalance = 0;
+    let closingBalance = 0;
+
+    for (const s of summary) {
+      const label = String(s.label ?? '').toLowerCase();
+      const val = Number(s.value ?? 0) || 0;
+      if (label.includes('operating') || label.includes('تشغيلي') || label.includes('تشغيل')) {
+        operatingNet = val;
+      }
+      if (label.includes('investing') || label.includes('استثماري') || label.includes('استثمار')) {
+        investingNet = val;
+      }
+      if (label.includes('financing') || label.includes('تمويلي') || label.includes('تمويل')) {
+        financingNet = val;
+      }
+      if (label.includes('net change') || label.includes('صافي التغير') || label.includes('صافي تغير')) {
+        netChange = val;
+      }
+      if (label.includes('opening') || label.includes('افتتاح')) {
+        openingBalance = val;
+      }
+      if (label.includes('closing') || label.includes('إقفال') || label.includes('إغلاق')) {
+        closingBalance = val;
       }
     }
 
-    for (const [m, data] of jeMonthMap) {
-      if (!months[m]) months[m] = { month: m, operating: 0, investing: 0, financing: 0 };
-      months[m].investing += data.investing;
-      months[m].financing += data.financing;
+    // If summary doesn't have clear labels, compute net change
+    if (netChange === 0 && (operatingNet !== 0 || investingNet !== 0 || financingNet !== 0)) {
+      netChange = operatingNet + investingNet + financingNet;
     }
 
-    return Object.values(months).sort((a, b) => a.month.localeCompare(b.month));
-  }, [payments, glEntries, accountRootTypeMap, accountsRaw]);
+    return { operatingNet, investingNet, financingNet, netChange, openingBalance, closingBalance };
+  }, [normalized.reportSummary]);
 
-  const handleRefresh = () => {
-    refetchPayments();
-    refetchJournals();
+  const resetFilters = () => {
+    const { from: defFrom, to: defTo } = defaultDateRange();
+    setFrom(defFrom);
+    setTo(defTo);
+    setSelectedCompany('');
+    setPeriodicity('Yearly');
   };
 
-  const exportData = summaryRows.map(row => ({
-    'البند': row.label,
-    'الوارد': row.inflow,
-    'الصادر': row.outflow,
-    'صافي التدفق': row.net,
-  }));
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleRefresh = () => {
+    reportQuery.refetch();
+  };
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
+      <ListQueryAlert error={reportQuery.isError ? (reportQuery.error as Error | null) : null} onRetry={handleRefresh} />
+
       <PageHeader
         title="تقرير التدفقات النقدية"
-        description="تحليل حركة النقد وفقاً للأنشطة التشغيلية والاستثمارية والتمويلية"
+        description="تحليل حركة النقد وفقاً للأنشطة التشغيلية والاستثمارية والتمويلية — بيانات فعلية من تقرير ERPNext."
         iconify="solar:wallet-money-bold-duotone"
         accent="primary"
         breadcrumbs={[
           { label: 'المحاسبة', href: '/accounting' },
-          { label: 'تقرير التدفقات النقدية' },
+          { label: 'التدفقات النقدية' },
         ]}
         actions={
-          <div className="flex gap-2">
-            <ExportButton
-              data={exportData as unknown as Record<string, unknown>[]}
-              filename="تقرير التدفقات النقدية"
-              columns={[
-                { key: 'البند', header: 'البند' },
-                { key: 'الوارد', header: 'الوارد' },
-                { key: 'الصادر', header: 'الصادر' },
-                { key: 'صافي التدفق', header: 'صافي التدفق' },
-              ]}
-            />
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={handleRefresh} disabled={loading}>
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <div className="flex gap-2 print:hidden">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={handlePrint}
+              disabled={normalized.rows.length === 0}
+            >
+              <Printer className="h-3.5 w-3.5" />
+              طباعة
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleRefresh}
+              disabled={reportQuery.isLoading}
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${reportQuery.isLoading ? 'animate-spin' : ''}`} />
               تحديث
             </Button>
           </div>
         }
       />
 
-      <ListQueryAlert error={error} onRetry={handleRefresh} />
-
-      {/* Date Range Selector */}
-      <div className="flex flex-wrap items-end gap-3 p-4 rounded-[var(--radius-md-ui)] border border-border/40 bg-card">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <DollarSign className="h-4 w-4" />
-          نطاق التقرير
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">من تاريخ</Label>
-          <DatePicker value={dateFrom} onChange={setDateFrom} className="h-8 w-40 text-xs" />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">إلى تاريخ</Label>
-          <DatePicker value={dateTo} onChange={setDateTo} className="h-8 w-40 text-xs" />
-        </div>
-      </div>
-
-      {/* KPI Strip */}
-      {/* Three Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Operating */}
-        <Card className="border-primary/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-primary">
-              <TrendingUp className="h-4 w-4" />
-              التدفقات التشغيلية
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">وارد (قبض + مبيعات)</span>
-              <span className="font-semibold text-emerald-600">{formatCurrency(operatingInflows + salesInflow)}</span>
+      {/* Filter Card */}
+      <Card className="border-border/40 print:hidden">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-base">معايير التقرير</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 text-[10px] gap-1"
+                onClick={resetFilters}
+              >
+                <RotateCcw className="h-3 w-3" />
+                إعادة تعيين
+              </Button>
+              <ExportButton
+                data={normalized.rows as Record<string, unknown>[]}
+                filename="تقرير التدفقات النقدية"
+                columns={exportCols}
+              />
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">صادر (دفع + مشتريات)</span>
-              <span className="font-semibold text-rose-600">{formatCurrency(operatingOutflows + purchaseOutflow)}</span>
-            </div>
-            <div className="border-t pt-2 flex justify-between font-medium">
-              <span>صافي التدفقات التشغيلية</span>
-              <span className={operatingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{formatCurrency(operatingNet)}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Investing */}
-        <Card className="border-chart-1/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-chart-1">
-              <Building2 className="h-4 w-4" />
-              التدفقات الاستثمارية
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">وارد (بيع أصول)</span>
-              <span className="font-semibold text-emerald-600">{formatCurrency(investingInflows)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">صادر (شراء أصول)</span>
-              <span className="font-semibold text-rose-600">{formatCurrency(investingOutflows)}</span>
-            </div>
-            <div className="border-t pt-2 flex justify-between font-medium">
-              <span>صافي التدفقات الاستثمارية</span>
-              <span className={investingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{formatCurrency(investingNet)}</span>
-            </div>
-            {investingInflows === 0 && investingOutflows === 0 && (
-              <div className="flex items-start gap-1.5 rounded-md bg-muted/30 p-2 text-xs text-muted-foreground">
-                <Info className="h-3 w-3 shrink-0 mt-0.5" />
-                <span>يُحسب من قيود اليومية ذات حسابات الأصول (غير النقدية)</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Financing */}
-        <Card className="border-chart-5/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2 text-chart-5">
-              <Landmark className="h-4 w-4" />
-              التدفقات التمويلية
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">وارد (قروض، رأس مال)</span>
-              <span className="font-semibold text-emerald-600">{formatCurrency(financingInflows)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">صادر (سداد قروض)</span>
-              <span className="font-semibold text-rose-600">{formatCurrency(financingOutflows)}</span>
-            </div>
-            <div className="border-t pt-2 flex justify-between font-medium">
-              <span>صافي التدفقات التمويلية</span>
-              <span className={financingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'}>{formatCurrency(financingNet)}</span>
-            </div>
-            {financingInflows === 0 && financingOutflows === 0 && (
-              <div className="flex items-start gap-1.5 rounded-md bg-muted/30 p-2 text-xs text-muted-foreground">
-                <Info className="h-3 w-3 shrink-0 mt-0.5" />
-                <span>يُحسب من قيود اليومية ذات حسابات الخصوم وحقوق الملكية</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Summary Table */}
-      <Card className="border-border/40">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">ملخص التدفقات النقدية</CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="py-2 px-3 text-end font-medium text-muted-foreground">البند</th>
-                  <th className="py-2 px-3 text-start font-medium text-muted-foreground">الوارد</th>
-                  <th className="py-2 px-3 text-start font-medium text-muted-foreground">الصادر</th>
-                  <th className="py-2 px-3 text-start font-medium text-muted-foreground">صافي التدفق</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summaryRows.map((row) => (
-                  <tr key={row.label} className="border-b border-border/40 hover:bg-accent/30">
-                    <td className="py-2.5 px-3 font-medium">{row.label}</td>
-                    <td className="py-2.5 px-3 text-start tabular-nums text-emerald-600">{formatCurrency(row.inflow)}</td>
-                    <td className="py-2.5 px-3 text-start tabular-nums text-rose-600">{formatCurrency(row.outflow)}</td>
-                    <td className={`py-2.5 px-3 text-start tabular-nums font-semibold ${row.net >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {formatCurrency(row.net)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="border-t-2 border-border font-bold">
-                  <td className="py-3 px-3">رصيد الافتتاح</td>
-                  <td colSpan={3} className="py-3 px-3 text-start tabular-nums">{formatCurrency(openingBalance)}</td>
-                </tr>
-                <tr className="font-bold bg-muted/30">
-                  <td className="py-3 px-3">صافي التغير النقدي</td>
-                  <td colSpan={2} className="py-3 px-3"></td>
-                  <td className={`py-3 px-3 text-start tabular-nums ${netChange >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {formatCurrency(netChange)}
-                  </td>
-                </tr>
-                <tr className="font-bold">
-                  <td className="py-3 px-3">رصيد الإقفال</td>
-                  <td colSpan={2} className="py-3 px-3"></td>
-                  <td className="py-3 px-3 text-start tabular-nums font-bold">{formatCurrency(closingBalance)}</td>
-                </tr>
-              </tfoot>
-            </table>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Company selector */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">الشركة</Label>
+              <ErpLinkCombobox
+                doctype="Company"
+                value={selectedCompany}
+                onChange={setSelectedCompany}
+                placeholder={effectiveCompany || 'اختر الشركة...'}
+                className="h-9 text-xs"
+              />
+            </div>
+            {/* From date */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">من تاريخ</Label>
+              <DatePicker value={from} onChange={setFrom} className="h-9 w-full" />
+            </div>
+            {/* To date */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
+              <DatePicker value={to} onChange={setTo} className="h-9 w-full" />
+            </div>
+            {/* Periodicity */}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">التواتر</Label>
+              <Select value={periodicity} onValueChange={(v) => setPeriodicity(v as PeriodicityOption)}>
+                <SelectTrigger className="h-9 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERIODICITY_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          <div className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
-            <Info className="h-3 w-3 shrink-0 mt-0.5" />
-            <span>التدفقات الاستثمارية والتمويلية مبنية على تحليل حسابات قيود اليومية (أصول غير نقدية = استثمارية، خصوم/حقوق ملكية = تمويلية). رصيد الافتتاح يحتاج استعلام رصيد الحسابات البنكية/النقدية عند تاريخ البداية.</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Chart */}
-      <Card className="border-border/40">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">اتجاه التدفقات النقدية الشهرية</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {chartData.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-16 text-center">
-              لا توجد بيانات تدفقات نقدية في النطاق المحدد. ستظهر الرسوم البيانية عند توفر بيانات المدفوعات.
-            </p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 10%, 90%)" />
-                <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip
-                  contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid hsl(220, 10%, 90%)' }}
-                  formatter={(value: number) => formatCurrency(value)}
-                />
-                <Legend />
-                <Bar dataKey="operating" fill={CHART_PALETTE.primary} radius={[4, 4, 0, 0]} name="تشغيلية" />
-                <Bar dataKey="investing" fill={CHART_PALETTE.secondary} radius={[4, 4, 0, 0]} name="استثمارية" />
-                <Bar dataKey="financing" fill={CHART_PALETTE.quinary} radius={[4, 4, 0, 0]} name="تمويلية" />
-              </BarChart>
-            </ResponsiveContainer>
+          {/* Active filter indicators */}
+          {(selectedCompany || from !== d0 || to !== d1 || periodicity !== 'Yearly') && (
+            <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border/40 pt-3">
+              {selectedCompany && (
+                <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary ring-1 ring-inset ring-primary/20">
+                  شركة: {selectedCompany}
+                </span>
+              )}
+              {from !== d0 && (
+                <span className="inline-flex items-center rounded-md bg-info/10 px-2 py-0.5 text-[10px] font-medium text-info ring-1 ring-inset ring-info/20">
+                  من: {from}
+                </span>
+              )}
+              {to !== d1 && (
+                <span className="inline-flex items-center rounded-md bg-info/10 px-2 py-0.5 text-[10px] font-medium text-info ring-1 ring-inset ring-info/20">
+                  إلى: {to}
+                </span>
+              )}
+              {periodicity !== 'Yearly' && (
+                <span className="inline-flex items-center rounded-md bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning-foreground ring-1 ring-inset ring-warning/20">
+                  تواتر: {PERIODICITY_OPTIONS.find((o) => o.value === periodicity)?.label}
+                </span>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Content */}
+      <div className="space-y-4">
+        {reportQuery.isError && (
+          <p className="text-sm text-destructive">
+            {(reportQuery.error as Error)?.message || 'تعذر تشغيل تقرير التدفقات النقدية. تحقق من الصلاحيات وتسمية التقرير.'}
+          </p>
+        )}
+
+        {reportQuery.isLoading && (
+          <div className="flex items-center gap-2 py-8 justify-center text-muted-foreground">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <span className="text-sm">جاري تحميل تقرير التدفقات النقدية…</span>
+          </div>
+        )}
+
+        {!reportQuery.isLoading && !reportQuery.isError && filtersReady && normalized.rows.length === 0 && (
+          <EmptyState
+            title="لا توجد بيانات ضمن المعايير"
+            description="جرّب توسيع الفترة أو التحقق من وجود حركات في النظام."
+          />
+        )}
+
+        {!filtersReady && !reportQuery.isLoading && (
+          <EmptyState
+            title="اختر معايير التقرير"
+            description="حدد الشركة والتواريخ لعرض تقرير التدفقات النقدية."
+          />
+        )}
+
+        {normalized.notice && (
+          <div className="rounded-[var(--radius-md-ui)] border border-chart-2/20/80 bg-chart-2/5/80 px-3 py-2 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-chart-2/10 dark:text-amber-100">
+            {normalized.notice}
+          </div>
+        )}
+
+        {/* Summary KPI cards from report_summary */}
+        {normalized.reportSummary.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-4">
+            {normalized.reportSummary
+              .filter((s) => s && typeof s.value !== 'undefined')
+              .map((s, i) => {
+                const datatype = String(s.datatype ?? '');
+                const val = s.value;
+                const curr = typeof s.currency === 'string' ? s.currency : undefined;
+                const num = Number(val);
+                const shown =
+                  datatype === 'Currency' && Number.isFinite(num)
+                    ? formatCurrency(num, curr || 'YER')
+                    : String(val ?? '—');
+                return (
+                  <div
+                    key={i}
+                    className={cn(
+                      'rounded-[var(--radius-md-ui)] border border-border/50 bg-card px-3 py-2.5',
+                      s.indicator === 'Red' && 'border-destructive/20/80 bg-destructive/5/50 dark:border-red-900/40',
+                      s.indicator === 'Green' && 'border-primary/20/80 bg-primary/5/50 dark:border-emerald-900/40'
+                    )}
+                  >
+                    <p className="text-[10px] font-medium text-muted-foreground">{String(s.label ?? '')}</p>
+                    <p className="text-lg font-semibold tabular-nums tracking-tight">{shown}</p>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        {/* Three-section summary cards */}
+        {(summaryKpis.operatingNet !== 0 || summaryKpis.investingNet !== 0 || summaryKpis.financingNet !== 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Operating */}
+            <Card className="border-primary/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2 text-primary">
+                  <TrendingUp className="h-4 w-4" />
+                  التدفقات التشغيلية
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className={cn(
+                  'text-lg font-semibold tabular-nums',
+                  summaryKpis.operatingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                )}>
+                  {formatCurrency(summaryKpis.operatingNet, 'YER')}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1">صافي التدفقات من الأنشطة التشغيلية</p>
+              </CardContent>
+            </Card>
+
+            {/* Investing */}
+            <Card className="border-chart-1/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2 text-chart-1">
+                  <Building2 className="h-4 w-4" />
+                  التدفقات الاستثمارية
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className={cn(
+                  'text-lg font-semibold tabular-nums',
+                  summaryKpis.investingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                )}>
+                  {formatCurrency(summaryKpis.investingNet, 'YER')}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1">صافي التدفقات من الأنشطة الاستثمارية</p>
+              </CardContent>
+            </Card>
+
+            {/* Financing */}
+            <Card className="border-chart-5/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2 text-chart-5">
+                  <Landmark className="h-4 w-4" />
+                  التدفقات التمويلية
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className={cn(
+                  'text-lg font-semibold tabular-nums',
+                  summaryKpis.financingNet >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                )}>
+                  {formatCurrency(summaryKpis.financingNet, 'YER')}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-1">صافي التدفقات من الأنشطة التمويلية</p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Net Change Summary */}
+        {(summaryKpis.netChange !== 0 || summaryKpis.openingBalance !== 0 || summaryKpis.closingBalance !== 0) && (
+          <Card className="border-border/40">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-lg border border-border/40 bg-muted/20 p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground">رصيد الافتتاح</p>
+                  <p className="text-lg font-bold tabular-nums">{formatCurrency(summaryKpis.openingBalance, 'YER')}</p>
+                </div>
+                <div className="rounded-lg border border-border/40 bg-muted/20 p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground">صافي التغير النقدي</p>
+                  <p className={cn(
+                    'text-lg font-bold tabular-nums',
+                    summaryKpis.netChange >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                  )}>
+                    {formatCurrency(summaryKpis.netChange, 'YER')}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-primary/20/60 bg-primary/5/50 p-3">
+                  <p className="text-[10px] font-medium text-muted-foreground">رصيد الإقفال</p>
+                  <p className="text-lg font-bold tabular-nums">{formatCurrency(summaryKpis.closingBalance, 'YER')}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Data Table */}
+        {normalized.rows.length > 0 && (
+          <Card className="border-border/40">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+                تفاصيل التدفقات النقدية
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-border">
+                      {normalized.columns.filter((c) => !c.hidden).map((col, idx) => (
+                        <th
+                          key={idx}
+                          className={cn(
+                            'py-2 px-3 text-end font-medium text-muted-foreground text-[11px]',
+                            idx === 0 && 'sticky end-0 z-10 bg-muted/95 backdrop-blur'
+                          )}
+                        >
+                          {String(col.header ?? col.key ?? `عمود ${idx + 1}`)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {normalized.rows.map((row, rIdx) => {
+                      const r = row as Record<string, unknown>;
+                      const isCurrency = (key: string, idx: number) => {
+                        const col = normalized.columns.filter((c) => !c.hidden)[idx];
+                        return col?.fieldtype === 'Currency' || col?.fieldtype === 'Float';
+                      };
+                      const indent = Number(r.indent ?? 0);
+                      const isTotalRow = String(r.account_name ?? r.account ?? '').includes('Total') ||
+                        String(r.account_name ?? r.account ?? '').includes('إجمالي');
+                      return (
+                        <tr
+                          key={rIdx}
+                          className={cn(
+                            'border-b border-border/20 transition-colors',
+                            isTotalRow ? 'bg-muted/20 font-semibold' : 'hover:bg-accent/30',
+                          )}
+                        >
+                          {normalized.columns.filter((c) => !c.hidden).map((col, cIdx) => {
+                            const val = r[col.key ?? ''];
+                            const num = Number(val);
+                            const isFirstCol = cIdx === 0;
+                            const isCur = isCurrency(col.key, cIdx);
+                            return (
+                              <td
+                                key={cIdx}
+                                className={cn(
+                                  'py-2 px-3 text-xs',
+                                  isFirstCol && 'sticky end-0 z-[1] bg-card',
+                                  isCur && 'tabular-nums',
+                                  isCur && Number.isFinite(num) && num > 0 && 'text-emerald-600',
+                                  isCur && Number.isFinite(num) && num < 0 && 'text-rose-600',
+                                )}
+                                dir={isCur ? 'ltr' : undefined}
+                                style={isFirstCol ? { paddingRight: `${indent * 16}px` } : undefined}
+                              >
+                                {isCur && Number.isFinite(num) && num !== 0
+                                  ? formatCurrency(num, 'YER')
+                                  : isCur && (num === 0 || !Number.isFinite(num))
+                                    ? <span className="text-muted-foreground">—</span>
+                                    : String(val ?? '—')}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Info note */}
+        <div className="flex items-start gap-1.5 text-xs text-muted-foreground print:hidden">
+          <Info className="h-3 w-3 shrink-0 mt-0.5" />
+          <span>
+            هذا التقرير يُستخرج مباشرة من تقرير «Cash Flow» في ERPNext باستخدام فلاتر الشركة والفترة والتواتر.
+            التصنيف بين الأنشطة التشغيلية والاستثمارية والتمويلية يعتمد على إعداد حسابات التقرير على الخادم.
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

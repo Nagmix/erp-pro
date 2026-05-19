@@ -638,9 +638,27 @@ export async function submitDoc(
     // إذا فشل جلب المستند، نحاول الترحيل بالمستند الأساسي
   }
   // إرسال المستند الكامل مع تحديث حقل modified لتجنب TimestampMismatchError
-  const docToSubmit = latestDoc
+  const docToSubmit: Record<string, unknown> = latestDoc
     ? { ...latestDoc, doctype, name, modified: latestDoc.modified }
     : { doctype, name };
+
+  // ✅ ERPNext v16: Payment Entry يتطلب party_type حتى أثناء الترحيل
+  // عند إنشاء قيد دفع كـ "Internal Transfer" قد يكون party_type فارغاً،
+  // لكن ERPNext قد يطلبه أثناء submit. نعينه تلقائياً حسب payment_type.
+  if (doctype === 'Payment Entry') {
+    const paymentType = String(docToSubmit.payment_type ?? '');
+    const partyType = String(docToSubmit.party_type ?? '');
+    if (!partyType || partyType === 'undefined' || partyType === 'null') {
+      if (paymentType === 'Receive') {
+        docToSubmit.party_type = 'Customer';
+      } else if (paymentType === 'Pay') {
+        docToSubmit.party_type = 'Supplier';
+      }
+      // ملاحظة: "Internal Transfer" لا يتطلب party_type عادةً،
+      // لكن إذا كان ERPNext يطلبه، نتركه فارغاً لأن لا يوجد طرف ثالث منطقي.
+    }
+  }
+
   const result = await internalRequest(
     'POST',
     '/method/frappe.client.submit',

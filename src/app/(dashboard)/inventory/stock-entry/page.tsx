@@ -92,7 +92,29 @@ export default function StockEntryPage() {
   const clearFilters = () => { setSearch(''); setStockEntryTypeFilter('all'); setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
 
   const rows = data || [];
-  const filtered = filter === 'all' ? rows : rows.filter((s) => s.stock_entry_type === filter);
+  let filtered = filter === 'all' ? rows : rows.filter((s) => s.stock_entry_type === filter);
+
+  // Apply advanced filters
+  if (search.trim()) {
+    const q = search.trim().toLowerCase();
+    filtered = filtered.filter((s) =>
+      s.name.toLowerCase().includes(q) ||
+      s.stock_entry_type.toLowerCase().includes(q)
+    );
+  }
+  if (stockEntryTypeFilter !== 'all') {
+    filtered = filtered.filter((s) => s.stock_entry_type === stockEntryTypeFilter);
+  }
+  if (dateFrom) {
+    filtered = filtered.filter((s) => s.posting_date && s.posting_date >= dateFrom);
+  }
+  if (dateTo) {
+    filtered = filtered.filter((s) => s.posting_date && s.posting_date <= dateTo);
+  }
+  if (statusFilter !== 'all') {
+    const ds = Number(statusFilter);
+    filtered = filtered.filter((s) => Number(s.docstatus) === ds);
+  }
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {

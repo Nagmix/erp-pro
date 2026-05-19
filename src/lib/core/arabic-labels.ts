@@ -895,20 +895,31 @@ export function translateDoctype(doctype: string): string {
  */
 export function translateAccountName(name: string): string {
   if (!name) return name;
-  // إذا كان الاسم يحتوي على أحرف عربية، أرجعه كما هو
+  // إذا كان الاسم يحتوي على أحرف عربية، أرجعه كما هو مع إزالة لاحقة الشركة
   if (containsArabic(name)) {
+    // إزالة لاحقة الشركة العربية (مثل " - ERP Pro") من العرض
+    const dashIdx = name.lastIndexOf(' - ');
+    if (dashIdx > 0) {
+      const suffix = name.substring(dashIdx + 3).trim();
+      // إذا كانت اللاحقة تبدو كاسم شركة (إنجليزية أو قصيرة)، أزلها
+      if (!containsArabic(suffix) || suffix.length <= 10) {
+        return name.substring(0, dashIdx);
+      }
+    }
     return name;
   }
   // البحث المباشر في الخريطة
   if (ACCOUNT_NAME_MAP[name]) {
     return ACCOUNT_NAME_MAP[name];
   }
-  // محاولة بدون لاحقة الشركة (مثل " - SH" أو " - CMP")
+  // محاولة بدون لاحقة الشركة (مثل " - ERP Pro" أو " - SH" أو " - CMP")
+  // ✅ إزالة لاحقة الشركة تماماً من العرض — لا حاجة لإضافتها بالعربية
   const dashIdx = name.lastIndexOf(' - ');
   if (dashIdx > 0) {
     const baseName = name.substring(0, dashIdx);
     if (ACCOUNT_NAME_MAP[baseName]) {
-      return ACCOUNT_NAME_MAP[baseName] + name.substring(dashIdx);
+      // ✅ نُرجع الاسم العربي بدون لاحقة الشركة
+      return ACCOUNT_NAME_MAP[baseName];
     }
   }
   return name;

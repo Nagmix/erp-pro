@@ -46,7 +46,7 @@ export default function TaxRatesPage() {
  const { company: defaultCompany } = useDefaultCompanyName();
  const [company, setCompany] = useState('');
  const [title, setTitle] = useState('');
- const [rate, setRate] = useState('15');
+ const [rate, setRate] = useState('5');
 
  const [deleteOpen, setDeleteOpen] = useState(false);
  const [toDelete, setToDelete] = useState<TemplateRow | null>(null);
@@ -125,7 +125,7 @@ export default function TaxRatesPage() {
   qc.invalidateQueries({ queryKey: ['docList', 'Purchase Taxes and Charges Template'] });
   qc.invalidateQueries({ queryKey: ['docList', 'Account'] });
   setTitle('');
-  setRate('15');
+  setRate('5');
  },
  onError: (e: Error) => {
   toast.error('فشل الإعداد', { description: e.message });

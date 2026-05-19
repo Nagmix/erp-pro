@@ -14,6 +14,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -36,6 +46,8 @@ import {
   Link2,
   User,
   ChevronDown,
+  Loader2,
+  Trash2,
 } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
@@ -153,6 +165,8 @@ export default function ActivitiesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<Row | null>(null);
 
   // Form state
   const [subject, setSubject] = useState('');
@@ -446,7 +460,7 @@ export default function ActivitiesPage() {
               columns={columns}
               searchable
               loading={isLoading}
-              onDelete={(r) => deleteMutation.mutate(r.name, { onSuccess: () => toast.success('تم حذف النشاط') })}
+              onDelete={(r) => { setToDelete(r); setDeleteDialogOpen(true); }}
               tableId="crm-activities"
               exportFileName="crm-activities.csv"
               printTitle="أنشطة CRM"
@@ -454,6 +468,40 @@ export default function ActivitiesPage() {
           </PageShell>
         </TabsContent>
       </Tabs>
+
+      {/* ─── Delete Confirmation ─── */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              حذف النشاط
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف النشاط &quot;{toDelete?.subject || toDelete?.name}&quot;؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!toDelete) return;
+                deleteMutation.mutate(toDelete.name, {
+                  onSuccess: () => { toast.success('تم حذف النشاط'); void refetch(); },
+                  onError: () => toast.error('فشل حذف النشاط'),
+                });
+                setDeleteDialogOpen(false);
+                setToDelete(null);
+              }}
+              variant="destructive"
+            >
+              {deleteMutation.isPending ? (
+                <span className="flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" />جاري الحذف...</span>
+              ) : 'حذف'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* ─── Create Dialog ─── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

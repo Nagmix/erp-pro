@@ -26,9 +26,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Plus, Trash2, Package, Send, Undo2, FileInput, Receipt, Truck, FileText, Coins, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { buildPurchaseOrder, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -99,9 +110,29 @@ export default function PurchasesPurchaseOrdersPage() {
   const createMutation = useCreateDoc<PORow>('Purchase Order');
   const submitMutation = useSubmitDoc<PORow>('Purchase Order');
   const cancelMutation = useCancelDoc<PORow>('Purchase Order');
+  const deleteMutation = useDeleteDoc('Purchase Order');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<PORow | null>(null);
 
   const rows = data || [];
-  const filtered = filter === 'all' ? rows : rows.filter((o) => o.status === filter);
+  const filtered = useMemo(() => {
+    let list = rows;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((row: any) =>
+        String(row.name || '').toLowerCase().includes(q) ||
+        String(row.supplier_name || '').toLowerCase().includes(q)
+      );
+    }
+    if (dateFrom || dateTo) {
+      list = list.filter((row: any) => rowInDateRangeISO(row.transaction_date, dateFrom, dateTo));
+    }
+    const effectiveStatus = poStatusFilter !== 'all' ? poStatusFilter : (filter !== 'all' ? filter : 'all');
+    if (effectiveStatus !== 'all') {
+      list = list.filter((row: any) => row.status === effectiveStatus);
+    }
+    return list;
+  }, [rows, search, dateFrom, dateTo, poStatusFilter, filter]);
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {
@@ -211,25 +242,37 @@ export default function PurchasesPurchaseOrdersPage() {
       {
         key: '_s',
         header: 'ترحيل',
-        width: 'w-28',
+        width: 'w-36',
         render: (_v, row) => {
           const ds = Number(row.docstatus);
           if (ds === 0) {
             return (
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                className="h-7 text-xs gap-1"
-                onClick={() =>
-                  submitMutation.mutate(row.name, {
-                    onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
-                    onError: () => toast.error('تعذر الترحيل')})
-                }
-              >
-                <Send className="h-3 w-3" />
-                ترحيل
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 text-xs gap-1"
+                  disabled={submitMutation.isPending}
+                  onClick={() =>
+                    submitMutation.mutate(row.name, {
+                      onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                      onError: () => toast.error('تعذر الترحيل')})
+                  }
+                >
+                  <Send className="h-3 w-3" />
+                  ترحيل
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs text-destructive"
+                  onClick={() => { setSelectedOrder(row); setDeleteDialogOpen(true); }}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              </div>
             );
           }
           if (ds === 1) {
@@ -239,6 +282,7 @@ export default function PurchasesPurchaseOrdersPage() {
                 size="sm"
                 variant="ghost"
                 className="h-7 text-xs gap-1"
+                disabled={cancelMutation.isPending}
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('أُلغي'); void refetch(); },
@@ -300,7 +344,7 @@ export default function PurchasesPurchaseOrdersPage() {
           );
         }},
     ],
-    [submitMutation, cancelMutation, toast, refetch, mapping, queryClient]
+    [submitMutation, cancelMutation, deleteMutation, toast, refetch, mapping, queryClient]
   );
 
   return (
@@ -595,6 +639,40 @@ export default function PurchasesPurchaseOrdersPage() {
             </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+                <Trash2 className="h-5 w-5" />
+              </div>
+              <div>
+                <AlertDialogTitle className="text-base">تأكيد حذف أمر الشراء</AlertDialogTitle>
+                <AlertDialogDescription className="text-xs mt-1">هل أنت متأكد من حذف أمر الشراء &quot;{selectedOrder?.name}&quot;؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedOrder) {
+                  deleteMutation.mutate(selectedOrder.name, {
+                    onSuccess: () => { toast.success('تم حذف أمر الشراء'); void refetch(); },
+                    onError: () => toast.error('حدث خطأ أثناء الحذف')});
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              variant="destructive" className="gap-1.5"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

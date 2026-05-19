@@ -208,13 +208,16 @@ export default function AttendancePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2"><Label className="text-sm font-medium">التاريخ <span className="text-destructive">*</span></Label><Input type="date" dir="ltr" value={formData.attendance_date} onChange={(e) => setFormData((p) => ({ ...p, attendance_date: e.target.value }))} /></div>
                 <div className="space-y-2"><Label className="text-sm font-medium">الحالة</Label>
-                  <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={formData.status} onChange={(e) => setFormData((p) => ({ ...p, status: e.target.value }))}>
-                    <option value="Present">حاضر</option>
-                    <option value="Absent">غائب</option>
-                    <option value="Half Day">نصف يوم</option>
-                    <option value="On Leave">في إجازة</option>
-                    <option value="Work From Home">عمل عن بُعد</option>
-                  </select>
+                  <Select value={formData.status} onValueChange={(v) => setFormData((p) => ({ ...p, status: v }))}>
+                    <SelectTrigger className="w-full h-9 text-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Present">حاضر</SelectItem>
+                      <SelectItem value="Absent">غائب</SelectItem>
+                      <SelectItem value="Half Day">نصف يوم</SelectItem>
+                      <SelectItem value="On Leave">في إجازة</SelectItem>
+                      <SelectItem value="Work From Home">عمل عن بُعد</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

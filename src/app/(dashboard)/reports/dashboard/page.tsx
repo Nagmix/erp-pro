@@ -25,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
@@ -734,11 +734,11 @@ export default function ReportsDashboardPage() {
   const handleExportPDF = useCallback(() => {
     toast.success('جاري تجهيز PDF', { description: 'سيتم تنزيل الملف قريباً' });
     window.print();
-  }, [toast]);
+  }, []);
 
   const handleExportExcel = useCallback(() => {
     toast.success('جاري تجهيز Excel', { description: 'سيتم تنزيل الملف قريباً' });
-  }, [toast]);
+  }, []);
 
   // ════════════════════════════════════════════════════════════
   // Render
@@ -778,22 +778,18 @@ export default function ReportsDashboardPage() {
         <CardContent className="flex flex-wrap items-end gap-4 pt-4">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">من تاريخ</Label>
-            <Input
-              type="date"
-              dir="ltr"
-              className="h-9 w-40"
+            <DatePicker
               value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
+              onChange={setDateFrom}
+              className="h-9 w-40"
             />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">إلى تاريخ</Label>
-            <Input
-              type="date"
-              dir="ltr"
-              className="h-9 w-40"
+            <DatePicker
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
+              onChange={setDateTo}
+              className="h-9 w-40"
             />
           </div>
           {company && (
@@ -1069,12 +1065,10 @@ export default function ReportsDashboardPage() {
               {!['accounts-receivable', 'accounts-payable'].includes(selectedReportId) && (
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">من تاريخ</Label>
-                  <Input
-                    type="date"
-                    dir="ltr"
-                    className="h-9 w-40"
+                  <DatePicker
                     value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
+                    onChange={setDateFrom}
+                    className="h-9 w-40"
                   />
                 </div>
               )}
@@ -1084,12 +1078,10 @@ export default function ReportsDashboardPage() {
                     ? 'كما في تاريخ'
                     : 'إلى تاريخ'}
                 </Label>
-                <Input
-                  type="date"
-                  dir="ltr"
-                  className="h-9 w-40"
+                <DatePicker
                   value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
+                  onChange={setDateTo}
+                  className="h-9 w-40"
                 />
               </div>
             </CardContent>

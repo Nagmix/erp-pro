@@ -212,7 +212,7 @@ export default function LeaveApplicationsPage() {
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-1.5"><Label className="text-sm font-medium">الموظف <span className="text-destructive text-xs">*</span></Label><ErpLinkCombobox doctype="Employee" value={formData.employee} onChange={(v) => setFormData((p) => ({ ...p, employee: v }))} displayKey="employee_name" className="h-9" /></div>
-              <div className="space-y-1.5"><Label className="text-sm font-medium">نوع الإجازة</Label><ErpLinkCombobox doctype="Leave Type" value={formData.leave_type} onChange={(v) => setFormData((p) => ({ ...p, leave_type: v }))} className="h-9" /></div>
+              <div className="space-y-1.5"><Label className="text-sm font-medium">نوع الإجازة <span className="text-destructive text-xs">*</span></Label><ErpLinkCombobox doctype="Leave Type" value={formData.leave_type} onChange={(v) => setFormData((p) => ({ ...p, leave_type: v }))} className="h-9" /></div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5"><Label className="text-sm font-medium">من تاريخ</Label><Input type="date" dir="ltr" value={formData.from_date} onChange={(e) => setFormData((p) => ({ ...p, from_date: e.target.value }))} className="h-9" /></div>
                 <div className="space-y-1.5"><Label className="text-sm font-medium">إلى تاريخ</Label><Input type="date" dir="ltr" value={formData.to_date} onChange={(e) => setFormData((p) => ({ ...p, to_date: e.target.value }))} className="h-9" /></div>

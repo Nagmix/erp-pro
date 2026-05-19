@@ -28,7 +28,7 @@ import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatCurrency } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { buildItemCreate } from '@/lib/erp/erpnext-payloads';
@@ -86,6 +86,7 @@ export default function ItemsPage() {
   const [fileImporting, setFileImporting] = useState(false);
   const [enableDeferredRev, setEnableDeferredRev] = useState(false);
   const [deferredMonths, setDeferredMonths] = useState('12');
+  const [editingDoc, setEditingDoc] = useState<ItemRow | null>(null);
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -110,6 +111,7 @@ export default function ItemsPage() {
     limit: 2000,
   });
   const createMutation = useCreateDoc('Item');
+  const updateMutation = useUpdateDoc('Item');
   const deleteMutation = useDeleteDoc('Item');
 
   const items = data || [];
@@ -175,7 +177,75 @@ export default function ItemsPage() {
     []
   );
 
-  const handleCreate = () => {
+  /* ── فتح حوار التعديل ── */
+  const openEditDialog = (row: ItemRow) => {
+    setEditingDoc(row);
+    setItemCode(row.item_code);
+    setItemName(row.item_name);
+    setItemGroup(row.item_group);
+    setStockUom(row.stock_uom);
+    setIsStock(isStockFlag(row.is_stock_item));
+    setHasBatch(isStockFlag(row.has_batch_no));
+    setHasSerial(isStockFlag(row.has_serial_no));
+    setStandardRate(String(row.standard_rate ?? ''));
+    setEnableDeferredRev(isStockFlag(row.enable_deferred_revenue));
+    setDialogOpen(true);
+  };
+
+  /* ── إغلاق الحوار ── */
+  const handleDialogClose = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) {
+      setEditingDoc(null);
+      setItemCode('');
+      setItemName('');
+      setItemGroup('');
+      setStockUom('Nos');
+      setIsStock(true);
+      setHasBatch(false);
+      setHasSerial(false);
+      setStandardRate('');
+      setDescription('');
+      setBrand('');
+      setEnableDeferredRev(false);
+      setDeferredMonths('12');
+    }
+  };
+
+  /* ── حفظ (إنشاء أو تعديل) ── */
+  const handleSave = () => {
+    if (editingDoc) {
+      // تعديل صنف
+      updateMutation.mutate(
+        {
+          name: editingDoc.name,
+          doc: {
+            item_name: itemName.trim(),
+            item_group: itemGroup,
+            stock_uom: stockUom,
+            is_stock_item: isStock ? 1 : 0,
+            has_batch_no: hasBatch ? 1 : 0,
+            has_serial_no: hasSerial ? 1 : 0,
+            standard_rate: Number(standardRate) || 0,
+            description: description || undefined,
+            brand: brand || undefined,
+            enable_deferred_revenue: enableDeferredRev ? 1 : 0,
+            no_of_months: enableDeferredRev ? Math.max(1, Math.min(600, parseInt(deferredMonths, 10) || 12)) : undefined,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success('تم تعديل الصنف');
+            setDialogOpen(false);
+            setEditingDoc(null);
+            void refetch();
+          },
+          onError: () => toast.error('تعذر تعديل الصنف'),
+        },
+      );
+      return;
+    }
+    // إنشاء صنف جديد
     if (!itemCode.trim() || !itemName.trim() || !itemGroup || !stockUom) {
       toast.error('أكمل الحقول المطلوبة');
       return;
@@ -202,6 +272,7 @@ export default function ItemsPage() {
       onSuccess: () => {
         toast.success('تم إنشاء الصنف');
         setDialogOpen(false);
+        setEditingDoc(null);
         setItemCode('');
         setItemName('');
         setItemGroup('');
@@ -368,6 +439,7 @@ export default function ItemsPage() {
           searchable
           loading={isLoading}
           onDelete={(row) => setDeleteName(row.name)}
+          onEdit={(row) => openEditDialog(row)}
           tableId="items-list"
           columnFilters
           selectable
@@ -407,10 +479,10 @@ export default function ItemsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>صنف جديد</DialogTitle>
+            <DialogTitle>{editingDoc ? `تعديل الصنف — ${editingDoc.item_code}` : 'صنف جديد'}</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="basic" className="w-full">
             <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/40 p-1">
@@ -431,8 +503,8 @@ export default function ItemsPage() {
             <TabsContent value="basic" className="space-y-4 mt-4 outline-none">
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs">كود الصنف *</Label>
-                <Input dir="ltr" value={itemCode} onChange={(e) => setItemCode(e.target.value)} placeholder="صنف-001" />
+                <Label className="text-xs">كود الصنف {editingDoc ? '' : '*'}</Label>
+                <Input dir="ltr" value={itemCode} onChange={(e) => setItemCode(e.target.value)} placeholder="صنف-001" disabled={!!editingDoc} />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">اسم الصنف *</Label>
@@ -504,8 +576,8 @@ export default function ItemsPage() {
               ) : null}
             </TabsContent>
           </Tabs>
-            <Button className="w-full mt-4" onClick={handleCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending ? '...' : 'حفظ'}
+            <Button className="w-full mt-4" onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
+              {createMutation.isPending || updateMutation.isPending ? '...' : editingDoc ? 'حفظ التعديل' : 'حفظ'}
             </Button>
         </DialogContent>
       </Dialog>

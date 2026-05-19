@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import Link from 'next/link';
 import { Plus, Trash2, Truck, Send, Undo2, FileText, Filter, ChevronDown, Upload, X } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
@@ -33,6 +34,7 @@ import { toast } from 'sonner';
 import { buildDeliveryNote } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -180,7 +182,15 @@ export default function DeliveryNotesPage() {
 
   const columns: Column<DNRow>[] = useMemo(
     () => [
-      { key: 'name', header: 'الرقم', sortable: true, width: 'w-24', render: (v) => <span className="font-medium text-primary">{String(v)}</span> },
+      { key: 'name', header: 'الرقم', sortable: true, width: 'w-24', render: (v) => {
+          const nm = String(v);
+          const href = docDetailPath('Delivery Note', nm);
+          return href ? (
+            <Link href={href} className="font-medium text-primary hover:underline">{nm}</Link>
+          ) : (
+            <span className="font-medium text-primary">{nm}</span>
+          );
+        } },
       { key: 'customer_name', header: 'العميل', sortable: true },
       { key: 'posting_date', header: 'التاريخ', sortable: true, render: (v) => formatDate(String(v)) },
       { key: 'base_grand_total', header: 'الإجمالي', sortable: true, render: (v) => <span className="font-semibold tabular-nums">{formatCurrency(Number(v))}</span> },

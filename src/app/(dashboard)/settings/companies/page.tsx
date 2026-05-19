@@ -365,10 +365,6 @@ export default function CompaniesPage() {
    <Input placeholder="رقم الضريبة" value={formData.tax_id} onChange={e => setFormData(p => ({ ...p, tax_id: e.target.value }))} />
    </div>
    <div className="space-y-2">
-   <Label className="text-sm font-medium">رقم التسجيل</Label>
-   <Input placeholder="رقم السجل التجاري" value={formData.tax_id} onChange={e => setFormData(p => ({ ...p, tax_id: e.target.value }))} />
-   </div>
-   <div className="space-y-2">
    <Label className="text-sm font-medium">تاريخ التأسيس</Label>
    <Input type="date" value={formData.date_of_establishment} onChange={e => setFormData(p => ({ ...p, date_of_establishment: e.target.value }))} />
    </div>
@@ -673,7 +669,6 @@ export default function CompaniesPage() {
      <DetailRow icon={DollarSign} label="العملة" value={currencyLabel(selectedCompany.default_currency)} />
      <DetailRow icon={FileText} label="شجرة الحسابات" value={selectedCompany.chart_of_accounts} />
      <DetailRow icon={Landmark} label="الرقم الضريبي" value={selectedCompany.tax_id} />
-     <DetailRow icon={Hash} label="رقم التسجيل" value={selectedCompany.tax_id} />
      <DetailRow icon={Calendar} label="تاريخ التأسيس" value={selectedCompany.date_of_establishment} />
     </div>
     </div>

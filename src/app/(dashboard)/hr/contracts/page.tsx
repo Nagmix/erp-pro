@@ -119,23 +119,7 @@ const initialForm: ContractFormState = {
 export default function ContractsPage() {
   const { company, isLoading: coLoading } = useDefaultCompanyName();
 
-  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
-
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="عقود الموظفين"
-          description="إدارة عقود الموظفين (Contract) — الإنشاء والتعديل والترحيل والإلغاء"
-          iconify="solar:document-text-bold-duotone"
-          accent="primary"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'العقود' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
+  /* ── Data ── (all hooks must be called before any conditional return) */
   const {
     data: contracts = [],
     isLoading,
@@ -175,6 +159,23 @@ export default function ContractsPage() {
   const [formData, setFormData] = useState<ContractFormState>({ ...initialForm });
 
   const [deleteDialog, setDeleteDialog] = useState<ContractRow | null>(null);
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="عقود الموظفين"
+          description="إدارة عقود الموظفين (Contract) — الإنشاء والتعديل والترحيل والإلغاء"
+          iconify="solar:document-text-bold-duotone"
+          accent="primary"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'العقود' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const clearFilters = () => {
     setSearch('');

@@ -90,13 +90,16 @@ const typeLabelAr: Record<string, string> = {
 };
 
 const emptyForm = { name: '', type: 'Cash' as string, enabled: true };
+const emptyEditForm = { name: '', type: 'Cash' as string, enabled: true };
 
 export default function PaymentMethodsPage() {
  const [dialogOpen, setDialogOpen] = useState(false);
+ const [editDialogOpen, setEditDialogOpen] = useState(false);
  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
  const [accountsDialogOpen, setAccountsDialogOpen] = useState(false);
  const [selected, setSelected] = useState<ModeOfPaymentRow | null>(null);
  const [formData, setFormData] = useState(emptyForm);
+ const [editFormData, setEditFormData] = useState(emptyEditForm);
  const { company: defaultCompany } = useDefaultCompanyName();
 
  /* ──── ERPNext data hooks ──── */
@@ -155,7 +158,35 @@ export default function PaymentMethodsPage() {
  }
  };
 
- /* ──── Toggle enabled ──── */
+ /* ──── Edit handlers ──── */
+const openEditDialog = (row: ModeOfPaymentRow) => {
+ setSelected(row);
+ setEditFormData({
+  name: row.name,
+  type: row.type || 'Cash',
+  enabled: Boolean(row.enabled),
+ });
+ setEditDialogOpen(true);
+};
+
+const handleEdit = async () => {
+ if (!selected) return;
+ try {
+  await updateMutation.mutateAsync({ name: selected.name, doc: {
+   mode_of_payment: editFormData.name.trim(),
+   type: editFormData.type,
+   enabled: editFormData.enabled ? 1 : 0,
+  } });
+  toast.success('تم بنجاح', { description: 'تم تحديث طريقة الدفع بنجاح' });
+  setEditDialogOpen(false);
+  setSelected(null);
+ } catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+  toast.error('خطأ', { description: msg });
+ }
+};
+
+/* ──── Toggle enabled ──── */
  const handleToggleEnabled = async (row: ModeOfPaymentRow) => {
  try {
   const newVal = Boolean(row.enabled) ? 0 : 1;
@@ -300,7 +331,7 @@ export default function PaymentMethodsPage() {
   searchable
   loading={isLoading}
   onView={(row) => openAccountsDialog(row)}
-  onEdit={(row) => handleToggleEnabled(row)}
+  onEdit={(row) => openEditDialog(row)}
   onDelete={(row) => { setSelected(row); setDeleteDialogOpen(true); }}
   />
 
@@ -338,6 +369,47 @@ export default function PaymentMethodsPage() {
    <Button className="w-full" onClick={handleCreate} disabled={createMutation.isPending}>
     {createMutation.isPending ? <><Loader2 className="h-4 w-4 animate-spin ms-2" /> جاري الحفظ...</> : 'حفظ طريقة الدفع'}
    </Button>
+   </div>
+  </DialogContent>
+  </Dialog>
+
+  {/* Edit Dialog */}
+  <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+  <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
+   <DialogHeader><DialogTitle>تعديل طريقة الدفع</DialogTitle></DialogHeader>
+   <div className="space-y-4 py-4">
+   <div className="space-y-2">
+    <Label className="text-sm font-medium">اسم طريقة الدفع</Label>
+    <Input value={editFormData.name} onChange={e => setEditFormData(prev => ({ ...prev, name: e.target.value }))} />
+   </div>
+   <div className="space-y-2">
+    <Label className="text-sm font-medium">النوع</Label>
+    <Select value={editFormData.type} onValueChange={val => setEditFormData(prev => ({ ...prev, type: val }))}>
+    <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+    <SelectContent>
+     <SelectItem value="Cash">نقدي (Cash)</SelectItem>
+     <SelectItem value="Bank">بنكي (Bank)</SelectItem>
+     <SelectItem value="Electronic">إلكتروني (Electronic)</SelectItem>
+     <SelectItem value="General">عام (General)</SelectItem>
+    </SelectContent>
+    </Select>
+   </div>
+   <div className="flex items-center gap-2">
+    <input
+    type="checkbox"
+    id="pm-edit-enabled"
+    checked={editFormData.enabled}
+    onChange={e => setEditFormData(prev => ({ ...prev, enabled: e.target.checked }))}
+    className="rounded border-input"
+    />
+    <Label htmlFor="pm-edit-enabled" className="text-sm font-medium cursor-pointer">مفعّل</Label>
+   </div>
+   <div className="flex items-center justify-end gap-2">
+    <Button variant="ghost" onClick={() => setEditDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+    <Button onClick={handleEdit} disabled={updateMutation.isPending}>
+     {updateMutation.isPending ? <><Loader2 className="h-4 w-4 animate-spin ms-2" /> جاري الحفظ...</> : 'حفظ التعديلات'}
+    </Button>
+   </div>
    </div>
   </DialogContent>
   </Dialog>

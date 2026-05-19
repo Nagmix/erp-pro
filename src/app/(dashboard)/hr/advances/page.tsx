@@ -128,23 +128,7 @@ function advanceStatusLabel(status: string): string {
 export default function EmployeeAdvancesPage() {
   const { company } = useDefaultCompanyName();
 
-  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
-
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="سلف الموظفين"
-          description="إدارة السلف والعهد للموظفين — الإنشاء والترحيل والمطالبات"
-          iconify="solar:wallet-bold-duotone"
-          accent="warning"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'سلف الموظفين' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
+  /* ── Data ── (all hooks must be called before any conditional return) */
   const {
     data = [],
     isLoading,
@@ -175,6 +159,23 @@ export default function EmployeeAdvancesPage() {
   const deleteMut = useDeleteDoc('Employee Advance');
   const submitMut = useSubmitDoc('Employee Advance');
   const cancelMut = useCancelDoc('Employee Advance');
+
+  const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="سلف الموظفين"
+          description="إدارة السلف والعهد للموظفين — الإنشاء والترحيل والمطالبات"
+          iconify="solar:wallet-bold-duotone"
+          accent="warning"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'سلف الموظفين' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── Filters ── */
   const [search, setSearch] = useState('');

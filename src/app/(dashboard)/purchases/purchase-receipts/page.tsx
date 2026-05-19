@@ -21,8 +21,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import Link from 'next/link';
 import { Plus, Trash2, Send, Undo2, Receipt, FileText, Truck, Package, Filter, ChevronDown, Upload, X } from 'lucide-react';
-import { formatDate } from '@/lib/core/helpers';
+import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -30,6 +31,8 @@ import { toast } from 'sonner';
 import { buildPurchaseReceipt } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { docDetailPath } from '@/lib/erp/doc-detail-routes';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -46,6 +49,7 @@ interface PRRow {
   name: string;
   supplier_name: string;
   posting_date: string;
+  base_grand_total?: number;
   docstatus: number;
   status?: string;
 }
@@ -74,7 +78,7 @@ export default function PurchaseReceiptsPage() {
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
 
   const { data, isLoading, isError, error, refetch } = useDocList<PRRow>('Purchase Receipt', {
-    fields: ['name', 'supplier_name', 'posting_date', 'docstatus', 'status'],
+    fields: ['name', 'supplier_name', 'posting_date', 'base_grand_total', 'docstatus', 'status'],
     order_by: 'posting_date desc',
     limit: 500,
   });
@@ -84,6 +88,29 @@ export default function PurchaseReceiptsPage() {
   const deleteMutation = useDeleteDoc('Purchase Receipt');
 
   const rows = data || [];
+  const filteredRows = useMemo(() => {
+    let list = rows;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((row: any) =>
+        String(row.name || '').toLowerCase().includes(q) ||
+        String(row.supplier_name || '').toLowerCase().includes(q)
+      );
+    }
+    if (dateFrom || dateTo) {
+      list = list.filter((row: any) => rowInDateRangeISO(row.posting_date, dateFrom, dateTo));
+    }
+    if (statusFilter !== 'all') {
+      list = list.filter((row: any) => {
+        const ds = Number(row.docstatus);
+        if (statusFilter === '0') return ds === 0;
+        if (statusFilter === '1') return ds === 1;
+        if (statusFilter === '2') return ds === 2;
+        return true;
+      });
+    }
+    return list;
+  }, [rows, search, dateFrom, dateTo, statusFilter]);
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {
@@ -130,9 +157,22 @@ export default function PurchaseReceiptsPage() {
 
   const columns: Column<PRRow>[] = useMemo(
     () => [
-      { key: 'name', header: 'الرقم', sortable: true, render: (v) => <span className="font-medium text-primary">{String(v)}</span> },
+      {
+        key: 'name',
+        header: 'الرقم',
+        sortable: true,
+        render: (v) => {
+          const nm = String(v);
+          const href = docDetailPath('Purchase Receipt', nm);
+          return href ? (
+            <Link href={href} className="font-medium text-primary hover:underline">{nm}</Link>
+          ) : (
+            <span className="font-medium text-primary">{nm}</span>
+          );
+        }},
       { key: 'supplier_name', header: 'المورد', sortable: true },
       { key: 'posting_date', header: 'التاريخ', sortable: true, render: (v) => formatDate(String(v)) },
+      { key: 'base_grand_total', header: 'الإجمالي', sortable: true, render: (v) => <span className="font-semibold tabular-nums">{formatCurrency(Number(v || 0))}</span> },
       { key: 'docstatus', header: 'مستند', render: (v) => <DocStatusBadge docstatus={Number(v) as 0 | 1 | 2} /> },
       {
         key: '_a',
@@ -147,6 +187,7 @@ export default function PurchaseReceiptsPage() {
                 size="sm"
                 variant="secondary"
                 className="h-7 text-xs gap-1"
+                disabled={submitMutation.isPending}
                 onClick={() =>
                   submitMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
@@ -165,6 +206,7 @@ export default function PurchaseReceiptsPage() {
                 size="sm"
                 variant="ghost"
                 className="h-7 text-xs gap-1"
+                disabled={cancelMutation.isPending}
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('أُلغي'); void refetch(); },
@@ -179,7 +221,7 @@ export default function PurchaseReceiptsPage() {
           return '—';
         }},
     ],
-    [submitMutation, cancelMutation, toast, refetch]
+    [submitMutation, cancelMutation, deleteMutation, toast, refetch]
   );
 
   return (
@@ -251,7 +293,7 @@ export default function PurchaseReceiptsPage() {
       </div>
 
       <PageShell padded={false}>
-        <DataTable data={rows} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
+        <DataTable data={filteredRows} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
       </PageShell>
       <AlertDialog open={!!deleteName} onOpenChange={() => setDeleteName(null)}>
         <AlertDialogContent dir="rtl">

@@ -338,6 +338,7 @@ export default function SalesOrdersPage() {
                 size="sm"
                 variant="ghost"
                 className="h-7 text-xs gap-1"
+                disabled={cancelMutation.isPending}
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('أُلغي الترحيل'); void refetch(); },
