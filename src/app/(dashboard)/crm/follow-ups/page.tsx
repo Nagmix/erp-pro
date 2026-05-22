@@ -36,6 +36,7 @@ import {
   Link2,
   Flag,
   Loader2,
+  Pencil,
 } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
@@ -146,7 +147,9 @@ function getStatusBadge(status: string | undefined, date?: string) {
 
 export default function FollowUpsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Row | null>(null);
 
   // Form state
   const [desc, setDesc] = useState('');
@@ -155,6 +158,15 @@ export default function FollowUpsPage() {
   const [refType, setRefType] = useState('');
   const [refName, setRefName] = useState('');
   const [allocatedTo, setAllocatedTo] = useState('');
+
+  // Edit form state
+  const [editDesc, setEditDesc] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editPriority, setEditPriority] = useState<PriorityType>('Medium');
+  const [editStatus, setEditStatus] = useState<string>('Open');
+  const [editRefType, setEditRefType] = useState('');
+  const [editRefName, setEditRefName] = useState('');
+  const [editAllocatedTo, setEditAllocatedTo] = useState('');
 
   // Filter state
   const [filterPriority, setFilterPriority] = useState<string>('all');
@@ -287,6 +299,41 @@ export default function FollowUpsPage() {
     setRefType('');
     setRefName('');
     setAllocatedTo('');
+  };
+
+  const openEditDialog = (row: Row) => {
+    setSelectedTask(row);
+    setEditDesc(stripHtml(row.description || ''));
+    setEditDate(row.date || '');
+    setEditPriority((row.priority as PriorityType) || 'Medium');
+    setEditStatus(row.status || 'Open');
+    setEditRefType(row.reference_type || '');
+    setEditRefName(row.reference_name || '');
+    setEditAllocatedTo(row.allocated_to || '');
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdate = () => {
+    if (!selectedTask) return;
+    if (!editDesc.trim()) { toast.error('وصف المهمة مطلوب'); return; }
+    const doc: Record<string, unknown> = {
+      description: editDesc,
+      date: editDate || undefined,
+      priority: editPriority,
+      status: editStatus,
+      allocated_to: editAllocatedTo || undefined,
+    };
+    if (editRefType) {
+      doc.reference_type = editRefType;
+      doc.reference_name = editRefName || undefined;
+    }
+    updateMutation.mutate(
+      { name: selectedTask.name, doc },
+      {
+        onSuccess: () => { toast.success('تم تحديث مهمة المتابعة'); setEditDialogOpen(false); setSelectedTask(null); },
+        onError: () => toast.error('فشل تحديث المهمة'),
+      },
+    );
   };
 
   const handleCreate = () => {
@@ -430,14 +477,145 @@ export default function FollowUpsPage() {
           searchable
           loading={isLoading}
           onDelete={(r) => deleteMutation.mutate(r.name, { onSuccess: () => toast.success('تم حذف المهمة') })}
-          onEdit={(row) => {
-            if (row.status === 'Open') handleCloseTask(row);
-          }}
+          onEdit={(row) => openEditDialog(row)}
           tableId="crm-follow-ups"
           exportFileName="crm-follow-ups.csv"
           printTitle="مهام المتابعة"
         />
       </PageShell>
+
+      {/* ─── Edit Dialog ─── */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                <Pencil className="h-5 w-5" />
+              </div>
+              <div>
+                <span>تعديل مهمة المتابعة</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">تعديل: {selectedTask ? stripHtml(selectedTask.description || '').slice(0, 40) : ''}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[65vh] overflow-y-auto">
+            <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="bg-gradient-to-l from-info/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-info/10 flex items-center justify-center">
+                    <ListChecks className="h-3 w-3 text-info" />
+                  </span>
+                  البيانات الأساسية
+                </h4>
+              </div>
+              <div className="p-4 space-y-4 bg-card/50">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">الوصف <span className="text-destructive text-xs">*</span></Label>
+                  <Textarea placeholder="ماذا تريد أن تتابعه؟" value={editDesc} onChange={(e) => setEditDesc(e.target.value)} className="min-h-[80px]" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">تاريخ الاستحقاق</Label>
+                    <Input type="date" dir="ltr" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">الأولوية</Label>
+                    <Select value={editPriority} onValueChange={(v) => setEditPriority(v as PriorityType)}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="High">عالية</SelectItem>
+                        <SelectItem value="Medium">متوسطة</SelectItem>
+                        <SelectItem value="Low">منخفضة</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">الحالة</Label>
+                    <Select value={editStatus} onValueChange={setEditStatus}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Open">مفتوحة</SelectItem>
+                        <SelectItem value="Closed">مغلقة</SelectItem>
+                        <SelectItem value="Cancelled">ملغاة</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">تعيين إلى</Label>
+                    <ErpLinkCombobox
+                      doctype="User"
+                      value={editAllocatedTo}
+                      onChange={setEditAllocatedTo}
+                      displayKey="full_name"
+                      placeholder="اختر المستخدم المسؤول..."
+                      showCreateShortcut={false}
+                    />
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="bg-gradient-to-l from-success/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-success/10 flex items-center justify-center">
+                    <Link2 className="h-3 w-3 text-success" />
+                  </span>
+                  الارتباط (اختياري)
+                </h4>
+              </div>
+              <div className="p-4 space-y-4 bg-card/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">نوع المرجع</Label>
+                    <Select value={editRefType || '_none'} onValueChange={(v) => { setEditRefType(v === '_none' ? '' : v); setEditRefName(''); }}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="بدون مرجع" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">بدون مرجع</SelectItem>
+                        {REF_TYPE_OPTIONS.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {editRefType && (
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">اسم المرجع</Label>
+                      <ErpLinkCombobox
+                        doctype={editRefType}
+                        value={editRefName}
+                        onChange={setEditRefName}
+                        displayKey={editRefType === 'Customer' ? 'customer_name' : undefined}
+                        placeholder="اختر السجل..."
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button variant="ghost" onClick={() => setEditDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+            {selectedTask && selectedTask.status === 'Open' && (
+              <Button variant="outline" onClick={() => { handleCloseTask(selectedTask); setEditDialogOpen(false); }} className="gap-1.5 text-success hover:text-success">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                إغلاق المهمة
+              </Button>
+            )}
+            <Button onClick={handleUpdate} disabled={updateMutation.isPending} className="gap-1.5 min-w-[130px]">
+              {updateMutation.isPending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ─── Create Dialog ─── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

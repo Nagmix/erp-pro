@@ -111,6 +111,7 @@ export default function SalesOrdersPage() {
     ],
     order_by: 'transaction_date desc',
     limit: 500,
+    filters: defaultCompany ? [['company', '=', defaultCompany]] : undefined,
   });
   const createMutation = useCreateDoc<SORow>('Sales Order');
   const submitMutation = useSubmitDoc<SORow>('Sales Order');

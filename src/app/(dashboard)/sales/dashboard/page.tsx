@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatNumber } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
+import { KpiCard } from '@/components/erp/kpi-card';
 import {
   ShoppingCart,
   FileText,
@@ -96,6 +97,7 @@ export default function SalesDashboardPage() {
       fields: ['name', 'customer', 'customer_name', 'grand_total', 'outstanding_amount', 'posting_date', 'status', 'docstatus', 'due_date'],
       limit: 100,
       order_by: 'posting_date desc',
+      filters: company ? [['company', '=', company]] : undefined,
     }
   );
 
@@ -105,6 +107,7 @@ export default function SalesDashboardPage() {
       fields: ['name', 'customer', 'customer_name', 'grand_total', 'status', 'docstatus', 'transaction_date'],
       limit: 50,
       order_by: 'transaction_date desc',
+      filters: company ? [['company', '=', company]] : undefined,
     }
   );
 
@@ -114,6 +117,7 @@ export default function SalesDashboardPage() {
       fields: ['name', 'party_name', 'grand_total', 'status', 'docstatus', 'transaction_date'],
       limit: 50,
       order_by: 'transaction_date desc',
+      filters: company ? [['company', '=', company]] : undefined,
     }
   );
 
@@ -123,6 +127,7 @@ export default function SalesDashboardPage() {
       fields: ['name', 'customer', 'customer_name', 'grand_total', 'status', 'docstatus', 'posting_date'],
       limit: 50,
       order_by: 'posting_date desc',
+      filters: company ? [['company', '=', company]] : undefined,
     }
   );
 
@@ -271,7 +276,73 @@ export default function SalesDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <KpiCard
+          title="إجمالي المبيعات"
+          value={formatCurrency(totalSales)}
+          icon={TrendingUp}
+          accent="success"
+          compact
+          description="هذا الشهر"
+        />
+        <KpiCard
+          title="متوسط قيمة الطلب"
+          value={formatCurrency(avgOrderValue)}
+          icon={Target}
+          accent="info"
+          compact
+          description="هذا الشهر"
+        />
+        <KpiCard
+          title="العملاء النشطون"
+          value={formatNumber(activeCustomers)}
+          icon={Users}
+          accent="primary"
+          compact
+        />
+        <KpiCard
+          title="أوامر مفتوحة"
+          value={formatNumber(openOrders)}
+          icon={ClipboardList}
+          accent="warning"
+          compact
+        />
+      </div>
+
       {/* ── KPI Row 2 ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <KpiCard
+          title="عروض أسعار معلقة"
+          value={formatNumber(pendingQuotations)}
+          icon={FileText}
+          accent="info"
+          compact
+        />
+        <KpiCard
+          title="فواتير متأخرة"
+          value={formatNumber(overdueCount)}
+          icon={AlertTriangle}
+          accent={overdueCount > 0 ? 'destructive' : 'success'}
+          compact
+          description={overdueCount > 0 ? formatCurrency(overdueAmount) : undefined}
+        />
+        <KpiCard
+          title="مرتجعات هذا الشهر"
+          value={formatNumber(returnsThisMonth)}
+          icon={RotateCcw}
+          accent="warning"
+          compact
+        />
+        <KpiCard
+          title="نسبة التحصيل"
+          value={`${collectionRate}%`}
+          icon={CircleDollarSign}
+          accent={collectionRate >= 80 ? 'success' : collectionRate >= 50 ? 'warning' : 'destructive'}
+          compact
+          description="هذا الشهر"
+        />
+      </div>
+
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

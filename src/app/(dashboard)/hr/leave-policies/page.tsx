@@ -81,21 +81,6 @@ export default function LeavePoliciesPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="سياسات ورصيد الإجازات"
-          description="إدارة سياسات الإجازات وتخصيص الأرصدة للموظفين"
-          iconify="solar:calendar-bold-duotone"
-          accent="info"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'سياسات الإجازات' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   /* ── Tab state ── */
   const [tab, setTab] = useState('policies');
 
@@ -126,11 +111,13 @@ export default function LeavePoliciesPage() {
   /* ── Data fetching ── */
   const policies = useDocList<Policy>('Leave Policy', {
     fields: ['name', 'title', 'company', 'is_active', 'docstatus'],
+    filters: defaultCompany ? [['company', '=', defaultCompany]] : undefined,
     limit: 300,
   });
 
   const allocations = useDocList<Allocation>('Leave Allocation', {
     fields: ['name', 'employee', 'employee_name', 'leave_type', 'from_date', 'to_date', 'new_leaves_allocated', 'docstatus', 'company'],
+    filters: defaultCompany ? [['company', '=', defaultCompany]] : undefined,
     limit: 300,
     order_by: 'modified desc',
   });
@@ -478,6 +465,21 @@ export default function LeavePoliciesPage() {
   };
 
   /* ── Render ── */
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="سياسات ورصيد الإجازات"
+          description="إدارة سياسات الإجازات وتخصيص الأرصدة للموظفين"
+          iconify="solar:calendar-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'سياسات الإجازات' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <ListQueryAlert error={tab === 'policies' ? (policies.isError ? policies.error : null) : (allocations.isError ? allocations.error : null)} onRetry={() => { void policies.refetch(); void allocations.refetch(); }} />

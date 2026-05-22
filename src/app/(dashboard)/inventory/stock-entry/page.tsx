@@ -81,6 +81,7 @@ export default function StockEntryPage() {
 
   const { data, isLoading, isError, error, refetch } = useDocList<SERow>('Stock Entry', {
     fields: ['name', 'stock_entry_type', 'posting_date', 'total_outgoing_value', 'total_incoming_value', 'docstatus'],
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'posting_date desc',
     limit: 500,
   });
@@ -176,7 +177,19 @@ export default function StockEntryPage() {
   const columns: Column<SERow>[] = useMemo(
     () => [
       { key: 'name', header: 'الرقم', sortable: true, render: (v) => <span className="font-medium text-primary">{String(v)}</span> },
-      { key: 'stock_entry_type', header: 'النوع', render: (v) => <span className="text-xs">{String(v)}</span> },
+      { key: 'stock_entry_type', header: 'النوع', render: (v) => {
+          const SE_TYPE_LABELS: Record<string, string> = {
+            'Material Receipt': 'استلام مواد',
+            'Material Issue': 'صرف مواد',
+            'Material Transfer': 'تحويل مواد',
+            'Material Transfer for Manufacture': 'تحويل مواد للتصنيع',
+            'Manufacture': 'تصنيع',
+            'Repack': 'إعادة تعبئة',
+            'Send to Subcontractor': 'إرسال لمقاول فرعي',
+          };
+          return <span className="text-xs">{SE_TYPE_LABELS[String(v)] || String(v)}</span>;
+        },
+      },
       { key: 'posting_date', header: 'التاريخ', sortable: true, render: (v) => formatDate(String(v)) },
       {
         key: 'total_incoming_value',

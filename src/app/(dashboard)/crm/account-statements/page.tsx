@@ -186,6 +186,8 @@ export default function CustomerAccountStatementPage() {
     enabled: Boolean(selectedCustomer),
   });
 
+  const [prePeriodBalance, setPrePeriodBalance] = useState(0);
+
   // --- Fetch GL Entries ---
   const fetchGlEntries = useCallback(async () => {
     if (!selectedCustomer) {
@@ -198,13 +200,13 @@ export default function CustomerAccountStatementPage() {
 
     try {
       // First, get the customer's receivable account
-      const customerData = await apiGetList<CustomerRecord>('Customer', {
+      await apiGetList<CustomerRecord>('Customer', {
         fields: ['name', 'customer_name', 'default_currency', 'email_id'],
         filters: [['name', '=', selectedCustomer]],
         limit: 1,
       });
 
-      // Fetch GL Entries for this customer as party
+      // Fetch GL Entries for this customer as party (within date range)
       const filters: string[][] = [
         ['party_type', '=', 'Customer'],
         ['party', '=', selectedCustomer],
@@ -233,6 +235,25 @@ export default function CustomerAccountStatementPage() {
       setGlEntries(entries);
       if (entries.length > 0) {
         setCustomerAccount(entries[0].account);
+      }
+
+      // Calculate beginning balance: fetch all entries before the date range
+      if (dateRange.from) {
+        const preFilters: string[][] = [
+          ['party_type', '=', 'Customer'],
+          ['party', '=', selectedCustomer],
+          ['is_cancelled', '=', '0'],
+          ['posting_date', '<', dateRange.from],
+        ];
+        const preEntries = await apiGetList<GLEntry>('GL Entry', {
+          fields: ['debit', 'credit'],
+          filters: preFilters,
+          limit: 5000,
+        });
+        const bal = preEntries.reduce((sum, e) => sum + (e.debit || 0) - (e.credit || 0), 0);
+        setPrePeriodBalance(bal);
+      } else {
+        setPrePeriodBalance(0);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'فشل تحميل بيانات كشف الحساب';
@@ -268,14 +289,8 @@ export default function CustomerAccountStatementPage() {
   // --- Beginning balance (before date range) ---
   const beginningBalance = useMemo(() => {
     if (!selectedCustomer || !dateRange.from) return 0;
-    // We calculate from all entries - the filtered ones give us the in-period amount
-    // beginning = total running balance at end - sum of in-period transactions
-    const totalBalance = statementRows.length > 0
-      ? statementRows[statementRows.length - 1].running_balance
-      : 0;
-    const inPeriodSum = statementRows.reduce((acc, e) => acc + (e.debit || 0) - (e.credit || 0), 0);
-    return totalBalance - inPeriodSum;
-  }, [statementRows, selectedCustomer, dateRange.from]);
+    return prePeriodBalance;
+  }, [prePeriodBalance, selectedCustomer, dateRange.from]);
 
   // --- Ending balance ---
   const endingBalance = useMemo(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback, useRef } from 'react';
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,7 @@ import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { apiGetList } from '@/lib/client/api';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -163,6 +164,9 @@ function calculateAging(glEntries: GLEntry[], asOfDate: string): AgingBucket {
 // ============================================================
 
 export default function SupplierAccountStatementPage() {
+  // --- Company context ---
+  const { company } = useDefaultCompanyName();
+
   // --- State ---
   const [selectedSupplier, setSelectedSupplier] = useState('');
   const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>(() => {
@@ -196,6 +200,10 @@ export default function SupplierAccountStatementPage() {
         ['party', '=', selectedSupplier],
         ['is_cancelled', '=', '0'],
       ];
+
+      if (company) {
+        filters.push(['company', '=', company]);
+      }
 
       if (dateRange.from) {
         filters.push(['posting_date', '>=', dateRange.from]);
@@ -320,7 +328,7 @@ export default function SupplierAccountStatementPage() {
   }, [selectedSupplier]);
 
   // Fetch supplier info when selection changes
-  useMemo(() => {
+  useEffect(() => {
     void fetchSupplierInfo();
   }, [fetchSupplierInfo]);
 

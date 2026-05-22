@@ -139,6 +139,7 @@ export default function StockLevelsPage() {
   /* ── جلب المستودعات للفلتر ── */
   const { data: warehouses = [] } = useDocList<Record<string, unknown>>('Warehouse', {
     fields: ['name'],
+    filters: company ? [['company', '=', company]] : undefined,
     limit: 500,
   });
 

@@ -23,10 +23,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Plus, Filter, ChevronDown, X, Layers, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Plus, Filter, ChevronDown, X, Layers, CheckCircle, AlertTriangle, Send } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { toast } from 'sonner';
@@ -45,6 +45,10 @@ type BatchRow = {
 export default function BatchesPage() {
   const [deleteDialog, setDeleteDialog] = useState<BatchRow | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<BatchRow | null>(null);
+  const [viewTarget, setViewTarget] = useState<BatchRow | null>(null);
   const [expiryFilter, setExpiryFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -55,6 +59,10 @@ export default function BatchesPage() {
   const [expiryDate, setExpiryDate] = useState('');
   const [manufacturingDate, setManufacturingDate] = useState('');
 
+  // Edit dialog fields
+  const [editExpiryDate, setEditExpiryDate] = useState('');
+  const [editManufacturingDate, setEditManufacturingDate] = useState('');
+
   const { data, isLoading, isError, error, refetch } = useDocList<BatchRow>('Batch', {
     fields: ['name', 'item', 'batch_id', 'expiry_date', 'manufacturing_date', 'docstatus'],
     limit: 500,
@@ -64,6 +72,7 @@ export default function BatchesPage() {
   const createMutation = useCreateDoc('Batch');
   const deleteMutation = useDeleteDoc('Batch');
   const submitMut = useSubmitDoc('Batch');
+  const updateMutation = useUpdateDoc('Batch');
 
   const batches = data || [];
 
@@ -118,8 +127,37 @@ export default function BatchesPage() {
         render: (value) => <span className="text-xs">{value ? formatDate(String(value)) : '—'}</span>,
       },
       { key: 'docstatus', header: 'الحالة', render: (value) => <DocStatusBadge docstatus={Number(value ?? 0) as 0 | 1 | 2} /> },
+      {
+        key: '_submit',
+        header: 'ترحيل',
+        width: 'w-28',
+        render: (_v, row) => {
+          const ds = Number(row.docstatus ?? 0);
+          if (ds === 0) {
+            return (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="h-7 text-xs gap-1"
+                disabled={submitMut.isPending}
+                onClick={() =>
+                  submitMut.mutate(row.name, {
+                    onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                    onError: () => toast.error('فشل الترحيل'),
+                  })
+                }
+              >
+                <Send className="h-3 w-3" />
+                ترحيل
+              </Button>
+            );
+          }
+          return '—';
+        },
+      },
     ],
-    []
+    [submitMut, refetch, toast]
   );
 
   const resetCreateForm = () => {
@@ -233,14 +271,21 @@ export default function BatchesPage() {
         loading={isLoading}
         onDelete={(row) => Number(row.docstatus) === 0 && setDeleteDialog(row)}
         onEdit={(row) => {
-          if (Number(row.docstatus) !== 0) return;
-          submitMut.mutate(row.name, {
-            onSuccess: () => toast.success('تم الترحيل'),
-            onError: () => toast.error('فشل الترحيل'),
-          });
+          const ds = Number(row.docstatus);
+          if (ds === 0) {
+            // فتح حوار التعديل للمسودات
+            setEditTarget(row);
+            setEditExpiryDate(row.expiry_date || '');
+            setEditManufacturingDate(row.manufacturing_date || '');
+            setEditDialogOpen(true);
+          } else {
+            // عرض للقراءة فقط للمستندات المرحّلة
+            setViewTarget(row);
+            setViewDialogOpen(true);
+          }
         }}
       />
-      <p className="text-xs text-muted-foreground">للمسودات: من القائمة «تعديل» لترحيل الدفعة، أو «حذف» لإزالة المسودة.</p>
+      <p className="text-xs text-muted-foreground">للمسودات: «تعديل» لفتح نافذة التعديل، أو زر «ترحيل» لتأكيد الدفعة.</p>
 
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
         <AlertDialogContent dir="rtl">
@@ -288,6 +333,99 @@ export default function BatchesPage() {
               {(createMutation.isPending || submitMut.isPending) ? '...' : 'حفظ وترحيل'}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* حوار تعديل الدفعة (للمسودات فقط) */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>تعديل الدفعة</DialogTitle>
+          </DialogHeader>
+          {editTarget && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs">رقم الدفعة</Label>
+                <Input value={editTarget.name} disabled className="bg-muted" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">الصنف</Label>
+                <Input value={editTarget.item || ''} disabled className="bg-muted" />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs">تاريخ الانتهاء</Label>
+                  <Input type="date" dir="ltr" value={editExpiryDate} onChange={(e) => setEditExpiryDate(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">تاريخ التصنيع</Label>
+                  <Input type="date" dir="ltr" value={editManufacturingDate} onChange={(e) => setEditManufacturingDate(e.target.value)} />
+                </div>
+              </div>
+              <Button className="w-full" onClick={() => {
+                updateMutation.mutate(
+                  {
+                    name: editTarget.name,
+                    doc: {
+                      expiry_date: editExpiryDate || undefined,
+                      manufacturing_date: editManufacturingDate || undefined,
+                    },
+                  },
+                  {
+                    onSuccess: () => {
+                      toast.success('تم تعديل الدفعة');
+                      setEditDialogOpen(false);
+                      setEditTarget(null);
+                      void refetch();
+                    },
+                    onError: () => toast.error('تعذر تعديل الدفعة'),
+                  },
+                );
+              }} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? '...' : 'حفظ التعديل'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* حوار عرض الدفعة (للقراءة فقط - المستندات المرحّلة) */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>عرض الدفعة</DialogTitle>
+          </DialogHeader>
+          {viewTarget && (
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">رقم الدفعة</span>
+                  <span className="font-medium text-primary">{viewTarget.name}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">الصنف</span>
+                  <span>{viewTarget.item || '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">معرف الدفعة</span>
+                  <span>{viewTarget.batch_id || '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">تاريخ الانتهاء</span>
+                  <span>{viewTarget.expiry_date ? formatDate(viewTarget.expiry_date) : '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">تاريخ التصنيع</span>
+                  <span>{viewTarget.manufacturing_date ? formatDate(viewTarget.manufacturing_date) : '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">حالة المستند</span>
+                  <DocStatusBadge docstatus={Number(viewTarget.docstatus ?? 0) as 0 | 1 | 2} />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">هذا مستند مرحّل ولا يمكن تعديله</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

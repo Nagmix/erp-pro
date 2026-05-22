@@ -820,7 +820,7 @@ export function buildPurchaseReceipt(input: {
   company: string;
   supplier: string;
   posting_date: string;
-  items: { item_code: string; qty: number; warehouse: string; purchase_order?: string }[];
+  items: { item_code: string; qty: number; rate?: number; warehouse: string; purchase_order?: string }[];
 }): Record<string, unknown> {
   const items = input.items
     .filter((i) => i.item_code)
@@ -828,6 +828,7 @@ export function buildPurchaseReceipt(input: {
       item_code: i.item_code,
       qty: i.qty,
       received_qty: i.qty,
+      rate: i.rate || 0,
       warehouse: i.warehouse,
       purchase_order: i.purchase_order || undefined,
     }));

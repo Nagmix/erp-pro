@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table';
 import { Plus, Trash2, Send, Undo2, Filter, ChevronDown, Upload, X } from 'lucide-react';
 import { formatDate } from '@/lib/core/helpers';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -83,6 +84,7 @@ export default function RequestForQuotationPage() {
 
   const { data, isLoading, isError, error, refetch } = useDocList<RFQRow>('Request for Quotation', {
     fields: ['name', 'transaction_date', 'status', 'docstatus'],
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'transaction_date desc',
     limit: 200,
   });
@@ -92,6 +94,29 @@ export default function RequestForQuotationPage() {
   const deleteMutation = useDeleteDoc('Request for Quotation');
 
   const rows = data || [];
+
+  const filteredRows = useMemo(() => {
+    let list = rows;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((row: any) =>
+        String(row.name || '').toLowerCase().includes(q)
+      );
+    }
+    if (dateFrom || dateTo) {
+      list = list.filter((row: any) => rowInDateRangeISO(row.transaction_date, dateFrom, dateTo));
+    }
+    if (statusFilter !== 'all') {
+      list = list.filter((row: any) => {
+        const ds = Number(row.docstatus);
+        if (statusFilter === '0') return ds === 0;
+        if (statusFilter === '1') return ds === 1;
+        if (statusFilter === '2') return ds === 2;
+        return true;
+      });
+    }
+    return list;
+  }, [rows, search, dateFrom, dateTo, statusFilter]);
 
   const handleCreate = () => {
     if (!company) {
@@ -124,7 +149,7 @@ export default function RequestForQuotationPage() {
           warehouse: i.warehouse || undefined}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
-        toast.success('تم إنشاء RFQ');
+        toast.success('تم إنشاء طلب تسعير');
         setDialogOpen(false);
         setSuppliers([emptySup()]);
         setItems([emptyItem()]);
@@ -256,12 +281,12 @@ export default function RequestForQuotationPage() {
       </div>
 
       <PageShell padded={false}>
-        <DataTable data={rows} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
+        <DataTable data={filteredRows} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
       </PageShell>
       <AlertDialog open={!!deleteName} onOpenChange={() => setDeleteName(null)}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
-            <AlertDialogTitle>حذف RFQ؟</AlertDialogTitle>
+            <AlertDialogTitle>حذف طلب التسعير؟</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-0">
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
@@ -339,7 +364,7 @@ export default function RequestForQuotationPage() {
                   <TableRow>
                     <TableHead className="text-xs">الصنف</TableHead>
                     <TableHead className="text-xs w-20">الكمية</TableHead>
-                    <TableHead className="text-xs w-24">UOM</TableHead>
+                    <TableHead className="text-xs w-24">وحدة القياس</TableHead>
                     <TableHead className="text-xs">مستودع</TableHead>
                     <TableHead className="w-8" />
                   </TableRow>

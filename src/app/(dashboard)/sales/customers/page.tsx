@@ -112,6 +112,7 @@ export default function CustomersPage() {
       'email_id',
       'mobile_no',
       'tax_id',
+      'outstanding_amount',
     ],
     limit: 2000,
   });

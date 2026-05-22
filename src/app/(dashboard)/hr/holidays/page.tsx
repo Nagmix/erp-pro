@@ -103,21 +103,6 @@ export default function HolidaysPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="العطلات"
-          description="إدارة قوائم العطلات الرسمية وعطلات نهاية الأسبوع"
-          iconify="solar:calendar-bold-duotone"
-          accent="warning"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'العطلات' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   /* ── Data fetching ── */
   const { data, isLoading, isError, error, refetch } = useDocList<HolidayListRow>('Holiday List', {
     fields: ['name', 'holiday_list_name', 'from_date', 'to_date', 'total_holidays', 'weekly_off'],
@@ -324,6 +309,21 @@ export default function HolidaysPage() {
   );
 
   /* ── Render ── */
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="العطلات"
+          description="إدارة قوائم العطلات الرسمية وعطلات نهاية الأسبوع"
+          iconify="solar:calendar-bold-duotone"
+          accent="warning"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'العطلات' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />

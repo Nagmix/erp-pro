@@ -27,8 +27,11 @@ import {
   TrendingUp,
   Calendar,
   Filter,
+  Pencil,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
-import { useCreateDoc, useDocList } from '@/lib/client/hooks';
+import { useCreateDoc, useDocList, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import {
   buildSubscriptionCreate,
   buildSubscriptionPlanCreate,
@@ -247,6 +250,25 @@ export default function CrmSubscriptionsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [customerFilter, setCustomerFilter] = useState('');
 
+  /* Plan edit/delete state */
+  const [editPlanDialogOpen, setEditPlanDialogOpen] = useState(false);
+  const [planEditing, setPlanEditing] = useState<Plan | null>(null);
+  const [deletePlanDialogOpen, setDeletePlanDialogOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
+  const [editPlanName, setEditPlanName] = useState('');
+  const [editPlanCost, setEditPlanCost] = useState<number>(0);
+  const [editPlanCurrency, setEditPlanCurrency] = useState('YER');
+  const [editPlanInterval, setEditPlanInterval] = useState<'Day' | 'Week' | 'Month' | 'Year'>('Month');
+  const [editPlanIntervalCount, setEditPlanIntervalCount] = useState<number>(1);
+
+  /* Subscription edit/delete state */
+  const [editSubDialogOpen, setEditSubDialogOpen] = useState(false);
+  const [subEditing, setSubEditing] = useState<Sub | null>(null);
+  const [deleteSubDialogOpen, setDeleteSubDialogOpen] = useState(false);
+  const [subToDelete, setSubToDelete] = useState<Sub | null>(null);
+  const [editSubStatus, setEditSubStatus] = useState('');
+  const [editSubEndDate, setEditSubEndDate] = useState('');
+
   /* Plan form state */
   const [planName, setPlanName] = useState('');
   const [cost, setCost] = useState<number>(0);
@@ -273,6 +295,10 @@ export default function CrmSubscriptionsPage() {
 
   const createPlan = useCreateDoc('Subscription Plan');
   const createSub = useCreateDoc('Subscription');
+  const updatePlan = useUpdateDoc('Subscription Plan');
+  const deletePlan = useDeleteDoc('Subscription Plan');
+  const updateSub = useUpdateDoc('Subscription');
+  const deleteSub = useDeleteDoc('Subscription');
 
   /* Filtered subscriptions */
   const filteredSubs = useMemo(() => {
@@ -302,6 +328,61 @@ export default function CrmSubscriptionsPage() {
   );
 
   /* Handlers */
+  const openPlanEditDialog = (plan: Plan) => {
+    setPlanEditing(plan);
+    setEditPlanName(plan.plan_name || '');
+    setEditPlanCost(plan.cost || 0);
+    setEditPlanCurrency(plan.currency || 'YER');
+    setEditPlanInterval((plan.billing_interval as 'Day' | 'Week' | 'Month' | 'Year') || 'Month');
+    setEditPlanIntervalCount(plan.billing_interval_count || 1);
+    setEditPlanDialogOpen(true);
+  };
+
+  const handleUpdatePlan = () => {
+    if (!planEditing) return;
+    updatePlan.mutate(
+      { name: planEditing.name, doc: { plan_name: editPlanName, cost: editPlanCost, currency: editPlanCurrency, billing_interval: editPlanInterval, billing_interval_count: editPlanIntervalCount } },
+      {
+        onSuccess: () => { toast.success('تم تحديث الباقة'); setEditPlanDialogOpen(false); setPlanEditing(null); },
+        onError: () => toast.error('فشل تحديث الباقة'),
+      },
+    );
+  };
+
+  const handleDeletePlan = () => {
+    if (!planToDelete) return;
+    deletePlan.mutate(planToDelete.name, {
+      onSuccess: () => { toast.success('تم حذف الباقة'); setDeletePlanDialogOpen(false); setPlanToDelete(null); },
+      onError: () => toast.error('فشل حذف الباقة'),
+    });
+  };
+
+  const openSubEditDialog = (sub: Sub) => {
+    setSubEditing(sub);
+    setEditSubStatus(sub.status || '');
+    setEditSubEndDate(sub.end_date || '');
+    setEditSubDialogOpen(true);
+  };
+
+  const handleUpdateSub = () => {
+    if (!subEditing) return;
+    updateSub.mutate(
+      { name: subEditing.name, doc: { status: editSubStatus, end_date: editSubEndDate || undefined } },
+      {
+        onSuccess: () => { toast.success('تم تحديث الاشتراك'); setEditSubDialogOpen(false); setSubEditing(null); },
+        onError: () => toast.error('فشل تحديث الاشتراك'),
+      },
+    );
+  };
+
+  const handleDeleteSub = () => {
+    if (!subToDelete) return;
+    deleteSub.mutate(subToDelete.name, {
+      onSuccess: () => { toast.success('تم حذف الاشتراك'); setDeleteSubDialogOpen(false); setSubToDelete(null); },
+      onError: () => toast.error('فشل حذف الاشتراك'),
+    });
+  };
+
   const handleCreatePlan = () => {
     if (!planName.trim()) { toast.error('أدخل اسم الباقة'); return; }
     if (cost <= 0) { toast.error('أدخل سعراً صحيحاً'); return; }
@@ -544,6 +625,8 @@ export default function CrmSubscriptionsPage() {
             columns={subCols}
             searchable
             loading={subs.isLoading}
+            onEdit={(row) => openSubEditDialog(row)}
+            onDelete={(row) => { setSubToDelete(row); setDeleteSubDialogOpen(true); }}
             tableId="crm-subscriptions-list"
             exportFileName="الاشتراكات"
           />
@@ -574,11 +657,148 @@ export default function CrmSubscriptionsPage() {
             columns={planCols}
             searchable
             loading={plans.isLoading}
+            onEdit={(row) => openPlanEditDialog(row)}
+            onDelete={(row) => { setPlanToDelete(row); setDeletePlanDialogOpen(true); }}
             tableId="crm-subscription-plans"
             exportFileName="باقات_الاشتراك"
           />
         </TabsContent>
       </Tabs>
+
+      {/* ─── Edit Plan Dialog ─── */}
+      <Dialog open={editPlanDialogOpen} onOpenChange={setEditPlanDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                <Pencil className="h-5 w-5" />
+              </div>
+              <div>
+                <span>تعديل الباقة</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">{planEditing?.plan_name}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">اسم الباقة</Label>
+              <Input value={editPlanName} onChange={(e) => setEditPlanName(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">السعر</Label>
+                <Input type="number" dir="ltr" value={editPlanCost || ''} onChange={(e) => setEditPlanCost(Number(e.target.value || 0))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">العملة</Label>
+                <ErpLinkCombobox doctype="Currency" value={editPlanCurrency} onChange={setEditPlanCurrency} placeholder="اختر العملة" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">دورة الفوترة</Label>
+                <select
+                  className="w-full h-9 rounded-md border border-border/40 bg-background px-3 text-sm"
+                  value={editPlanInterval}
+                  onChange={(e) => setEditPlanInterval(e.target.value as typeof editPlanInterval)}
+                >
+                  <option value="Day">يومي</option>
+                  <option value="Week">أسبوعي</option>
+                  <option value="Month">شهري</option>
+                  <option value="Year">سنوي</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">كل (عدد)</Label>
+                <Input type="number" dir="ltr" min={1} value={editPlanIntervalCount} onChange={(e) => setEditPlanIntervalCount(Math.max(1, Number(e.target.value || 1)))} />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button type="button" variant="ghost" onClick={() => setEditPlanDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+            <Button onClick={handleUpdatePlan} disabled={updatePlan.isPending} className="gap-1.5 min-w-[120px]">
+              {updatePlan.isPending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Delete Plan Confirmation ─── */}
+      <Dialog open={deletePlanDialogOpen} onOpenChange={setDeletePlanDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-md p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle>تأكيد حذف الباقة</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">هل أنت متأكد من حذف الباقة &quot;{planToDelete?.plan_name}&quot;؟</p>
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button type="button" variant="ghost" onClick={() => setDeletePlanDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+            <Button onClick={handleDeletePlan} disabled={deletePlan.isPending} variant="destructive" className="gap-1.5 min-w-[100px]">
+              {deletePlan.isPending ? 'جاري الحذف...' : 'حذف'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Edit Subscription Dialog ─── */}
+      <Dialog open={editSubDialogOpen} onOpenChange={setEditSubDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                <Pencil className="h-5 w-5" />
+              </div>
+              <div>
+                <span>تعديل الاشتراك</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">{subEditing?.name}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">الحالة</Label>
+              <select
+                className="w-full h-9 rounded-md border border-border/40 bg-background px-3 text-sm"
+                value={editSubStatus}
+                onChange={(e) => setEditSubStatus(e.target.value)}
+              >
+                <option value="Active">نشط</option>
+                <option value="Completed">مكتمل</option>
+                <option value="Cancelled">ملغي</option>
+                <option value="Trial">تجريبي</option>
+                <option value="Unpaid">غير مدفوع</option>
+                <option value="Past Due Date">متأخر</option>
+                <option value="Paused">متوقف مؤقتاً</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">تاريخ النهاية</Label>
+              <Input type="date" dir="ltr" value={editSubEndDate} onChange={(e) => setEditSubEndDate(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button type="button" variant="ghost" onClick={() => setEditSubDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+            <Button onClick={handleUpdateSub} disabled={updateSub.isPending} className="gap-1.5 min-w-[120px]">
+              {updateSub.isPending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Delete Subscription Confirmation ─── */}
+      <Dialog open={deleteSubDialogOpen} onOpenChange={setDeleteSubDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-md p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle>تأكيد حذف الاشتراك</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">هل أنت متأكد من حذف الاشتراك &quot;{subToDelete?.name}&quot;؟</p>
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button type="button" variant="ghost" onClick={() => setDeleteSubDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+            <Button onClick={handleDeleteSub} disabled={deleteSub.isPending} variant="destructive" className="gap-1.5 min-w-[100px]">
+              {deleteSub.isPending ? 'جاري الحذف...' : 'حذف'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

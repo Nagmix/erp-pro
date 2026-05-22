@@ -33,6 +33,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { apiCallMethod, apiCreateDoc } from '@/lib/client/api';
 import { cn } from '@/lib/utils';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
@@ -79,6 +80,7 @@ export default function PurchaseRequestsPage() {
 
   const { data, isLoading, isError, error, refetch } = useDocList<MRRow>('Material Request', {
     fields: ['name', 'transaction_date', 'material_request_type', 'status', 'docstatus'],
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'transaction_date desc',
     limit: 500,
   });
@@ -88,6 +90,29 @@ export default function PurchaseRequestsPage() {
   const deleteMutation = useDeleteDoc('Material Request');
 
   const rows = data || [];
+
+  const filteredRows = useMemo(() => {
+    let list = rows;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((row: any) =>
+        String(row.name || '').toLowerCase().includes(q)
+      );
+    }
+    if (dateFrom || dateTo) {
+      list = list.filter((row: any) => rowInDateRangeISO(row.transaction_date, dateFrom, dateTo));
+    }
+    if (statusFilter !== 'all') {
+      list = list.filter((row: any) => {
+        const ds = Number(row.docstatus);
+        if (statusFilter === '0') return ds === 0;
+        if (statusFilter === '1') return ds === 1;
+        if (statusFilter === '2') return ds === 2;
+        return true;
+      });
+    }
+    return list;
+  }, [rows, search, dateFrom, dateTo, statusFilter]);
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {
@@ -292,7 +317,7 @@ export default function PurchaseRequestsPage() {
 
       <PageShell padded={false}>
         <DataTable
-          data={rows}
+          data={filteredRows}
           columns={columns}
           searchable
           loading={isLoading}

@@ -37,7 +37,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Plus, Target, Building2, Wallet, Calendar, TrendingUp, Eye, Pencil, PieChart, Percent, Loader2 } from 'lucide-react';
+import { Plus, Target, Building2, Wallet, Calendar, TrendingUp, Eye, Pencil, Loader2 } from 'lucide-react';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc, useDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -133,6 +133,7 @@ export default function OpportunitiesPage() {
 
   const { data, isLoading, isError, error, refetch } = useDocList<OppRow>('Opportunity', {
     fields: ['name', 'party_name', 'customer_name', 'opportunity_from', 'status', 'transaction_date', 'expected_closing', 'opportunity_amount', 'company', 'contact_person', 'no_of_employees', 'industry', 'source'],
+    filters: company ? [['company', '=', company]] : [],
     limit: 400,
     order_by: 'modified desc',
   });

@@ -389,6 +389,14 @@ export default function LeadsPage() {
           },
         },
       });
+      // Update lead status to "Converted"
+      updateMutation.mutate(
+        { name: lead.name, doc: { status: 'Converted' } },
+        {
+          onSuccess: () => { void refetch(); },
+          onError: () => { toast.error('تم تحويل العميل لكن فشل تحديث حالة العميل المحتمل'); },
+        },
+      );
       toast.success(`تم تحويل العميل المحتمل "${lead.lead_name || lead.name}" إلى عميل`);
       void refetch();
     } catch {

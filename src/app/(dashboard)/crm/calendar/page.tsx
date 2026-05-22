@@ -23,9 +23,9 @@ import {
 } from '@/components/ui/select';
 import {
   Calendar, CalendarDays, CalendarCheck, Clock, ChevronLeft, ChevronRight,
-  Plus, Eye, X,
+  Plus, Eye, X, Pencil, Trash2, Loader2,
 } from 'lucide-react';
-import { useDocList, useCreateDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { buildEventCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -164,6 +164,7 @@ export default function CalendarPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Ev | null>(null);
+  const [editingEvent, setEditingEvent] = useState<Ev | null>(null);
   const [createDate, setCreateDate] = useState('');
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -192,11 +193,14 @@ export default function CalendarPage() {
   });
 
   const createMutation = useCreateDoc('Event');
+  const updateMutation = useUpdateDoc('Event');
+  const deleteMutation = useDeleteDoc('Event');
 
   const events = useMemo(() => {
     let rows = data || [];
     if (statusFilter !== 'all') rows = rows.filter(r => r.status === statusFilter);
-    if (assigneeFilter) rows = rows.filter(r => r.name === assigneeFilter); // simplified
+    // Removed broken assigneeFilter (r.name is event ID, not assignee)
+    // Client-side assignee filtering not possible without event_participants field
     if (refTypeFilter) rows = rows.filter(r => r.reference_doctype === refTypeFilter);
     return rows;
   }, [data, statusFilter, assigneeFilter, refTypeFilter]);
@@ -269,7 +273,7 @@ export default function CalendarPage() {
     return eventsByDate.get(dateKey(selectedDay)) || [];
   }, [selectedDay, eventsByDate]);
 
-  // ── Create handler ──
+  // ── Create/Update handler ──
   const handleCreate = useCallback(() => {
     if (!form.subject.trim() || !createDate) {
       toast.error('الموضوع والتاريخ مطلوبان');
@@ -277,6 +281,41 @@ export default function CalendarPage() {
     }
     const starts_on = toDateTime(createDate, form.timeStart);
     const ends_on = toDateTime(createDate, form.timeEnd) || undefined;
+
+    if (editingEvent) {
+      // Update existing event
+      const doc: Record<string, unknown> = {
+        subject: form.subject,
+        starts_on,
+        event_type: form.eventType,
+        description: form.desc || undefined,
+      };
+      if (ends_on) doc.ends_on = ends_on;
+      if (form.refType) {
+        doc.reference_doctype = form.refType;
+        doc.reference_docname = form.refName || undefined;
+      }
+      updateMutation.mutate(
+        { name: editingEvent.name, doc },
+        {
+          onSuccess: () => {
+            toast.success('تم تحديث الموعد');
+            setDialogOpen(false);
+            setEditingEvent(null);
+            setForm({
+              subject: '', timeStart: '09:00', timeEnd: '10:00', desc: '',
+              assignee: '', repeat: 'None', refType: '', refName: '', eventType: 'Private', sendReminder: true,
+            });
+            setCreateDate('');
+            void refetch();
+          },
+          onError: () => toast.error('فشل تحديث الموعد'),
+        },
+      );
+      return;
+    }
+
+    // Create new event
     const mapped = buildEventCreate({
       subject: form.subject,
       starts_on,
@@ -301,6 +340,7 @@ export default function CalendarPage() {
       onSuccess: () => {
         toast.success('تم إنشاء الموعد');
         setDialogOpen(false);
+        setEditingEvent(null);
         setForm({
           subject: '', timeStart: '09:00', timeEnd: '10:00', desc: '',
           assignee: '', repeat: 'None', refType: '', refName: '', eventType: 'Private', sendReminder: true,
@@ -310,11 +350,12 @@ export default function CalendarPage() {
       },
       onError: () => toast.error('فشل إنشاء الموعد'),
     });
-  }, [form, createDate, createMutation, refetch]);
+  }, [form, createDate, createMutation, updateMutation, editingEvent, refetch]);
 
   const openCreateForDay = useCallback((d: Date) => {
     setCreateDate(dateKey(d));
     setForm(prev => ({ ...prev, subject: '', desc: '' }));
+    setEditingEvent(null);
     setDialogOpen(true);
   }, []);
 
@@ -342,7 +383,7 @@ export default function CalendarPage() {
         breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'التقويم' }]}
         actions={
           <div className="flex items-center gap-2">
-            <Button size="sm" className="gap-1.5" onClick={() => { setCreateDate(todayKey); setDialogOpen(true); }}>
+            <Button size="sm" className="gap-1.5" onClick={() => { setCreateDate(todayKey); setEditingEvent(null); setForm({ subject: '', timeStart: '09:00', timeEnd: '10:00', desc: '', assignee: '', repeat: 'None', refType: '', refName: '', eventType: 'Private', sendReminder: true }); setDialogOpen(true); }}>
               <Plus className="h-3.5 w-3.5" />موعد جديد
             </Button>
           </div>
@@ -693,6 +734,64 @@ export default function CalendarPage() {
           )}
           <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
             <Button type="button" variant="ghost" onClick={() => setDetailDialogOpen(false)} className="text-muted-foreground">إغلاق</Button>
+            {selectedEvent && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => {
+                    setDetailDialogOpen(false);
+                    // Pre-populate form for editing
+                    const startsParts = String(selectedEvent.starts_on || '').replace('T', ' ').split(' ');
+                    const datePart = startsParts[0] || createDate;
+                    const timeStartPart = (startsParts[1] || '09:00:00').slice(0, 5);
+                    const endsParts = String(selectedEvent.ends_on || '').replace('T', ' ').split(' ');
+                    const timeEndPart = (endsParts[1] || '10:00:00').slice(0, 5);
+                    setCreateDate(datePart);
+                    setForm({
+                      subject: selectedEvent.subject || '',
+                      timeStart: timeStartPart,
+                      timeEnd: timeEndPart,
+                      desc: selectedEvent.description || '',
+                      assignee: '',
+                      repeat: selectedEvent.repeat_this_event && Number(selectedEvent.repeat_this_event) === 1 ? 'Weekly' : 'None',
+                      refType: selectedEvent.reference_doctype || '',
+                      refName: selectedEvent.reference_docname || '',
+                      eventType: (selectedEvent.event_type as 'Private' | 'Public') || 'Private',
+                      sendReminder: true,
+                    });
+                    // Store that we're editing
+                    setEditingEvent(selectedEvent);
+                    setDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  تعديل
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="gap-1.5"
+                  disabled={deleteMutation.isPending}
+                  onClick={() => {
+                    if (!selectedEvent) return;
+                    deleteMutation.mutate(selectedEvent.name, {
+                      onSuccess: () => {
+                        toast.success('تم حذف الموعد');
+                        setDetailDialogOpen(false);
+                        setSelectedEvent(null);
+                        void refetch();
+                      },
+                      onError: () => toast.error('فشل حذف الموعد'),
+                    });
+                  }}
+                >
+                  {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                  حذف
+                </Button>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -706,8 +805,8 @@ export default function CalendarPage() {
                 <Plus className="h-5 w-5" />
               </div>
               <div>
-                <span>موعد جديد</span>
-                <p className="text-xs font-normal text-muted-foreground mt-0.5">أدخل بيانات الموعد</p>
+                <span>{editingEvent ? 'تعديل الموعد' : 'موعد جديد'}</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">{editingEvent ? 'عدّل بيانات الموعد' : 'أدخل بيانات الموعد'}</p>
               </div>
             </DialogTitle>
           </DialogHeader>
@@ -812,10 +911,10 @@ export default function CalendarPage() {
           </div>
           <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
             <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
-            <Button onClick={handleCreate} disabled={createMutation.isPending} className="gap-1.5 min-w-[130px]">
-              {createMutation.isPending ? (
+            <Button onClick={handleCreate} disabled={createMutation.isPending || updateMutation.isPending} className="gap-1.5 min-w-[130px]">
+              {createMutation.isPending || updateMutation.isPending ? (
                 <><div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />جاري الحفظ...</>
-              ) : 'حفظ الموعد'}
+              ) : editingEvent ? 'حفظ التعديلات' : 'حفظ الموعد'}
             </Button>
           </div>
         </DialogContent>

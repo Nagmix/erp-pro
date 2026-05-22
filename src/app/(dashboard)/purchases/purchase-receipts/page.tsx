@@ -57,11 +57,12 @@ interface PRRow {
 interface Line {
   item_code: string;
   qty: number;
+  rate: number;
   warehouse: string;
   purchase_order: string;
 }
 
-const emptyLine = (): Line => ({ item_code: '', qty: 1, warehouse: '', purchase_order: '' });
+const emptyLine = (): Line => ({ item_code: '', qty: 1, rate: 0, warehouse: '', purchase_order: '' });
 
 export default function PurchaseReceiptsPage() {
   const { company, isLoading: coLoading } = useDefaultCompanyName();
@@ -79,6 +80,7 @@ export default function PurchaseReceiptsPage() {
 
   const { data, isLoading, isError, error, refetch } = useDocList<PRRow>('Purchase Receipt', {
     fields: ['name', 'supplier_name', 'posting_date', 'base_grand_total', 'docstatus', 'status'],
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'posting_date desc',
     limit: 500,
   });
@@ -142,6 +144,7 @@ export default function PurchaseReceiptsPage() {
         .map((l) => ({
           item_code: l.item_code,
           qty: l.qty,
+          rate: l.rate,
           warehouse: l.warehouse,
           purchase_order: l.purchase_order || undefined}))});
     createMutation.mutate(doc, {
@@ -364,6 +367,7 @@ export default function PurchaseReceiptsPage() {
                   <TableRow>
                     <TableHead className="text-xs">الصنف</TableHead>
                     <TableHead className="text-xs w-20">الكمية</TableHead>
+                    <TableHead className="text-xs w-20">السعر</TableHead>
                     <TableHead className="text-xs">مستودع</TableHead>
                     <TableHead className="text-xs">أمر شراء (اختياري)</TableHead>
                     <TableHead className="w-8" />
@@ -377,6 +381,9 @@ export default function PurchaseReceiptsPage() {
                       </TableCell>
                       <TableCell>
                         <Input type="number" className="h-8 text-xs" value={line.qty} onChange={(e) => updateLine(idx, { qty: Math.max(0, Number(e.target.value)) })} />
+                      </TableCell>
+                      <TableCell>
+                        <Input type="number" className="h-8 text-xs" value={line.rate} onChange={(e) => updateLine(idx, { rate: Math.max(0, Number(e.target.value)) })} />
                       </TableCell>
                       <TableCell>
                         <ErpLinkCombobox doctype="Warehouse" value={line.warehouse} onChange={(v) => updateLine(idx, { warehouse: v })} />

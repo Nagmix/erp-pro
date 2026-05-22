@@ -183,6 +183,7 @@ export default function WarehousesPage() {
   /* ── Data ── */
   const { data, isLoading, isError, error, refetch } = useDocList<WhRow>('Warehouse', {
     fields: ['name', 'warehouse_name', 'company', 'parent_warehouse', 'account', 'is_group', 'disabled'],
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'warehouse_name asc',
     limit: 500,
   });

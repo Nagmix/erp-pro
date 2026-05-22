@@ -133,21 +133,6 @@ export default function AttendanceSummaryPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="ملخص الحضور"
-          description="تقرير شامل لحضور الموظفين"
-          iconify="solar:calendar-mark-bold-duotone"
-          accent="info"
-          breadcrumbs={[{ label: 'الموارد البشرية' }, { label: 'ملخص الحضور' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   /* ─── ERPNext Data Hooks ─── */
   const attendanceList = useDocList<AttendanceRecord>('Attendance', {
     fields: ['name', 'employee', 'employee_name', 'attendance_date', 'status', 'in_time', 'out_time', 'late_entry', 'early_exit', 'working_hours', 'department', 'leave_type', 'shift'],
@@ -461,6 +446,21 @@ export default function AttendanceSummaryPage() {
     }
     return years;
   }, []);
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="ملخص الحضور"
+          description="تقرير شامل لحضور الموظفين"
+          iconify="solar:calendar-mark-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية' }, { label: 'ملخص الحضور' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">

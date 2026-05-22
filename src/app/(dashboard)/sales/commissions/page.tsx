@@ -628,7 +628,7 @@ export default function SalesCommissionsPage() {
         ),
       },
     ],
-    [],
+    [chk, openEditDialog, setDeleteTarget],
   );
 
   // ── Calculations columns ──

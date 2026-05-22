@@ -97,6 +97,7 @@ export default function DeliveryNotesPage() {
     ],
     order_by: 'posting_date desc',
     limit: 500,
+    filters: company ? [['company', '=', company]] : undefined,
   });
   const createMutation = useCreateDoc<DNRow>('Delivery Note');
   const submitMutation = useSubmitDoc<DNRow>('Delivery Note');

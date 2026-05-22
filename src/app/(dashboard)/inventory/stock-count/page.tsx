@@ -67,6 +67,7 @@ export default function StockCountPage() {
 
   const { data, isLoading, isError, error, refetch } = useDocList<SRRow>('Stock Reconciliation', {
     fields: ['name', 'posting_date', 'purpose', 'docstatus'],
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'posting_date desc',
     limit: 300,
   });

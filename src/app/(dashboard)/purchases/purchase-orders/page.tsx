@@ -103,7 +103,7 @@ export default function PurchasesPurchaseOrdersPage() {
       'status',
       'docstatus',
     ],
-    filters: undefined,
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'transaction_date desc',
     limit: 500,
   });
@@ -131,8 +131,11 @@ export default function PurchasesPurchaseOrdersPage() {
     if (effectiveStatus !== 'all') {
       list = list.filter((row: any) => row.status === effectiveStatus);
     }
+    if (branch && branchesEnabled) {
+      list = list.filter((row: any) => String(row.branch || '') === branch);
+    }
     return list;
-  }, [rows, search, dateFrom, dateTo, poStatusFilter, filter]);
+  }, [rows, search, dateFrom, dateTo, poStatusFilter, filter, branch, branchesEnabled]);
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {

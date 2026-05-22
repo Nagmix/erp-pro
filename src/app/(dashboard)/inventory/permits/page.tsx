@@ -189,6 +189,7 @@ export default function InventoryPermitsPage() {
       'to_warehouse',
       'remarks',
     ],
+    filters: defaultCompany ? [['company', '=', defaultCompany]] : undefined,
     order_by: 'posting_date desc',
     limit: 500,
   });

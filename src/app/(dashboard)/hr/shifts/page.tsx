@@ -216,21 +216,6 @@ export default function ShiftsPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="الورديات"
-          description="إدارة أنواع الورديات، ساعات العمل وتعيينات الموظفين"
-          iconify="solar:clock-circle-bold-duotone"
-          accent="info"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الورديات' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   /* ── جلب البيانات ── */
   const { data, isLoading, isError, error, refetch } = useDocList<ShiftRow>('Shift Type', {
     fields: ['name', 'shift_type', 'start_time', 'end_time', 'holiday_list', 'last_sync_of_checkin', 'status'],
@@ -238,6 +223,7 @@ export default function ShiftsPage() {
   });
   const { data: assigns, isLoading: al, isError: ae, error: aerr, refetch: ar } = useDocList<AssignRow>('Shift Assignment', {
     fields: ['name', 'employee_name', 'shift_type', 'start_date', 'end_date', 'status', 'docstatus'],
+    filters: company ? [['company', '=', company]] : undefined,
     limit: 300,
     order_by: 'start_date desc',
   });
@@ -257,6 +243,21 @@ export default function ShiftsPage() {
     shifts.forEach((r) => { if (r.shift_type) s.add(String(r.shift_type)); });
     return Array.from(s).sort();
   }, [shifts]);
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="الورديات"
+          description="إدارة أنواع الورديات، ساعات العمل وتعيينات الموظفين"
+          iconify="solar:clock-circle-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الورديات' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const avgHours = shifts.length > 0
     ? (shifts.reduce((s, r) => {

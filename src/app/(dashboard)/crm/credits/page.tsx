@@ -562,12 +562,12 @@ export default function CreditsPage() {
               size="sm"
               variant="outline"
               className="gap-1.5"
-              onClick={() => {
-                toast.info('سيتم إرسال كشف حساب للعميل عبر البريد الإلكتروني');
-              }}
+              disabled
+              title="قريباً"
             >
               <Mail className="h-3.5 w-3.5" />
               إرسال كشف حساب
+              <Badge variant="secondary" className="text-[9px] px-1 py-0">قريباً</Badge>
             </Button>
             <Button
               size="sm"

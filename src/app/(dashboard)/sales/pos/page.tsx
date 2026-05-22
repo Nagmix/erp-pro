@@ -482,7 +482,6 @@ export default function POSPage() {
   };
 
   const [holds, setHolds] = useState<{ id: string; label: string; cart: CartLine[]; at: string }[]>([]);
-  const [search, setSearch] = useState('');
 
   useEffect(() => {
     try {

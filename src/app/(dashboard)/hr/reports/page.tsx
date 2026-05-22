@@ -119,20 +119,6 @@ export default function HrReportsPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="تقارير الموارد البشرية"
-          description="حضور (تفصيلي أو ملخص HRMS)، ورديات، رواتب، إجازات، تحليل توزيع الموظفين، وبيانات الموظفين من HRMS عند تفعيل الوحدة."
-          iconify="solar:users-group-rounded-bold-duotone"
-          accent="info"
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   const reportId = useMemo(
     () => TAB_META.find((t) => t.id === tab)?.catalogId ?? 'hr-attendance',
     [tab]
@@ -198,6 +184,20 @@ export default function HrReportsPage() {
     () => normalizedColumnsToDataTable(normalized.columns),
     [normalized.columns]
   );
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="تقارير الموارد البشرية"
+          description="حضور (تفصيلي أو ملخص HRMS)، ورديات، رواتب، إجازات، تحليل توزيع الموظفين، وبيانات الموظفين من HRMS عند تفعيل الوحدة."
+          iconify="solar:users-group-rounded-bold-duotone"
+          accent="info"
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const exportCols = tableColumns.map((c) => ({ key: c.key, header: c.header }));
   const summaryStrip = normalized.reportSummary.filter((s) => s && typeof s.value !== 'undefined');

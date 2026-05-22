@@ -109,6 +109,7 @@ export default function QuotationsPage() {
     ],
     order_by: 'transaction_date desc',
     limit: 500,
+    filters: defaultCompany ? [['company', '=', defaultCompany]] : undefined,
   });
   const createMutation = useCreateDoc<QuotationRow>('Quotation');
   const submitMutation = useSubmitDoc<QuotationRow>('Quotation');
@@ -139,7 +140,8 @@ export default function QuotationsPage() {
     () => lines.reduce((s, l) => s + l.qty * l.rate, 0),
     [lines]
   );
-  const tax = subtotal * 0.15;
+  // الضريبة تُحدَّد من قالب الضرائب في ERPNext عند الترحيل — لا تُحتسب محلياً
+  const tax = 0;
   const grandTotal = subtotal + tax;
 
   const updateLine = (i: number, patch: Partial<Line>) => {
@@ -499,7 +501,7 @@ export default function QuotationsPage() {
                   <span className="tabular-nums font-semibold">{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">ضريبة تقديرية 15%</span>
+                  <span className="text-muted-foreground">ضريبة (تُحدَّد عند الترحيل)</span>
                   <span className="tabular-nums">{formatCurrency(tax)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-sm pt-2 border-t border-border/40">

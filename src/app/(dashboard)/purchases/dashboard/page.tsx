@@ -53,6 +53,7 @@ export default function PurchasesDashboardPage() {
       fields: ['name', 'supplier', 'supplier_name', 'grand_total', 'outstanding_amount', 'posting_date', 'status', 'docstatus', 'due_date'],
       limit: 100,
       order_by: 'posting_date desc',
+      filters: company ? [['company', '=', company]] : undefined,
     }
   );
 
@@ -62,6 +63,7 @@ export default function PurchasesDashboardPage() {
       fields: ['name', 'supplier', 'supplier_name', 'grand_total', 'status', 'docstatus', 'transaction_date', 'schedule_date'],
       limit: 50,
       order_by: 'transaction_date desc',
+      filters: company ? [['company', '=', company]] : undefined,
     }
   );
 
@@ -79,6 +81,7 @@ export default function PurchasesDashboardPage() {
       fields: ['name', 'supplier', 'supplier_name', 'grand_total', 'status', 'docstatus', 'posting_date'],
       limit: 50,
       order_by: 'posting_date desc',
+      filters: company ? [['company', '=', company]] : undefined,
     }
   );
 

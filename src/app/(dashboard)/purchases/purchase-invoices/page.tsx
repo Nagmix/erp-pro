@@ -138,7 +138,7 @@ export default function PurchasesPurchaseInvoicesPage() {
       'status',
       'docstatus',
     ],
-    filters: undefined,
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'posting_date desc',
     limit: 500,
   });
@@ -162,15 +162,19 @@ export default function PurchasesPurchaseInvoicesPage() {
     if (statusFilter !== 'all') {
       list = list.filter((i) => i.status === statusFilter);
     }
+    if (branchFilter && branchesEnabled) {
+      list = list.filter((i: any) => String(i.branch || '') === branchFilter);
+    }
     return list;
-  }, [invoices, dateFrom, dateTo, statusFilter, search]);
+  }, [invoices, dateFrom, dateTo, statusFilter, search, branchFilter, branchesEnabled]);
 
   const netTotal = useMemo(
     () => lines.reduce((s, l) => s + (l.item_code ? l.qty * l.rate : 0), 0),
     [lines]
   );
+  // TODO: Tax should come from ERPNext tax template; hardcoded 0 as placeholder until tax template response is integrated
   const taxTotal = useMemo(
-    () => (taxesAndCharges.trim() ? 0 : netTotal * 0.15),
+    () => (taxesAndCharges.trim() ? 0 : 0),
     [netTotal, taxesAndCharges]
   );
   const grandTotal = useMemo(() => {
@@ -785,7 +789,7 @@ export default function PurchasesPurchaseInvoicesPage() {
                   <span className="font-semibold tabular-nums">{formatCurrency(netTotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">ضريبة (15%)</span>
+                  <span className="text-muted-foreground">ضريبة</span>
                   <span className="font-semibold tabular-nums">{taxesAndCharges.trim() ? '— (قالب)' : formatCurrency(taxTotal)}</span>
                 </div>
                 {discountAmount > 0 && (

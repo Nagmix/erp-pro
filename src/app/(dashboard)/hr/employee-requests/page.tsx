@@ -86,6 +86,17 @@ export default function EmployeeRequestsPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
+  const { data, isLoading, isError, error, refetch } = useDocList<RequestRow>('Attendance Request', {
+    fields: ['name', 'employee', 'employee_name', 'from_date', 'to_date', 'reason', 'explanation', 'custom_request_category', 'custom_attachment_url', 'docstatus'],
+    filters: company ? [['company', '=', company]] : undefined,
+    limit: 300,
+    order_by: 'modified desc',
+  });
+  const createMutation = useCreateDoc('Attendance Request');
+  const updateMutation = useUpdateDoc('Attendance Request');
+  const deleteMutation = useDeleteDoc('Attendance Request');
+  const submitMut = useSubmitDoc('Attendance Request');
+
   if (hrmsLoaded && !hrmsInstalled) {
     return (
       <div dir="rtl" className="erp-page-enter space-y-5">
@@ -100,16 +111,6 @@ export default function EmployeeRequestsPage() {
       </div>
     );
   }
-
-  const { data, isLoading, isError, error, refetch } = useDocList<RequestRow>('Attendance Request', {
-    fields: ['name', 'employee', 'employee_name', 'from_date', 'to_date', 'reason', 'explanation', 'custom_request_category', 'custom_attachment_url', 'docstatus'],
-    limit: 300,
-    order_by: 'modified desc',
-  });
-  const createMutation = useCreateDoc('Attendance Request');
-  const updateMutation = useUpdateDoc('Attendance Request');
-  const deleteMutation = useDeleteDoc('Attendance Request');
-  const submitMut = useSubmitDoc('Attendance Request');
 
   const requests = data ?? [];
   const draftCount = requests.filter((r) => Number(r.docstatus) === 0).length;

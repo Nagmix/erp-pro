@@ -115,6 +115,7 @@ export default function PricingRulesPage() {
     ],
     order_by: 'name desc',
     limit: 500,
+    filters: defaultCompany ? [['company', '=', defaultCompany]] : undefined,
   });
 
   const submitMutation = useSubmitDoc<PricingRuleRow>('Pricing Rule');

@@ -37,6 +37,7 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
+import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import {
   useDocList,
   useCreateDoc,
@@ -132,6 +133,7 @@ export default function SupplierQuotationsPage() {
       'status',
       'docstatus',
     ],
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'transaction_date desc',
     limit: 500,
   });
@@ -141,6 +143,30 @@ export default function SupplierQuotationsPage() {
   const deleteMutation = useDeleteDoc('Supplier Quotation');
 
   const rows = data || [];
+
+  const filteredRows = useMemo(() => {
+    let list = rows;
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((row: any) =>
+        String(row.name || '').toLowerCase().includes(q) ||
+        String(row.supplier_name || '').toLowerCase().includes(q)
+      );
+    }
+    if (dateFrom || dateTo) {
+      list = list.filter((row: any) => rowInDateRangeISO(row.transaction_date, dateFrom, dateTo));
+    }
+    if (statusFilter !== 'all') {
+      list = list.filter((row: any) => {
+        const ds = Number(row.docstatus);
+        if (statusFilter === '0') return ds === 0;
+        if (statusFilter === '1') return ds === 1;
+        if (statusFilter === '2') return ds === 2;
+        return true;
+      });
+    }
+    return list;
+  }, [rows, search, dateFrom, dateTo, statusFilter]);
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {
@@ -406,7 +432,7 @@ export default function SupplierQuotationsPage() {
 
       <PageShell padded={false}>
         <DataTable
-          data={rows}
+          data={filteredRows}
           columns={columns}
           searchable
           loading={isLoading}

@@ -128,21 +128,6 @@ export default function EmployeeLoansPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="قروض الموظفين"
-          description="إدارة القروض وأقساط السداد — الإنشاء والترحيل والمتابعة"
-          iconify="solar:hand-money-bold-duotone"
-          accent="purple"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'قروض الموظفين' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   const {
     data = [],
     isLoading,
@@ -165,7 +150,10 @@ export default function EmployeeLoansPage() {
       'repayment_method',
       'repayment_periods',
     ],
-    filters: [['applicant_type', '=', 'Employee']],
+    filters: [
+      ['applicant_type', '=', 'Employee'],
+      ...(company ? [['company', '=', company] as string[]] : []),
+    ],
     order_by: 'modified desc',
     limit: 300,
   });
@@ -482,6 +470,21 @@ export default function EmployeeLoansPage() {
   );
 
   /* ── Render ── */
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="قروض الموظفين"
+          description="إدارة القروض وأقساط السداد — الإنشاء والترحيل والمتابعة"
+          iconify="solar:hand-money-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'قروض الموظفين' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <PageHeader

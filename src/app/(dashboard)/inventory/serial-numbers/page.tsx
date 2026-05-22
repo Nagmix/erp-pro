@@ -27,12 +27,13 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Plus, Filter, ChevronDown, X, Hash, CheckCircle, AlertTriangle, Send } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 
 type SerialRow = {
   name: string;
@@ -69,8 +70,13 @@ function SerialStatusBadge({ status }: { status?: string }) {
 }
 
 export default function SerialNumbersPage() {
+  const { company } = useDefaultCompanyName();
   const [deleteDialog, setDeleteDialog] = useState<SerialRow | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<SerialRow | null>(null);
+  const [viewTarget, setViewTarget] = useState<SerialRow | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -82,8 +88,14 @@ export default function SerialNumbersPage() {
   const [purchaseDate, setPurchaseDate] = useState('');
   const [warrantyExpiry, setWarrantyExpiry] = useState('');
 
+  // Edit dialog fields
+  const [editWarehouse, setEditWarehouse] = useState('');
+  const [editPurchaseDate, setEditPurchaseDate] = useState('');
+  const [editWarrantyExpiry, setEditWarrantyExpiry] = useState('');
+
   const { data, isLoading, isError, error, refetch } = useDocList<SerialRow>('Serial No', {
     fields: ['name', 'item_code', 'item_name', 'warehouse', 'status', 'purchase_date', 'warranty_expiry_date', 'docstatus'],
+    filters: company ? [['company', '=', company]] : undefined,
     limit: 500,
     order_by: 'modified desc',
   });
@@ -91,6 +103,7 @@ export default function SerialNumbersPage() {
   const createMutation = useCreateDoc('Serial No');
   const deleteMutation = useDeleteDoc('Serial No');
   const submitMut = useSubmitDoc('Serial No');
+  const updateMutation = useUpdateDoc('Serial No');
 
   const serials = data || [];
 
@@ -139,8 +152,37 @@ export default function SerialNumbersPage() {
         return <span className={cn('text-xs', isExpired && 'text-destructive font-medium')}>{formatDate(String(value))}</span>;
       }},
       { key: 'docstatus', header: 'مستند', render: (value) => <DocStatusBadge docstatus={Number(value ?? 0) as 0 | 1 | 2} /> },
+      {
+        key: '_submit',
+        header: 'ترحيل',
+        width: 'w-28',
+        render: (_v, row) => {
+          const ds = Number(row.docstatus ?? 0);
+          if (ds === 0) {
+            return (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="h-7 text-xs gap-1"
+                disabled={submitMut.isPending}
+                onClick={() =>
+                  submitMut.mutate(row.name, {
+                    onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
+                    onError: () => toast.error('فشل الترحيل'),
+                  })
+                }
+              >
+                <Send className="h-3 w-3" />
+                ترحيل
+              </Button>
+            );
+          }
+          return '—';
+        },
+      },
     ],
-    []
+    [submitMut, refetch, toast]
   );
 
   const resetCreateForm = () => {
@@ -258,14 +300,22 @@ export default function SerialNumbersPage() {
         loading={isLoading}
         onDelete={(row) => Number(row.docstatus) === 0 && setDeleteDialog(row)}
         onEdit={(row) => {
-          if (Number(row.docstatus) !== 0) return;
-          submitMut.mutate(row.name, {
-            onSuccess: () => toast.success('تم الترحيل'),
-            onError: () => toast.error('فشل الترحيل'),
-          });
+          const ds = Number(row.docstatus);
+          if (ds === 0) {
+            // فتح حوار التعديل للمسودات
+            setEditTarget(row);
+            setEditWarehouse(row.warehouse || '');
+            setEditPurchaseDate(row.purchase_date || '');
+            setEditWarrantyExpiry(row.warranty_expiry_date || '');
+            setEditDialogOpen(true);
+          } else {
+            // عرض للقراءة فقط للمستندات المرحّلة
+            setViewTarget(row);
+            setViewDialogOpen(true);
+          }
         }}
       />
-      <p className="text-xs text-muted-foreground">للمسودات: من القائمة «تعديل» لترحيل السجل، أو «حذف» لإزالة المسودة.</p>
+      <p className="text-xs text-muted-foreground">للمسودات: «تعديل» لفتح نافذة التعديل، أو زر «ترحيل» لتأكيد المستند.</p>
 
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
         <AlertDialogContent dir="rtl">
@@ -317,6 +367,112 @@ export default function SerialNumbersPage() {
               {(createMutation.isPending || submitMut.isPending) ? '...' : 'حفظ وترحيل'}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* حوار تعديل الرقم التسلسلي (للمسودات فقط) */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>تعديل الرقم التسلسلي</DialogTitle>
+          </DialogHeader>
+          {editTarget && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs">الرقم التسلسلي</Label>
+                <Input value={editTarget.name} disabled className="bg-muted" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">الصنف</Label>
+                <Input value={editTarget.item_code || ''} disabled className="bg-muted" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">المستودع</Label>
+                <ErpLinkCombobox doctype="Warehouse" value={editWarehouse} onChange={setEditWarehouse} placeholder="اختر المستودع..." />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs">تاريخ الشراء</Label>
+                  <Input type="date" dir="ltr" value={editPurchaseDate} onChange={(e) => setEditPurchaseDate(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">انتهاء الضمان</Label>
+                  <Input type="date" dir="ltr" value={editWarrantyExpiry} onChange={(e) => setEditWarrantyExpiry(e.target.value)} />
+                </div>
+              </div>
+              <Button className="w-full" onClick={() => {
+                updateMutation.mutate(
+                  {
+                    name: editTarget.name,
+                    doc: {
+                      warehouse: editWarehouse || undefined,
+                      purchase_date: editPurchaseDate || undefined,
+                      warranty_expiry_date: editWarrantyExpiry || undefined,
+                    },
+                  },
+                  {
+                    onSuccess: () => {
+                      toast.success('تم تعديل الرقم التسلسلي');
+                      setEditDialogOpen(false);
+                      setEditTarget(null);
+                      void refetch();
+                    },
+                    onError: () => toast.error('تعذر تعديل الرقم التسلسلي'),
+                  },
+                );
+              }} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? '...' : 'حفظ التعديل'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* حوار عرض الرقم التسلسلي (للقراءة فقط - المستندات المرحّلة) */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>عرض الرقم التسلسلي</DialogTitle>
+          </DialogHeader>
+          {viewTarget && (
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">الرقم التسلسلي</span>
+                  <span className="font-medium text-primary">{viewTarget.name}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">الصنف</span>
+                  <span>{viewTarget.item_code || '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">اسم الصنف</span>
+                  <span>{viewTarget.item_name || '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">المستودع</span>
+                  <span>{viewTarget.warehouse || '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">الحالة</span>
+                  <SerialStatusBadge status={viewTarget.status} />
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">تاريخ الشراء</span>
+                  <span>{viewTarget.purchase_date ? formatDate(viewTarget.purchase_date) : '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">انتهاء الضمان</span>
+                  <span>{viewTarget.warranty_expiry_date ? formatDate(viewTarget.warranty_expiry_date) : '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">حالة المستند</span>
+                  <DocStatusBadge docstatus={Number(viewTarget.docstatus ?? 0) as 0 | 1 | 2} />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">هذا مستند مرحّل ولا يمكن تعديله</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

@@ -150,6 +150,7 @@ export default function EmployeeAdvancesPage() {
       'company',
       'currency',
     ],
+    filters: company ? [['company', '=', company]] : undefined,
     order_by: 'modified desc',
     limit: 300,
   });
@@ -161,21 +162,6 @@ export default function EmployeeAdvancesPage() {
   const cancelMut = useCancelDoc('Employee Advance');
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
-
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="سلف الموظفين"
-          description="إدارة السلف والعهد للموظفين — الإنشاء والترحيل والمطالبات"
-          iconify="solar:wallet-bold-duotone"
-          accent="warning"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'سلف الموظفين' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
 
   /* ── Filters ── */
   const [search, setSearch] = useState('');
@@ -472,6 +458,21 @@ export default function EmployeeAdvancesPage() {
   );
 
   /* ── Render ── */
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="سلف الموظفين"
+          description="إدارة السلف والعهد للموظفين — الإنشاء والترحيل والمطالبات"
+          iconify="solar:wallet-bold-duotone"
+          accent="warning"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'سلف الموظفين' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <PageHeader

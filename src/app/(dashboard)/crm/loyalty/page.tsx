@@ -72,7 +72,7 @@ export default function CrmLoyaltyPage() {
   const [editFormData, setEditFormData] = useState(emptyForm);
 
   const { data = [], isLoading, isError, error, refetch } = useDocList<LPRow>('Loyalty Program', {
-    fields: ['name', 'loyalty_program_name', 'from_date', 'collection_factor', 'company', 'auto_optimize'],
+    fields: ['name', 'loyalty_program_name', 'from_date', 'collection_factor', 'company', 'auto_optimize', 'collection_rules'],
     limit: 200,
     order_by: 'modified desc',
   });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,7 +67,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
-import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc, useDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -164,6 +164,11 @@ export default function ShippingCompaniesPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  // ── Shipping Settings State ──
+  const [settingsExpenseAccount, setSettingsExpenseAccount] = useState('');
+  const [settingsRevenueAccount, setSettingsRevenueAccount] = useState('');
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
   // ── Data ──
   const { data, isLoading, isError, error, refetch } = useDocList<ShippingCompanyRow>(DOCTYPE, {
     fields: [
@@ -191,6 +196,37 @@ export default function ShippingCompaniesPage() {
   const createMutation = useCreateDoc<ShippingCompanyRow>(DOCTYPE);
   const updateMutation = useUpdateDoc<ShippingCompanyRow>(DOCTYPE);
   const deleteMutation = useDeleteDoc(DOCTYPE);
+
+  // ── Load shipping settings from ERPNext ──
+  const { data: shippingSettingsDoc } = useDoc<Record<string, unknown>>(
+    'Stock Settings',
+    'Stock Settings'
+  );
+
+  // ── Sync settings state from ERPNext doc ──
+  useEffect(() => {
+    if (!shippingSettingsDoc) return;
+    const exp = shippingSettingsDoc.shipping_expense_account;
+    const rev = shippingSettingsDoc.shipping_revenue_account;
+    if (typeof exp === 'string' && exp) queueMicrotask(() => setSettingsExpenseAccount(exp));
+    if (typeof rev === 'string' && rev) queueMicrotask(() => setSettingsRevenueAccount(rev));
+  }, [shippingSettingsDoc]);
+
+  // ── Save shipping settings ──
+  const handleSaveSettings = useCallback(async () => {
+    setSettingsSaving(true);
+    try {
+      const payload: Record<string, unknown> = {};
+      if (settingsExpenseAccount) payload.shipping_expense_account = settingsExpenseAccount;
+      if (settingsRevenueAccount) payload.shipping_revenue_account = settingsRevenueAccount;
+      await updateMutation.mutateAsync({ name: 'Stock Settings', doc: payload });
+      toast.success('تم حفظ إعدادات توزيع رسوم الشحن بنجاح');
+    } catch {
+      toast.error('تعذر حفظ إعدادات توزيع رسوم الشحن');
+    } finally {
+      setSettingsSaving(false);
+    }
+  }, [settingsExpenseAccount, settingsRevenueAccount, updateMutation]);
 
   const rows = data || [];
   const chk = (v: unknown) => Number(v) === 1 || v === true;
@@ -620,8 +656,8 @@ export default function ShippingCompaniesPage() {
               </p>
               <ErpLinkCombobox
                 doctype="Account"
-                value={''}
-                onChange={() => {}}
+                value={settingsExpenseAccount}
+                onChange={setSettingsExpenseAccount}
                 placeholder="اختر حساب المصروفات"
                 filters={{ root_type: 'Expense' }}
               />
@@ -636,8 +672,8 @@ export default function ShippingCompaniesPage() {
               </p>
               <ErpLinkCombobox
                 doctype="Account"
-                value={''}
-                onChange={() => {}}
+                value={settingsRevenueAccount}
+                onChange={setSettingsRevenueAccount}
                 placeholder="اختر حساب الإيرادات"
                 filters={{ root_type: 'Income' }}
               />
@@ -652,6 +688,19 @@ export default function ShippingCompaniesPage() {
                 والإيرادات المحددة أعلاه. تأكد من صحة الحسابات قبل إصدار الفواتير.
               </div>
             </div>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(false)} className="text-muted-foreground">
+              إغلاق
+            </Button>
+            <Button
+              size="sm"
+              className="gap-1.5 min-w-[120px]"
+              disabled={settingsSaving}
+              onClick={() => void handleSaveSettings()}
+            >
+              {settingsSaving ? 'جاري الحفظ...' : 'حفظ الإعدادات'}
+            </Button>
           </div>
         </PageShell>
       )}

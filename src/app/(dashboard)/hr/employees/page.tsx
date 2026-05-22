@@ -216,22 +216,6 @@ export default function EmployeesPage() {
   /* ── فحص HRMS ── */
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  // إذا لم يكن HRMS مثبتاً، أظهر رسالة تحذيرية
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="الموظفين"
-          description="إدارة بيانات الموظفين، الأقسام، المسميات الوظيفية، الحالة الوظيفية وروابطها"
-          iconify="solar:users-group-rounded-bold-duotone"
-          accent="success"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الموظفون' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   /* ── الحالة ── */
   const [statusFilter, setStatusFilter] = useState('all');
   const [deptFilter, setDeptFilter] = useState('all');
@@ -264,6 +248,7 @@ export default function EmployeesPage() {
         'cell_number',
         'personal_email',
       ],
+      filters: defaultCompany ? [['company', '=', defaultCompany]] : undefined,
       limit: 500,
     });
 
@@ -289,6 +274,22 @@ export default function EmployeesPage() {
     });
     return Array.from(s).sort();
   }, [employees]);
+
+  // إذا لم يكن HRMS مثبتاً، أظهر رسالة تحذيرية
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="الموظفين"
+          description="إدارة بيانات الموظفين، الأقسام، المسميات الوظيفية، الحالة الوظيفية وروابطها"
+          iconify="solar:users-group-rounded-bold-duotone"
+          accent="success"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الموظفون' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── فلاتر ── */
   let filtered = employees;

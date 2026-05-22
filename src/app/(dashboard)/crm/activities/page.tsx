@@ -48,9 +48,10 @@ import {
   ChevronDown,
   Loader2,
   Trash2,
+  Pencil,
 } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
-import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { buildCommunicationCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -167,6 +168,17 @@ export default function ActivitiesPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Row | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editRow, setEditRow] = useState<Row | null>(null);
+
+  // Edit form state
+  const [editSubject, setEditSubject] = useState('');
+  const [editMedium, setEditMedium] = useState<MediumType>('Phone');
+  const [editContent, setEditContent] = useState('');
+  const [editRefType, setEditRefType] = useState('');
+  const [editRefName, setEditRefName] = useState('');
+  const [editPhoneNo, setEditPhoneNo] = useState('');
+  const [editSender, setEditSender] = useState('');
 
   // Form state
   const [subject, setSubject] = useState('');
@@ -192,6 +204,7 @@ export default function ActivitiesPage() {
   });
 
   const createMutation = useCreateDoc('Communication');
+  const updateMutation = useUpdateDoc('Communication');
   const deleteMutation = useDeleteDoc('Communication');
 
   const activities = data || [];
@@ -318,6 +331,43 @@ export default function ActivitiesPage() {
       onSuccess: () => { toast.success('تم تسجيل النشاط بنجاح'); setDialogOpen(false); resetForm(); },
       onError: () => toast.error('فشل حفظ النشاط'),
     });
+  };
+
+  const openEditDialog = (row: Row) => {
+    setEditRow(row);
+    setEditSubject(row.subject || '');
+    setEditMedium((row.communication_medium as MediumType) || 'Phone');
+    setEditContent(row.content || '');
+    setEditRefType(row.reference_doctype || '');
+    setEditRefName(row.reference_name || '');
+    setEditPhoneNo(row.phone_no || '');
+    setEditSender(row.sender || '');
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdate = () => {
+    if (!editRow) return;
+    if (!editSubject.trim()) { toast.error('الموضوع مطلوب'); return; }
+    const doc: Record<string, unknown> = {
+      subject: editSubject,
+      communication_medium: editMedium,
+      content: editContent || undefined,
+    };
+    if (editRefType) {
+      doc.reference_doctype = editRefType;
+      doc.reference_name = editRefName || undefined;
+    }
+    if (editSender) doc.sender = editSender;
+    if (editMedium === 'Phone' || editMedium === 'SMS') {
+      if (editPhoneNo) doc.phone_no = editPhoneNo;
+    }
+    updateMutation.mutate(
+      { name: editRow.name, doc },
+      {
+        onSuccess: () => { toast.success('تم تحديث النشاط بنجاح'); setEditDialogOpen(false); setEditRow(null); void refetch(); },
+        onError: () => toast.error('فشل تحديث النشاط'),
+      },
+    );
   };
 
   const clearFilters = () => {
@@ -460,6 +510,7 @@ export default function ActivitiesPage() {
               columns={columns}
               searchable
               loading={isLoading}
+              onEdit={(row) => openEditDialog(row)}
               onDelete={(r) => { setToDelete(r); setDeleteDialogOpen(true); }}
               tableId="crm-activities"
               exportFileName="crm-activities.csv"
@@ -502,6 +553,124 @@ export default function ActivitiesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ─── Edit Dialog ─── */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                <Pencil className="h-5 w-5" />
+              </div>
+              <div>
+                <span>تعديل النشاط</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">تعديل: {editRow?.subject || editRow?.name}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[65vh] overflow-y-auto">
+            <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="bg-gradient-to-l from-info/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-info/10 flex items-center justify-center">
+                    <Activity className="h-3 w-3 text-info" />
+                  </span>
+                  البيانات الأساسية
+                </h4>
+              </div>
+              <div className="p-4 space-y-4 bg-card/50">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">الموضوع <span className="text-destructive text-xs">*</span></Label>
+                  <Input placeholder="موضوع النشاط" value={editSubject} onChange={(e) => setEditSubject(e.target.value)} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">وسيلة التواصل</Label>
+                    <Select value={editMedium} onValueChange={(v) => setEditMedium(v as MediumType)}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MEDIUM_OPTIONS.map((m) => (
+                          <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">المرسل</Label>
+                    <ErpLinkCombobox
+                      doctype="User"
+                      value={editSender}
+                      onChange={setEditSender}
+                      placeholder="اختر المرسل..."
+                      displayKey="full_name"
+                      showCreateShortcut={false}
+                    />
+                  </div>
+                </div>
+                {(editMedium === 'Phone' || editMedium === 'SMS') && (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">رقم الهاتف</Label>
+                    <Input dir="ltr" placeholder="رقم الهاتف" value={editPhoneNo} onChange={(e) => setEditPhoneNo(e.target.value)} />
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">المحتوى / الملاحظات</Label>
+                  <Textarea placeholder="أدخل تفاصيل النشاط..." value={editContent} onChange={(e) => setEditContent(e.target.value)} className="min-h-[80px]" />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="bg-gradient-to-l from-success/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-md bg-success/10 flex items-center justify-center">
+                    <Link2 className="h-3 w-3 text-success" />
+                  </span>
+                  الارتباط (اختياري)
+                </h4>
+              </div>
+              <div className="p-4 space-y-4 bg-card/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">نوع المرجع</Label>
+                    <Select value={editRefType || '_none'} onValueChange={(v) => { setEditRefType(v === '_none' ? '' : v); setEditRefName(''); }}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="بدون مرجع" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="_none">بدون مرجع</SelectItem>
+                        {REF_TYPE_OPTIONS.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {editRefType && (
+                    <div className="space-y-1.5">
+                      <Label className="text-sm font-medium">اسم المرجع</Label>
+                      <ErpLinkCombobox
+                        doctype={editRefType}
+                        value={editRefName}
+                        onChange={setEditRefName}
+                        displayKey={editRefType === 'Customer' ? 'customer_name' : undefined}
+                        placeholder="اختر السجل..."
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </fieldset>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button variant="ghost" onClick={() => setEditDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+            <Button onClick={handleUpdate} disabled={updateMutation.isPending} className="gap-1.5 min-w-[130px]">
+              {updateMutation.isPending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ─── Create Dialog ─── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

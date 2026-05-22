@@ -64,21 +64,6 @@ export default function BankDisbursementPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="الصرف البنكي"
-          description="إدارة صرف الرواتب عبر البنوك وإنشاء سندات الدفع وتصدير الملفات البنكية"
-          iconify="solar:bank-bold-duotone"
-          accent="success"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الصرف البنكي' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   /* ── Fetch submitted salary slips ── */
   const { data, isLoading, isError, error, refetch } = useDocList<SalarySlipRow>('Salary Slip', {
     fields: [
@@ -176,6 +161,21 @@ export default function BankDisbursementPage() {
     URL.revokeObjectURL(url);
     toast.success(`تم تصدير ملف البنك (${rows.length} سجل)`);
   }, [filtered]);
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="الصرف البنكي"
+          description="إدارة صرف الرواتب عبر البنوك وإنشاء سندات الدفع وتصدير الملفات البنكية"
+          iconify="solar:bank-bold-duotone"
+          accent="success"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الصرف البنكي' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   /* ── Columns ── */
   const columns: Column<SalarySlipRow>[] = [
