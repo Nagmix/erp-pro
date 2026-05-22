@@ -287,10 +287,7 @@ export default function ItemVariantsPage() {
     return result;
   }, [groups, search, statusFilter]);
 
-  // عدد التبديلات لكل مجموعة
-  const variantCounts = useMemo(() => {
-    return new Map<string, number>();
-  }, []);
+
 
   // ─── إعادة حساب التوليفات ──────────────────────────────────
   useEffect(() => {
@@ -542,7 +539,7 @@ export default function ItemVariantsPage() {
             })),
         } as Record<string, unknown>);
       } catch (err) {
-        console.error('فشل تحديث صنف القالب:', err);
+        toast.error('فشل تحديث صنف القالب', { description: String(err) });
       }
 
       // 3. إنشاء التبديلات
@@ -739,7 +736,7 @@ export default function ItemVariantsPage() {
   const totalGroups = groups.length;
   const totalActiveGroups = groups.filter((g) => !isFlag(g.disabled)).length;
   const totalAttributes = allAttributes?.length || 0;
-  const estimatedVariants = groups.length * 3; // تقدير متوسط
+
 
   // ─── عرض الصفحة ─────────────────────────────────────────────
   return (

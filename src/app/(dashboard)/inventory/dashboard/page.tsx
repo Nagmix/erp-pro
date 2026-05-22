@@ -15,7 +15,6 @@ import {
   Warehouse,
   ArrowRightLeft,
   AlertTriangle,
-  Box,
   CircleAlert,
   ClipboardCheck,
   Layers,

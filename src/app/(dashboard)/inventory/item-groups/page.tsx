@@ -49,7 +49,6 @@ import {
   Loader2,
   FolderOpen,
   Tag,
-  Layers,
 } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
@@ -195,11 +194,15 @@ export default function ItemGroupsPage() {
 
   const filteredGroups = useMemo(() => {
     let result = groups;
+    if (search) {
+      const s = search.toLowerCase();
+      result = result.filter(g => g.name.toLowerCase().includes(s) || (g.parent_item_group || '').toLowerCase().includes(s));
+    }
     if (filterParent !== 'all') result = result.filter(g => g.parent_item_group === filterParent);
     if (filterIsGroup === 'yes') result = result.filter(g => Number(g.is_group) === 1 || g.is_group === true);
     if (filterIsGroup === 'no') result = result.filter(g => Number(g.is_group) !== 1 && g.is_group !== true);
     return result;
-  }, [groups, filterParent, filterIsGroup]);
+  }, [groups, search, filterParent, filterIsGroup]);
 
   /* ── KPI calculations ── */
   const totalGroups = groups.length;

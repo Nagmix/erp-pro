@@ -137,7 +137,10 @@ export default function ContractsPage() {
       'docstatus',
       'company',
     ],
-    filters: [['party_type', '=', 'Employee']],
+    filters: [
+      ['party_type', '=', 'Employee'],
+      ...(company ? [['company', '=', company] as string[]] : []),
+    ],
     order_by: 'modified desc',
     limit: 200,
   });
@@ -162,28 +165,6 @@ export default function ContractsPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="عقود الموظفين"
-          description="إدارة عقود الموظفين (Contract) — الإنشاء والتعديل والترحيل والإلغاء"
-          iconify="solar:document-text-bold-duotone"
-          accent="primary"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'العقود' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
-  const clearFilters = () => {
-    setSearch('');
-    setDateFrom('');
-    setDateTo('');
-    setStatusFilter('all');
-  };
-
   const filtered = useMemo(() => {
     return contracts.filter((row) => {
       if (search) {
@@ -206,6 +187,142 @@ export default function ContractsPage() {
       return true;
     });
   }, [contracts, search, dateFrom, dateTo, statusFilter]);
+
+  const columns: Column<ContractRow>[] = useMemo(
+    () => [
+      {
+        key: 'name',
+        header: 'الرقم',
+        sortable: true,
+        width: 'w-28',
+        render: (value) => (
+          <span className="font-medium text-primary">{String(value)}</span>
+        ),
+      },
+      {
+        key: 'party_name',
+        header: 'الموظف',
+        sortable: true,
+        render: (_, row) => (
+          <span className="font-medium">{row.party_name || '—'}</span>
+        ),
+      },
+      {
+        key: 'start_date',
+        header: 'تاريخ البدء',
+        sortable: true,
+        render: (_, row) => formatDate(String(row.start_date || '')),
+      },
+      {
+        key: 'end_date',
+        header: 'تاريخ الانتهاء',
+        render: (_, row) => formatDate(String(row.end_date || '')),
+      },
+      {
+        key: 'contract_type',
+        header: 'نوع العقد',
+        render: (v) => contractTypeLabels[String(v)] || String(v || '—'),
+      },
+      {
+        key: 'status',
+        header: 'الحالة',
+        render: (_, row) => {
+          const s = contractStatusLabel(row);
+          return (
+            <Badge variant={contractStatusVariant(s)} className="text-xs">
+              {s}
+            </Badge>
+          );
+        },
+      },
+      {
+        key: 'docstatus',
+        header: 'المستند',
+        render: (v) => <DocStatusBadge docstatus={Number(v ?? 0) as 0 | 1 | 2} />,
+      },
+      {
+        key: '_actions',
+        header: 'إجراءات',
+        width: 'w-44',
+        render: (_, row) => {
+          const ds = Number(row.docstatus);
+          return (
+            <div className="flex flex-wrap gap-1">
+              {ds === 0 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-7 text-xs gap-1"
+                  onClick={() => openEditDialog(row)}
+                >
+                  <Edit className="h-3 w-3" />
+                  تعديل
+                </Button>
+              )}
+              {ds === 0 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  onClick={() => handleSubmit(row)}
+                >
+                  <Send className="h-3 w-3" />
+                  ترحيل
+                </Button>
+              )}
+              {ds === 1 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs gap-1"
+                  onClick={() => handleCancel(row)}
+                >
+                  <Undo2 className="h-3 w-3" />
+                  إلغاء
+                </Button>
+              )}
+              {ds < 2 && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 text-xs text-destructive"
+                  onClick={() => setDeleteDialog(row)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+          );
+        },
+      },
+    ],
+    []
+  );
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="عقود الموظفين"
+          description="إدارة عقود الموظفين (Contract) — الإنشاء والتعديل والترحيل والإلغاء"
+          iconify="solar:document-text-bold-duotone"
+          accent="primary"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'العقود' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
+  const clearFilters = () => {
+    setSearch('');
+    setDateFrom('');
+    setDateTo('');
+    setStatusFilter('all');
+  };
 
   const openCreateDialog = () => {
     setEditingDoc(null);
@@ -333,8 +450,8 @@ export default function ContractsPage() {
       toast.success('تم حذف العقد');
       setDeleteDialog(null);
       void refetch();
-    } catch (e: any) {
-      toast.error('تعذر الحذف', { description: e.message });
+    } catch (e: unknown) {
+      toast.error('تعذر الحذف', { description: e instanceof Error ? e.message : String(e) });
     }
   };
 
@@ -345,120 +462,6 @@ export default function ContractsPage() {
   const submittedCount = contracts.filter(
     (r) => Number(r.docstatus) === 1
   ).length;
-
-  const columns: Column<ContractRow>[] = useMemo(
-    () => [
-      {
-        key: 'name',
-        header: 'الرقم',
-        sortable: true,
-        width: 'w-28',
-        render: (value) => (
-          <span className="font-medium text-primary">{String(value)}</span>
-        ),
-      },
-      {
-        key: 'party_name',
-        header: 'الموظف',
-        sortable: true,
-        render: (_, row) => (
-          <span className="font-medium">{row.party_name || '—'}</span>
-        ),
-      },
-      {
-        key: 'start_date',
-        header: 'تاريخ البدء',
-        sortable: true,
-        render: (_, row) => formatDate(String(row.start_date || '')),
-      },
-      {
-        key: 'end_date',
-        header: 'تاريخ الانتهاء',
-        render: (_, row) => formatDate(String(row.end_date || '')),
-      },
-      {
-        key: 'contract_type',
-        header: 'نوع العقد',
-        render: (v) => contractTypeLabels[String(v)] || String(v || '—'),
-      },
-      {
-        key: 'status',
-        header: 'الحالة',
-        render: (_, row) => {
-          const s = contractStatusLabel(row);
-          return (
-            <Badge variant={contractStatusVariant(s)} className="text-xs">
-              {s}
-            </Badge>
-          );
-        },
-      },
-      {
-        key: 'docstatus',
-        header: 'المستند',
-        render: (v) => <DocStatusBadge docstatus={Number(v ?? 0) as 0 | 1 | 2} />,
-      },
-      {
-        key: '_actions',
-        header: 'إجراءات',
-        width: 'w-44',
-        render: (_, row) => {
-          const ds = Number(row.docstatus);
-          return (
-            <div className="flex flex-wrap gap-1">
-              {ds === 0 && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  className="h-7 text-xs gap-1"
-                  onClick={() => openEditDialog(row)}
-                >
-                  <Edit className="h-3 w-3" />
-                  تعديل
-                </Button>
-              )}
-              {ds === 0 && (
-                <Button
-                  type="button"
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                  onClick={() => handleSubmit(row)}
-                >
-                  <Send className="h-3 w-3" />
-                  ترحيل
-                </Button>
-              )}
-              {ds === 1 && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="h-7 text-xs gap-1"
-                  onClick={() => handleCancel(row)}
-                >
-                  <Undo2 className="h-3 w-3" />
-                  إلغاء
-                </Button>
-              )}
-              {ds < 2 && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 text-xs text-destructive"
-                  onClick={() => setDeleteDialog(row)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
-          );
-        },
-      },
-    ],
-    [submitMutation, cancelMutation, toast, refetch]
-  );
 
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">

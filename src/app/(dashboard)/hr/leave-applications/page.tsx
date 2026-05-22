@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, CheckCircle, Clock, FileX, Calendar, Filter, ChevronDown, Upload, X, Undo2 } from 'lucide-react';
+import { Plus, CheckCircle, Clock, FileX, Calendar, Filter, ChevronDown, X, Undo2 } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useUpdateDoc, useCancelDoc } from '@/lib/client/hooks';
@@ -39,6 +39,7 @@ import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 interface LeaveRow {
@@ -85,8 +86,11 @@ export default function LeaveApplicationsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
+  const { company } = useDefaultCompanyName();
+
   const { data, isLoading, isError, error, refetch } = useDocList<LeaveRow>('Leave Application', {
     fields: ['name', 'employee', 'employee_name', 'leave_type', 'from_date', 'to_date', 'total_leave_days', 'status', 'description', 'docstatus'],
+    filters: company ? [['company', '=', company]] : [],
     limit: 400,
     order_by: 'modified desc'});
   const createMutation = useCreateDoc('Leave Application');
@@ -101,21 +105,6 @@ export default function LeaveApplicationsPage() {
     order_by: 'creation desc'});
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
-
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="طلبات الإجازة"
-          description="إدارة طلبات الإجازة ومتابعة الموافقات وحالة الطلب وأرصدة الموظفين"
-          iconify="solar:calendar-bold-duotone"
-          accent="info"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'طلبات الإجازة' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
 
   const leaveApplications = data ?? [];
   const filtered = useMemo(() => {
@@ -135,7 +124,26 @@ export default function LeaveApplicationsPage() {
     // Status filter from advanced filters
     if (leaveStatusFilter !== 'all') result = result.filter((l) => l.status === leaveStatusFilter);
     return result;
-  }, [leaveApplications, filter, search, dateFrom, dateTo, leaveStatusFilter]);  const calculateDays = () => {
+  }, [leaveApplications, filter, search, dateFrom, dateTo, leaveStatusFilter]);
+
+  const draftLeaves = leaveApplications.filter((l) => Number(l.docstatus) === 0);
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="طلبات الإجازة"
+          description="إدارة طلبات الإجازة ومتابعة الموافقات وحالة الطلب وأرصدة الموظفين"
+          iconify="solar:calendar-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'طلبات الإجازة' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
+  const calculateDays = () => {
     if (formData.from_date && formData.to_date) {
       const start = new Date(formData.from_date);
       const end = new Date(formData.to_date);
@@ -178,7 +186,6 @@ export default function LeaveApplicationsPage() {
       onError: () => toast.error('فشل الترحيل')});
   };
 
-  const draftLeaves = leaveApplications.filter((l) => Number(l.docstatus) === 0);
   const clearFilters = () => { setSearch(''); setLeaveStatusFilter('all'); };
 
 

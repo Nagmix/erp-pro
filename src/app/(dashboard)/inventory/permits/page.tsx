@@ -49,7 +49,6 @@ import {
   ClipboardList,
   Plus,
   Trash2,
-  Send,
   Undo2,
   CheckCircle2,
   XCircle,
@@ -63,13 +62,10 @@ import {
   Eye,
   Link2,
   Warehouse,
-  AlertTriangle,
-  Ban,
   BookOpen,
   Receipt,
-  Settings2,
 } from 'lucide-react';
-import { PageHeader, PageShell } from '@/components/erp/page-header';
+import { PageHeader } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -102,6 +98,8 @@ interface PermitRow {
 
 interface PermitItemRow {
   item_code: string;
+  item_name?: string;
+  uom?: string;
   qty: number;
   basic_rate: string;
   s_warehouse?: string;
@@ -117,22 +115,9 @@ const PERMIT_TYPE_MAP: Record<string, string> = {
   inbound: 'إذن إضافة',
 };
 
-const PERMIT_TYPE_REVERSE: Record<string, string> = {
-  'إذن صرف': 'outbound',
-  'إذن إضافة': 'inbound',
-};
-
 const STOCK_ENTRY_TYPE_MAP: Record<string, string> = {
   outbound: 'Material Issue',
   inbound: 'Material Receipt',
-};
-
-const STATUS_LABEL_MAP: Record<string, string> = {
-  draft: 'مسودة',
-  pending: 'بانتظار الاعتماد',
-  approved: 'معتمد',
-  confirmed: 'مؤكد',
-  cancelled: 'ملغي',
 };
 
 interface LineItem {
@@ -382,7 +367,7 @@ export default function InventoryPermitsPage() {
     const w = window.open('', '_blank');
     if (!w) return;
     const permitTypeLabel = PERMIT_TYPE_MAP[getPermitType(row)] || row.stock_entry_type || 'إذن';
-    const itemsHtml = (row.items || []).map((item: any, i: number) =>
+    const itemsHtml = (row.items || []).map((item: PermitItemRow, i: number) =>
       `<tr><td>${i + 1}</td><td>${item.item_code || ''}</td><td>${item.item_name || item.item_code || ''}</td><td>${item.qty || 0}</td><td>${item.uom || ''}</td></tr>`
     ).join('');
     const itemsTableHtml = itemsHtml ? `<table><thead><tr><th>#</th><th>كود الصنف</th><th>اسم الصنف</th><th>الكمية</th><th>الوحدة</th></tr></thead><tbody>${itemsHtml}</tbody></table>` : '';
@@ -418,7 +403,7 @@ export default function InventoryPermitsPage() {
   ${row.remarks ? `<p><strong>ملاحظات:</strong> ${row.remarks}</p>` : ''}
   ${itemsTableHtml}
   <div class="footer">
-    <p>تم الطباعة بتاريخ ${new Date().toLocaleDateString('en-US')} — نظام ERP Pro</p>
+    <p>تم الطباعة بتاريخ ${new Date().toLocaleDateString('ar-SA')} — نظام ERP Pro</p>
   </div>
 </body>
 </html>`);
@@ -483,14 +468,6 @@ export default function InventoryPermitsPage() {
               {label}
             </Badge>
           );
-        },
-      },
-      {
-        key: 'reference_invoice',
-        header: 'الفاتورة المرجعية',
-        render: (_v, row) => {
-          // This would be a custom field in a real implementation
-          return <span className="text-xs text-muted-foreground">—</span>;
         },
       },
       {
@@ -632,6 +609,37 @@ export default function InventoryPermitsPage() {
       />
 
       {/* ── KPI Strip ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="rounded-lg border border-border/40 bg-card p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <ClipboardList className="h-4 w-4 text-info" />
+            <span className="text-[11px] text-muted-foreground">إجمالي الأذون</span>
+          </div>
+          <p className="text-lg font-bold tabular-nums">{totalPermits}</p>
+        </div>
+        <div className="rounded-lg border border-border/40 bg-card p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Undo2 className="h-4 w-4 text-chart-2" />
+            <span className="text-[11px] text-muted-foreground">بانتظار التأكيد</span>
+          </div>
+          <p className="text-lg font-bold tabular-nums">{pendingApproval}</p>
+        </div>
+        <div className="rounded-lg border border-border/40 bg-card p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <CheckCircle2 className="h-4 w-4 text-chart-3" />
+            <span className="text-[11px] text-muted-foreground">مؤكدة</span>
+          </div>
+          <p className="text-lg font-bold tabular-nums">{confirmedPermits}</p>
+        </div>
+        <div className="rounded-lg border border-border/40 bg-card p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <ArrowUpFromLine className="h-4 w-4 text-chart-4" />
+            <span className="text-[11px] text-muted-foreground">إجمالي القيمة</span>
+          </div>
+          <p className="text-lg font-bold tabular-nums">{formatCurrency(totalValue)}</p>
+        </div>
+      </div>
+
       {/* ── Filters ── */}
       <div className="space-y-3">
         <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>

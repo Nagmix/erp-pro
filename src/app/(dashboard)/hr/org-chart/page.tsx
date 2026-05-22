@@ -39,11 +39,13 @@ import {
   Network,
   UserCircle,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { useDocList } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader } from '@/components/erp/page-header';
 import { cn } from '@/lib/utils';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
@@ -480,6 +482,13 @@ export default function OrgChartPage() {
       <ListQueryAlert error={isError ? error : null} onRetry={() => refetch()} />
 
       {/* ── KPI Strip ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <KpiCard title="إجمالي الموظفين" value={totalEmployees} icon={Users} accent="primary" compact />
+        <KpiCard title="مستويات الجذور" value={totalRoots} icon={Network} accent="info" compact />
+        <KpiCard title="الأقسام" value={departmentsCount} icon={Building2} accent="success" compact />
+        <KpiCard title="غير مرتبطين" value={unmatchedCount} icon={AlertTriangle} accent="warning" compact />
+      </div>
+
       {/* ── Search & Filters ── */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

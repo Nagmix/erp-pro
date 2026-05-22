@@ -37,6 +37,7 @@ type BatchRow = {
   name: string;
   item?: string;
   batch_id?: string;
+  description?: string;
   expiry_date?: string;
   manufacturing_date?: string;
   docstatus?: number;
@@ -95,7 +96,7 @@ export default function BatchesPage() {
       result = result.filter(r =>
         (r.name || '').toLowerCase().includes(s) ||
         (r.item || '').toLowerCase().includes(s) ||
-        ((r as any).description || '').toLowerCase().includes(s)
+        (r.description || '').toLowerCase().includes(s)
       );
     }
     return result;

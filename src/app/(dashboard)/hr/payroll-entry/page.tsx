@@ -39,21 +39,20 @@ import {
 } from '@/components/ui/collapsible';
 import {
   Calculator,
-  FileText,
   Send,
   Undo2,
   Plus,
   Filter,
   ChevronDown,
   X,
-  DollarSign,
-  FileCheck,
-  Ban,
-  Wallet,
   Loader2,
   Building2,
   Users,
+  FileCheck,
+  Ban,
+  CircleDollarSign,
 } from 'lucide-react';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useUpdateDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { buildPayrollEntryCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -157,21 +156,6 @@ export default function PayrollEntryPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="مسير الرواتب"
-          description="إنشاء جماعي واعتماد مسيرات الدفع وصرف الرواتب"
-          iconify="solar:calculator-bold-duotone"
-          accent="info"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'مسير الرواتب' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   const entries = data || [];
 
   // ── Companies list for filter ──
@@ -207,18 +191,6 @@ export default function PayrollEntryPage() {
     }
     return list;
   }, [entries, searchQuery, statusFilter, companyFilter, dateFrom, dateTo]);
-
-  // ── KPI Data ──
-  const totalEntries = entries.length;
-  const draftCount = entries.filter((e) => Number(e.docstatus) === 0).length;
-  const submittedCount = entries.filter((e) => Number(e.docstatus) === 1).length;
-  const totalGrossPay = entries
-    .filter((e) => Number(e.docstatus) === 1)
-    .reduce((sum, e) => sum + Number(e.total_gross_pay ?? 0), 0);
-  const cancelledCount = entries.filter((e) => Number(e.docstatus) === 2).length;
-  const totalEmployees = entries
-    .filter((e) => Number(e.docstatus) === 1)
-    .reduce((sum, e) => sum + Number(e.number_of_employees ?? 0), 0);
 
   // ── Table Columns ──
   const columns: Column<PayrollRow>[] = useMemo(
@@ -345,6 +317,33 @@ export default function PayrollEntryPage() {
     ],
     []
   );
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="مسير الرواتب"
+          description="إنشاء جماعي واعتماد مسيرات الدفع وصرف الرواتب"
+          iconify="solar:calculator-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'مسير الرواتب' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
+  // ── KPI Data ──
+  const totalEntries = entries.length;
+  const draftCount = entries.filter((e) => Number(e.docstatus) === 0).length;
+  const submittedCount = entries.filter((e) => Number(e.docstatus) === 1).length;
+  const totalGrossPay = entries
+    .filter((e) => Number(e.docstatus) === 1)
+    .reduce((sum, e) => sum + Number(e.total_gross_pay ?? 0), 0);
+  const cancelledCount = entries.filter((e) => Number(e.docstatus) === 2).length;
+  const totalEmployees = entries
+    .filter((e) => Number(e.docstatus) === 1)
+    .reduce((sum, e) => sum + Number(e.number_of_employees ?? 0), 0);
 
   // ── Create/Edit Dialog ──
   const openCreateDialog = () => {
@@ -474,6 +473,15 @@ export default function PayrollEntryPage() {
       />
 
       {/* ── KPI Strip ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
+        <KpiCard title="إجمالي المسيرات" value={totalEntries} icon={Calculator} accent="primary" compact />
+        <KpiCard title="مسودات" value={draftCount} icon={FileCheck} accent="warning" compact />
+        <KpiCard title="مُرحّلة" value={submittedCount} icon={Send} accent="success" compact />
+        <KpiCard title="ملغاة" value={cancelledCount} icon={Ban} accent="destructive" compact />
+        <KpiCard title="إجمالي الرواتب" value={formatCurrency(totalGrossPay)} icon={CircleDollarSign} accent="info" compact />
+        <KpiCard title="الموظفين" value={totalEmployees} icon={Users} accent="primary" compact />
+      </div>
+
       {/* ── Status Filter Pills ── */}
       <div className="rounded-2xl border border-border/40 bg-card/80 backdrop-blur-sm shadow-[var(--shadow-xs-ui)] p-3">
         <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/40 overflow-x-auto">

@@ -30,13 +30,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Plus,
-  Layers,
-  TrendingUp,
-  TrendingDown,
   Send,
   Trash2,
   Edit,
+  Layers,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
+import { KpiCard } from '@/components/erp/kpi-card';
 import {
   useDocList,
   useDeleteDoc,
@@ -614,6 +615,13 @@ export default function SalaryComponentsPage() {
         </div>
 
         {/* ─── Tab: المكوّنات ─── */}
+        {/* KPI Strip */}
+        <div className="grid grid-cols-3 gap-3">
+          <KpiCard title="إجمالي المكوّنات" value={totalCount} icon={Layers} accent="primary" compact />
+          <KpiCard title="استحقاق" value={earningCount} icon={TrendingUp} accent="success" compact />
+          <KpiCard title="استقطاع" value={deductionCount} icon={TrendingDown} accent="destructive" compact />
+        </div>
+
         <TabsContent value="components" className="mt-4 space-y-4">
           {/* Type filter */}
           <div className="flex items-center gap-2">

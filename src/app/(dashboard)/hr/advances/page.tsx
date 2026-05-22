@@ -60,11 +60,11 @@ import {
   Undo2,
   Edit,
   Wallet,
-  CircleDot,
   CheckCircle2,
-  DollarSign,
+  CircleDollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { toast } from 'sonner';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
@@ -325,8 +325,8 @@ export default function EmployeeAdvancesPage() {
       await deleteMut.mutateAsync(row.name);
       toast.success('تم حذف السلفة');
       setDeleteDialog(null);
-    } catch (e: any) {
-      toast.error(e?.message || 'تعذر الحذف');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'تعذر الحذف');
     }
   };
 
@@ -490,6 +490,13 @@ export default function EmployeeAdvancesPage() {
       />
 
       {/* KPI Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <KpiCard title="إجمالي السلف" value={totalCount} icon={Wallet} accent="primary" compact />
+        <KpiCard title="مفتوحة" value={openCount} icon={Edit} accent="warning" compact />
+        <KpiCard title="مطالَبة" value={claimedCount} icon={CheckCircle2} accent="success" compact />
+        <KpiCard title="إجمالي المبالغ" value={formatCurrency(totalAmount)} icon={CircleDollarSign} accent="info" compact />
+      </div>
+
       {/* Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

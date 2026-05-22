@@ -52,6 +52,7 @@ export default function InterBranchTransferPage() {
 
   const list = useDocList<{ name: string; branch?: string }>('Warehouse', {
     fields: ['name', 'branch'],
+    filters: company ? [['company', '=', company]] : undefined,
     limit: 800,
     order_by: 'name asc',
   });

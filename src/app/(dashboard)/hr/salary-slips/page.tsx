@@ -44,11 +44,12 @@ import {
   X,
   Download,
   Loader2,
-  Wallet,
   FileCheck,
   Ban,
-  DollarSign,
+  Receipt,
+  CircleDollarSign,
 } from 'lucide-react';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
 import { apiGetDoc } from '@/lib/client/api';
@@ -58,6 +59,7 @@ import { cn } from '@/lib/utils';
 import { pdf } from '@react-pdf/renderer';
 import { PayslipPDFDocument, type PayslipData } from '@/components/erp/payslip-pdf';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 // ── Types ────────────────────────────────────────────────────
@@ -98,6 +100,8 @@ export default function SalarySlipsPage() {
     setDateTo('');
   };
 
+  const { company } = useDefaultCompanyName();
+
   const {
     data,
     isLoading,
@@ -117,6 +121,7 @@ export default function SalarySlipsPage() {
       'docstatus',
       'currency',
     ],
+    filters: company ? [['company', '=', company]] : [],
     limit: 400,
     order_by: 'end_date desc',
   });
@@ -126,21 +131,6 @@ export default function SalarySlipsPage() {
   const cancelMut = useCancelDoc('Salary Slip');
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
-
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="قسائم الرواتب"
-          description="عرض قسائم الرواتب ومتابعة حالتها وترحيلها وطباعتها"
-          iconify="solar:document-text-bold-duotone"
-          accent="purple"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'قسائم الرواتب' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
 
   const salarySlips = data || [];
 
@@ -435,6 +425,21 @@ export default function SalarySlipsPage() {
     [printingSlip, handlePrintPDF]
   );
 
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="قسائم الرواتب"
+          description="عرض قسائم الرواتب ومتابعة حالتها وترحيلها وطباعتها"
+          iconify="solar:document-text-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'قسائم الرواتب' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
   // ── Render ─────────────────────────────────────────────────
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
@@ -462,6 +467,14 @@ export default function SalarySlipsPage() {
       />
 
       {/* ── KPI Strip ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <KpiCard title="إجمالي القسائم" value={totalSlips} icon={Receipt} accent="primary" compact />
+        <KpiCard title="مسودات" value={draftCount} icon={FileText} accent="warning" compact />
+        <KpiCard title="مُقدّمة" value={submittedCount} icon={FileCheck} accent="success" compact />
+        <KpiCard title="ملغاة" value={cancelledCount} icon={Ban} accent="destructive" compact />
+        <KpiCard title="صافي الرواتب" value={formatCurrency(totalNetPay)} icon={CircleDollarSign} accent="info" compact />
+      </div>
+
       {/* ── Search & Filters ── */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

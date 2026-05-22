@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatNumber, formatDate } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
+import { KpiCard } from '@/components/erp/kpi-card';
 import {
   UserCheck,
   UserX,
@@ -148,8 +149,17 @@ export default function HrDashboardPage() {
   const { data: holidayLists = [], isLoading: holLoading } = useDocList<Record<string, unknown>>(
     'Holiday List',
     {
-      fields: ['name', 'from_date', 'to_date'],
-      limit: 10,
+      fields: ['name', 'from_date', 'to_date', 'holidays'],
+      limit: 50,
+    }
+  );
+
+  const { data: contracts = [] } = useDocList<Record<string, unknown>>(
+    'Contract',
+    {
+      fields: ['name', 'end_date', 'party_name', 'docstatus'],
+      filters: [['party_type', '=', 'Employee'], ['docstatus', '=', '1']],
+      limit: 200,
     }
   );
 
@@ -165,22 +175,6 @@ export default function HrDashboardPage() {
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-  // إذا لم يكن HRMS مثبتاً، أظهر رسالة تحذيرية
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter mx-auto w-full max-w-[1600px]">
-        <PageHeader
-          title="لوحة تحكم الموارد البشرية"
-          description="متابعة الموظفين والحضور والإجازات والرواتب والأنشطة"
-          iconify="solar:users-group-rounded-bold-duotone"
-          accent="purple"
-          breadcrumbs={[{ label: 'الموارد البشرية' }, { label: 'لوحة التحكم' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
 
   const isLoading = empLoading || attLoading || leaveLoading || salaryLoading || holLoading;
 
@@ -224,9 +218,15 @@ export default function HrDashboardPage() {
   );
 
   const contractsExpiring = useMemo(() => {
-    // Would need Contract doctype - return 0 for now
-    return 0;
-  }, []);
+    const now = new Date();
+    const thirtyDaysLater = new Date(now);
+    thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+    return contracts.filter((c) => {
+      if (!c.end_date) return false;
+      const end = new Date(String(c.end_date));
+      return end >= now && end <= thirtyDaysLater;
+    }).length;
+  }, [contracts]);
 
   const avgAttendanceRate = useMemo(() => {
     const todayRecords = attendance.filter((a) => String(a.attendance_date) === today);
@@ -266,9 +266,23 @@ export default function HrDashboardPage() {
 
   /* ---------- Upcoming holidays ---------- */
   const upcomingHolidays = useMemo(() => {
-    // Would need to parse holiday list weekly_off and holidays
-    // For now, return empty array as we'd need a more detailed fetch
-    return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const upcoming: Record<string, unknown>[] = [];
+    for (const hl of holidayLists) {
+      const holidays = hl.holidays;
+      if (!Array.isArray(holidays)) continue;
+      for (const h of holidays) {
+        const dateStr = h.holiday_date as string | undefined;
+        if (!dateStr) continue;
+        const d = new Date(dateStr);
+        if (d >= today) {
+          upcoming.push({ name: h.description || dateStr, date: formatDate(dateStr) });
+        }
+      }
+    }
+    upcoming.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    return upcoming.slice(0, 5);
   }, [holidayLists]);
 
   /* ---------- Pending leave requests list ---------- */
@@ -325,6 +339,22 @@ export default function HrDashboardPage() {
     return { totalGross, totalDeductions, totalNet, slipCount };
   }, [salarySlips]);
 
+  // إذا لم يكن HRMS مثبتاً، أظهر رسالة تحذيرية
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter mx-auto w-full max-w-[1600px]">
+        <PageHeader
+          title="لوحة تحكم الموارد البشرية"
+          description="متابعة الموظفين والحضور والإجازات والرواتب والأنشطة"
+          iconify="solar:users-group-rounded-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية' }, { label: 'لوحة التحكم' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
   return (
     <div dir="rtl" className="erp-page-enter mx-auto w-full max-w-[1600px] space-y-5 md:space-y-6">
       <PageHeader
@@ -336,7 +366,22 @@ export default function HrDashboardPage() {
       />
 
       {/* ── KPI Row 1 ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <KpiCard title="إجمالي الموظفين" value={totalEmployees} icon={UserCheck} accent="primary" compact />
+        <KpiCard title="حاضرون اليوم" value={presentToday} icon={UserCheck} accent="success" compact />
+        <KpiCard title="في إجازة اليوم" value={onLeaveToday} icon={PlaneTakeoff} accent="info" compact />
+        <KpiCard title="وظائف شاغرة" value={openPositions} icon={ClipboardCheck} accent="warning" compact />
+        <KpiCard title="رواتب هذا الشهر" value={formatCurrency(payrollThisMonth)} icon={DollarSign} accent="primary" compact />
+        <KpiCard title="طلبات إجازة معلّقة" value={pendingLeaveRequests} icon={Clock} accent="destructive" compact />
+      </div>
+
       {/* ── KPI Row 2 ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <KpiCard title="عقود تنتهي قريباً" value={contractsExpiring || '—'} icon={AlertCircle} accent="warning" compact />
+        <KpiCard title="معدل الحضور" value={`${avgAttendanceRate}%`} icon={ClipboardCheck} accent="success" compact />
+        <KpiCard title="عطلات قادمة" value={upcomingHolidays.length} icon={CalendarDays} accent="info" compact />
+      </div>
+
       {/* ── Quick Actions ── */}
       <Card className="border-border/40">
         <CardHeader className="pb-2">

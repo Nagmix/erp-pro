@@ -324,8 +324,8 @@ export default function EmployeeDocumentsPage() {
       await deleteMut.mutateAsync(row.name);
       toast.success('تم حذف المستند');
       setDeleteDialog(null);
-    } catch (e: any) {
-      toast.error(e?.message || 'تعذر الحذف');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'تعذر الحذف');
     }
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
@@ -28,12 +28,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Plus,
-  Layers,
   Send,
   Undo2,
   Trash2,
   Edit,
-  FileText,
+  Layers,
+  FileCheck,
+  FileClock,
 } from 'lucide-react';
 import { formatDate } from '@/lib/core/helpers';
 import {
@@ -54,6 +55,7 @@ import {
   prepareFrappeDocForCreate,
 } from '@/lib/erp/erpnext-payloads';
 import { apiSubmitDoc } from '@/lib/client/api';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { toast } from 'sonner';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
@@ -107,7 +109,12 @@ const columns: Column<StructureRow>[] = [
   {
     key: 'is_active',
     header: 'نشط',
-    render: (v) => String(v || '—'),
+    render: (v) => {
+      const val = String(v || '');
+      if (val === 'Yes') return 'نعم';
+      if (val === 'No') return 'لا';
+      return val || '—';
+    },
   },
   {
     key: 'docstatus',
@@ -188,6 +195,7 @@ export default function SalaryStructuresPage() {
       'is_active',
       'docstatus',
     ],
+    filters: company ? [['company', '=', company]] : [],
     limit: 200,
   });
   const {
@@ -266,6 +274,34 @@ export default function SalaryStructuresPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
+  const structures = data || [];
+
+  // When editFullDoc loads, populate earnings/deductions
+  useEffect(() => {
+    if (
+      editingDoc &&
+      editFullDoc &&
+      formData.earnings.length === 1 &&
+      !formData.earnings[0].salary_component
+    ) {
+      const eArr =
+        Array.isArray(editFullDoc.earnings) && editFullDoc.earnings.length > 0
+          ? editFullDoc.earnings.map((e: ComponentItem) => ({
+              salary_component: e.salary_component || '',
+              amount: String(e.amount || '0'),
+            }))
+          : [{ salary_component: '', amount: '0' }];
+      const dArr =
+        Array.isArray(editFullDoc.deductions) && editFullDoc.deductions.length > 0
+          ? editFullDoc.deductions.map((e: ComponentItem) => ({
+              salary_component: e.salary_component || '',
+              amount: String(e.amount || '0'),
+            }))
+          : [{ salary_component: '', amount: '0' }];
+      setFormData((p) => ({ ...p, earnings: eArr, deductions: dArr }));
+    }
+  }, [editingDoc, editFullDoc, formData.earnings]);
+
   if (hrmsLoaded && !hrmsInstalled) {
     return (
       <div dir="rtl" className="erp-page-enter space-y-5">
@@ -280,8 +316,6 @@ export default function SalaryStructuresPage() {
       </div>
     );
   }
-
-  const structures = data || [];
 
   const updateEarning = (
     idx: number,
@@ -327,30 +361,6 @@ export default function SalaryStructuresPage() {
     });
     setDialogOpen(true);
   };
-
-  // When editFullDoc loads, populate earnings/deductions
-  if (
-    editingDoc &&
-    editFullDoc &&
-    formData.earnings.length === 1 &&
-    !formData.earnings[0].salary_component
-  ) {
-    const eArr =
-      Array.isArray(editFullDoc.earnings) && editFullDoc.earnings.length > 0
-        ? editFullDoc.earnings.map((e: ComponentItem) => ({
-            salary_component: e.salary_component || '',
-            amount: String(e.amount || '0'),
-          }))
-        : [{ salary_component: '', amount: '0' }];
-    const dArr =
-      Array.isArray(editFullDoc.deductions) && editFullDoc.deductions.length > 0
-        ? editFullDoc.deductions.map((e: ComponentItem) => ({
-            salary_component: e.salary_component || '',
-            amount: String(e.amount || '0'),
-          }))
-        : [{ salary_component: '', amount: '0' }];
-    setTimeout(() => setFormData((p) => ({ ...p, earnings: eArr, deductions: dArr })), 0);
-  }
 
   const handleSaveEdit = () => {
     if (!editingDoc) return;
@@ -469,6 +479,13 @@ export default function SalaryStructuresPage() {
           { label: 'هياكل الرواتب' },
         ]}
       />
+
+      {/* KPI Strip */}
+      <div className="grid grid-cols-3 gap-3">
+        <KpiCard title="إجمالي الهياكل" value={totalCount} icon={Layers} accent="primary" compact />
+        <KpiCard title="مسودات" value={draftCount} icon={FileClock} accent="warning" compact />
+        <KpiCard title="مُرحّلة" value={submittedCount} icon={FileCheck} accent="success" compact />
+      </div>
 
       <Tabs value={tab} onValueChange={setTab}>
         <div className="flex flex-wrap justify-between gap-3">

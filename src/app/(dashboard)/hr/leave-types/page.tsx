@@ -58,7 +58,11 @@ import {
   CalendarCheck,
   RotateCcw,
   Tag,
+  Layers,
+  CircleOff,
+  CalendarHeart,
 } from 'lucide-react';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { cn } from '@/lib/utils';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
@@ -154,21 +158,6 @@ export default function LeaveTypesPage() {
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="أنواع الإجازات"
-          description="إدارة أنواع الإجازات المتاحة للموظفين — مدفوعة وبدون راتب وتعويضية"
-          iconify="solar:calendar-bold-duotone"
-          accent="purple"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'أنواع الإجازات' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
-
   /* ── KPIs ── */
   const leaveTypes = data || [];
   const totalCount = leaveTypes.length;
@@ -196,6 +185,104 @@ export default function LeaveTypesPage() {
       return true;
     });
   }, [leaveTypes, search, typeFilter]);
+
+  /* ── Columns ── */
+  const columns: Column<LeaveTypeRow>[] = useMemo(
+    () => [
+      {
+        key: 'name',
+        header: 'الاسم',
+        sortable: true,
+        render: (_, row) => (
+          <span className="font-medium text-primary">
+            {String(row.leave_type_name || row.name)}
+          </span>
+        ),
+      },
+      {
+        key: 'is_lwp',
+        header: 'بدون راتب',
+        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
+      },
+      {
+        key: 'is_compensatory',
+        header: 'تعويضي',
+        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
+      },
+      {
+        key: 'is_carry_forward',
+        header: 'ترحيل الرصيد',
+        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
+      },
+      {
+        key: 'max_leaves_allowed',
+        header: 'الحد الأقصى',
+        sortable: true,
+        render: (_, row) => {
+          const max = Number(row.max_leaves_allowed ?? row.max_leaves ?? 0);
+          return (
+            <span className="tabular-nums font-semibold text-xs">
+              {max} يوم
+            </span>
+          );
+        },
+      },
+      {
+        key: 'allow_encashment',
+        header: 'صرف نقدي',
+        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
+      },
+      {
+        key: 'is_earned_leave',
+        header: 'إجازة مكتسبة',
+        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
+      },
+      {
+        key: '_actions',
+        header: 'إجراءات',
+        width: 'w-32',
+        render: (_, row) => (
+          <div className="flex flex-wrap gap-1">
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="h-7 text-xs gap-1"
+              onClick={() => openEditDialog(row)}
+            >
+              <Edit className="h-3 w-3" />
+              تعديل
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs text-destructive"
+              onClick={() => setDeleteDialog(row)}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    []
+  );
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="أنواع الإجازات"
+          description="إدارة أنواع الإجازات المتاحة للموظفين — مدفوعة وبدون راتب وتعويضية"
+          iconify="solar:calendar-bold-duotone"
+          accent="purple"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'أنواع الإجازات' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
 
   const hasActiveFilters = typeFilter !== 'all';
 
@@ -290,93 +377,10 @@ export default function LeaveTypesPage() {
       await deleteMut.mutateAsync(row.name);
       toast.success('تم حذف نوع الإجازة بنجاح');
       setDeleteDialog(null);
-    } catch (e: any) {
-      toast.error(e?.message || 'حدث خطأ أثناء الحذف');
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'حدث خطأ أثناء الحذف');
     }
   };
-
-  /* ── Columns ── */
-  const columns: Column<LeaveTypeRow>[] = useMemo(
-    () => [
-      {
-        key: 'name',
-        header: 'الاسم',
-        sortable: true,
-        render: (_, row) => (
-          <span className="font-medium text-primary">
-            {String(row.leave_type_name || row.name)}
-          </span>
-        ),
-      },
-      {
-        key: 'is_lwp',
-        header: 'بدون راتب',
-        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
-      },
-      {
-        key: 'is_compensatory',
-        header: 'تعويضي',
-        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
-      },
-      {
-        key: 'is_carry_forward',
-        header: 'ترحيل الرصيد',
-        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
-      },
-      {
-        key: 'max_leaves_allowed',
-        header: 'الحد الأقصى',
-        sortable: true,
-        render: (_, row) => {
-          const max = Number(row.max_leaves_allowed ?? row.max_leaves ?? 0);
-          return (
-            <span className="tabular-nums font-semibold text-xs">
-              {max} يوم
-            </span>
-          );
-        },
-      },
-      {
-        key: 'allow_encashment',
-        header: 'صرف نقدي',
-        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
-      },
-      {
-        key: 'is_earned_leave',
-        header: 'إجازة مكتسبة',
-        render: (v) => <BoolBadge value={v} yesLabel="نعم" noLabel="لا" />,
-      },
-      {
-        key: '_actions',
-        header: 'إجراءات',
-        width: 'w-32',
-        render: (_, row) => (
-          <div className="flex flex-wrap gap-1">
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              className="h-7 text-xs gap-1"
-              onClick={() => openEditDialog(row)}
-            >
-              <Edit className="h-3 w-3" />
-              تعديل
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="h-7 text-xs text-destructive"
-              onClick={() => setDeleteDialog(row)}
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    []
-  );
 
   /* ── Render ── */
   return (
@@ -396,6 +400,13 @@ export default function LeaveTypesPage() {
       />
 
       {/* KPI Strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <KpiCard title="إجمالي الأنواع" value={totalCount} icon={Layers} accent="primary" compact />
+        <KpiCard title="مدفوعة الراتب" value={paidCount} icon={DollarSign} accent="success" compact />
+        <KpiCard title="بدون راتب" value={unpaidCount} icon={CircleOff} accent="destructive" compact />
+        <KpiCard title="تعويضية" value={compOffCount} icon={CalendarHeart} accent="warning" compact />
+      </div>
+
       {/* Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

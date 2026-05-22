@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Clock, UserCheck, UserX, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import { Plus, Clock, UserCheck, UserX, Filter, ChevronDown, X } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc } from '@/lib/client/hooks';
@@ -27,8 +27,10 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { buildAttendanceCreate, buildEmployeeCheckinCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
 type AttendanceRow = {
@@ -77,29 +79,17 @@ export default function AttendancePage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [attendanceStatusFilter, setAttendanceStatusFilter] = useState('all');
 
+  const { company } = useDefaultCompanyName();
+
   const { data, isLoading, isError, error, refetch } = useDocList<AttendanceRow>('Attendance', {
     fields: ['name', 'employee', 'employee_name', 'attendance_date', 'status', 'in_time', 'out_time', 'late_entry', 'early_exit'],
+    filters: company ? [['company', '=', company]] : [],
     limit: 500,
     order_by: 'attendance_date desc'});
   const createMutation = useCreateDoc('Attendance');
   const createCheckinMutation = useCreateDoc('Employee Checkin');
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
-
-  if (hrmsLoaded && !hrmsInstalled) {
-    return (
-      <div dir="rtl" className="erp-page-enter space-y-5">
-        <PageHeader
-          title="الحضور والانصراف"
-          description="إدارة سجلات الحضور والانصراف اليومية، الحالات، الأوقات، والاستثناءات"
-          iconify="solar:calendar-mark-bold-duotone"
-          accent="info"
-          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الحضور والانصراف' }]}
-        />
-        <HrmsRequiredBanner />
-      </div>
-    );
-  }
 
   const attendanceRecords = data || [];
 
@@ -123,7 +113,40 @@ export default function AttendancePage() {
     // Advanced status filter
     if (attendanceStatusFilter !== 'all') result = result.filter((a) => a.status === attendanceStatusFilter);
     return result;
-  }, [attendanceRecords, statusFilter, dateFilter, search, dateFrom, dateTo, attendanceStatusFilter]);  const halfDayCount = attendanceRecords.filter((a) => a.status === 'Half Day').length;  const handleCreate = () => {
+  }, [attendanceRecords, statusFilter, dateFilter, search, dateFrom, dateTo, attendanceStatusFilter]);
+
+  const parsedRows = useMemo(() => {
+    return bulkCsv
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [employee, attendance_date, status, in_time, out_time] = line.split(',').map((x) => (x || '').trim());
+        return { employee, attendance_date, status, in_time, out_time };
+      })
+      .filter((x) => x.employee && x.attendance_date && x.status);
+  }, [bulkCsv]);
+
+  if (hrmsLoaded && !hrmsInstalled) {
+    return (
+      <div dir="rtl" className="erp-page-enter space-y-5">
+        <PageHeader
+          title="الحضور والانصراف"
+          description="إدارة سجلات الحضور والانصراف اليومية، الحالات، الأوقات، والاستثناءات"
+          iconify="solar:calendar-mark-bold-duotone"
+          accent="info"
+          breadcrumbs={[{ label: 'الموارد البشرية', href: '/hr' }, { label: 'الحضور والانصراف' }]}
+        />
+        <HrmsRequiredBanner />
+      </div>
+    );
+  }
+
+  const halfDayCount = attendanceRecords.filter((a) => a.status === 'Half Day').length;
+  const presentCount = attendanceRecords.filter((a) => a.status === 'Present').length;
+  const absentCount = attendanceRecords.filter((a) => a.status === 'Absent').length;
+  const onLeaveCount = attendanceRecords.filter((a) => a.status === 'On Leave').length;
+  const handleCreate = () => {
     if (!formData.employee) { toast.error('يرجى اختيار الموظف'); return; }
     if (!formData.attendance_date) { toast.error('يرجى تحديد التاريخ'); return; }
     const mapped = buildAttendanceCreate({
@@ -137,18 +160,6 @@ export default function AttendancePage() {
       onSuccess: () => { toast.success('تم تسجيل الحضور بنجاح'); setDialogOpen(false); setFormData({ ...initialFormData }); },
       onError: () => toast.error('تعذر الحفظ — قد يكون السجل موجوداً لنفس اليوم')});
   };
-
-  const parsedRows = useMemo(() => {
-    return bulkCsv
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [employee, attendance_date, status, in_time, out_time] = line.split(',').map((x) => (x || '').trim());
-        return { employee, attendance_date, status, in_time, out_time };
-      })
-      .filter((x) => x.employee && x.attendance_date && x.status);
-  }, [bulkCsv]);
 
   const submitBulk = async () => {
     if (parsedRows.length === 0) return toast.error('لا توجد صفوف صالحة');
@@ -281,6 +292,13 @@ export default function AttendancePage() {
             </div>
           </CollapsibleContent>
         </Collapsible>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <KpiCard title="حاضرون" value={presentCount} icon={UserCheck} accent="success" compact />
+        <KpiCard title="غائبون" value={absentCount} icon={UserX} accent="destructive" compact />
+        <KpiCard title="في إجازة" value={onLeaveCount} icon={Clock} accent="info" compact />
+        <KpiCard title="نصف يوم" value={halfDayCount} icon={Clock} accent="warning" compact />
       </div>
 
       <div className="flex gap-3 flex-wrap items-center">

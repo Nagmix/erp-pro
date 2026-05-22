@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
@@ -30,12 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, Calendar, Clock, Filter, Check, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Calendar, Clock, Filter, Check, Loader2, List, CalendarRange, CalendarClock } from 'lucide-react';
 import { formatDate, formatNumber } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc, useDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { buildHolidayListCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { toast } from 'sonner';
+import { KpiCard } from '@/components/erp/kpi-card';
 import { PageHeader } from '@/components/erp/page-header';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
@@ -175,9 +176,17 @@ export default function HolidaysPage() {
   }, [editDoc]);
 
   // Trigger population when editDoc changes
-  if (editingDoc && editDoc && entries.length === 1 && !entries[0].description && !entries[0].holiday_date) {
-    setTimeout(handleEditDocLoaded, 0);
-  }
+  useEffect(() => {
+    if (editingDoc && editDoc && entries.length === 1 && !entries[0].description && !entries[0].holiday_date) {
+      if (Array.isArray(editDoc.holidays) && editDoc.holidays.length > 0) {
+        setEntries(editDoc.holidays.map((h: HolidayChild) => ({
+          description: h.description || '',
+          holiday_date: h.holiday_date || '',
+          weekly_off: Number(h.weekly_off) === 1,
+        })));
+      }
+    }
+  }, [editingDoc, editDoc, entries]);
 
   /* ── Dialog handlers ── */
   const openCreateDialog = () => {
@@ -341,6 +350,13 @@ export default function HolidaysPage() {
       />
 
       {/* ── KPI Cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <KpiCard title="قوائم العطلات" value={kpiTotalLists} icon={List} accent="primary" compact />
+        <KpiCard title="عطلات هذا العام" value={kpiTotalHolidaysThisYear} icon={CalendarRange} accent="success" compact />
+        <KpiCard title="العطلة القادمة" value={kpiNextHoliday ? `${kpiNextHoliday.description} — ${formatDate(String(kpiNextHoliday.date.toISOString().slice(0, 10)))}` : '—'} icon={CalendarClock} accent="warning" compact />
+        <KpiCard title="إجمالي أيام العطلات" value={kpiGrandTotal} icon={Calendar} accent="info" compact />
+      </div>
+
       {/* ── Filters ── */}
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
