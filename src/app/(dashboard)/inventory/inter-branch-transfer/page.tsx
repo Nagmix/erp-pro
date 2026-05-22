@@ -21,8 +21,20 @@ import { useCreateDoc, useDocList } from '@/lib/client/hooks';
 import { buildStockEntry } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { toast } from 'sonner';
+import { DataTable, type Column } from '@/components/erp/data-table';
+import { DocStatusBadge } from '@/components/erp/status-badge';
+import { formatDate } from '@/lib/core/helpers';
 
 type Line = { item_code: string; qty: number; s_warehouse: string; t_warehouse: string };
+
+interface TransferRow {
+  name: string;
+  posting_date: string;
+  from_warehouse?: string;
+  to_warehouse?: string;
+  docstatus: number;
+  total_amount?: number;
+}
 
 const emptyLine = (): Line => ({
   item_code: '',
@@ -49,6 +61,34 @@ export default function InterBranchTransferPage() {
 
   const fromBranch = useMemo(() => warehouses.find((w) => w.name === fromWh)?.branch, [warehouses, fromWh]);
   const toBranch = useMemo(() => warehouses.find((w) => w.name === toWh)?.branch, [warehouses, toWh]);
+
+  // ── تاريخ التحويلات السابقة ──
+  const {
+    data: transferData,
+    isLoading: transfersLoading,
+    refetch: refetchTransfers,
+  } = useDocList<TransferRow>('Stock Entry', {
+    fields: ['name', 'posting_date', 'from_warehouse', 'to_warehouse', 'docstatus', 'total_amount'],
+    filters: company
+      ? [['company', '=', company], ['stock_entry_type', '=', 'Material Transfer']]
+      : [['stock_entry_type', '=', 'Material Transfer']],
+    order_by: 'posting_date desc',
+    limit: 100,
+  });
+
+  const transferRows = transferData || [];
+
+  const transferColumns: Column<TransferRow>[] = useMemo(
+    () => [
+      { key: 'name', header: 'الرقم', sortable: true, render: (v) => <span className="font-medium text-primary">{String(v)}</span> },
+      { key: 'posting_date', header: 'التاريخ', sortable: true, render: (v) => formatDate(String(v)) },
+      { key: 'from_warehouse', header: 'من مستودع', render: (v) => <span className="text-xs">{String(v || '—')}</span> },
+      { key: 'to_warehouse', header: 'إلى مستودع', render: (v) => <span className="text-xs">{String(v || '—')}</span> },
+      { key: 'docstatus', header: 'الحالة', render: (v) => <DocStatusBadge docstatus={Number(v) as 0 | 1 | 2} /> },
+      { key: 'total_amount', header: 'القيمة', render: (v) => <span className="tabular-nums">{v ? Number(v).toLocaleString() : '—'}</span> },
+    ],
+    []
+  );
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {
@@ -240,6 +280,19 @@ export default function InterBranchTransferPage() {
         </Link>
         .
       </p>
+
+      {/* ── سجل التحويلات السابقة ── */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold">سجل التحويلات السابقة</h3>
+        <DataTable
+          data={transferRows}
+          columns={transferColumns}
+          searchable
+          loading={transfersLoading}
+          tableId="inter-branch-transfer-history"
+          exportFileName="transfers-history.csv"
+        />
+      </div>
     </div>
   );
 }

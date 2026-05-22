@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Trash2, Package, Send, Undo2, FileInput, Receipt, Truck, FileText, Coins, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import { Plus, Trash2, Package, Send, Undo2, FileInput, Receipt, Truck, FileText, Coins, Filter, ChevronDown, X } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,12 +83,12 @@ export default function PurchasesPurchaseOrdersPage() {
   const [conversionRate, setConversionRate] = useState(1);
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [poStatusFilter, setPoStatusFilter] = useState('all');
+
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
   const [mapping, setMapping] = useState<string | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); };
+  const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setFilter('all'); };
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const { branch, setBranch, branchFilters, branchesEnabled } = useBranchScope();
 
@@ -127,15 +127,14 @@ export default function PurchasesPurchaseOrdersPage() {
     if (dateFrom || dateTo) {
       list = list.filter((row: any) => rowInDateRangeISO(row.transaction_date, dateFrom, dateTo));
     }
-    const effectiveStatus = poStatusFilter !== 'all' ? poStatusFilter : (filter !== 'all' ? filter : 'all');
-    if (effectiveStatus !== 'all') {
-      list = list.filter((row: any) => row.status === effectiveStatus);
+    if (filter !== 'all') {
+      list = list.filter((row: any) => row.status === filter);
     }
     if (branch && branchesEnabled) {
       list = list.filter((row: any) => String(row.branch || '') === branch);
     }
     return list;
-  }, [rows, search, dateFrom, dateTo, poStatusFilter, filter, branch, branchesEnabled]);
+  }, [rows, search, dateFrom, dateTo, filter, branch, branchesEnabled]);
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {
@@ -386,7 +385,7 @@ export default function PurchasesPurchaseOrdersPage() {
                 <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
               </Button>
             </CollapsibleTrigger>
-            {(dateFrom || dateTo || poStatusFilter !== 'all' || search) && (
+            {(dateFrom || dateTo || filter !== 'all' || search) && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
                 <X className="h-3 w-3" /> مسح الفلاتر
               </Button>
@@ -404,7 +403,7 @@ export default function PurchasesPurchaseOrdersPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">الحالة</Label>
-            <Select value={poStatusFilter} onValueChange={setPoStatusFilter}>
+            <Select value={filter} onValueChange={setFilter}>
               <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">الكل</SelectItem>
@@ -449,7 +448,7 @@ export default function PurchasesPurchaseOrdersPage() {
             </TabsList>
           </Tabs>
         </div>
-        <DataTable data={filtered} columns={columns} searchable loading={isLoading} />
+        <DataTable data={filtered} columns={columns} searchable loading={isLoading} tableId="purchase-orders-list" />
       </PageShell>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent dir="rtl" className="max-w-3xl max-h-[90vh] overflow-y-auto p-5 gap-0">

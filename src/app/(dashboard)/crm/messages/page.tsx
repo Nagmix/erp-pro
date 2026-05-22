@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useDocList, useCreateDoc } from '@/lib/client/hooks';
+import { useDocList } from '@/lib/client/hooks';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiUpdateDoc } from '@/lib/client/api';
 import { toast } from 'sonner';

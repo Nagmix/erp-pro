@@ -296,7 +296,7 @@ export default function PurchaseReceiptsPage() {
       </div>
 
       <PageShell padded={false}>
-        <DataTable data={filteredRows} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
+        <DataTable data={filteredRows} columns={columns} searchable loading={isLoading} tableId="purchase-receipts-list" onDelete={(r) => setDeleteName(r.name)} />
       </PageShell>
       <AlertDialog open={!!deleteName} onOpenChange={() => setDeleteName(null)}>
         <AlertDialogContent dir="rtl">
@@ -406,7 +406,7 @@ export default function PurchaseReceiptsPage() {
                 إلغاء
               </Button>
               <Button onClick={handleCreate} disabled={createMutation.isPending} className="gap-1.5 min-w-[130px]">
-                {createMutation.isPending ? '...' : 'حفظ'}
+                {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ'}
               </Button>
             </div>
           </div>

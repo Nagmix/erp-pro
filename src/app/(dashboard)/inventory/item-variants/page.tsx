@@ -154,12 +154,6 @@ function generateBarcode(): string {
   return code + checkDigit.toString();
 }
 
-function generateSerialNumber(prefix: string, index: number): string {
-  const now = new Date();
-  const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-  return `${prefix}-${dateStr}-${String(index).padStart(4, '0')}`;
-}
-
 function generateCombinations(attributes: AttributeValue[]): VariantCombination[] {
   if (attributes.length === 0) return [];
 
@@ -235,7 +229,6 @@ export default function ItemVariantsPage() {
   const [defaultSellPrice, setDefaultSellPrice] = useState('');
   const [defaultBuyPrice, setDefaultBuyPrice] = useState('');
   const [autoGenerateBarcodes, setAutoGenerateBarcodes] = useState(true);
-  const [autoGenerateSerials, setAutoGenerateSerials] = useState(false);
   const [creating, setCreating] = useState(false);
   const [activeCreateTab, setActiveCreateTab] = useState('attributes');
 
@@ -616,7 +609,6 @@ export default function ItemVariantsPage() {
     setDefaultSellPrice('');
     setDefaultBuyPrice('');
     setAutoGenerateBarcodes(true);
-    setAutoGenerateSerials(false);
     setActiveCreateTab('attributes');
   }, []);
 
@@ -1233,20 +1225,6 @@ export default function ItemVariantsPage() {
                     onCheckedChange={setAutoGenerateBarcodes}
                   />
                 </div>
-
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div className="flex items-center gap-3">
-                    <Hash className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs font-medium">توليد أرقام تسلسلية تلقائياً</p>
-                      <p className="text-xs text-muted-foreground">إنشاء أرقام تسلسلية تلقائية لكل تبديل</p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={autoGenerateSerials}
-                    onCheckedChange={setAutoGenerateSerials}
-                  />
-                </div>
               </div>
 
               {/* معاينة الأكواد */}
@@ -1274,14 +1252,6 @@ export default function ItemVariantsPage() {
                               {combo.barcode || '—'}
                             </span>
                           </div>
-                          {autoGenerateSerials && (
-                            <div>
-                              <span className="text-xs text-muted-foreground">التسلسلي: </span>
-                              <span className="font-mono text-[11px]" dir="ltr">
-                                {generateSerialNumber(itemCodePrefix || 'SN', idx + 1)}
-                              </span>
-                            </div>
-                          )}
                         </div>
                       </div>
                     ))}

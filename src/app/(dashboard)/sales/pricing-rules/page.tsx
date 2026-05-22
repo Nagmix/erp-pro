@@ -34,10 +34,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Plus, Trash2, Tag, Send, Undo2, CheckCircle, XCircle, Percent, Filter, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Tag, Send, Undo2, CheckCircle, XCircle, Filter, ChevronDown } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
-import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
+import { useDocList, useDeleteDoc, useSubmitDoc, useCancelDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -94,6 +94,21 @@ export default function PricingRulesPage() {
   const [formBuying, setFormBuying] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  // ── Edit Dialog ──
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<PricingRuleRow | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editApplyOn, setEditApplyOn] = useState('Item Code');
+  const [editPriceOrDiscount, setEditPriceOrDiscount] = useState('Discount');
+  const [editDiscountPercentage, setEditDiscountPercentage] = useState('');
+  const [editValidFrom, setEditValidFrom] = useState('');
+  const [editValidUpto, setEditValidUpto] = useState('');
+  const [editForPriceList, setEditForPriceList] = useState('');
+  const [editSelling, setEditSelling] = useState(true);
+  const [editBuying, setEditBuying] = useState(false);
+  const [editDisable, setEditDisable] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
   // ── Delete Dialog ──
   const [deleteTarget, setDeleteTarget] = useState<PricingRuleRow | null>(null);
 
@@ -121,6 +136,7 @@ export default function PricingRulesPage() {
   const submitMutation = useSubmitDoc<PricingRuleRow>('Pricing Rule');
   const cancelMutation = useCancelDoc<PricingRuleRow>('Pricing Rule');
   const deleteMutation = useDeleteDoc('Pricing Rule');
+  const updateMutation = useUpdateDoc<PricingRuleRow>('Pricing Rule');
 
   const rows = data || [];
   const chk = (v: unknown) => Number(v) === 1 || v === true;
@@ -208,6 +224,51 @@ export default function PricingRulesPage() {
     setFormForPriceList('');
     setFormSelling(true);
     setFormBuying(false);
+  };
+
+  // ── Open Edit Dialog ──
+  const openEditDialog = (row: PricingRuleRow) => {
+    setEditTarget(row);
+    setEditTitle(row.title || '');
+    setEditApplyOn(row.apply_on || 'Item Code');
+    setEditPriceOrDiscount(row.price_or_discount || 'Discount');
+    setEditDiscountPercentage(row.rate_or_discount ? String(row.rate_or_discount) : '');
+    setEditValidFrom(row.valid_from || '');
+    setEditValidUpto(row.valid_upto || '');
+    setEditForPriceList('');
+    setEditSelling(chk(row.selling));
+    setEditBuying(chk(row.buying));
+    setEditDisable(chk(row.disable));
+    setEditDialogOpen(true);
+  };
+
+  // ── Update Handler ──
+  const handleUpdate = async () => {
+    if (!editTarget) return;
+    setUpdating(true);
+    try {
+      const payload: Record<string, unknown> = {
+        title: editTitle.trim(),
+        apply_on: editApplyOn,
+        price_or_discount: editPriceOrDiscount,
+        ...(editPriceOrDiscount === 'Discount' ? { discount_percentage: Number(editDiscountPercentage) || 0 } : {}),
+        ...(editValidFrom ? { valid_from: editValidFrom } : {}),
+        ...(editValidUpto ? { valid_upto: editValidUpto } : {}),
+        ...(editForPriceList ? { for_price_list: editForPriceList } : {}),
+        selling: editSelling ? 1 : 0,
+        buying: editBuying ? 1 : 0,
+        disable: editDisable ? 1 : 0,
+      };
+      await updateMutation.mutateAsync({ name: editTarget.name, doc: payload });
+      setEditDialogOpen(false);
+      setEditTarget(null);
+      toast.success('تم تحديث قاعدة التسعير بنجاح');
+      void refetch();
+    } catch (e) {
+      toast.error('تعذر تحديث قاعدة التسعير', { description: String((e as Error).message || e) });
+    } finally {
+      setUpdating(false);
+    }
   };
 
   // ── Delete Handler ──
@@ -441,6 +502,7 @@ export default function PricingRulesPage() {
         columns={columns}
         searchable
         loading={isLoading}
+        onEdit={(row) => openEditDialog(row)}
         tableId="sales-pricing-rules"
         exportFileName="pricing-rules.csv"
         printTitle="قواعد التسعير"
@@ -564,6 +626,138 @@ export default function PricingRulesPage() {
             </Button>
             <Button disabled={creating} onClick={handleCreate} className="gap-1.5 min-w-[130px]">
               {creating ? 'جاري الحفظ...' : 'حفظ وترحيل'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                <Tag className="h-5 w-5" />
+              </div>
+              <div>
+                <span>تعديل قاعدة التسعير</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">تعديل بيانات: {editTarget?.name}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+              <div className="bg-gradient-to-l from-primary/[0.04] via-transparent to-transparent px-4 py-2.5 border-b border-border/30">
+                <h4 className="text-[12px] font-bold text-foreground/70">البيانات الأساسية</h4>
+              </div>
+              <div className="p-4 space-y-4 bg-card/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">اسم القاعدة</Label>
+                    <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="مثال: خصم الصيف 2025" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">الشركة</Label>
+                    <Input value={editTarget?.company || ''} disabled className="bg-muted" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">ينطبق على</Label>
+                    <Select value={editApplyOn} onValueChange={setEditApplyOn}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Item Code">صنف</SelectItem>
+                        <SelectItem value="Item Group">مجموعة أصناف</SelectItem>
+                        <SelectItem value="Brand">علامة تجارية</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">النوع</Label>
+                    <Select value={editPriceOrDiscount} onValueChange={setEditPriceOrDiscount}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Discount">خصم</SelectItem>
+                        <SelectItem value="Price">سعر</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {editPriceOrDiscount === 'Discount' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">نسبة الخصم</Label>
+                    <Input
+                      type="number"
+                      dir="ltr"
+                      min={0}
+                      max={100}
+                      step="0.01"
+                      value={editDiscountPercentage}
+                      onChange={(e) => setEditDiscountPercentage(e.target.value)}
+                      placeholder="مثال: 15"
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">صالح من</Label>
+                    <Input type="date" dir="ltr" value={editValidFrom} onChange={(e) => setEditValidFrom(e.target.value)} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium">صالح إلى</Label>
+                    <Input type="date" dir="ltr" value={editValidUpto} onChange={(e) => setEditValidUpto(e.target.value)} />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">قائمة الأسعار (اختياري)</Label>
+                  <ErpLinkCombobox doctype="Price List" value={editForPriceList} onChange={setEditForPriceList} placeholder="اختر قائمة أسعار" />
+                </div>
+
+                <div className="flex gap-6 text-sm">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editSelling}
+                      onChange={(e) => setEditSelling(e.target.checked)}
+                      className="rounded"
+                    />
+                    <span>بيع</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editBuying}
+                      onChange={(e) => setEditBuying(e.target.checked)}
+                      className="rounded"
+                    />
+                    <span>شراء</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editDisable}
+                      onChange={(e) => setEditDisable(e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="text-muted-foreground">معطلة</span>
+                  </label>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button type="button" variant="ghost" onClick={() => setEditDialogOpen(false)} className="text-muted-foreground">
+              إلغاء
+            </Button>
+            <Button disabled={updating} onClick={handleUpdate} className="gap-1.5 min-w-[130px]">
+              {updating ? 'جاري الحفظ...' : 'حفظ التعديلات'}
             </Button>
           </div>
         </DialogContent>

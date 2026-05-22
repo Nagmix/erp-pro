@@ -629,8 +629,8 @@ export default function CustomersPage() {
                   </div>
                   <div className="p-4 space-y-3 bg-card/50">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <DetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('en-US') : '—'} />
-                      <DetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('en-US') : '—'} />
+                      <DetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('ar-SA') : '—'} />
+                      <DetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('ar-SA') : '—'} />
                       <DetailField label="المُنشئ" value={viewDoc.owner || '—'} dir="ltr" />
                       <DetailField label="الحالة" value={viewDoc.disabled ? 'معطّل' : 'نشط'} badge badgeClass={viewDoc.disabled ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'} />
                     </div>

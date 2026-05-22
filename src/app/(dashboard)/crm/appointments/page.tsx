@@ -677,7 +677,7 @@ export default function AppointmentsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">الوصف</Label>
-                    <Input value={editForm.desc} onChange={(e) => setEditForm(prev => ({ ...prev, desc: e.target.value }))} />
+                    <Textarea value={editForm.desc} onChange={(e) => setEditForm(prev => ({ ...prev, desc: e.target.value }))} rows={2} />
                   </div>
                 </div>
               </div>

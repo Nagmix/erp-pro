@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Trash2, FileText, Send, Undo2, ShoppingCart, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import { Plus, Trash2, FileText, Send, Undo2, ShoppingCart, Filter, ChevronDown, X } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';

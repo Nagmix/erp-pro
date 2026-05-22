@@ -272,11 +272,11 @@ export default function SalesInvoicesPage() {
         onStatusChange={setStatusFilter}
         statusTabs={[
           { value: 'all', label: 'الكل' },
-          { value: 'Draft', label: 'مسودة' },
-          { value: 'Unpaid', label: 'غير مدفوعة' },
-          { value: 'Paid', label: 'مدفوعة' },
-          { value: 'Overdue', label: 'متأخرة' },
-          { value: 'Partly Paid', label: 'جزئياً' },
+          { value: 'Draft', label: STATUS_LABELS['Draft'] },
+          { value: 'Unpaid', label: STATUS_LABELS['Unpaid'] },
+          { value: 'Paid', label: STATUS_LABELS['Paid'] },
+          { value: 'Overdue', label: STATUS_LABELS['Overdue'] },
+          { value: 'Partly Paid', label: STATUS_LABELS['Partly Paid'] },
         ]}
         extraFilters={
           branchesEnabled ? (

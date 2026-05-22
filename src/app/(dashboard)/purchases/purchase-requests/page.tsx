@@ -68,7 +68,7 @@ export default function PurchaseRequestsPage() {
   const [deleteName, setDeleteName] = useState<string | null>(null);
   const [transactionDate, setTransactionDate] = useState(() => new Date().toISOString().split('T')[0]!);
   const [scheduleDate, setScheduleDate] = useState(() => new Date().toISOString().split('T')[0]!);
-  const [setWarehouse, setSetWarehouse] = useState('');
+  const [defaultWarehouse, setDefaultWarehouse] = useState('');
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
@@ -131,7 +131,7 @@ export default function PurchaseRequestsPage() {
       toast.error('أضف صنافاً');
       return;
     }
-    if (lines.some((l) => l.item_code && !l.warehouse && !setWarehouse)) {
+    if (lines.some((l) => l.item_code && !l.warehouse && !defaultWarehouse)) {
       toast.error('حدد مستودعاً افتراضياً أو لكل بند');
       return;
     }
@@ -140,13 +140,13 @@ export default function PurchaseRequestsPage() {
       transaction_date: transactionDate,
       schedule_date: scheduleDate,
       material_request_type: 'Purchase',
-      set_warehouse: setWarehouse || undefined,
+      set_warehouse: defaultWarehouse || undefined,
       items: lines
         .filter((l) => l.item_code)
         .map((l) => ({
           item_code: l.item_code,
           qty: l.qty,
-          warehouse: l.warehouse || setWarehouse || undefined}))});
+          warehouse: l.warehouse || defaultWarehouse || undefined}))});
     createMutation.mutate(doc, {
       onSuccess: () => {
         toast.success('تم إنشاء طلب المواد');
@@ -321,6 +321,7 @@ export default function PurchaseRequestsPage() {
           columns={columns}
           searchable
           loading={isLoading}
+          tableId="purchase-requests-list"
           onDelete={(row) => setDeleteName(row.name)}
         />
       </PageShell>
@@ -363,7 +364,7 @@ export default function PurchaseRequestsPage() {
             </div>
             <div className="space-y-2">
               <Label className="text-xs">مستودع افتراضي للبنود (اختياري)</Label>
-              <ErpLinkCombobox doctype="Warehouse" value={setWarehouse} onChange={setSetWarehouse} />
+              <ErpLinkCombobox doctype="Warehouse" value={defaultWarehouse} onChange={setDefaultWarehouse} />
             </div>
             <div className="border rounded-lg">
               <div className="bg-muted/50 px-3 py-2 flex justify-between items-center">
@@ -419,7 +420,7 @@ export default function PurchaseRequestsPage() {
               </Table>
             </div>
             <Button className="w-full" onClick={handleCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending ? '...' : 'حفظ مسودة'}
+              {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ مسودة'}
             </Button>
           </div>
         </DialogContent>

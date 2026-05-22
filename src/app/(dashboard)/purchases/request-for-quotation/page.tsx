@@ -281,7 +281,7 @@ export default function RequestForQuotationPage() {
       </div>
 
       <PageShell padded={false}>
-        <DataTable data={filteredRows} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
+        <DataTable data={filteredRows} columns={columns} searchable loading={isLoading} tableId="rfq-list" onDelete={(r) => setDeleteName(r.name)} />
       </PageShell>
       <AlertDialog open={!!deleteName} onOpenChange={() => setDeleteName(null)}>
         <AlertDialogContent dir="rtl">
@@ -395,7 +395,7 @@ export default function RequestForQuotationPage() {
               </Table>
             </div>
             <Button className="w-full" onClick={handleCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending ? '...' : 'حفظ مسودة'}
+              {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ مسودة'}
             </Button>
           </div>
         </DialogContent>

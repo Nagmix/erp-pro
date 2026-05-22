@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -23,10 +24,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Trash2, Truck, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Truck, RefreshCw, Pencil } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
-import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
+import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { toast } from 'sonner';
 
 interface SupplierGroupRow {
@@ -42,7 +44,13 @@ export default function SupplierGroupsPage() {
   const [isGroup, setIsGroup] = useState(false);
   const [busy, setBusy] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<SupplierGroupRow | null>(null);
+
+  // Edit form state
+  const [editGroupName, setEditGroupName] = useState('');
+  const [editParentGroup, setEditParentGroup] = useState('');
+  const [editIsGroup, setEditIsGroup] = useState(false);
 
   const { data: groups = [], isLoading, isError, error, refetch } = useDocList<SupplierGroupRow>('Supplier Group', {
     fields: ['name', 'is_group', 'parent_supplier_group'],
@@ -51,7 +59,14 @@ export default function SupplierGroupsPage() {
   });
 
   const createMutation = useCreateDoc('Supplier Group');
+  const updateMutation = useUpdateDoc('Supplier Group');
   const deleteMutation = useDeleteDoc('Supplier Group');
+
+  const resetCreateForm = () => {
+    setGroupName('');
+    setParentGroup('');
+    setIsGroup(false);
+  };
 
   const handleCreate = async () => {
     if (!groupName.trim()) {
@@ -66,15 +81,45 @@ export default function SupplierGroupsPage() {
         is_group: isGroup ? 1 : 0,
       });
       setDialogOpen(false);
-      setGroupName('');
-      setParentGroup('');
-      setIsGroup(false);
+      resetCreateForm();
       toast.success('تم إنشاء مجموعة الموردين');
       void refetch();
     } catch (e) {
       toast.error('تعذر إنشاء المجموعة', { description: String((e as Error).message || e) });
     } finally {
       setBusy(false);
+    }
+  };
+
+  const openEditDialog = (row: SupplierGroupRow) => {
+    setSelectedGroup(row);
+    setEditGroupName(row.name);
+    setEditParentGroup(row.parent_supplier_group || '');
+    setEditIsGroup(Boolean(row.is_group) || Number(row.is_group) === 1);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedGroup) return;
+    if (!editGroupName.trim()) {
+      toast.error('اسم المجموعة مطلوب');
+      return;
+    }
+    try {
+      await updateMutation.mutateAsync({
+        name: selectedGroup.name,
+        doc: {
+          supplier_group_name: editGroupName.trim(),
+          parent_supplier_group: editParentGroup || 'All Supplier Groups',
+          is_group: editIsGroup ? 1 : 0,
+        },
+      });
+      toast.success('تم تحديث مجموعة الموردين');
+      setEditDialogOpen(false);
+      setSelectedGroup(null);
+      void refetch();
+    } catch (e) {
+      toast.error('تعذر تحديث المجموعة', { description: String((e as Error).message || e) });
     }
   };
 
@@ -98,11 +143,16 @@ export default function SupplierGroupsPage() {
     {
       key: 'actions',
       header: 'إجراءات',
-      width: 'w-20',
+      width: 'w-24',
       render: (_v, row) => (
-        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { setSelectedGroup(row); setDeleteDialogOpen(true); }}>
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditDialog(row)}>
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => { setSelectedGroup(row); setDeleteDialogOpen(true); }}>
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       ),
     },
   ];
@@ -122,7 +172,13 @@ export default function SupplierGroupsPage() {
               <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
               تحديث
             </Button>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <Dialog
+              open={dialogOpen}
+              onOpenChange={(open) => {
+                setDialogOpen(open);
+                if (!open) resetCreateForm();
+              }}
+            >
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-1.5">
                   <Plus className="h-3.5 w-3.5" />
@@ -143,10 +199,10 @@ export default function SupplierGroupsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">المجموعة الأب</Label>
-                    <Input value={parentGroup} onChange={(e) => setParentGroup(e.target.value)} placeholder="جميع مجموعات الموردين" />
+                    <ErpLinkCombobox doctype="Supplier Group" value={parentGroup} onChange={setParentGroup} />
                   </div>
                   <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={isGroup} onChange={(e) => setIsGroup(e.target.checked)} className="rounded" />
+                    <Checkbox checked={isGroup} onCheckedChange={(v) => setIsGroup(v === true)} />
                     <Label className="text-sm">مجموعة رئيسية</Label>
                   </div>
                   <div className="flex justify-end gap-2 pt-2">
@@ -179,9 +235,42 @@ export default function SupplierGroupsPage() {
             tableId="purchases-supplier-groups"
             exportFileName="supplier-groups.csv"
             printTitle="مجموعات الموردين"
+            onEdit={(row) => openEditDialog(row)}
           />
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent size="md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-amber-600" />
+              تعديل مجموعة الموردين
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">اسم المجموعة *</Label>
+              <Input value={editGroupName} onChange={(e) => setEditGroupName(e.target.value)} placeholder="مثال: موردين محليين، موردين خارجيين" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">المجموعة الأب</Label>
+              <ErpLinkCombobox doctype="Supplier Group" value={editParentGroup} onChange={setEditParentGroup} />
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox checked={editIsGroup} onCheckedChange={(v) => setEditIsGroup(v === true)} />
+              <Label className="text-sm">مجموعة رئيسية</Label>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>إلغاء</Button>
+              <Button onClick={() => void handleUpdate()} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

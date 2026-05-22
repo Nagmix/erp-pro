@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
-import { StatusBadge, DocStatusBadge } from '@/components/erp/status-badge';
+import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -253,11 +253,6 @@ export default function SupplierQuotationsPage() {
         ),
       },
       {
-        key: 'status',
-        header: 'الحالة',
-        render: (v) => <StatusBadge status={String(v ?? '')} />,
-      },
-      {
         key: 'docstatus',
         header: 'مستند',
         render: (v) => <DocStatusBadge docstatus={Number(v) as 0 | 1 | 2} />,
@@ -436,6 +431,7 @@ export default function SupplierQuotationsPage() {
           columns={columns}
           searchable
           loading={isLoading}
+          tableId="supplier-quotations-list"
           onDelete={(r) => setDeleteName(r.name)}
         />
       </PageShell>
@@ -601,7 +597,7 @@ export default function SupplierQuotationsPage() {
               onClick={handleCreate}
               disabled={createMutation.isPending}
             >
-              {createMutation.isPending ? '...' : 'حفظ'}
+              {createMutation.isPending ? 'جاري الحفظ...' : 'حفظ'}
             </Button>
           </div>
         </DialogContent>

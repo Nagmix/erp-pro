@@ -249,8 +249,6 @@ export default function CrmLoyaltyPage() {
 
   return (
     <div dir="rtl" className="erp-page-enter space-y-5">
-      <ListQueryAlert error={isError ? error : null} onRetry={() => void refetch()} />
-
       <PageHeader
         title="ولاء العملاء"
         description="عرض برامج الولاء وإنشاء برنامج جديد؛ تقرير تحليلي من مركز التقارير."
@@ -264,6 +262,8 @@ export default function CrmLoyaltyPage() {
           </Button>
         }
       />
+
+      <ListQueryAlert error={isError ? error : null} onRetry={() => void refetch()} />
       {/* رابط التقرير */}
       <Card className="border-border/40">
         <CardContent className="p-4 flex flex-wrap items-center gap-3 justify-between">

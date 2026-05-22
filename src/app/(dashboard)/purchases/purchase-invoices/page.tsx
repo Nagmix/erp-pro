@@ -506,7 +506,7 @@ export default function PurchasesPurchaseInvoicesPage() {
             }
           />
         </div>
-        <DataTable data={filtered} columns={columns} searchable loading={isLoading} />
+        <DataTable data={filtered} columns={columns} searchable loading={isLoading} tableId="purchase-invoices-list" />
       </PageShell>
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent dir="rtl">

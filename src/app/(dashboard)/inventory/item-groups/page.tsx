@@ -52,7 +52,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
-import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -156,6 +156,11 @@ export default function ItemGroupsPage() {
   const [isGroup, setIsGroup] = useState(false);
 
   const [busy, setBusy] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState<ItemGroupRow | null>(null);
+  const [editGroupName, setEditGroupName] = useState('');
+  const [editParentGroup, setEditParentGroup] = useState('');
+  const [editIsGroup, setEditIsGroup] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'tree'>('table');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -177,6 +182,7 @@ export default function ItemGroupsPage() {
   });
 
   const createMutation = useCreateDoc('Item Group');
+  const updateMutation = useUpdateDoc('Item Group');
   const deleteMutation = useDeleteDoc('Item Group');
 
   const groups = rawData;
@@ -302,6 +308,36 @@ export default function ItemGroupsPage() {
   const openTreeDelete = (row: ItemGroupRow) => {
     setSelectedGroup(row);
     setDeleteDialogOpen(true);
+  };
+
+  const openEditDialog = (row: ItemGroupRow) => {
+    setEditTarget(row);
+    setEditGroupName(row.name);
+    setEditParentGroup(row.parent_item_group || '');
+    setEditIsGroup(Number(row.is_group) === 1 || row.is_group === true);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTarget || !editGroupName.trim()) {
+      toast.error('اسم المجموعة مطلوب');
+      return;
+    }
+    try {
+      await updateMutation.mutateAsync({
+        name: editTarget.name,
+        doc: {
+          parent_item_group: editParentGroup || 'All Item Groups',
+          is_group: editIsGroup ? 1 : 0,
+        },
+      });
+      toast.success('تم تحديث مجموعة الأصناف');
+      setEditDialogOpen(false);
+      setEditTarget(null);
+      void refetch();
+    } catch (e) {
+      toast.error('تعذر تحديث المجموعة', { description: String((e as Error).message || e) });
+    }
   };
 
   const clearFilters = () => {
@@ -507,6 +543,7 @@ export default function ItemGroupsPage() {
             tableId="inventory-item-groups"
             exportFileName="item-groups.csv"
             printTitle="مجموعات الأصناف"
+            onEdit={(row) => openEditDialog(row)}
           />
         </PageShell>
       ) : (
@@ -548,6 +585,45 @@ export default function ItemGroupsPage() {
           )}
         </PageShell>
       )}
+
+      {/* ─── Edit Group Dialog ─── */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>تعديل مجموعة الأصناف</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">اسم المجموعة</Label>
+              <Input value={editGroupName} disabled className="h-9 bg-muted" />
+              <p className="text-[10px] text-muted-foreground">لا يمكن تعديل اسم المجموعة بعد الإنشاء</p>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium">المجموعة الأب</Label>
+              <ErpLinkCombobox
+                doctype="Item Group"
+                value={editParentGroup}
+                onChange={setEditParentGroup}
+                placeholder="اختر المجموعة الأب..."
+              />
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer hover:bg-accent/30 rounded-lg px-2 py-1.5 transition-colors">
+              <Checkbox checked={editIsGroup} onCheckedChange={(checked) => setEditIsGroup(!!checked)} />
+              <div className="flex-1 min-w-0">
+                <span className="text-sm font-medium">مجموعة رئيسية</span>
+              </div>
+            </label>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button variant="ghost" onClick={() => setEditDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
+            <Button onClick={handleSaveEdit} disabled={updateMutation.isPending} className="gap-1.5 min-w-[130px]">
+              {updateMutation.isPending ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" />جاري التحديث...</>
+              ) : 'تحديث'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ─── Delete Confirmation ─── */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

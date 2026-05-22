@@ -276,20 +276,22 @@ export default function FollowUpsPage() {
       width: 'w-20',
       render: (_, r) => {
         if (r.status !== 'Open') return null;
+        const isClosing = updateMutation.isPending;
         return (
           <Button
             variant="ghost"
             size="sm"
             className="h-7 text-[10px] gap-1 text-success hover:text-success hover:bg-success/10"
+            disabled={isClosing}
             onClick={() => handleCloseTask(r)}
           >
-            <CheckCircle2 className="h-3.5 w-3.5" />
+            {isClosing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
             إغلاق
           </Button>
         );
       },
     },
-  ], []);
+  ], [updateMutation.isPending]);
 
   /* ── Handlers ── */
   const resetForm = () => {
@@ -476,7 +478,7 @@ export default function FollowUpsPage() {
           columns={columns}
           searchable
           loading={isLoading}
-          onDelete={(r) => deleteMutation.mutate(r.name, { onSuccess: () => toast.success('تم حذف المهمة') })}
+          onDelete={(r) => deleteMutation.mutate(r.name, { onSuccess: () => toast.success('تم حذف المهمة'), onError: () => toast.error('فشل حذف المهمة') })}
           onEdit={(row) => openEditDialog(row)}
           tableId="crm-follow-ups"
           exportFileName="crm-follow-ups.csv"
@@ -605,8 +607,8 @@ export default function FollowUpsPage() {
           <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
             <Button variant="ghost" onClick={() => setEditDialogOpen(false)} className="text-muted-foreground">إلغاء</Button>
             {selectedTask && selectedTask.status === 'Open' && (
-              <Button variant="outline" onClick={() => { handleCloseTask(selectedTask); setEditDialogOpen(false); }} className="gap-1.5 text-success hover:text-success">
-                <CheckCircle2 className="h-3.5 w-3.5" />
+              <Button variant="outline" onClick={() => { handleCloseTask(selectedTask); setEditDialogOpen(false); }} disabled={updateMutation.isPending} className="gap-1.5 text-success hover:text-success">
+                {updateMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                 إغلاق المهمة
               </Button>
             )}

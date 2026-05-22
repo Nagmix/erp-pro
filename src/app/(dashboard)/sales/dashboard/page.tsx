@@ -16,15 +16,11 @@ import {
   Users,
   TrendingUp,
   AlertTriangle,
-  ArrowUpLeft,
   RotateCcw,
-  BarChart3,
-  Package,
   ClipboardList,
   Receipt,
   UserCircle,
   ChevronLeft,
-  Clock,
   Target,
   CircleDollarSign,
 } from 'lucide-react';
@@ -70,7 +66,7 @@ function SimpleBarChart({ data, maxVal, colorClass }: {
 /*  Pipeline Step                                                      */
 /* ------------------------------------------------------------------ */
 function PipelineStep({ label, count, color, isActive }: {
-  label: string; count: number; color: string; isActive: boolean;
+  label: string; count: number | string; color: string; isActive: boolean;
 }) {
   return (
     <div className="flex flex-col items-center gap-1">
@@ -138,6 +134,17 @@ export default function SalesDashboardPage() {
       limit: 200,
     }
   );
+
+  /* Lead & Opportunity — attempt to fetch; mark unavailable on error */
+  const { data: leadData = [], isError: leadError } = useDocList<Record<string, unknown>>(
+    'Lead',
+    { fields: ['name'], limit: 200 },
+  );
+  const { data: oppData = [], isError: oppError } = useDocList<Record<string, unknown>>(
+    'Opportunity',
+    { fields: ['name'], limit: 200 },
+  );
+  const crmAvailable = !leadError && !oppError;
 
   const isLoading = siLoading || soLoading || qoLoading || dnLoading || custLoading;
 
@@ -217,8 +224,8 @@ export default function SalesDashboardPage() {
 
   /* ---------- Pipeline data ---------- */
   const pipeline = useMemo(() => {
-    const leads = 0; // Would need Lead doctype
-    const opportunities = 0; // Would need Opportunity doctype
+    const leads = crmAvailable ? leadData.length : -1;
+    const opportunities = crmAvailable ? oppData.length : -1;
     const qts = quotations.filter((q) => Number(q.docstatus) === 1 || Number(q.docstatus) === 0).length;
     const orders = salesOrders.filter((so) => Number(so.docstatus) === 1).length;
     const invoices = salesInvoices.filter((si) => Number(si.docstatus) === 1).length;
@@ -229,7 +236,7 @@ export default function SalesDashboardPage() {
       { label: 'أوامر بيع', count: orders, color: 'bg-primary/10 text-primary' },
       { label: 'فواتير', count: invoices, color: 'bg-primary/10 text-primary' },
     ];
-  }, [quotations, salesOrders, salesInvoices]);
+  }, [crmAvailable, leadData, oppData, quotations, salesOrders, salesInvoices]);
 
   /* ---------- Monthly sales trend ---------- */
   const monthlySales = useMemo(() => {
@@ -416,7 +423,12 @@ export default function SalesDashboardPage() {
             <div className="flex items-center justify-between gap-2 overflow-x-auto py-4">
               {pipeline.map((step, i) => (
                 <div key={step.label} className="flex items-center gap-2">
-                  <PipelineStep label={step.label} count={step.count} color={step.color} isActive={step.count > 0} />
+                  <PipelineStep
+                    label={step.label}
+                    count={step.count < 0 ? '—' : step.count}
+                    color={step.color}
+                    isActive={step.count > 0}
+                  />
                   {i < pipeline.length - 1 && (
                     <ChevronLeft className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                   )}

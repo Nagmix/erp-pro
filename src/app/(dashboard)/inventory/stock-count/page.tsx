@@ -76,7 +76,26 @@ export default function StockCountPage() {
   const cancelMutation = useCancelDoc<SRRow>('Stock Reconciliation');
   const deleteMutation = useDeleteDoc('Stock Reconciliation');
 
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | '0' | '1' | '2'>('all');
+
   const rows = data || [];
+
+  const filteredRows = useMemo(() => {
+    let result = rows;
+    if (statusFilter !== 'all') {
+      result = result.filter((r) => String(r.docstatus) === statusFilter);
+    }
+    if (search.trim()) {
+      const s = search.trim().toLowerCase();
+      result = result.filter(
+        (r) =>
+          r.name.toLowerCase().includes(s) ||
+          (r.purpose || '').toLowerCase().includes(s)
+      );
+    }
+    return result;
+  }, [rows, statusFilter, search]);
 
   const columns: Column<SRRow>[] = useMemo(
     () => [
@@ -193,8 +212,21 @@ export default function StockCountPage() {
           </Button>
         }
       />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex-1 min-w-[200px]">
+          <Input placeholder="بحث بالرقم أو الغرض..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 text-xs" />
+        </div>
+        <div className="space-y-1">
+          <select className="h-8 rounded-md border bg-background px-3 text-xs" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | '0' | '1' | '2')}>
+            <option value="all">كل الحالات</option>
+            <option value="0">مسودة</option>
+            <option value="1">مرحّل</option>
+            <option value="2">ملغي</option>
+          </select>
+        </div>
+      </div>
       <PageShell padded={false}>
-        <DataTable data={rows} columns={columns} searchable loading={isLoading} onDelete={(r) => {
+        <DataTable data={filteredRows} columns={columns} searchable loading={isLoading} onDelete={(r) => {
           if (Number(r.docstatus) !== 0) {
             toast.error('لا يمكن حذف مستند مرحّل أو ملغي');
             return;

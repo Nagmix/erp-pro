@@ -20,6 +20,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   BarChart3,
   Plus,
   CreditCard,
@@ -206,15 +213,16 @@ function FilterBar({
           </div>
           <div className="w-40">
             <Label className="text-xs mb-1 block">الحالة</Label>
-            <select
-              className="w-full h-8 rounded-md border border-border/40 bg-background px-2 text-xs"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              {statusOptions.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+            <Select value={statusFilter || '_all'} onValueChange={(v) => setStatusFilter(v === '_all' ? '' : v)}>
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="الكل" />
+              </SelectTrigger>
+              <SelectContent>
+                {statusOptions.map((o) => (
+                  <SelectItem key={o.value || '_all'} value={o.value || '_all'}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="w-56">
             <Label className="text-xs mb-1 block">العميل</Label>
@@ -256,7 +264,7 @@ export default function CrmSubscriptionsPage() {
   const [deletePlanDialogOpen, setDeletePlanDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
   const [editPlanName, setEditPlanName] = useState('');
-  const [editPlanCost, setEditPlanCost] = useState<number>(0);
+  const [editPlanCost, setEditPlanCost] = useState<string>('');
   const [editPlanCurrency, setEditPlanCurrency] = useState('YER');
   const [editPlanInterval, setEditPlanInterval] = useState<'Day' | 'Week' | 'Month' | 'Year'>('Month');
   const [editPlanIntervalCount, setEditPlanIntervalCount] = useState<number>(1);
@@ -271,7 +279,7 @@ export default function CrmSubscriptionsPage() {
 
   /* Plan form state */
   const [planName, setPlanName] = useState('');
-  const [cost, setCost] = useState<number>(0);
+  const [cost, setCost] = useState<string>('');
   const [currency, setCurrency] = useState('YER');
   const [billingInterval, setBillingInterval] = useState<'Day' | 'Week' | 'Month' | 'Year'>('Month');
   const [billingIntervalCount, setBillingIntervalCount] = useState<number>(1);
@@ -331,7 +339,7 @@ export default function CrmSubscriptionsPage() {
   const openPlanEditDialog = (plan: Plan) => {
     setPlanEditing(plan);
     setEditPlanName(plan.plan_name || '');
-    setEditPlanCost(plan.cost || 0);
+    setEditPlanCost(String(plan.cost ?? ''));
     setEditPlanCurrency(plan.currency || 'YER');
     setEditPlanInterval((plan.billing_interval as 'Day' | 'Week' | 'Month' | 'Year') || 'Month');
     setEditPlanIntervalCount(plan.billing_interval_count || 1);
@@ -341,7 +349,7 @@ export default function CrmSubscriptionsPage() {
   const handleUpdatePlan = () => {
     if (!planEditing) return;
     updatePlan.mutate(
-      { name: planEditing.name, doc: { plan_name: editPlanName, cost: editPlanCost, currency: editPlanCurrency, billing_interval: editPlanInterval, billing_interval_count: editPlanIntervalCount } },
+      { name: planEditing.name, doc: { plan_name: editPlanName, cost: Number(editPlanCost) || 0, currency: editPlanCurrency, billing_interval: editPlanInterval, billing_interval_count: editPlanIntervalCount } },
       {
         onSuccess: () => { toast.success('تم تحديث الباقة'); setEditPlanDialogOpen(false); setPlanEditing(null); },
         onError: () => toast.error('فشل تحديث الباقة'),
@@ -385,12 +393,12 @@ export default function CrmSubscriptionsPage() {
 
   const handleCreatePlan = () => {
     if (!planName.trim()) { toast.error('أدخل اسم الباقة'); return; }
-    if (cost <= 0) { toast.error('أدخل سعراً صحيحاً'); return; }
+    if (!cost || Number(cost) <= 0) { toast.error('أدخل سعراً صحيحاً'); return; }
     createPlan.mutate(
       prepareFrappeDocForCreate(
         buildSubscriptionPlanCreate({
           plan_name: planName,
-          cost,
+          cost: Number(cost),
           currency,
           billing_interval: billingInterval,
           billing_interval_count: billingIntervalCount,
@@ -401,7 +409,7 @@ export default function CrmSubscriptionsPage() {
           toast.success('تم إنشاء الباقة بنجاح');
           setOpenPlan(false);
           setPlanName('');
-          setCost(0);
+          setCost('');
           setCurrency('YER');
           setBillingInterval('Month');
           setBillingIntervalCount(1);
@@ -438,7 +446,7 @@ export default function CrmSubscriptionsPage() {
 
   const resetPlanForm = () => {
     setPlanName('');
-    setCost(0);
+    setCost('');
     setCurrency('YER');
     setBillingInterval('Month');
     setBillingIntervalCount(1);
@@ -501,7 +509,7 @@ export default function CrmSubscriptionsPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">السعر <span className="text-destructive text-xs">*</span></Label>
-                      <Input type="number" dir="ltr" value={cost || ''} onChange={(e) => setCost(Number(e.target.value || 0))} placeholder="0.00" />
+                      <Input type="number" dir="ltr" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="0.00" />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">العملة</Label>
@@ -511,16 +519,17 @@ export default function CrmSubscriptionsPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">دورة الفوترة</Label>
-                      <select
-                        className="w-full h-9 rounded-md border border-border/40 bg-background px-3 text-sm"
-                        value={billingInterval}
-                        onChange={(e) => setBillingInterval(e.target.value as typeof billingInterval)}
-                      >
-                        <option value="Day">يومي</option>
-                        <option value="Week">أسبوعي</option>
-                        <option value="Month">شهري</option>
-                        <option value="Year">سنوي</option>
-                      </select>
+                      <Select value={billingInterval} onValueChange={(v) => setBillingInterval(v as typeof billingInterval)}>
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Day">يومي</SelectItem>
+                          <SelectItem value="Week">أسبوعي</SelectItem>
+                          <SelectItem value="Month">شهري</SelectItem>
+                          <SelectItem value="Year">سنوي</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-sm font-medium">كل (عدد)</Label>
@@ -687,7 +696,7 @@ export default function CrmSubscriptionsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">السعر</Label>
-                <Input type="number" dir="ltr" value={editPlanCost || ''} onChange={(e) => setEditPlanCost(Number(e.target.value || 0))} />
+                <Input type="number" dir="ltr" value={editPlanCost} onChange={(e) => setEditPlanCost(e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">العملة</Label>
@@ -697,16 +706,17 @@ export default function CrmSubscriptionsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">دورة الفوترة</Label>
-                <select
-                  className="w-full h-9 rounded-md border border-border/40 bg-background px-3 text-sm"
-                  value={editPlanInterval}
-                  onChange={(e) => setEditPlanInterval(e.target.value as typeof editPlanInterval)}
-                >
-                  <option value="Day">يومي</option>
-                  <option value="Week">أسبوعي</option>
-                  <option value="Month">شهري</option>
-                  <option value="Year">سنوي</option>
-                </select>
+                <Select value={editPlanInterval} onValueChange={(v) => setEditPlanInterval(v as typeof editPlanInterval)}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Day">يومي</SelectItem>
+                    <SelectItem value="Week">أسبوعي</SelectItem>
+                    <SelectItem value="Month">شهري</SelectItem>
+                    <SelectItem value="Year">سنوي</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">كل (عدد)</Label>
@@ -756,19 +766,20 @@ export default function CrmSubscriptionsPage() {
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">الحالة</Label>
-              <select
-                className="w-full h-9 rounded-md border border-border/40 bg-background px-3 text-sm"
-                value={editSubStatus}
-                onChange={(e) => setEditSubStatus(e.target.value)}
-              >
-                <option value="Active">نشط</option>
-                <option value="Completed">مكتمل</option>
-                <option value="Cancelled">ملغي</option>
-                <option value="Trial">تجريبي</option>
-                <option value="Unpaid">غير مدفوع</option>
-                <option value="Past Due Date">متأخر</option>
-                <option value="Paused">متوقف مؤقتاً</option>
-              </select>
+              <Select value={editSubStatus} onValueChange={setEditSubStatus}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">نشط</SelectItem>
+                  <SelectItem value="Completed">مكتمل</SelectItem>
+                  <SelectItem value="Cancelled">ملغي</SelectItem>
+                  <SelectItem value="Trial">تجريبي</SelectItem>
+                  <SelectItem value="Unpaid">غير مدفوع</SelectItem>
+                  <SelectItem value="Past Due Date">متأخر</SelectItem>
+                  <SelectItem value="Paused">متوقف مؤقتاً</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">تاريخ النهاية</Label>

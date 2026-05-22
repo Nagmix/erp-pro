@@ -23,9 +23,7 @@ import {
   ArrowDownLeft,
   RotateCcw,
   BarChart3,
-  Warehouse,
   CircleDollarSign,
-  TrendingDown,
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */

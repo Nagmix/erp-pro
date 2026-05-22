@@ -11,22 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatNumber, formatDate } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import {
-  Users,
   UserCheck,
   UserX,
-  Briefcase,
   DollarSign,
   Clock,
-  Calendar,
-  FileText,
-  ChevronLeft,
-  GraduationCap,
-  Heart,
   PlaneTakeoff,
   ClipboardCheck,
   Calculator,
   UserCircle,
-  TrendingUp,
   CalendarDays,
   AlertCircle,
 } from 'lucide-react';
@@ -161,6 +153,15 @@ export default function HrDashboardPage() {
     }
   );
 
+  const { data: jobOpenings = [] } = useDocList<Record<string, unknown>>(
+    'Job Opening',
+    {
+      fields: ['name', 'status', 'designation'],
+      filters: [['status', '=', 'Open']],
+      limit: 200,
+    }
+  );
+
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -200,9 +201,8 @@ export default function HrDashboardPage() {
   );
 
   const openPositions = useMemo(() => {
-    // Estimate from employee designations - simple count
-    return 0; // Would need Staff Plan or Job Opening doctype
-  }, []);
+    return jobOpenings.length;
+  }, [jobOpenings]);
 
   const payrollThisMonth = useMemo(
     () => {

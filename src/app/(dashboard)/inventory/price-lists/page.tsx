@@ -26,7 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, ListTree, Pencil, Edit, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, ListTree, Pencil, Edit, CheckCircle, XCircle, Search } from 'lucide-react';
 import {
   useDocList,
   useCreateDoc,
@@ -50,6 +50,7 @@ import {
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { formatCurrency } from '@/lib/core/helpers';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
+import { Checkbox } from '@/components/ui/checkbox';
 interface PLRow {
   name: string;
   currency: string;
@@ -91,6 +92,7 @@ export default function PriceListsPage() {
   const [deleteIpName, setDeleteIpName] = useState<string | null>(null);
   const [editRow, setEditRow] = useState<ItemPriceRow | null>(null);
   const [editRate, setEditRate] = useState('');
+  const [plSearch, setPlSearch] = useState('');
 
   const plKey = detailPl?.name ?? '';
   const {
@@ -133,6 +135,16 @@ export default function PriceListsPage() {
 
   const rows = data || [];
   const chk = (v: unknown) => Number(v) === 1 || v === true;
+
+  const filteredRows = useMemo(() => {
+    if (!plSearch.trim()) return rows;
+    const s = plSearch.trim().toLowerCase();
+    return rows.filter(
+      (r) =>
+        r.name.toLowerCase().includes(s) ||
+        r.currency.toLowerCase().includes(s)
+    );
+  }, [rows, plSearch]);
 
   const columns: Column<PLRow>[] = useMemo(
     () => [
@@ -353,9 +365,17 @@ export default function PriceListsPage() {
           </Button>
         }
       />
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <div className="flex-1 min-w-[200px]">
+          <div className="relative">
+            <Search className="pointer-events-none absolute end-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input placeholder="بحث بقائمة الأسعار..." value={plSearch} onChange={(e) => setPlSearch(e.target.value)} className="h-8 text-xs pe-8" />
+          </div>
+        </div>
+      </div>
       <PageShell padded={false}>
         <DataTable
-          data={rows}
+          data={filteredRows}
           columns={columns}
           searchable
           loading={isLoading}
@@ -651,28 +671,16 @@ export default function PriceListsPage() {
               />
             </div>
             <div className="flex gap-4 text-xs">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={buying}
-                  onChange={(e) => setBuying(e.target.checked)}
-                />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={buying} onCheckedChange={(v) => setBuying(v === true)} />
                 شراء
               </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={selling}
-                  onChange={(e) => setSelling(e.target.checked)}
-                />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={selling} onCheckedChange={(v) => setSelling(v === true)} />
                 بيع
               </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={plEnabled}
-                  onChange={(e) => setPlEnabled(e.target.checked)}
-                />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={plEnabled} onCheckedChange={(v) => setPlEnabled(v === true)} />
                 مفعّلة
               </label>
             </div>
@@ -706,28 +714,16 @@ export default function PriceListsPage() {
               />
             </div>
             <div className="flex gap-4 text-xs">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={editBuying}
-                  onChange={(e) => setEditBuying(e.target.checked)}
-                />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={editBuying} onCheckedChange={(v) => setEditBuying(v === true)} />
                 شراء
               </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={editSelling}
-                  onChange={(e) => setEditSelling(e.target.checked)}
-                />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={editSelling} onCheckedChange={(v) => setEditSelling(v === true)} />
                 بيع
               </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={editEnabled}
-                  onChange={(e) => setEditEnabled(e.target.checked)}
-                />
+              <label className="flex items-center gap-2 cursor-pointer">
+                <Checkbox checked={editEnabled} onCheckedChange={(v) => setEditEnabled(v === true)} />
                 مفعّلة
               </label>
             </div>

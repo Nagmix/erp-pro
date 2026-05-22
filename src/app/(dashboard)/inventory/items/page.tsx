@@ -420,6 +420,18 @@ export default function ItemsPage() {
           </div>
           <CollapsibleContent>
             <div className="flex flex-wrap items-end gap-3 pt-2 border-t mt-1">
+              <div className="space-y-1">
+                <Label className="text-xs">مجموعة الأصناف</Label>
+                <ErpLinkCombobox doctype="Item Group" value={groupFilter === 'all' ? '' : groupFilter} onChange={(v) => setGroupFilter(v || 'all')} placeholder="جميع المجموعات" />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">نوع الصنف</Label>
+                <select className="h-9 rounded-md border bg-background px-3 text-sm" value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
+                  <option value="all">الكل</option>
+                  <option value="stock">مخزني</option>
+                  <option value="service">خدمة</option>
+                </select>
+              </div>
             </div>
           </CollapsibleContent>
         </Collapsible>

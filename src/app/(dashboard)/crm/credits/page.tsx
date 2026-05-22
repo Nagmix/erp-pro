@@ -113,7 +113,7 @@ export default function CreditsPage() {
   // نموذج الإنشاء
   const [formPaymentType, setFormPaymentType] = useState<'Receive' | 'Pay'>('Receive');
   const [formCustomer, setFormCustomer] = useState('');
-  const [formAmount, setFormAmount] = useState<number>(0);
+  const [formAmount, setFormAmount] = useState<string>('');
   const [formModeOfPayment, setFormModeOfPayment] = useState('');
   const [formPaidFrom, setFormPaidFrom] = useState('');
   const [formPaidTo, setFormPaidTo] = useState('');
@@ -265,7 +265,7 @@ export default function CreditsPage() {
   const resetForm = () => {
     setFormPaymentType('Receive');
     setFormCustomer('');
-    setFormAmount(0);
+    setFormAmount('');
     setFormModeOfPayment('');
     setFormPaidFrom('');
     setFormPaidTo('');
@@ -277,7 +277,7 @@ export default function CreditsPage() {
 
   // ── Create Handler ──
   const handleCreate = () => {
-    if (!company || !formCustomer || formAmount <= 0) {
+    if (!company || !formCustomer || !formAmount || Number(formAmount) <= 0) {
       toast.error('يرجى إكمال جميع الحقول المطلوبة');
       return;
     }
@@ -288,8 +288,8 @@ export default function CreditsPage() {
       party: formCustomer,
       party_name: formCustomer,
       company,
-      paid_amount: formAmount,
-      received_amount: formAmount,
+      paid_amount: Number(formAmount),
+      received_amount: Number(formAmount),
       mode_of_payment: formModeOfPayment || undefined,
       paid_from: formPaidFrom || undefined,
       paid_to: formPaidTo || undefined,
@@ -833,10 +833,8 @@ export default function CreditsPage() {
                   type="number"
                   dir="ltr"
                   placeholder="0.00"
-                  value={formAmount || ''}
-                  onChange={(e) =>
-                    setFormAmount(Number(e.target.value || 0))
-                  }
+                  value={formAmount}
+                  onChange={(e) => setFormAmount(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -952,7 +950,7 @@ export default function CreditsPage() {
               <div className="flex justify-between gap-2">
                 <span className="text-muted-foreground">المبلغ</span>
                 <span className="font-bold tabular-nums">
-                  {formatCurrency(formAmount, formCurrency)}
+                  {formatCurrency(Number(formAmount) || 0, formCurrency)}
                 </span>
               </div>
             </div>

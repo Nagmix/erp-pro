@@ -790,12 +790,12 @@ export default function CrmTimelinePage() {
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">مرجع (اختياري)</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <Select value={refType} onValueChange={(v) => { setRefType(v); setRefName(''); }}>
+                <Select value={refType || 'none'} onValueChange={(v) => { setRefType(v === 'none' ? '' : v); setRefName(''); }}>
                   <SelectTrigger>
                     <SelectValue placeholder="بدون مرجع" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">بدون مرجع</SelectItem>
+                    <SelectItem value="none">بدون مرجع</SelectItem>
                     <SelectItem value="Lead">عميل محتمل</SelectItem>
                     <SelectItem value="Customer">عميل حالي</SelectItem>
                     <SelectItem value="Opportunity">فرصة</SelectItem>

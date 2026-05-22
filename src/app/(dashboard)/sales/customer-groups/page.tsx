@@ -94,6 +94,8 @@ export default function CustomerGroupsPage() {
   const [selectedGroup, setSelectedGroup] = useState<CustomerGroupRow | null>(null);
   const [editGroup, setEditGroup] = useState<CustomerGroupRow | null>(null);
   const [editParentGroup, setEditParentGroup] = useState('');
+  const [editIsGroup, setEditIsGroup] = useState(false);
+  const [editIsDisabled, setEditIsDisabled] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [groupTypeFilter, setGroupTypeFilter] = useState<'all' | 'root' | 'sub'>('all');
   const [parentFilter, setParentFilter] = useState<string>('all');
@@ -284,6 +286,8 @@ export default function CustomerGroupsPage() {
         name: editGroup.name,
         doc: {
           parent_customer_group: editParentGroup || 'All Customer Groups',
+          is_group: editIsGroup ? 1 : 0,
+          disabled: editIsDisabled ? 1 : 0,
         },
       });
       setEditDialogOpen(false);
@@ -314,6 +318,8 @@ export default function CustomerGroupsPage() {
   const openEditDialog = (row: CustomerGroupRow) => {
     setEditGroup(row);
     setEditParentGroup(row.parent_customer_group || '');
+    setEditIsGroup(chk(row.is_group));
+    setEditIsDisabled(chk(row.disabled));
     setEditDialogOpen(true);
   };
 
@@ -649,10 +655,30 @@ export default function CustomerGroupsPage() {
                     className="h-9 text-sm"
                   />
                 </div>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={editIsGroup}
+                      onChange={(e) => setEditIsGroup(e.target.checked)}
+                      className="rounded"
+                      id="isGroupEdit"
+                    />
+                    <Label htmlFor="isGroupEdit" className="text-sm cursor-pointer">مجموعة رئيسية</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={editIsDisabled}
+                      onChange={(e) => setEditIsDisabled(e.target.checked)}
+                      className="rounded"
+                      id="isDisabledEdit"
+                    />
+                    <Label htmlFor="isDisabledEdit" className="text-sm cursor-pointer text-muted-foreground">معطّلة</Label>
+                  </div>
+                </div>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span>النوع: <strong>{chk(editGroup?.is_group) ? 'رئيسية' : 'فرعية'}</strong></span>
                   <span>العملاء: <strong>{customerCountMap[editGroup?.name || ''] || 0}</strong></span>
-                  {chk(editGroup?.disabled) && <Badge variant="outline" className="text-[9px] bg-muted/10 text-muted-foreground border-muted/30">معطّلة</Badge>}
                 </div>
               </div>
             </fieldset>

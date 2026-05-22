@@ -56,11 +56,6 @@ import {
   Eye,
   Edit,
   CalendarClock,
-  Repeat,
-  DollarSign,
-  TrendingUp,
-  Clock,
-  Send,
   FileText,
   PlusCircle,
   MinusCircle,
@@ -72,8 +67,6 @@ import {
   Mail,
   CreditCard,
   Bell,
-  CheckCircle,
-  XCircle as XCircleIcon,
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -1050,7 +1043,7 @@ export default function RecurringInvoicesPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-lg font-bold">
               <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
-                <TrendingUp className="h-5 w-5" />
+                <CalendarClock className="h-5 w-5" />
               </div>
               <span>معاينة التوليد القادم</span>
             </DialogTitle>

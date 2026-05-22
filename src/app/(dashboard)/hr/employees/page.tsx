@@ -345,6 +345,12 @@ export default function EmployeesPage() {
 
   /* ── حفظ (إنشاء أو تعديل) ── */
   const handleSave = () => {
+    // التحقق من صحة البريد الإلكتروني
+    if (formData.personal_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.personal_email)) {
+      toast.error('البريد الإلكتروني غير صالح');
+      return;
+    }
+
     if (editingDoc) {
       // تعديل موظف
       updateMutation.mutate(
