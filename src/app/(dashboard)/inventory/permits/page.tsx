@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+
 import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
@@ -164,7 +164,7 @@ export default function InventoryPermitsPage() {
   const [referenceInvoice, setReferenceInvoice] = useState<string>('');
   const [warehouse, setWarehouse] = useState<string>('');
   const [postingDate, setPostingDate] = useState(() => new Date().toISOString().split('T')[0]!);
-  const [autoCreateOnInvoice, setAutoCreateOnInvoice] = useState(false);
+
   const [notes, setNotes] = useState('');
   const [lines, setLines] = useState<LineItem[]>([emptyLine()]);
 
@@ -282,7 +282,6 @@ export default function InventoryPermitsPage() {
     setReferenceInvoice('');
     setWarehouse('');
     setPostingDate(new Date().toISOString().split('T')[0]!);
-    setAutoCreateOnInvoice(false);
     setNotes('');
     setLines([emptyLine()]);
   }, []);
@@ -308,12 +307,16 @@ export default function InventoryPermitsPage() {
       return;
     }
 
+    let remarks = notes.trim() || '';
+    if (referenceInvoice && referenceDoctype) {
+      remarks += `\nمرجع: ${referenceDoctype} - ${referenceInvoice}`;
+    }
     const doc: Record<string, unknown> = {
       doctype: DOCTYPE,
       company: defaultCompany,
       stock_entry_type: stockEntryType,
       posting_date: postingDate,
-      remarks: notes.trim() || undefined,
+      remarks: remarks || undefined,
       items: lines
         .filter((l) => l.item_code)
         .map((l) => ({
@@ -336,7 +339,7 @@ export default function InventoryPermitsPage() {
         toast.error('تعذر إنشاء الإذن المخزني', { description: e instanceof Error ? e.message : 'حدث خطأ غير متوقع' });
       },
     });
-  }, [defaultCompany, warehouse, lines, permitType, postingDate, notes, createMutation, refetch, resetForm, toast]);
+  }, [defaultCompany, warehouse, lines, permitType, postingDate, notes, referenceInvoice, referenceDoctype, createMutation, refetch, resetForm, toast]);
 
   // ── Submit (Confirm) Handler ──
   const handleConfirm = useCallback(
@@ -377,7 +380,10 @@ export default function InventoryPermitsPage() {
     const w = window.open('', '_blank');
     if (!w) return;
     const permitTypeLabel = PERMIT_TYPE_MAP[getPermitType(row)] || row.stock_entry_type || 'إذن';
-    const itemsHtml = ''; // Items would need a separate fetch
+    const itemsHtml = (row.items || []).map((item: any, i: number) =>
+      `<tr><td>${i + 1}</td><td>${item.item_code || ''}</td><td>${item.item_name || item.item_code || ''}</td><td>${item.qty || 0}</td><td>${item.uom || ''}</td></tr>`
+    ).join('');
+    const itemsTableHtml = itemsHtml ? `<table><thead><tr><th>#</th><th>كود الصنف</th><th>اسم الصنف</th><th>الكمية</th><th>الوحدة</th></tr></thead><tbody>${itemsHtml}</tbody></table>` : '';
     w.document.write(`<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -408,7 +414,7 @@ export default function InventoryPermitsPage() {
     </div>
   </div>
   ${row.remarks ? `<p><strong>ملاحظات:</strong> ${row.remarks}</p>` : ''}
-  ${itemsHtml}
+  ${itemsTableHtml}
   <div class="footer">
     <p>تم الطباعة بتاريخ ${new Date().toLocaleDateString('en-US')} — نظام ERP Pro</p>
   </div>
@@ -822,18 +828,7 @@ export default function InventoryPermitsPage() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-border/40 bg-muted/30">
-                  <Switch
-                    checked={autoCreateOnInvoice}
-                    onCheckedChange={setAutoCreateOnInvoice}
-                  />
-                  <div>
-                    <Label className="text-sm font-medium">إنشاء تلقائي عند الفاتورة</Label>
-                    <p className="text-xs text-muted-foreground">
-                      يتم إنشاء الإذن تلقائياً عند تأكيد الفاتورة المرتبطة
-                    </p>
-                  </div>
-                </div>
+
               </div>
             </fieldset>
 

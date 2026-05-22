@@ -1,0 +1,12 @@
+{
+  "backendHost": "https://erpnext-backend-production-cde7.up.railway.app",
+  "adminUser": "Administrator",
+  "adminPassword": "ErpPro2025Admin!",
+  "apiTokenKey": "",
+  "apiTokenSecret": "",
+  "backendSiteName": "",
+  "backendVersion": "v16",
+  "isConfigured": true,
+  "companyName": "شركة الاختبار",
+  "setupCompleted": true
+}

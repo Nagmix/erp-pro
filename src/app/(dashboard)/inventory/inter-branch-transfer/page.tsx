@@ -76,13 +76,18 @@ export default function InterBranchTransferPage() {
       toast.error('أضف صفاً واحداً على الأقل');
       return;
     }
+    const validLines = filled.filter((l) => l.qty > 0);
+    if (!validLines.length) {
+      toast.error('الكمية يجب أن تكون أكبر من صفر');
+      return;
+    }
     const doc = buildStockEntry({
       company,
       purpose: 'Material Transfer',
       posting_date: postingDate,
       from_warehouse: fromWh,
       to_warehouse: toWh,
-      items: filled.map((l) => ({
+      items: validLines.map((l) => ({
         item_code: l.item_code,
         qty: l.qty,
         s_warehouse: l.s_warehouse || fromWh,

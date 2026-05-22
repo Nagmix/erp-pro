@@ -1,21 +1,6 @@
 {
-  "companyName": "شركة الأفق",
-  "currency": "YER",
-  "country": "Yemen",
-  "language": "ar",
-  "adminEmail": "admin@afq.com",
-  "enabledModules": [
-    "accounting",
-    "sales",
-    "purchases",
-    "inventory",
-    "hr",
-    "crm",
-    "manufacturing",
-    "projects"
-  ],
-  "taxEnabled": true,
-  "taxRate": 5,
-  "taxName": "ضريبة المبيعات",
-  "erpnextVersion": "v16"
+  "setupComplete": true,
+  "companyName": "شركة الاختبار",
+  "currency": "SAR",
+  "country": "Saudi Arabia"
 }

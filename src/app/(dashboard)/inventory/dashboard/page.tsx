@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
 import { PageHeader } from '@/components/erp/page-header';
@@ -9,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, formatNumber } from '@/lib/core/helpers';
-import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import {
   Package,
   Warehouse,
@@ -75,6 +75,7 @@ export default function InventoryDashboardPage() {
       fields: ['name', 'stock_entry_type', 'posting_date', 'total_amount', 'docstatus', 'from_warehouse', 'to_warehouse'],
       limit: 50,
       order_by: 'posting_date desc',
+      filters: company ? [['company', '=', company]] : [],
     }
   );
 
@@ -83,14 +84,18 @@ export default function InventoryDashboardPage() {
     {
       fields: ['name', 'warehouse_name', 'warehouse_type', 'is_group'],
       limit: 100,
+      filters: company ? [['company', '=', company]] : [],
     }
   );
+
+  const warehouseNames = useMemo(() => (warehouses || []).map((w: any) => w.name), [warehouses]);
 
   const { data: bins = [], isLoading: binsLoading } = useDocList<Record<string, unknown>>(
     'Bin',
     {
       fields: ['name', 'item_code', 'warehouse', 'actual_qty', 'valuation_rate', 'stock_value', 'projected_qty'],
       limit: 500,
+      filters: warehouseNames.length > 0 ? [['warehouse', 'in', warehouseNames as string[]]] as string[][] : [],
     }
   );
 

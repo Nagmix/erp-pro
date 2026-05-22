@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Trash2, Send, Undo2 } from 'lucide-react';
+import { Plus, Trash2, Send, Undo2, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -50,9 +50,10 @@ interface Line {
   item_code: string;
   warehouse: string;
   qty: string;
+  valuation_rate: string;
 }
 
-const emptyLine = (): Line => ({ item_code: '', warehouse: '', qty: '' });
+const emptyLine = (): Line => ({ item_code: '', warehouse: '', qty: '', valuation_rate: '' });
 
 export default function StockCountPage() {
   const { company, isLoading: coLoading } = useDefaultCompanyName();
@@ -80,7 +81,14 @@ export default function StockCountPage() {
     () => [
       { key: 'name', header: 'الرقم', sortable: true, render: (v) => <span className="font-medium text-primary">{String(v)}</span> },
       { key: 'posting_date', header: 'التاريخ', sortable: true, render: (v) => formatDate(String(v)) },
-      { key: 'purpose', header: 'الغرض', render: (v) => <span className="text-xs">{String(v ?? '—')}</span> },
+      { key: 'purpose', header: 'الغرض', render: (v) => {
+          const labels: Record<string, string> = {
+            'Stock Reconciliation': 'تسوية مخزون',
+            'Opening Stock': 'رصيد افتتاحي',
+          };
+          return <span className="text-xs">{labels[String(v)] || String(v ?? '—')}</span>;
+        },
+      },
       { key: 'docstatus', header: 'مستند', render: (v) => <DocStatusBadge docstatus={Number(v) as 0 | 1 | 2} /> },
       {
         key: '_a',
@@ -154,6 +162,7 @@ export default function StockCountPage() {
           item_code: l.item_code,
           warehouse: l.warehouse,
           qty: Number(l.qty),
+          valuation_rate: l.valuation_rate ? Number(l.valuation_rate) : undefined,
         })),
     });
     createMutation.mutate(doc, {
@@ -184,7 +193,13 @@ export default function StockCountPage() {
         }
       />
       <PageShell padded={false}>
-        <DataTable data={rows} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
+        <DataTable data={rows} columns={columns} searchable loading={isLoading} onDelete={(r) => {
+          if (Number(r.docstatus) !== 0) {
+            toast.error('لا يمكن حذف مستند مرحّل أو ملغي');
+            return;
+          }
+          setDeleteName(r.name);
+        }} />
       </PageShell>
       <AlertDialog open={!!deleteName} onOpenChange={() => setDeleteName(null)}>
         <AlertDialogContent dir="rtl">
@@ -208,7 +223,16 @@ export default function StockCountPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open);
+        if (!open) {
+          setPostingDate(new Date().toISOString().split('T')[0]!);
+          setPurpose('Stock Reconciliation');
+          setExpenseAccount('');
+          setCostCenter('');
+          setLines([emptyLine()]);
+        }
+      }}>
         <DialogContent dir="rtl" className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>تسوية مخزون (جرد)</DialogTitle>
@@ -230,11 +254,13 @@ export default function StockCountPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs">حساب فرق (اختياري)</Label>
-                <ErpLinkCombobox doctype="Account" value={expenseAccount} onChange={setExpenseAccount} />
+                <ErpLinkCombobox doctype="Account" value={expenseAccount} onChange={setExpenseAccount}
+                  filters={[['account_type', '=', 'Stock Adjustment'], ['company', '=', company]]} />
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">مركز تكلفة (اختياري)</Label>
-                <ErpLinkCombobox doctype="Cost Center" value={costCenter} onChange={setCostCenter} />
+                <ErpLinkCombobox doctype="Cost Center" value={costCenter} onChange={setCostCenter}
+                  filters={[['company', '=', company]]} />
               </div>
             </div>
             <div className="border rounded-lg">
@@ -250,6 +276,7 @@ export default function StockCountPage() {
                     <TableHead className="text-xs">الصنف</TableHead>
                     <TableHead className="text-xs">المستودع</TableHead>
                     <TableHead className="text-xs w-24">الكمية</TableHead>
+                    <TableHead className="text-xs w-28">سعر التقييم</TableHead>
                     <TableHead className="w-8" />
                   </TableRow>
                 </TableHeader>
@@ -266,6 +293,9 @@ export default function StockCountPage() {
                         <Input type="number" className="h-8 text-xs" dir="ltr" value={line.qty} onChange={(e) => setLines((p) => { const n = [...p]; n[idx] = { ...n[idx]!, qty: e.target.value }; return n; })} />
                       </TableCell>
                       <TableCell>
+                        <Input type="number" className="h-8 text-xs" dir="ltr" value={line.valuation_rate} onChange={(e) => setLines((p) => { const n = [...p]; n[idx] = { ...n[idx]!, valuation_rate: e.target.value }; return n; })} placeholder="0" />
+                      </TableCell>
+                      <TableCell>
                         <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => lines.length > 1 && setLines((p) => p.filter((_, j) => j !== idx))} disabled={lines.length === 1}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
@@ -276,7 +306,9 @@ export default function StockCountPage() {
               </Table>
             </div>
             <Button className="w-full" onClick={handleCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending ? '...' : 'حفظ مسودة'}
+              {createMutation.isPending ? (
+                <><Loader2 className="h-3.5 w-3.5 animate-spin" />جاري الحفظ...</>
+              ) : 'حفظ مسودة'}
             </Button>
           </div>
         </DialogContent>

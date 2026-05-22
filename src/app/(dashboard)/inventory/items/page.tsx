@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Package, Layers, Upload, FileDown, CalendarRange, Filter, ChevronDown, X } from 'lucide-react';
+import { Plus, Package, Upload, FileDown, CalendarRange, Filter, ChevronDown, X } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -37,7 +37,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import {
   parseCsvRows,
   parseExcelFirstSheetToGrid,
@@ -60,10 +60,12 @@ interface ItemRow {
   has_serial_no?: 0 | 1 | boolean;
   standard_rate?: number;
   enable_deferred_revenue?: 0 | 1 | boolean;
+  description?: string;
+  brand?: string;
 }
 
 const ITEMS_CSV_TEMPLATE = `item_code,item_name,item_group,stock_uom,is_stock_item,standard_rate,has_batch_no,has_serial_no,brand,description
-SKU-001,منتج افتراضي,Products,Nos,1,10,0,0,`;
+SKU-001,منتج افتراضي,Products,Nos,1,10,0,0,,`;
 
 export default function ItemsPage() {
   const queryClient = useQueryClient();
@@ -106,6 +108,8 @@ export default function ItemsPage() {
       'has_serial_no',
       'standard_rate',
       'enable_deferred_revenue',
+      'description',
+      'brand',
     ],
     order_by: 'modified desc',
     limit: 2000,
@@ -188,6 +192,8 @@ export default function ItemsPage() {
     setHasBatch(isStockFlag(row.has_batch_no));
     setHasSerial(isStockFlag(row.has_serial_no));
     setStandardRate(String(row.standard_rate ?? ''));
+    setDescription(row.description || '');
+    setBrand(row.brand || '');
     setEnableDeferredRev(isStockFlag(row.enable_deferred_revenue));
     setDialogOpen(true);
   };
@@ -215,6 +221,10 @@ export default function ItemsPage() {
   /* ── حفظ (إنشاء أو تعديل) ── */
   const handleSave = () => {
     if (editingDoc) {
+      if (!itemName.trim() || !itemGroup || !stockUom) {
+        toast.error('أكمل الحقول المطلوبة');
+        return;
+      }
       // تعديل صنف
       updateMutation.mutate(
         {
@@ -227,8 +237,8 @@ export default function ItemsPage() {
             has_batch_no: hasBatch ? 1 : 0,
             has_serial_no: hasSerial ? 1 : 0,
             standard_rate: Number(standardRate) || 0,
-            description: description || undefined,
-            brand: brand || undefined,
+            description: description,
+            brand: brand,
             enable_deferred_revenue: enableDeferredRev ? 1 : 0,
             no_of_months: enableDeferredRev ? Math.max(1, Math.min(600, parseInt(deferredMonths, 10) || 12)) : undefined,
           },
@@ -240,7 +250,7 @@ export default function ItemsPage() {
             setEditingDoc(null);
             void refetch();
           },
-          onError: () => toast.error('تعذر تعديل الصنف'),
+          onError: (err: Error) => toast.error('تعذر تعديل الصنف', { description: err.message }),
         },
       );
       return;
@@ -250,8 +260,8 @@ export default function ItemsPage() {
       toast.error('أكمل الحقول المطلوبة');
       return;
     }
-    if (isStock && !company) {
-      toast.error('تعذر تحديد الشركة لافتراضيات الصنف');
+    if (!company) {
+      toast.error('تعذر تحديد الشركة');
       return;
     }
     const doc = buildItemCreate({
@@ -260,7 +270,7 @@ export default function ItemsPage() {
       item_group: itemGroup,
       stock_uom: stockUom,
       is_stock_item: isStock,
-      company: isStock ? company || undefined : undefined,
+      company: company || undefined,
       has_batch_no: hasBatch,
       has_serial_no: hasSerial,
       standard_rate: Number(standardRate) || 0,
@@ -287,7 +297,7 @@ export default function ItemsPage() {
         setDeferredMonths('12');
         void refetch();
       },
-      onError: () => toast.error('تعذر الحفظ')});
+      onError: (err: Error) => toast.error('تعذر الحفظ', { description: err.message })});
   };
 
   const downloadCsvTemplate = useCallback(() => {
@@ -402,7 +412,7 @@ export default function ItemsPage() {
                 <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
               </Button>
             </CollapsibleTrigger>
-            {(stockFilter !== 'all' || search) && (
+            {(stockFilter !== 'all' || groupFilter !== 'all' || search) && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
                 <X className="h-3 w-3" /> مسح الفلاتر
               </Button>
@@ -484,7 +494,7 @@ export default function ItemsPage() {
           <DialogHeader>
             <DialogTitle>{editingDoc ? `تعديل الصنف — ${editingDoc.item_code}` : 'صنف جديد'}</DialogTitle>
           </DialogHeader>
-          <Tabs defaultValue="basic" className="w-full">
+          <Tabs key={editingDoc?.name ?? 'new'} defaultValue="basic" className="w-full">
             <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/40 p-1">
               <TabsTrigger value="basic" className="text-xs">
                 أساسي
@@ -495,7 +505,7 @@ export default function ItemsPage() {
               <TabsTrigger value="stock" className="text-xs">
                 مخزون ودفعات
               </TabsTrigger>
-              <TabsTrigger value="deferred" className="text-xs gap-1">
+              <TabsTrigger value="deferred" className="text-xs gap-1" disabled={isStock}>
                 <CalendarRange className="h-3 w-3" />
                 إيراد مؤجل
               </TabsTrigger>
@@ -538,7 +548,13 @@ export default function ItemsPage() {
             <TabsContent value="stock" className="space-y-4 mt-4 outline-none">
             <div className="flex flex-wrap gap-4">
               <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <Checkbox checked={isStock} onCheckedChange={(v) => setIsStock(v === true)} />
+                <Checkbox checked={isStock} onCheckedChange={(v) => {
+                  const val = v === true;
+                  setIsStock(val);
+                  if (val) {
+                    setEnableDeferredRev(false);
+                  }
+                }} />
                 صنف مخزني
               </label>
               <label className="flex items-center gap-2 text-xs cursor-pointer">

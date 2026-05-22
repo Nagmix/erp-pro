@@ -251,8 +251,7 @@ export default function ItemVariantsPage() {
   const [editVariantBarcode, setEditVariantBarcode] = useState('');
   const [editVariantEnabled, setEditVariantEnabled] = useState(true);
 
-  // ─── حالة تعديل المجموعة ───────────────────────────────────
-  const [editingGroup, setEditingGroup] = useState<TemplateItemRow | null>(null);
+
 
   // ─── حالة تحديث الأسعار الجماعي ────────────────────────────
   const [bulkPriceType, setBulkPriceType] = useState<'sell' | 'buy'>('sell');
@@ -554,6 +553,7 @@ export default function ItemVariantsPage() {
       }
 
       // 3. إنشاء التبديلات
+      const template = groups.find((g) => g.name === templateItem);
       const variantDocs = combinations.map((combo, idx) => {
         const attrEntries = Object.entries(combo.attributes);
         const variantDoc: Record<string, unknown> = {
@@ -562,7 +562,8 @@ export default function ItemVariantsPage() {
           variant_of: templateItem,
           has_variants: 0,
           is_stock_item: 1,
-          stock_uom: 'Nos',
+          item_group: template?.item_group,
+          stock_uom: template?.stock_uom || 'Nos',
           standard_rate: Number(combo.sell_price) || 0,
           valuation_rate: Number(combo.buy_price) || 0,
           disabled: combo.enabled ? 0 : 1,
@@ -846,7 +847,7 @@ export default function ItemVariantsPage() {
           exportFileName="variant-groups.csv"
           getRowId={(row) => row.name}
           onView={(row) => void handleViewVariants(row)}
-          onEdit={(row) => setEditingGroup(row)}
+
           onDelete={(row) => setDeleteName(row.name)}
           bulkActions={[
             {

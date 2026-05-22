@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Plus, Trash2, Send, Undo2, Package, ArrowRightLeft, Box, Filter, ChevronDown, Upload, X } from 'lucide-react';
+import { Plus, Trash2, Send, Undo2, Package, Filter, ChevronDown, X } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -145,6 +145,10 @@ export default function StockEntryPage() {
       toast.error('أضف بنوداً');
       return;
     }
+    if (lines.some((l) => l.item_code && l.qty <= 0)) {
+      toast.error('الكمية يجب أن تكون أكبر من صفر');
+      return;
+    }
     const doc = buildStockEntry({
       company,
       purpose: entryType,
@@ -195,6 +199,7 @@ export default function StockEntryPage() {
                 size="sm"
                 variant="secondary"
                 className="h-7 text-xs gap-1"
+                disabled={submitMutation.isPending}
                 onClick={() =>
                   submitMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('تم الترحيل'); void refetch(); },
@@ -213,6 +218,7 @@ export default function StockEntryPage() {
                 size="sm"
                 variant="ghost"
                 className="h-7 text-xs gap-1"
+                disabled={cancelMutation.isPending}
                 onClick={() =>
                   cancelMutation.mutate(row.name, {
                     onSuccess: () => { toast.success('أُلغي'); void refetch(); },
@@ -220,7 +226,7 @@ export default function StockEntryPage() {
                 }
               >
                 <Undo2 className="h-3 w-3" />
-                إلغاء
+                إلغاء الترحيل
               </Button>
             );
           }
@@ -327,7 +333,13 @@ export default function StockEntryPage() {
             </TabsList>
           </Tabs>
         </div>
-        <DataTable data={filtered} columns={columns} searchable loading={isLoading} onDelete={(r) => setDeleteName(r.name)} />
+        <DataTable data={filtered} columns={columns} searchable loading={isLoading} onDelete={(r) => {
+          if (Number(r.docstatus) !== 0) {
+            toast.error('لا يمكن حذف مستند مرحّل أو ملغي');
+            return;
+          }
+          setDeleteName(r.name);
+        }} />
       </PageShell>
       <AlertDialog open={!!deleteName} onOpenChange={() => setDeleteName(null)}>
         <AlertDialogContent dir="rtl">
@@ -374,6 +386,7 @@ export default function StockEntryPage() {
                     setEntryType(e.target.value);
                     setFromWh('');
                     setToWh('');
+                    setLines([emptyLine()]);
                   }}
                 >
                   <option value="Material Receipt">إدخال مواد</option>

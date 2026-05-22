@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
-import { ExportButton } from '@/components/erp/export-button';
 import {
   Package,
   Warehouse as WarehouseIcon,
@@ -31,10 +30,6 @@ import {
   Filter,
   ChevronDown,
   X,
-  TrendingDown,
-  BarChart3,
-  DollarSign,
-  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -373,22 +368,6 @@ export default function StockLevelsPage() {
     (itemGroupFilter.trim() !== '' && itemGroupFilter !== 'all') ||
     stockStatusFilter !== 'all';
 
-  /* ── أعمدة التصدير ── */
-  const exportColumns = useMemo(
-    () => [
-      { key: 'item_code', header: 'كود الصنف' },
-      { key: 'item_name', header: 'اسم الصنف' },
-      { key: 'warehouse', header: 'المستودع' },
-      { key: 'actual_qty', header: 'الكمية الفعلية' },
-      { key: 'reserved_qty', header: 'محجوز' },
-      { key: 'ordered_qty', header: 'مطلوب' },
-      { key: 'projected_qty', header: 'المتوقع' },
-      { key: 'valuation_rate', header: 'سعر التقييم' },
-      { key: 'stock_value', header: 'قيمة المخزون' },
-    ],
-    [],
-  );
-
   const warehouseOptions = useMemo(
     () => warehouses.map((w) => String(w.name)).filter(Boolean).sort(),
     [warehouses],
@@ -412,6 +391,25 @@ export default function StockLevelsPage() {
       />
 
       {/* ── بطاقات KPI ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="rounded-lg border border-border/50 bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground mb-1">إجمالي الأصناف</p>
+          <p className="text-lg font-semibold tabular-nums">{kpis.totalItems}</p>
+        </div>
+        <div className="rounded-lg border border-border/50 bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground mb-1">إجمالي قيمة المخزون</p>
+          <p className="text-lg font-semibold tabular-nums">{formatCurrency(kpis.totalStockValue)}</p>
+        </div>
+        <div className="rounded-lg border border-border/50 bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground mb-1">أصناف منخفضة</p>
+          <p className="text-lg font-semibold tabular-nums text-amber-600 dark:text-amber-400">{kpis.lowStockItems}</p>
+        </div>
+        <div className="rounded-lg border border-border/50 bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground mb-1">أصناف نافذة</p>
+          <p className="text-lg font-semibold tabular-nums text-destructive">{kpis.outOfStockItems}</p>
+        </div>
+      </div>
+
       {/* ── شريط البحث والفلاتر ── */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

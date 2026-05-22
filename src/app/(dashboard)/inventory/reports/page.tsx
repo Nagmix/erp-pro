@@ -172,6 +172,7 @@ export default function InventoryReportsPage() {
                   onChange={setStockAccount}
                   placeholder="فلترة حسب حساب Stock"
                   className="h-9 w-full min-w-[200px]"
+                  filters={[['company', '=', effectiveCompany]]}
                 />
               </div>
               <div className="space-y-1.5">

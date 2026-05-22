@@ -81,8 +81,16 @@ export default function BatchesPage() {
     } else if (expiryFilter === 'expired') {
       result = result.filter((b) => b.expiry_date && new Date(b.expiry_date) < new Date());
     }
+    if (search) {
+      const s = search.toLowerCase();
+      result = result.filter(r =>
+        (r.name || '').toLowerCase().includes(s) ||
+        (r.item || '').toLowerCase().includes(s) ||
+        ((r as any).description || '').toLowerCase().includes(s)
+      );
+    }
     return result;
-  }, [batches, expiryFilter]);
+  }, [batches, expiryFilter, search]);
 
   // KPI calculations
   const totalCount = batches.length;

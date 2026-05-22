@@ -106,8 +106,16 @@ export default function SerialNumbersPage() {
     if (statusFilter !== 'all') {
       result = result.filter((s) => s.status === statusFilter);
     }
+    if (search) {
+      const s = search.toLowerCase();
+      result = result.filter(r =>
+        (r.name || '').toLowerCase().includes(s) ||
+        (r.item_code || '').toLowerCase().includes(s) ||
+        (r.item_name || '').toLowerCase().includes(s)
+      );
+    }
     return result;
-  }, [serials, statusFilter]);
+  }, [serials, statusFilter, search]);
 
   // KPI calculations
   const totalCount = serials.length;

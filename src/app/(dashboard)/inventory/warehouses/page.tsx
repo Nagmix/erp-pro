@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/collapsible';
 import {
   Plus,
+  Pencil,
   Warehouse,
   Filter,
   ChevronDown,
@@ -617,7 +618,7 @@ export default function WarehousesPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-lg font-bold">
               <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                <Plus className="h-5 w-5" />
+                {editingDoc ? <Pencil className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
               </div>
               <div>
                 <span>{editingDoc ? `تعديل المستودع — ${editingDoc.name}` : 'مستودع جديد'}</span>
@@ -690,7 +691,7 @@ export default function WarehousesPage() {
                     onChange={setWhAccount}
                     placeholder="اختر الحساب..."
                     displayKey="account_name"
-                    filters={[['account_type', '=', 'Stock'], ['company', '=', whCompany || company]]}
+                    filters={[['account_type', '=', 'Stock'], ...((whCompany || company) ? [['company', '=', whCompany || company]] : [])]}
                     showCreateShortcut={false}
                   />
                 </div>

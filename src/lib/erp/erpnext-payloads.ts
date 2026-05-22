@@ -907,10 +907,11 @@ export function buildStockEntry(input: {
   return {
     doctype: 'Stock Entry',
     company: input.company,
+    stock_entry_type: st,
     purpose: st,
     posting_date: input.posting_date,
-    from_warehouse: input.from_warehouse || undefined,
-    to_warehouse: input.to_warehouse || undefined,
+    ...(st !== 'Material Receipt' && input.from_warehouse ? { from_warehouse: input.from_warehouse } : {}),
+    ...(st !== 'Material Issue' && input.to_warehouse ? { to_warehouse: input.to_warehouse } : {}),
     items,
   };
 }
@@ -946,7 +947,7 @@ export function buildItemCreate(input: {
   if (input.description) d.description = input.description;
   if (input.brand) d.brand = input.brand;
   if (input.standard_rate != null && input.standard_rate >= 0) d.standard_rate = input.standard_rate;
-  if (input.is_stock_item && input.company) {
+  if (input.company) {
     d.item_defaults = [{ company: input.company }];
   }
   if (input.enable_deferred_revenue) {
