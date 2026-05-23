@@ -14,6 +14,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -37,6 +47,7 @@ import {
   Flag,
   Loader2,
   Pencil,
+  Trash2,
 } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
@@ -150,6 +161,8 @@ export default function FollowUpsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Row | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<Row | null>(null);
 
   // Form state
   const [desc, setDesc] = useState('');
@@ -380,7 +393,7 @@ export default function FollowUpsPage() {
         description="مهام متابعة مرتبطة بعملاء محتملين أو حاليين أو فرص — تتبع وإدارة كل المهام العالقة"
         iconify="solar:checklist-bold-duotone"
         accent="warning"
-        breadcrumbs={[{ label: 'علاقات العملاء', href: '/crm' }, { label: 'المتابعة' }]}
+        breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'المتابعة' }]}
         actions={
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void refetch()} disabled={isLoading}>
@@ -478,7 +491,7 @@ export default function FollowUpsPage() {
           columns={columns}
           searchable
           loading={isLoading}
-          onDelete={(r) => deleteMutation.mutate(r.name, { onSuccess: () => toast.success('تم حذف المهمة'), onError: () => toast.error('فشل حذف المهمة') })}
+          onDelete={(r) => { setToDelete(r); setDeleteDialogOpen(true); }}
           onEdit={(row) => openEditDialog(row)}
           tableId="crm-follow-ups"
           exportFileName="crm-follow-ups.csv"
@@ -733,6 +746,35 @@ export default function FollowUpsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* تأكيد الحذف */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف مهمة المتابعة</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف المهمة &quot;{toDelete ? stripHtml(toDelete.description || '').slice(0, 40) : ''}&quot;؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (!toDelete) return;
+                deleteMutation.mutate(toDelete.name, {
+                  onSuccess: () => { toast.success('تم حذف المهمة'); setDeleteDialogOpen(false); setToDelete(null); },
+                  onError: () => toast.error('فشل حذف المهمة'),
+                });
+              }}
+            >
+              {deleteMutation.isPending ? (
+                <span className="flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" />جاري الحذف...</span>
+              ) : 'حذف'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

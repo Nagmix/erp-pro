@@ -19,6 +19,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -381,14 +388,13 @@ export default function SalaryComponentsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">النوع</Label>
-                    <select
-                      className="w-full h-9 rounded-md border bg-background px-2 text-sm"
-                      value={formData.type}
-                      onChange={(e) => setFormData((p) => ({ ...p, type: e.target.value as 'Earning' | 'Deduction' }))}
-                    >
-                      <option value="Earning">استحقاق</option>
-                      <option value="Deduction">استقطاع</option>
-                    </select>
+                    <Select value={formData.type} onValueChange={(v) => setFormData((p) => ({ ...p, type: v as 'Earning' | 'Deduction' }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Earning">استحقاق</SelectItem>
+                        <SelectItem value="Deduction">استقطاع</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">الاختصار</Label>
@@ -510,14 +516,13 @@ export default function SalaryComponentsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">النوع</Label>
-                    <select
-                      className="w-full h-9 rounded-md border bg-background px-2 text-sm"
-                      value={editFormData.type}
-                      onChange={(e) => setEditFormData((p) => ({ ...p, type: e.target.value as 'Earning' | 'Deduction' }))}
-                    >
-                      <option value="Earning">استحقاق</option>
-                      <option value="Deduction">استقطاع</option>
-                    </select>
+                    <Select value={editFormData.type} onValueChange={(v) => setEditFormData((p) => ({ ...p, type: v as 'Earning' | 'Deduction' }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Earning">استحقاق</SelectItem>
+                        <SelectItem value="Deduction">استقطاع</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">الاختصار</Label>

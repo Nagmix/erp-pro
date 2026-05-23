@@ -39,6 +39,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useCreateDoc, useDocList, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import {
   buildSubscriptionCreate,
   buildSubscriptionPlanCreate,
@@ -252,6 +253,7 @@ function FilterBar({
 
 /* ── Main Page ── */
 export default function CrmSubscriptionsPage() {
+  const { company } = useDefaultCompanyName();
   const [tab, setTab] = useState('subscriptions');
   const [openPlan, setOpenPlan] = useState(false);
   const [openSub, setOpenSub] = useState(false);
@@ -299,6 +301,7 @@ export default function CrmSubscriptionsPage() {
     fields: ['name', 'party', 'status', 'start_date', 'end_date', 'current_invoice_start', 'current_invoice_end', 'plan', 'currency'],
     limit: 500,
     order_by: 'modified desc',
+    filters: company ? [['company', '=', company]] : undefined,
   });
 
   const createPlan = useCreateDoc('Subscription Plan');
@@ -465,7 +468,7 @@ export default function CrmSubscriptionsPage() {
         description="إدارة الباقات والاشتراكات وربط دورة الفوترة الدورية — متابعة الاشتراكات النشطة والمنتهية وتاريخ الفوترة"
         iconify="solar:card-bold-duotone"
         accent="primary"
-        breadcrumbs={[{ label: 'CRM', href: '/crm' }, { label: 'الاشتراكات' }]}
+        breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'الاشتراكات' }]}
         actions={
           <div className="flex gap-2 flex-wrap">
             <Button asChild size="sm" variant="outline" className="gap-1.5">

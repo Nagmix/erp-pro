@@ -40,6 +40,7 @@ import { KpiCard } from '@/components/erp/kpi-card';
 import { PageHeader } from '@/components/erp/page-header';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
+import { Checkbox } from '@/components/ui/checkbox';
 
 /* ──────────────── Types ──────────────── */
 
@@ -500,13 +501,11 @@ export default function HolidaysPage() {
                       }}
                     />
                     <div className="col-span-3 flex items-center gap-2">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={item.weekly_off}
-                        onChange={(e) => {
-                          const n = [...entries]; n[idx] = { ...n[idx], weekly_off: e.target.checked }; setEntries(n);
+                        onCheckedChange={(v) => {
+                          const n = [...entries]; n[idx] = { ...n[idx], weekly_off: v === true }; setEntries(n);
                         }}
-                        className="h-4 w-4 rounded border-border"
                       />
                       <span className="text-xs text-muted-foreground">نعم</span>
                     </div>

@@ -519,21 +519,23 @@ export default function StockEntryPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs">نوع الحركة</Label>
-                <select
-                  className="w-full h-9 rounded-md border bg-background px-3 text-sm"
+                <Select
                   value={entryType}
-                  onChange={(e) => {
-                    setEntryType(e.target.value);
+                  onValueChange={(v) => {
+                    setEntryType(v);
                     setFromWh('');
                     setToWh('');
                     setLines([emptyLine()]);
                   }}
                 >
-                  <option value="Material Receipt">إدخال مواد</option>
-                  <option value="Material Issue">إخراج مواد</option>
-                  <option value="Material Transfer">تحويل</option>
-                  <option value="Manufacture">تصنيع</option>
-                </select>
+                  <SelectTrigger className="w-full h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Material Receipt">إدخال مواد</SelectItem>
+                    <SelectItem value="Material Issue">إخراج مواد</SelectItem>
+                    <SelectItem value="Material Transfer">تحويل</SelectItem>
+                    <SelectItem value="Manufacture">تصنيع</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">التاريخ</Label>

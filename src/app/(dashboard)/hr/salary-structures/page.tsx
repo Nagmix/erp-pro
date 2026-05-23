@@ -8,6 +8,13 @@ import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -625,22 +632,21 @@ export default function SalaryStructuresPage() {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">دورة الدفع</Label>
-                <select
-                  className="w-full h-9 rounded-md border bg-background px-2 text-sm"
+                <Select
                   value={formData.payroll_frequency}
-                  onChange={(e) =>
-                    setFormData((p) => ({
-                      ...p,
-                      payroll_frequency: e.target.value,
-                    }))
+                  onValueChange={(v) =>
+                    setFormData((p) => ({ ...p, payroll_frequency: v }))
                   }
                 >
-                  <option value="Monthly">شهري</option>
-                  <option value="Fortnightly">نصف شهري</option>
-                  <option value="Bimonthly">كل شهرين</option>
-                  <option value="Weekly">أسبوعي</option>
-                  <option value="Daily">يومي</option>
-                </select>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Monthly">شهري</SelectItem>
+                    <SelectItem value="Fortnightly">نصف شهري</SelectItem>
+                    <SelectItem value="Bimonthly">كل شهرين</SelectItem>
+                    <SelectItem value="Weekly">أسبوعي</SelectItem>
+                    <SelectItem value="Daily">يومي</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <p className="text-[10px] text-muted-foreground">

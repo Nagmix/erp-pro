@@ -72,6 +72,7 @@ import { toast } from 'sonner';
 import { apiBulkCreate, apiCreateDoc, apiUpdateDoc, apiCallMethod } from '@/lib/client/api';
 import { formatCurrency, formatNumber } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // ─── أنواع ────────────────────────────────────────────────────
 
@@ -218,6 +219,14 @@ export default function ItemVariantsPage() {
   const [editVariantOpen, setEditVariantOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
   const [bulkPriceDialogOpen, setBulkPriceDialogOpen] = useState(false);
+
+  // ─── حالة تعديل مجموعة القالب ──────────────────────────────────
+  const [editGroupDoc, setEditGroupDoc] = useState<TemplateItemRow | null>(null);
+  const [editGroupName, setEditGroupName] = useState('');
+  const [editGroupItemGroup, setEditGroupItemGroup] = useState('');
+  const [editGroupUom, setEditGroupUom] = useState('');
+  const [editGroupRate, setEditGroupRate] = useState('');
+  const [editGroupDisabled, setEditGroupDisabled] = useState(false);
 
   // ─── حالة إنشاء مجموعة التبديلات ──────────────────────────
   const [templateItem, setTemplateItem] = useState('');
@@ -836,6 +845,15 @@ export default function ItemVariantsPage() {
           exportFileName="variant-groups.csv"
           getRowId={(row) => row.name}
           onView={(row) => void handleViewVariants(row)}
+          onEdit={(row) => {
+            setEditGroupDoc(row);
+            setEditGroupName(row.item_name || '');
+            setEditGroupItemGroup(row.item_group || '');
+            setEditGroupUom(row.stock_uom || '');
+            setEditGroupRate(String(row.standard_rate ?? ''));
+            setEditGroupDisabled(isFlag(row.disabled));
+            setEditDialogOpen(true);
+          }}
 
           onDelete={(row) => setDeleteName(row.name)}
           bulkActions={[
@@ -1540,6 +1558,83 @@ export default function ItemVariantsPage() {
               إلغاء
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── حوار تعديل مجموعة القالب ─── */}
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+        setEditDialogOpen(open);
+        if (!open) setEditGroupDoc(null);
+      }}>
+        <DialogContent dir="rtl" className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Edit className="h-4 w-4 text-primary" />
+              تعديل مجموعة القالب
+            </DialogTitle>
+          </DialogHeader>
+          {editGroupDoc && (
+            <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-muted/30 border">
+                <p className="text-xs text-muted-foreground">كود القالب</p>
+                <p className="font-mono font-medium text-primary" dir="ltr">{editGroupDoc.item_code}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs">اسم المجموعة</Label>
+                <Input value={editGroupName} onChange={(e) => setEditGroupName(e.target.value)} />
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs">مجموعة الأصناف</Label>
+                  <ErpLinkCombobox doctype="Item Group" value={editGroupItemGroup} onChange={setEditGroupItemGroup} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">وحدة القياس</Label>
+                  <ErpLinkCombobox doctype="UOM" value={editGroupUom} onChange={setEditGroupUom} />
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs">سعر البيع القياسي</Label>
+                  <Input type="number" dir="ltr" value={editGroupRate} onChange={(e) => setEditGroupRate(e.target.value)} />
+                </div>
+                <div className="flex items-end gap-2 pb-1">
+                  <label className="flex items-center gap-2 text-xs cursor-pointer">
+                    <Checkbox checked={editGroupDisabled} onCheckedChange={(v) => setEditGroupDisabled(v === true)} />
+                    معطّل
+                  </label>
+                </div>
+              </div>
+
+              <Button
+                className="w-full"
+                onClick={async () => {
+                  if (!editGroupDoc) return;
+                  try {
+                    await apiUpdateDoc('Item', editGroupDoc.name, {
+                      item_name: editGroupName.trim() || undefined,
+                      item_group: editGroupItemGroup || undefined,
+                      stock_uom: editGroupUom || undefined,
+                      standard_rate: Number(editGroupRate) || 0,
+                      disabled: editGroupDisabled ? 1 : 0,
+                    } as Record<string, unknown>);
+                    toast.success('تم تحديث مجموعة القالب');
+                    setEditDialogOpen(false);
+                    setEditGroupDoc(null);
+                    void queryClient.invalidateQueries({ queryKey: ['docList', 'Item'] });
+                    void refetch();
+                  } catch (err) {
+                    toast.error('فشل تحديث مجموعة القالب', { description: err instanceof Error ? err.message : 'خطأ غير معروف' });
+                  }
+                }}
+              >
+                حفظ التعديل
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

@@ -184,6 +184,7 @@ export default function LeadsPage() {
   /* ── Data ── */
   const { data, isLoading, isError, error, refetch } = useDocList<LeadRow>('Lead', {
     fields: ['name', 'lead_name', 'first_name', 'last_name', 'salutation', 'company_name', 'source', 'status', 'email_id', 'mobile_no', 'phone', 'lead_owner', 'territory'],
+    filters: company ? [['company', '=', company]] : undefined,
     limit: 400,
     order_by: 'modified desc',
   });
@@ -422,7 +423,7 @@ export default function LeadsPage() {
         description="إدارة العملاء المحتملين ومتابعة حالات التحويل عبر مراحل التواصل والصفقات"
         iconify="solar:user-plus-rounded-bold-duotone"
         accent="info"
-        breadcrumbs={[{ label: 'علاقات العملاء', href: '/crm' }, { label: 'العملاء المحتملون' }]}
+        breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'العملاء المحتملون' }]}
         actions={
           <div className="flex items-center gap-2">
             <Button

@@ -92,7 +92,7 @@ const OPP_STATUS_AR: Record<string, string> = {
   Open: 'مفتوح',
   Quotation: 'عرض سعر',
   Converted: 'تم التحويل',
-  Lost: 'مفقود',
+  Lost: 'خاسرة',
   Replied: 'تم الرد',
   Closed: 'مغلق',
 };
@@ -340,7 +340,7 @@ export default function OpportunitiesPage() {
         description="إدارة الفرص البيعية وربطها بالعملاء المحتملين أو الحاليين ومتابعة قيمها وإغلاقها المتوقع"
         iconify="solar:target-bold-duotone"
         accent="warning"
-        breadcrumbs={[{ label: 'علاقات العملاء', href: '/crm' }, { label: 'الفرص' }]}
+        breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'الفرص' }]}
         actions={
           <Button size="sm" className="gap-1.5" disabled={coLoading} onClick={() => { setForm(emptyForm); setDialogOpen(true); }}>
             <Plus className="h-3.5 w-3.5" />فرصة جديدة
@@ -354,7 +354,7 @@ export default function OpportunitiesPage() {
         {[
           { label: 'مفتوح', count: openCount, color: 'bg-chart-1', icon: Target },
           { label: 'تم التحويل', count: convertedCount, color: 'bg-chart-3', icon: TrendingUp },
-          { label: 'مفقود', count: lostCount, color: 'bg-destructive', icon: Building2 },
+          { label: 'خاسرة', count: lostCount, color: 'bg-destructive', icon: Building2 },
           { label: 'إجمالي القيمة', count: null, color: 'bg-primary', icon: Wallet, value: formatCurrency(totalValue) },
         ].map((item, i) => (
           <div key={i} className="rounded-xl border border-border/40 bg-card p-3 flex items-center gap-3">
@@ -378,7 +378,7 @@ export default function OpportunitiesPage() {
               <TabsTrigger value="Quotation" className="text-xs">عرض سعر</TabsTrigger>
               <TabsTrigger value="Replied" className="text-xs">تم الرد</TabsTrigger>
               <TabsTrigger value="Converted" className="text-xs">تم التحويل</TabsTrigger>
-              <TabsTrigger value="Lost" className="text-xs">مفقود</TabsTrigger>
+              <TabsTrigger value="Lost" className="text-xs">خاسرة</TabsTrigger>
               <TabsTrigger value="Closed" className="text-xs">مغلق</TabsTrigger>
             </TabsList>
           </Tabs>
@@ -781,8 +781,8 @@ export default function OpportunitiesPage() {
                   </div>
                   <div className="p-4 space-y-3 bg-card/50">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <DetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('en-US') : '—'} />
-                      <DetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('en-US') : '—'} />
+                      <DetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('ar-SA') : '—'} />
+                      <DetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('ar-SA') : '—'} />
                       <DetailField label="المُنشئ" value={viewDoc.owner || '—'} dir="ltr" />
                     </div>
                   </div>

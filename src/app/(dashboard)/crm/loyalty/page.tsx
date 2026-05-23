@@ -63,7 +63,7 @@ const emptyForm = {
 
 /** ولاء العملاء — قوائم ERPNext + تقارير المركز + إنشاء برنامج أساسي (M-28). */
 export default function CrmLoyaltyPage() {
-  const { company: defaultCompany, isLoading: coLoading } = useDefaultCompanyName();
+  const { company, isLoading: coLoading } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -73,6 +73,7 @@ export default function CrmLoyaltyPage() {
 
   const { data = [], isLoading, isError, error, refetch } = useDocList<LPRow>('Loyalty Program', {
     fields: ['name', 'loyalty_program_name', 'from_date', 'collection_factor', 'company', 'auto_optimize', 'collection_rules'],
+    filters: company ? [['company', '=', company]] : undefined,
     limit: 200,
     order_by: 'modified desc',
   });
@@ -92,13 +93,13 @@ export default function CrmLoyaltyPage() {
       toast.error('اسم البرنامج مطلوب');
       return;
     }
-    if (!defaultCompany) {
+    if (!company) {
       toast.error('تعذر تحديد الشركة من النظام');
       return;
     }
     createLp.mutate(
       {
-        company: defaultCompany,
+        company: company,
         loyalty_program_name: formData.loyalty_program_name.trim(),
         from_date: formData.from_date,
         auto_optimize: formData.auto_optimize ? 1 : 0,
@@ -254,7 +255,7 @@ export default function CrmLoyaltyPage() {
         description="عرض برامج الولاء وإنشاء برنامج جديد؛ تقرير تحليلي من مركز التقارير."
         iconify="solar:heart-bold-duotone"
         accent="primary"
-        breadcrumbs={[{ label: 'CRM', href: '/crm' }, { label: 'الولاء' }]}
+        breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'الولاء' }]}
         actions={
           <Button size="sm" className="gap-2" disabled={coLoading} onClick={() => { setFormData(emptyForm); setDialogOpen(true); }}>
             <Plus className="h-4 w-4" />

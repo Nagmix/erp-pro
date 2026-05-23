@@ -39,6 +39,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SRRow {
   name: string;
@@ -318,12 +319,15 @@ export default function StockCountPage() {
           <Input placeholder="بحث بالرقم أو الغرض..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 text-xs" />
         </div>
         <div className="space-y-1">
-          <select className="h-8 rounded-md border bg-background px-3 text-xs" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as 'all' | '0' | '1' | '2')}>
-            <option value="all">كل الحالات</option>
-            <option value="0">مسودة</option>
-            <option value="1">مرحّل</option>
-            <option value="2">ملغي</option>
-          </select>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as 'all' | '0' | '1' | '2')}>
+            <SelectTrigger className="h-8 text-xs w-28"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">كل الحالات</SelectItem>
+              <SelectItem value="0">مسودة</SelectItem>
+              <SelectItem value="1">مرحّل</SelectItem>
+              <SelectItem value="2">ملغي</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <PageShell padded={false}>
@@ -382,10 +386,13 @@ export default function StockCountPage() {
               </div>
               <div className="space-y-2">
                 <Label className="text-xs">الغرض</Label>
-                <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={purpose} onChange={(e) => setPurpose(e.target.value)}>
-                  <option value="Stock Reconciliation">تسوية مخزون</option>
-                  <option value="Opening Stock">رصيد افتتاحي</option>
-                </select>
+                <Select value={purpose} onValueChange={setPurpose}>
+                  <SelectTrigger className="w-full h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Stock Reconciliation">تسوية مخزون</SelectItem>
+                    <SelectItem value="Opening Stock">رصيد افتتاحي</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -479,10 +486,13 @@ export default function StockCountPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-xs">الغرض</Label>
-                  <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={editPurpose} onChange={(e) => setEditPurpose(e.target.value)}>
-                    <option value="Stock Reconciliation">تسوية مخزون</option>
-                    <option value="Opening Stock">رصيد افتتاحي</option>
-                  </select>
+                  <Select value={editPurpose} onValueChange={setEditPurpose}>
+                    <SelectTrigger className="w-full h-9 text-sm"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Stock Reconciliation">تسوية مخزون</SelectItem>
+                      <SelectItem value="Opening Stock">رصيد افتتاحي</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -188,6 +188,47 @@ export default function ContractsPage() {
     });
   }, [contracts, search, dateFrom, dateTo, statusFilter]);
 
+  /* ── Handler functions defined before columns to avoid stale closures ── */
+  const openEditDialog = useCallback((row: ContractRow) => {
+    if (Number(row.docstatus) !== 0) {
+      toast.error('لا يمكن تعديل عقد معتمد');
+      return;
+    }
+    setEditingDoc(row);
+    setFormData({
+      party_name: row.party_name || '',
+      contract_type: row.contract_type || 'Fixed Term',
+      start_date: row.start_date || '',
+      end_date: row.end_date || '',
+      contract_terms: '',
+    });
+    setDialogOpen(true);
+  }, []);
+
+  const handleSubmit = useCallback((row: ContractRow) => {
+    submitMutation.mutate(row.name, {
+      onSuccess: () => {
+        toast.success('تم ترحيل العقد');
+        void refetch();
+      },
+      onError: () => {
+        toast.error('تعذر ترحيل العقد');
+      },
+    });
+  }, [submitMutation, refetch]);
+
+  const handleCancel = useCallback((row: ContractRow) => {
+    cancelMutation.mutate(row.name, {
+      onSuccess: () => {
+        toast.success('تم إلغاء العقد');
+        void refetch();
+      },
+      onError: () => {
+        toast.error('تعذر إلغاء العقد');
+      },
+    });
+  }, [cancelMutation, refetch]);
+
   const columns: Column<ContractRow>[] = useMemo(
     () => [
       {
@@ -299,7 +340,7 @@ export default function ContractsPage() {
         },
       },
     ],
-    []
+    [openEditDialog, handleSubmit, handleCancel]
   );
 
   if (hrmsLoaded && !hrmsInstalled) {
@@ -327,22 +368,6 @@ export default function ContractsPage() {
   const openCreateDialog = () => {
     setEditingDoc(null);
     setFormData({ ...initialForm });
-    setDialogOpen(true);
-  };
-
-  const openEditDialog = (row: ContractRow) => {
-    if (Number(row.docstatus) !== 0) {
-      toast.error('لا يمكن تعديل عقد معتمد');
-      return;
-    }
-    setEditingDoc(row);
-    setFormData({
-      party_name: row.party_name || '',
-      contract_type: row.contract_type || 'Fixed Term',
-      start_date: row.start_date || '',
-      end_date: row.end_date || '',
-      contract_terms: '',
-    });
     setDialogOpen(true);
   };
 
@@ -422,30 +447,6 @@ export default function ContractsPage() {
         },
       }
     );
-  };
-
-  const handleSubmit = (row: ContractRow) => {
-    submitMutation.mutate(row.name, {
-      onSuccess: () => {
-        toast.success('تم ترحيل العقد');
-        void refetch();
-      },
-      onError: () => {
-        toast.error('تعذر ترحيل العقد');
-      },
-    });
-  };
-
-  const handleCancel = (row: ContractRow) => {
-    cancelMutation.mutate(row.name, {
-      onSuccess: () => {
-        toast.success('تم إلغاء العقد');
-        void refetch();
-      },
-      onError: () => {
-        toast.error('تعذر إلغاء العقد');
-      },
-    });
   };
 
   const handleDelete = async (row: ContractRow) => {

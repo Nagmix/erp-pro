@@ -691,21 +691,23 @@ export default function PayrollEntryPage() {
             {/* Payroll Frequency */}
             <div className="space-y-1.5">
               <Label className="text-sm font-medium">الدورية</Label>
-              <select
-                className="w-full h-9 rounded-md border bg-background px-3 text-sm"
+              <Select
                 value={formData.payroll_frequency}
-                onChange={(e) =>
+                onValueChange={(v) =>
                   setFormData((prev) => ({
                     ...prev,
-                    payroll_frequency: e.target.value as FormData['payroll_frequency'],
+                    payroll_frequency: v as FormData['payroll_frequency'],
                   }))
                 }
               >
-                <option value="Monthly">شهري</option>
-                <option value="Fortnightly">نصف شهري</option>
-                <option value="Weekly">أسبوعي</option>
-                <option value="Daily">يومي</option>
-              </select>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Monthly">شهري</SelectItem>
+                  <SelectItem value="Fortnightly">نصف شهري</SelectItem>
+                  <SelectItem value="Weekly">أسبوعي</SelectItem>
+                  <SelectItem value="Daily">يومي</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Branch, Department, Designation */}

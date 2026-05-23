@@ -30,6 +30,16 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Plus,
   CreditCard,
   ArrowUpLeft,
@@ -101,6 +111,12 @@ export default function CreditsPage() {
   // ── State ──
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<CreditRow | null>(null);
+  const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
+  const [toSubmit, setToSubmit] = useState<string | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [toCancel, setToCancel] = useState<string | null>(null);
 
   // فلاتر
   const [customerFilter, setCustomerFilter] = useState('');
@@ -145,7 +161,7 @@ export default function CreditsPage() {
       'docstatus',
       'remarks',
     ],
-    filters: [['party_type', '=', 'Customer']],
+    filters: [['party_type', '=', 'Customer'], ...(company ? [['company', '=', company] as string[]] : [])],
     limit: 500,
     order_by: 'posting_date desc',
   });
@@ -158,7 +174,7 @@ export default function CreditsPage() {
   // جلب بيانات الفواتير المستحقة لحساب الرصيد المستحق والتقادم
   const outstandingList = useDocList<OutstandingRow>('Sales Invoice', {
     fields: ['name', 'customer', 'customer_name', 'outstanding_amount', 'due_date', 'posting_date', 'currency', 'docstatus'],
-    filters: [['outstanding_amount', '>', '0'], ['docstatus', '=', '1']],
+    filters: [['outstanding_amount', '>', '0'], ['docstatus', '=', '1'], ...(company ? [['company', '=', company] as string[]] : [])],
     limit: 1000,
     order_by: 'due_date asc',
   });
@@ -494,15 +510,7 @@ export default function CreditsPage() {
                 type="button"
                 size="sm"
                 className="h-7 text-xs px-2"
-                onClick={() =>
-                  submitMut.mutate(row.name, {
-                    onSuccess: () => {
-                      toast.success('تم ترحيل القيد');
-                      void list.refetch();
-                    },
-                    onError: () => toast.error('فشل الترحيل'),
-                  })
-                }
+                onClick={() => { setToSubmit(row.name); setSubmitDialogOpen(true); }}
               >
                 <Send className="h-3 w-3 ms-1" />
                 ترحيل
@@ -514,15 +522,7 @@ export default function CreditsPage() {
                 size="sm"
                 variant="outline"
                 className="h-7 text-xs px-2"
-                onClick={() =>
-                  cancelMut.mutate(row.name, {
-                    onSuccess: () => {
-                      toast.success('تم إلغاء القيد');
-                      void list.refetch();
-                    },
-                    onError: () => toast.error('فشل الإلغاء'),
-                  })
-                }
+                onClick={() => { setToCancel(row.name); setCancelDialogOpen(true); }}
               >
                 <Undo2 className="h-3 w-3 ms-1" />
                 إلغاء
@@ -534,12 +534,7 @@ export default function CreditsPage() {
                 size="sm"
                 variant="ghost"
                 className="h-7 text-xs text-destructive px-1"
-                onClick={() => {
-                  deleteMut.mutate(row.name, {
-                    onSuccess: () => toast.success('تم حذف القيد'),
-                    onError: () => toast.error('فشل الحذف'),
-                  });
-                }}
+                onClick={() => { setToDelete(row); setDeleteDialogOpen(true); }}
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
@@ -560,7 +555,7 @@ export default function CreditsPage() {
         iconify="solar:wallet-money-bold-duotone"
         accent="warning"
         breadcrumbs={[
-          { label: 'CRM', href: '/crm' },
+          { label: 'إدارة العملاء', href: '/crm' },
           { label: 'الأرصدة' },
         ]}
         actions={
@@ -988,6 +983,86 @@ export default function CreditsPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* تأكيد الحذف */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف القيد &quot;{toDelete?.name}&quot;؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (!toDelete) return;
+                deleteMut.mutate(toDelete.name, {
+                  onSuccess: () => { toast.success('تم حذف القيد'); setDeleteDialogOpen(false); setToDelete(null); void list.refetch(); },
+                  onError: () => toast.error('فشل الحذف'),
+                });
+              }}
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* تأكيد الترحيل */}
+      <AlertDialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد الترحيل</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من ترحيل القيد &quot;{toSubmit}&quot;؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (!toSubmit) return;
+                submitMut.mutate(toSubmit, {
+                  onSuccess: () => { toast.success('تم ترحيل القيد'); setSubmitDialogOpen(false); setToSubmit(null); void list.refetch(); },
+                  onError: () => toast.error('فشل الترحيل'),
+                });
+              }}
+            >
+              ترحيل
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* تأكيد الإلغاء */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد الإلغاء</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من إلغاء القيد &quot;{toCancel}&quot;؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>تراجع</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                if (!toCancel) return;
+                cancelMut.mutate(toCancel, {
+                  onSuccess: () => { toast.success('تم إلغاء القيد'); setCancelDialogOpen(false); setToCancel(null); void list.refetch(); },
+                  onError: () => toast.error('فشل الإلغاء'),
+                });
+              }}
+            >
+              إلغاء القيد
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

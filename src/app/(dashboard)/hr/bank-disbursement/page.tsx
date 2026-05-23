@@ -36,6 +36,13 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 /* ────────────────────────────────────────
    Types
@@ -270,16 +277,17 @@ export default function BankDisbursementPage() {
           <div className="flex flex-wrap items-end gap-3">
             <div className="space-y-1">
               <Label className="text-xs">البنك</Label>
-              <select
-                className="h-8 rounded-md border bg-background px-2 text-xs"
-                value={bankFilter}
-                onChange={(e) => setBankFilter(e.target.value)}
-              >
-                <option value="all">الكل</option>
-                {bankNames.map((b) => (
-                  <option key={b} value={b}>{b}</option>
-                ))}
-              </select>
+              <Select value={bankFilter} onValueChange={setBankFilter}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  {bankNames.map((b) => (
+                    <SelectItem key={b} value={b}>{b}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1 flex-1 min-w-[200px]">
               <Label className="text-xs">بحث</Label>

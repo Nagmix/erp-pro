@@ -36,6 +36,7 @@ import {
   Plus, Calendar, CalendarDays, CalendarCheck, Clock, Pencil, Eye,
   Link2, Bell, RefreshCw, Download,
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useDocList, useCreateDoc, useDeleteDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -539,11 +540,9 @@ export default function AppointmentsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={form.sendReminder}
-                    onChange={(e) => setForm(prev => ({ ...prev, sendReminder: e.target.checked }))}
-                    className="h-4 w-4 rounded border-border"
+                    onCheckedChange={(v) => setForm(prev => ({ ...prev, sendReminder: v === true }))}
                   />
                   <Label className="text-sm font-medium">إرسال تنبيه</Label>
                 </div>
@@ -692,11 +691,9 @@ export default function AppointmentsPage() {
               </div>
               <div className="p-4 space-y-4 bg-card/50">
                 <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={editForm.sendReminder}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, sendReminder: e.target.checked }))}
-                    className="h-4 w-4 rounded border-border"
+                    onCheckedChange={(v) => setEditForm(prev => ({ ...prev, sendReminder: v === true }))}
                   />
                   <Label className="text-sm font-medium">إرسال تنبيه</Label>
                 </div>
@@ -707,11 +704,9 @@ export default function AppointmentsPage() {
                   </div>
                 )}
                 <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={editForm.syncWithGoogle}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, syncWithGoogle: e.target.checked }))}
-                    className="h-4 w-4 rounded border-border"
+                    onCheckedChange={(v) => setEditForm(prev => ({ ...prev, syncWithGoogle: v === true }))}
                   />
                   <Label className="text-sm font-medium">مزامنة مع تقويم Google</Label>
                 </div>

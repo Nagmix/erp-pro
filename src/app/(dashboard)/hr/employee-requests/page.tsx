@@ -35,6 +35,13 @@ import { buildAttendanceRequestCreate, prepareFrappeDocForCreate } from '@/lib/e
 import { toast } from 'sonner';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type RequestRow = {
   name: string;
@@ -131,15 +138,15 @@ export default function EmployeeRequestsPage() {
     let requestCategory = 'Change Shift';
     let attachmentUrl = '';
     // Parse explanation for category and attachment
-    if (explanation.includes('RequestCategory:')) {
-      const catMatch = explanation.match(/RequestCategory:\s*(.+)/);
+    if (explanation.includes('فئة الطلب:')) {
+      const catMatch = explanation.match(/فئة الطلب:\s*(.+)/);
       if (catMatch) requestCategory = catMatch[1].trim();
-      explanation = explanation.replace(/RequestCategory:\s*.+\n?/, '');
+      explanation = explanation.replace(/فئة الطلب:\s*.+\n?/, '');
     }
-    if (explanation.includes('Attachment:')) {
-      const attMatch = explanation.match(/Attachment:\s*(.+)/);
+    if (explanation.includes('المرفق:')) {
+      const attMatch = explanation.match(/المرفق:\s*(.+)/);
       if (attMatch) attachmentUrl = attMatch[1].trim();
-      explanation = explanation.replace(/Attachment:\s*.+\n?/, '');
+      explanation = explanation.replace(/المرفق:\s*.+\n?/, '');
     }
     setFormData({
       employee: row.employee || '',
@@ -168,9 +175,9 @@ export default function EmployeeRequestsPage() {
           to_date: formData.to_date,
           reason: formData.reason,
           explanation: [
-            `RequestCategory: ${formData.request_category}`,
+            `فئة الطلب: ${formData.request_category}`,
             formData.explanation || '',
-            formData.attachment_url ? `Attachment: ${formData.attachment_url}` : '',
+            formData.attachment_url ? `المرفق: ${formData.attachment_url}` : '',
           ].filter(Boolean).join('\n'),
           half_day: formData.half_day ? 1 : 0,
           half_day_date: formData.half_day ? formData.half_day_date || undefined : undefined,
@@ -188,9 +195,9 @@ export default function EmployeeRequestsPage() {
         to_date: formData.to_date,
         reason: formData.reason,
         explanation: [
-          `RequestCategory: ${formData.request_category}`,
+          `فئة الطلب: ${formData.request_category}`,
           formData.explanation || '',
-          formData.attachment_url ? `Attachment: ${formData.attachment_url}` : '',
+          formData.attachment_url ? `المرفق: ${formData.attachment_url}` : '',
         ].filter(Boolean).join('\n'),
         half_day: formData.half_day,
         half_day_date: formData.half_day ? formData.half_day_date || undefined : undefined,
@@ -240,18 +247,24 @@ export default function EmployeeRequestsPage() {
               <div className="space-y-2"><Label className="text-xs">إلى</Label><Input type="date" dir="ltr" value={formData.to_date} onChange={(e) => setFormData((p) => ({ ...p, to_date: e.target.value }))} /></div>
             </div>
             <div className="space-y-2"><Label className="text-xs">السبب</Label>
-              <select className="w-full h-9 rounded-md border bg-background px-2 text-sm" value={formData.reason} onChange={(e) => setFormData((p) => ({ ...p, reason: e.target.value as 'Work From Home' | 'On Duty' }))}>
-                <option value="Work From Home">عمل عن بُعد</option>
-                <option value="On Duty">مهمة / خارج الموقع</option>
-              </select>
+              <Select value={formData.reason} onValueChange={(v) => setFormData((p) => ({ ...p, reason: v as 'Work From Home' | 'On Duty' }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Work From Home">عمل عن بُعد</SelectItem>
+                  <SelectItem value="On Duty">مهمة / خارج الموقع</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2"><Label className="text-xs">نوع طلب الموظف</Label>
-              <select className="w-full h-9 rounded-md border bg-background px-2 text-sm" value={formData.request_category} onChange={(e) => setFormData((p) => ({ ...p, request_category: e.target.value }))}>
-                <option value="Change Shift">تغيير وردية</option>
-                <option value="Promotion">ترقية</option>
-                <option value="Transfer">نقل</option>
-                <option value="Other">أخرى</option>
-              </select>
+              <Select value={formData.request_category} onValueChange={(v) => setFormData((p) => ({ ...p, request_category: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Change Shift">تغيير وردية</SelectItem>
+                  <SelectItem value="Promotion">ترقية</SelectItem>
+                  <SelectItem value="Transfer">نقل</SelectItem>
+                  <SelectItem value="Other">أخرى</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2"><Label className="text-xs">وردية (اختياري)</Label><ErpLinkCombobox doctype="Shift Type" value={formData.shift} onChange={(v) => setFormData((p) => ({ ...p, shift: v }))} placeholder="—" /></div>
             <div className="flex items-center gap-2"><input type="checkbox" id="hd" checked={formData.half_day} onChange={(e) => setFormData((p) => ({ ...p, half_day: e.target.checked }))} /><Label htmlFor="hd" className="text-xs">نصف يوم</Label></div>

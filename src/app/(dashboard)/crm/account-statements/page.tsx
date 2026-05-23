@@ -31,6 +31,7 @@ import { PageHeader } from '@/components/erp/page-header';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { useDocList, useDoc } from '@/lib/client/hooks';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { apiGetList } from '@/lib/client/api';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
@@ -165,6 +166,7 @@ function calculateAging(glEntries: GLEntry[], asOfDate: string): AgingBucket {
 // ============================================================
 
 export default function CustomerAccountStatementPage() {
+  const { company } = useDefaultCompanyName();
   // --- State ---
   const [selectedCustomer, setSelectedCustomer] = useState('');
   const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>(() => {
@@ -213,6 +215,10 @@ export default function CustomerAccountStatementPage() {
         ['is_cancelled', '=', '0'],
       ];
 
+      if (company) {
+        filters.push(['company', '=', company]);
+      }
+
       if (dateRange.from) {
         filters.push(['posting_date', '>=', dateRange.from]);
       }
@@ -245,6 +251,9 @@ export default function CustomerAccountStatementPage() {
           ['is_cancelled', '=', '0'],
           ['posting_date', '<', dateRange.from],
         ];
+        if (company) {
+          preFilters.push(['company', '=', company]);
+        }
         const preEntries = await apiGetList<GLEntry>('GL Entry', {
           fields: ['debit', 'credit'],
           filters: preFilters,

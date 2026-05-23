@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth-store';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Wifi, WifiOff } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type LogRow = {
   name: string;
@@ -265,7 +266,7 @@ export default function CrmMessagesPage() {
         description="إعداد قنوات الرسائل وقواعد الإرسال الآلي وسجل الإشعارات"
         iconify="solar:chat-round-dots-bold-duotone"
         accent="info"
-        breadcrumbs={[{ label: 'CRM', href: '/crm' }, { label: 'الرسائل' }]}
+        breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'الرسائل' }]}
       />
 
       <div className="flex flex-wrap gap-2">
@@ -320,21 +321,21 @@ export default function CrmMessagesPage() {
           <p className="text-sm font-semibold">قالب ورسائل تلقائية</p>
           <Textarea rows={4} value={settings.auto_reply_template} onChange={(e) => updateSetting('auto_reply_template', e.target.value)} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-xs">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={settings.rule_invoice} onChange={(e) => updateSetting('rule_invoice', e.target.checked)} />
-              عند إنشاء فاتورة
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Checkbox checked={settings.rule_invoice} onCheckedChange={(v) => updateSetting('rule_invoice', v === true)} />
+              <span>عند إنشاء فاتورة</span>
             </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={settings.rule_due} onChange={(e) => updateSetting('rule_due', e.target.checked)} />
-              عند قرب الاستحقاق
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Checkbox checked={settings.rule_due} onCheckedChange={(v) => updateSetting('rule_due', v === true)} />
+              <span>عند قرب الاستحقاق</span>
             </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={settings.rule_renew} onChange={(e) => updateSetting('rule_renew', e.target.checked)} />
-              عند تجديد اشتراك
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Checkbox checked={settings.rule_renew} onCheckedChange={(v) => updateSetting('rule_renew', v === true)} />
+              <span>عند تجديد اشتراك</span>
             </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={settings.rule_appointment} onChange={(e) => updateSetting('rule_appointment', e.target.checked)} />
-              عند تعيين موعد
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Checkbox checked={settings.rule_appointment} onCheckedChange={(v) => updateSetting('rule_appointment', v === true)} />
+              <span>عند تعيين موعد</span>
             </label>
           </div>
 

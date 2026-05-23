@@ -28,6 +28,7 @@ import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useUpdateDoc } from '@/lib/client/hooks';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { toast } from 'sonner';
@@ -45,6 +46,7 @@ type BatchRow = {
 };
 
 export default function BatchesPage() {
+  const { company } = useDefaultCompanyName();
   const [deleteDialog, setDeleteDialog] = useState<BatchRow | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -74,6 +76,7 @@ export default function BatchesPage() {
     fields: ['name', 'item', 'batch_id', 'expiry_date', 'manufacturing_date', 'docstatus'],
     limit: 500,
     order_by: 'modified desc',
+    filters: company ? [['company', '=', company]] : undefined,
   });
 
   const createMutation = useCreateDoc('Batch');

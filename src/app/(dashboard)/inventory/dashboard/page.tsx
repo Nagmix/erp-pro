@@ -59,7 +59,7 @@ export default function InventoryDashboardPage() {
     {
       fields: ['name', 'item_name', 'item_group', 'stock_uom', 'is_stock_item', 'valuation_rate'],
       limit: 200,
-      filters: [['is_stock_item', '=', '1']],
+      filters: [['is_stock_item', '=', '1'], ...(company ? [['company', '=', company] as string[]] : [])],
     }
   );
 

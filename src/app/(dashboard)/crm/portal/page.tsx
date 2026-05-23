@@ -320,7 +320,7 @@ export default function CrmPortalPage() {
         description="عرض مستندات العميل داخلياً لحين تفعيل البوابة الذاتية الكاملة — اختر عميلاً لاستعراض كامل ملفه"
         iconify="solar:user-id-bold-duotone"
         accent="primary"
-        breadcrumbs={[{ label: 'CRM', href: '/crm' }, { label: 'بوابة العميل' }]}
+        breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'بوابة العميل' }]}
       />
 
       {/* Customer selector */}

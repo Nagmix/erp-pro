@@ -387,7 +387,7 @@ export default function ActivitiesPage() {
         description="مكالمات، اجتماعات، زيارات، رسائل وكل أنواع التواصل المسجّل ضمن CRM"
         iconify="solar:phone-calling-bold-duotone"
         accent="info"
-        breadcrumbs={[{ label: 'علاقات العملاء', href: '/crm' }, { label: 'الأنشطة' }]}
+        breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'الأنشطة' }]}
         actions={
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void refetch()} disabled={isLoading}>
@@ -538,11 +538,9 @@ export default function ActivitiesPage() {
               onClick={() => {
                 if (!toDelete) return;
                 deleteMutation.mutate(toDelete.name, {
-                  onSuccess: () => { toast.success('تم حذف النشاط'); void refetch(); },
+                  onSuccess: () => { toast.success('تم حذف النشاط'); setDeleteDialogOpen(false); setToDelete(null); void refetch(); },
                   onError: () => toast.error('فشل حذف النشاط'),
                 });
-                setDeleteDialogOpen(false);
-                setToDelete(null);
               }}
               variant="destructive"
             >

@@ -37,6 +37,7 @@ import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import {
   parseCsvRows,
@@ -113,6 +114,7 @@ export default function ItemsPage() {
     ],
     order_by: 'modified desc',
     limit: 2000,
+    filters: company ? [['company', '=', company]] : undefined,
   });
   const createMutation = useCreateDoc('Item');
   const updateMutation = useUpdateDoc('Item');
@@ -426,11 +428,14 @@ export default function ItemsPage() {
               </div>
               <div className="space-y-1">
                 <Label className="text-xs">نوع الصنف</Label>
-                <select className="h-9 rounded-md border bg-background px-3 text-sm" value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
-                  <option value="all">الكل</option>
-                  <option value="stock">مخزني</option>
-                  <option value="service">خدمة</option>
-                </select>
+                <Select value={stockFilter} onValueChange={setStockFilter}>
+                  <SelectTrigger className="h-9 w-32 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">الكل</SelectItem>
+                    <SelectItem value="stock">مخزني</SelectItem>
+                    <SelectItem value="service">خدمة</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CollapsibleContent>

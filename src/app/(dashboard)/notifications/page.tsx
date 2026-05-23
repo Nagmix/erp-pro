@@ -25,6 +25,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { useDocList, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { apiCallMethod } from '@/lib/client/api';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
 import {
@@ -535,10 +536,24 @@ export default function NotificationsPage() {
     []
   );
 
-  const savePreferences = useCallback(() => {
-    toast.success('تم حفظ تفضيلات الإشعارات');
-    setPreferencesOpen(false);
-  }, [toast]);
+  const savePreferences = useCallback(async () => {
+    try {
+      // Save each doctype preference as User settings via ERPNext API
+      for (const [doctype, pref] of Object.entries(preferences)) {
+        const key = `notification_prefs_${doctype}`;
+        await apiCallMethod('frappe.client.set_value', {
+          doctype: 'User',
+          name: '__session_user',
+          fieldname: key,
+          value: JSON.stringify(pref),
+        });
+      }
+      toast.success('تم حفظ تفضيلات الإشعارات');
+      setPreferencesOpen(false);
+    } catch (err) {
+      toast.error('فشل حفظ التفضيلات', { description: err instanceof Error ? err.message : 'خطأ غير معروف' });
+    }
+  }, [preferences, toast]);
 
   // ── عرض تحميل ──
 

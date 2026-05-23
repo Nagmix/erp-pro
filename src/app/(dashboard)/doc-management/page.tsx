@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { StatusBadge } from '@/components/erp/status-badge';
@@ -26,6 +26,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useDocList, useDeleteDoc } from '@/lib/client/hooks';
+import { apiUploadFile } from '@/lib/client/api';
 import { formatDate, formatCurrency } from '@/lib/core/helpers';
 import {
   Folder,
@@ -117,6 +118,8 @@ export default function DocManagementPage() {
   /* Dialogs */
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<ERPFile | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   /* ── جلب الملفات من ERPNext ── */
   const {
@@ -345,13 +348,32 @@ export default function DocManagementPage() {
             <Button
               size="sm"
               className="gap-1.5 text-xs"
-              onClick={() => {
-                toast.success('رفع الملفات', { description: 'يمكنك رفع الملفات من خلال واجهة النظام مباشرة' });
-              }}
+              disabled={uploading}
+              onClick={() => fileInputRef.current?.click()}
             >
-              <Upload className="h-3.5 w-3.5" />
-              رفع مستند
+              {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+              {uploading ? 'جاري الرفع...' : 'رفع مستند'}
             </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file) return;
+                setUploading(true);
+                try {
+                  await apiUploadFile(file);
+                  toast.success('تم رفع الملف', { description: file.name });
+                  void refetch();
+                } catch (err) {
+                  toast.error('فشل رفع الملف', { description: err instanceof Error ? err.message : 'خطأ غير معروف' });
+                } finally {
+                  setUploading(false);
+                }
+              }}
+            />
           </div>
         }
       />
@@ -584,9 +606,7 @@ export default function DocManagementPage() {
                 onView={(row) => openDetail(row as ERPFile)}
                 onDelete={(row) => deleteFile(row as ERPFile)}
                 addLabel="رفع مستند"
-                onAdd={() => {
-                  toast.success('رفع الملفات', { description: 'يمكنك رفع الملفات من خلال واجهة النظام مباشرة' });
-                }}
+                onAdd={() => fileInputRef.current?.click()}
                 exportFileName="documents"
               />
             )}

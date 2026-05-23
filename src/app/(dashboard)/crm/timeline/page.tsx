@@ -164,7 +164,7 @@ function formatDate(iso?: string): string {
   try {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return iso.slice(0, 16);
-    return d.toLocaleDateString('en-US', {
+    return d.toLocaleDateString('ar-SA', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -479,7 +479,7 @@ export default function CrmTimelinePage() {
         description="سجل موحد لجميع تفاعلات العميل من اتصالات وأحداث ومتابعات — عرض زمني مرئي"
         iconify="solar:chat-line-bold-duotone"
         accent="info"
-        breadcrumbs={[{ label: 'CRM', href: '/crm' }, { label: 'سجل التفاعلات' }]}
+        breadcrumbs={[{ label: 'إدارة العملاء', href: '/crm' }, { label: 'سجل التفاعلات' }]}
         actions={
           <div className="flex items-center gap-2">
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => openCreateDialog('Communication')}>

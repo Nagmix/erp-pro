@@ -38,6 +38,7 @@ import { toast } from 'sonner';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
@@ -266,7 +267,7 @@ export default function LeaveApplicationsPage() {
                 <div className="space-y-1.5"><Label className="text-sm font-medium">إلى تاريخ</Label><Input type="date" dir="ltr" value={formData.to_date} onChange={(e) => setFormData((p) => ({ ...p, to_date: e.target.value }))} className="h-9" /></div>
               </div>
               {calculateDays() > 0 && <div className="bg-muted/35 rounded-lg p-3 text-sm"><span className="text-muted-foreground">أيام تقريبية: </span><span className="font-bold">{calculateDays()}</span> (يحسبها النظام عند الحفظ)</div>}
-              <div className="flex items-center gap-2"><input type="checkbox" id="lahd" checked={formData.half_day} onChange={(e) => setFormData((p) => ({ ...p, half_day: e.target.checked }))} className="rounded" /><Label htmlFor="lahd" className="text-xs">نصف يوم</Label></div>
+              <div className="flex items-center gap-2"><Checkbox id="نصف-يوم" checked={formData.half_day} onCheckedChange={(v) => setFormData((p) => ({ ...p, half_day: v === true }))} /><Label htmlFor="نصف-يوم" className="text-xs">نصف يوم</Label></div>
               {formData.half_day && <div className="space-y-1.5"><Label className="text-sm font-medium">تاريخ نصف اليوم</Label><Input type="date" dir="ltr" value={formData.half_day_date} onChange={(e) => setFormData((p) => ({ ...p, half_day_date: e.target.value }))} className="h-9" /></div>}
               <div className="space-y-1.5"><Label className="text-sm font-medium">السبب</Label><Textarea placeholder="سبب الإجازة..." value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} rows={2} /></div>
               <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
@@ -437,8 +438,8 @@ export default function LeaveApplicationsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" id="edit-half" checked={editForm.half_day} onChange={(e) => setEditForm((p) => ({ ...p, half_day: e.target.checked }))} className="rounded" disabled={Number(editDialog.docstatus) !== 0} />
-                <Label htmlFor="edit-half" className="text-xs">نصف يوم</Label>
+                <Checkbox id="edit-نصف-يوم" checked={editForm.half_day} onCheckedChange={(v) => setEditForm((p) => ({ ...p, half_day: v === true }))} disabled={Number(editDialog.docstatus) !== 0} />
+                <Label htmlFor="edit-نصف-يوم" className="text-xs">نصف يوم</Label>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">السبب</Label>

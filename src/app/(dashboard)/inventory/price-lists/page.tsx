@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { formatCurrency } from '@/lib/core/helpers';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -70,6 +71,7 @@ interface ItemPriceRow {
 }
 
 export default function PriceListsPage() {
+  const { company } = useDefaultCompanyName();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
 
@@ -131,6 +133,7 @@ export default function PriceListsPage() {
     fields: ['name', 'currency', 'buying', 'selling', 'enabled'],
     order_by: 'name asc',
     limit: 500,
+    filters: company ? [['company', '=', company]] : undefined,
   });
   const createMutation = useCreateDoc('Price List');
   const deleteMutation = useDeleteDoc('Price List');

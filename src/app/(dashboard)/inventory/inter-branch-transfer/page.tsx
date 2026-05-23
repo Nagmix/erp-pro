@@ -148,6 +148,7 @@ export default function InterBranchTransferPage() {
       onSuccess: () => {
         toast.success('تم إنشاء تحويل المخزون');
         setLines([emptyLine()]);
+        void refetchTransfers();
       },
       onError: () => toast.error('تعذر الحفظ'),
     });
