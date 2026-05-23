@@ -11,7 +11,7 @@ const ROUTES: Record<string, { href: string; label: string }> = {
   Warehouse: { href: '/inventory/warehouses?create=1', label: 'إضافة مستودع' },
   'Cost Center': { href: '/accounting/cost-centers?create=1', label: 'إضافة مركز تكلفة' },
   Account: { href: '/accounting/chart-of-accounts?create=1', label: 'إضافة حساب' },
-  'Mode of Payment': { href: '/accounting/settings?tab=payment-methods&create=1', label: 'إضافة طريقة دفع' },
+  'Mode of Payment': { href: '/accounting/settings?tab=general&create=1', label: 'إضافة طريقة دفع' },
   'Expense Claim Type': { href: '/accounting/settings?tab=expense-types&create=1', label: 'إضافة نوع مصروف' },
   Currency: { href: '/accounting/settings?tab=general&create=1', label: 'إضافة عملة' },
   Branch: { href: '/accounting/settings?tab=operations&create=1', label: 'إضافة فرع' },

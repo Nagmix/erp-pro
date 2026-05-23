@@ -2,15 +2,17 @@
 
 /**
  * مطابقة ERPNext develop: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
+ * محرر مباشر لإعدادات الحسابات في ERPNext
  */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Loader2, CheckCircle2, Save } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import {
@@ -20,6 +22,7 @@ import {
  SelectTrigger,
  SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
@@ -31,6 +34,45 @@ function docFlag(v: unknown): boolean {
  return v === 1 || v === true || v === '1';
 }
 
+/* ─── مكون صف إعداد Switch ─── */
+function SwitchRow({ field, label, value, onToggle, disabled }: {
+ field: string;
+ label: string;
+ value: boolean;
+ onToggle: (field: string, checked: boolean) => void;
+ disabled?: boolean;
+}) {
+ return (
+  <div className="flex items-center justify-between gap-3 rounded-lg border border-border/40 p-3 hover:bg-muted/20 transition-colors">
+   <Label className="text-xs leading-snug">{label}</Label>
+   <Switch checked={value} onCheckedChange={(c) => onToggle(field, c)} disabled={disabled} />
+  </div>
+ );
+}
+
+/* ─── مكون تحميل ─── */
+function SettingsSkeleton() {
+ return (
+  <Card className="border-border/40 max-w-4xl">
+   <CardHeader className="pb-2">
+    <Skeleton className="h-5 w-40 rounded" />
+    <Skeleton className="h-3 w-60 rounded" />
+   </CardHeader>
+   <CardContent className="space-y-4">
+    <Skeleton className="h-9 w-full rounded-lg" />
+    <div className="space-y-3 mt-4">
+     {Array.from({ length: 5 }).map((_, i) => (
+      <div key={i} className="flex items-center justify-between gap-3 rounded-lg border border-border/40 p-3">
+       <Skeleton className="h-3.5 w-40 rounded" />
+       <Skeleton className="h-5 w-9 rounded" />
+      </div>
+     ))}
+    </div>
+   </CardContent>
+  </Card>
+ );
+}
+
 export default function AccountsSettingsPage() {
  const doc = useDoc<Record<string, unknown>>('Accounts Settings', SINGLETON);
  const updateMut = useUpdateDoc('Accounts Settings');
@@ -38,26 +80,29 @@ export default function AccountsSettingsPage() {
 
  const [overBillDraft, setOverBillDraft] = useState('');
  const [staleDaysDraft, setStaleDaysDraft] = useState('');
+ const [saveSuccess, setSaveSuccess] = useState(false);
+
  useEffect(() => {
- if (!d) return;
- queueMicrotask(() => {
+  if (!d) return;
   setOverBillDraft(d.over_billing_allowance != null ? String(d.over_billing_allowance) : '');
   setStaleDaysDraft(d.stale_days != null ? String(d.stale_days) : '');
- });
  }, [d]);
 
  const patchAndSave = (patch: Record<string, unknown>) => {
- updateMut.mutate(
-  { name: SINGLETON, doc: patch },
-  {
-  onSuccess: () => {
-   toast.success('تم الحفظ');
-   void doc.refetch();
-  },
-  onError: (e) =>
-   toast.error('تعذر الحفظ', { description: (e as Error).message }),
-  }
- );
+  setSaveSuccess(false);
+  updateMut.mutate(
+   { name: SINGLETON, doc: patch },
+   {
+   onSuccess: () => {
+    toast.success('تم الحفظ بنجاح');
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2000);
+    void doc.refetch();
+   },
+   onError: (e) =>
+    toast.error('تعذر الحفظ', { description: (e as Error).message }),
+   }
+  );
  };
 
  const toggle = (field: string, checked: boolean) => patchAndSave({ [field]: checked ? 1 : 0 });
@@ -67,8 +112,8 @@ export default function AccountsSettingsPage() {
  return (
  <div className="erp-page-enter space-y-5" dir="rtl">
   <PageHeader
-  title="إعدادات المحاسبة"
-  description="إعدادات الحسابات"
+  title="إعدادات الحسابات المتقدمة"
+  description="إعدادات الحسابات التفصيلية في النظام (ERPNext Accounts Settings)"
   iconify="solar:wallet-money-bold-duotone"
   accent="success"
   breadcrumbs={[
@@ -77,29 +122,56 @@ export default function AccountsSettingsPage() {
    { label: 'المحاسبة' },
   ]}
   actions={
-   <Button variant="outline" size="sm" asChild>
-   <Link href="/settings/module-settings">
-    <ArrowRight className="h-3.5 w-3.5" />
-    المركز
-   </Link>
-   </Button>
+   <div className="flex items-center gap-2">
+    {saveSuccess && (
+     <span className="flex items-center gap-1 text-xs text-chart-3 animate-in fade-in">
+      <CheckCircle2 className="h-3.5 w-3.5" />
+      تم الحفظ
+     </span>
+    )}
+    {updateMut.isPending && (
+     <span className="flex items-center gap-1 text-xs text-muted-foreground">
+      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      جاري الحفظ...
+     </span>
+    )}
+    <Button variant="outline" size="sm" asChild>
+    <Link href="/settings/module-settings">
+     <ArrowRight className="h-3.5 w-3.5" />
+     المركز
+    </Link>
+    </Button>
+   </div>
   }
   />
 
   <ListQueryAlert error={doc.isError ? (doc.error as Error) : null} onRetry={() => void doc.refetch()} />
 
   {doc.isLoading ? (
-  <p className="text-sm text-muted-foreground">جاري التحميل…</p>
+  <SettingsSkeleton />
   ) : !d ? (
-  <p className="text-sm text-destructive">تعذر تحميل إعدادات الحسابات.</p>
+  <Card className="border-destructive/30 max-w-4xl">
+   <CardContent className="py-8 text-center">
+    <p className="text-sm text-destructive">تعذر تحميل إعدادات الحسابات. تأكد من اتصال الخادم وحاول مرة أخرى.</p>
+    <Button variant="outline" size="sm" className="mt-3" onClick={() => void doc.refetch()}>
+     إعادة المحاولة
+    </Button>
+   </CardContent>
+  </Card>
   ) : (
   <Card className="border-border/40 max-w-4xl">
    <CardHeader className="pb-2">
-   <CardTitle className="text-base">إعدادات الحسابات</CardTitle>
-   <CardDescription className="text-xs">إعدادات الحسابات في النظام.</CardDescription>
+   <CardTitle className="text-base flex items-center gap-2">
+    <Save className="h-4 w-4 text-primary" />
+    إعدادات الحسابات
+   </CardTitle>
+   <CardDescription className="text-xs">
+    التحكم في سلوك الفواتير والمدفوعات والأصول والإعدادات المتقدمة. يتم الحفظ تلقائياً عند التغيير.
+   </CardDescription>
    </CardHeader>
    <CardContent>
    <Tabs defaultValue="invoice" className="w-full">
+    <div className="overflow-x-auto -mx-1 px-1">
     <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-muted/35 p-1">
     <TabsTrigger value="invoice" className="text-xs">
      فواتير وضريبة
@@ -117,10 +189,12 @@ export default function AccountsSettingsPage() {
      أخرى
     </TabsTrigger>
     </TabsList>
+    </div>
 
-    <TabsContent value="invoice" className="space-y-4 mt-4 outline-none">
+    {/* ─── فواتير وضريبة ─── */}
+    <TabsContent value="invoice" className="space-y-3 mt-4 outline-none">
     <div className="space-y-2">
-     <Label className="text-xs">تحديد عنوان الضريبة من</Label>
+     <Label className="text-xs font-medium">تحديد عنوان الضريبة من</Label>
      <Select
      value={String(d.determine_address_tax_category_from ?? 'Billing Address')}
      onValueChange={(v) => patchAndSave({ determine_address_tax_category_from: v })}
@@ -156,17 +230,15 @@ export default function AccountsSettingsPage() {
      ['show_payment_schedule_in_print', 'إظهار جدول الدفع في الطباعة'],
      ] as const
     ).map(([field, label]) => (
-     <div key={field} className="flex items-center justify-between gap-3 rounded-lg border border-border/40 p-3">
-     <Label className="text-xs leading-snug">{label}</Label>
-     <Switch checked={docFlag(d[field])} onCheckedChange={(c) => toggle(field, c)} disabled={updateMut.isPending} />
-     </div>
+     <SwitchRow key={field} field={field} label={label} value={docFlag(d[field])} onToggle={toggle} disabled={updateMut.isPending} />
     ))}
     </TabsContent>
 
+    {/* ─── إعدادات الفوترة ─── */}
     <TabsContent value="invoicing" className="space-y-4 mt-4 outline-none">
     <div className="grid sm:grid-cols-2 gap-4">
      <div className="space-y-2">
-     <Label className="text-xs">نسبة التسامح في تجاوز الفوترة (%)</Label>
+     <Label className="text-xs font-medium">نسبة التسامح في تجاوز الفوترة (%)</Label>
      <Input
       dir="ltr"
       type="number"
@@ -181,7 +253,7 @@ export default function AccountsSettingsPage() {
      />
      </div>
      <div className="space-y-2">
-     <Label className="text-xs">الدور المسموح بتجاوز حد الائتمان</Label>
+     <Label className="text-xs font-medium">الدور المسموح بتجاوز حد الائتمان</Label>
      <ErpLinkCombobox
       doctype="Role"
       value={String(d.credit_controller ?? '')}
@@ -190,7 +262,7 @@ export default function AccountsSettingsPage() {
      />
      </div>
      <div className="space-y-2 sm:col-span-2">
-     <Label className="text-xs">الدور المسموح بتجاوز الفوترة</Label>
+     <Label className="text-xs font-medium">الدور المسموح بتجاوز الفوترة</Label>
      <ErpLinkCombobox
       doctype="Role"
       value={String(d.role_allowed_to_over_bill ?? '')}
@@ -199,8 +271,9 @@ export default function AccountsSettingsPage() {
      />
      </div>
     </div>
+    <Separator className="my-2" />
     <div className="space-y-2">
-     <Label className="text-xs">الاحتفاظ بسعر ثابت للمعاملات الداخلية</Label>
+     <Label className="text-xs font-medium">الاحتفاظ بسعر ثابت للمعاملات الداخلية</Label>
      <Switch
      checked={internalMaintain}
      onCheckedChange={(c) => patchAndSave({ maintain_same_internal_transaction_rate: c ? 1 : 0 })}
@@ -209,7 +282,7 @@ export default function AccountsSettingsPage() {
     {internalMaintain ? (
      <>
      <div className="space-y-2">
-      <Label className="text-xs">إجراء إذا لم يتم الاحتفاظ بالسعر</Label>
+      <Label className="text-xs font-medium">إجراء إذا لم يتم الاحتفاظ بالسعر</Label>
       <Select value={internalAction} onValueChange={(v) => patchAndSave({ maintain_same_rate_action: v })}>
       <SelectTrigger className="h-9 text-sm">
        <SelectValue />
@@ -222,7 +295,7 @@ export default function AccountsSettingsPage() {
      </div>
      {internalAction === 'Stop' ? (
       <div className="space-y-2">
-      <Label className="text-xs">الدور المسموح بتجاوز الإيقاف</Label>
+      <Label className="text-xs font-medium">الدور المسموح بتجاوز الإيقاف</Label>
       <ErpLinkCombobox
        doctype="Role"
        value={String(d.role_to_override_stop_action ?? '')}
@@ -232,7 +305,7 @@ export default function AccountsSettingsPage() {
       </div>
      ) : null}
      <div className="space-y-2">
-      <Label className="text-xs">جلب سعر التقييم للمعاملة الداخلية</Label>
+      <Label className="text-xs font-medium">جلب سعر التقييم للمعاملة الداخلية</Label>
       <Switch
       checked={docFlag(d.fetch_valuation_rate_for_internal_transaction)}
       onCheckedChange={(c) => toggle('fetch_valuation_rate_for_internal_transaction', c)}
@@ -242,13 +315,14 @@ export default function AccountsSettingsPage() {
     ) : null}
     </TabsContent>
 
+    {/* ─── مدفوعات ─── */}
     <TabsContent value="payments" className="space-y-3 mt-4 outline-none">
     <div className="space-y-2">
-     <Label className="text-xs">السماح بأسعار الصرف القديمة</Label>
+     <Label className="text-xs font-medium">السماح بأسعار الصرف القديمة</Label>
      <Switch checked={docFlag(d.allow_stale)} onCheckedChange={(c) => toggle('allow_stale', c)} />
     </div>
     <div className="space-y-2">
-     <Label className="text-xs">أيام قديمة (stale_days)</Label>
+     <Label className="text-xs font-medium">أيام قديمة (stale_days)</Label>
      <Input
      dir="ltr"
      type="number"
@@ -263,7 +337,7 @@ export default function AccountsSettingsPage() {
     </div>
     {(
      [
-     ['allow_pegged_currencies_exchange_rates', 'السماح بأسعار صرف currencies المرتبطة'],
+     ['allow_pegged_currencies_exchange_rates', 'السماح بأسعار صرف العملات المرتبطة'],
      ['auto_reconcile_payments', 'موازنة المدفوعات تلقائياً'],
      ['enable_party_matching', 'تفعيل مطابقة الأطراف'],
      ['enable_fuzzy_matching', 'تفعيل المطابقة التقريبية'],
@@ -272,13 +346,11 @@ export default function AccountsSettingsPage() {
      ['create_pr_in_draft_status', 'إنشاء طلب دفع بالحالة مسودة'],
      ] as const
     ).map(([field, label]) => (
-     <div key={field} className="flex items-center justify-between gap-3 rounded-lg border border-border/40 p-3">
-     <Label className="text-xs leading-snug">{label}</Label>
-     <Switch checked={docFlag(d[field])} onCheckedChange={(c) => toggle(field, c)} disabled={updateMut.isPending} />
-     </div>
+     <SwitchRow key={field} field={field} label={label} value={docFlag(d[field])} onToggle={toggle} disabled={updateMut.isPending} />
     ))}
     </TabsContent>
 
+    {/* ─── أصول ─── */}
     <TabsContent value="assets" className="space-y-3 mt-4 outline-none">
     {(
      [
@@ -286,13 +358,10 @@ export default function AccountsSettingsPage() {
      ['calculate_depr_using_total_days', 'حساب الإهلاك باستخدام الأيام الكلية'],
      ] as const
     ).map(([field, label]) => (
-     <div key={field} className="flex items-center justify-between gap-3 rounded-lg border border-border/40 p-3">
-     <Label className="text-xs leading-snug">{label}</Label>
-     <Switch checked={docFlag(d[field])} onCheckedChange={(c) => toggle(field, c)} disabled={updateMut.isPending} />
-     </div>
+     <SwitchRow key={field} field={field} label={label} value={docFlag(d[field])} onToggle={toggle} disabled={updateMut.isPending} />
     ))}
     <div className="space-y-2">
-     <Label className="text-xs">الدور المراد إشعاره عند فشل الإهلاك</Label>
+     <Label className="text-xs font-medium">الدور المراد إشعاره عند فشل الإهلاك</Label>
      <ErpLinkCombobox
      doctype="Role"
      value={String(d.role_to_notify_on_depreciation_failure ?? '')}
@@ -302,6 +371,7 @@ export default function AccountsSettingsPage() {
     </div>
     </TabsContent>
 
+    {/* ─── أخرى ─── */}
     <TabsContent value="other" className="space-y-3 mt-4 outline-none">
     {(
      [
@@ -317,13 +387,11 @@ export default function AccountsSettingsPage() {
      ['use_legacy_controller_for_pcv', 'استخدام المتحكم القديم لإغلاق الفترة'],
      ] as const
     ).map(([field, label]) => (
-     <div key={field} className="flex items-center justify-between gap-3 rounded-lg border border-border/40 p-3">
-     <Label className="text-xs leading-snug">{label}</Label>
-     <Switch checked={docFlag(d[field])} onCheckedChange={(c) => toggle(field, c)} disabled={updateMut.isPending} />
-     </div>
+     <SwitchRow key={field} field={field} label={label} value={docFlag(d[field])} onToggle={toggle} disabled={updateMut.isPending} />
     ))}
+    <Separator className="my-2" />
     <div className="space-y-2">
-     <Label className="text-xs">تسجيل الإدخالات المؤجلة بناءً على</Label>
+     <Label className="text-xs font-medium">تسجيل الإدخالات المؤجلة بناءً على</Label>
      <Select
      value={String(d.book_deferred_entries_based_on ?? 'Days')}
      onValueChange={(v) => patchAndSave({ book_deferred_entries_based_on: v })}
@@ -344,16 +412,10 @@ export default function AccountsSettingsPage() {
      ['submit_journal_entries', 'ترحيل قيود اليومية'],
      ] as const
     ).map(([field, label]) => (
-     <div key={field} className="flex items-center justify-between gap-3 rounded-lg border border-border/40 p-3">
-     <Label className="text-xs leading-snug">{label}</Label>
-     <Switch checked={docFlag(d[field])} onCheckedChange={(c) => toggle(field, c)} disabled={updateMut.isPending} />
-     </div>
+     <SwitchRow key={field} field={field} label={label} value={docFlag(d[field])} onToggle={toggle} disabled={updateMut.isPending} />
     ))}
     </TabsContent>
    </Tabs>
-   {updateMut.isPending ? (
-    <p className="text-[10px] text-muted-foreground mt-3">جاري الحفظ…</p>
-   ) : null}
    </CardContent>
   </Card>
   )}

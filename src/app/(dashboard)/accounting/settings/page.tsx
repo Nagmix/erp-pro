@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/erp/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,14 +10,14 @@ import { ModernIcon } from '@/components/ui/modern-icon';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
-import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { translateAccountName } from '@/lib/core/arabic-labels';
+import { formatDate } from '@/lib/core/helpers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
@@ -24,22 +25,18 @@ import {
   CalendarDays,
   Wallet,
   FileText,
-  Users,
   Building2,
   TrendingUp,
   TrendingDown,
-  ArrowUpLeft,
-  ArrowDownLeft,
-  Clock,
   CheckCircle2,
   Plus,
   Trash2,
-  Pencil,
   Loader2,
   Receipt,
   AlertTriangle,
 } from 'lucide-react';
 
+/* ─── مكون بطاقة الإعداد ─── */
 function SettingsCard({ icon, title, description, href, badge }: { icon: string; title: string; description: string; href: string; badge?: string }) {
   return (
     <Link href={href}>
@@ -61,15 +58,29 @@ function SettingsCard({ icon, title, description, href, badge }: { icon: string;
   );
 }
 
+/* ─── مكون مؤشر الأداء ─── */
 function KpiStat({ icon: Icon, label, value, accent }: { icon: React.ElementType; label: string; value: string; accent: string }) {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30">
       <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${accent}`}>
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
         <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
         <p className="text-xs font-semibold truncate">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── مؤشر تحميل ─── */
+function KpiSkeleton() {
+  return (
+    <div className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30">
+      <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+      <div className="space-y-1.5">
+        <Skeleton className="h-2.5 w-16 rounded" />
+        <Skeleton className="h-3.5 w-20 rounded" />
       </div>
     </div>
   );
@@ -85,26 +96,7 @@ type ExpenseTypeRow = {
   accounts?: Array<{ company: string; default_account: string }>;
 };
 
-/** أنواع المصروفات الافتراضية الشائعة للمؤسسات اليمنية */
-const DEFAULT_EXPENSE_TYPES = [
-  'مصاريف إدارية',
-  'مصاريف سفر وتنقل',
-  'مصاريف ضيافة',
-  'مصاريف صيانة',
-  'مصاريف نقل وشحن',
-  'مصاريف اتصالات',
-  'مصاريف قرطاسية ومستلزمات',
-  'مصاريف وقود',
-  'مصاريف إيجار',
-  'مصاريف كهرباء وماء',
-  'مصاريف تسويق وإعلان',
-  'مصاريف تدريب وتطوير',
-  'مصاريف طبية وتأمين',
-  'مصاريف مهنية وخدمية',
-  'مصاريف متنوعة',
-];
-
-function ExpenseTypesManager() {
+function ExpenseTypesManager({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
   const { company: defaultCompany } = useDefaultCompanyName();
   const { data: expenseTypes = [], isLoading, isError, error, refetch } = useDocList<ExpenseTypeRow>('Expense Claim Type', {
     fields: ['name', 'expense_type'],
@@ -114,7 +106,7 @@ function ExpenseTypesManager() {
   const createMutation = useCreateDoc('Expense Claim Type');
   const deleteMutation = useDeleteDoc('Expense Claim Type');
 
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(autoOpenCreate ?? false);
   const [newTypeName, setNewTypeName] = useState('');
   const [newTypeAccount, setNewTypeAccount] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -127,7 +119,7 @@ function ExpenseTypesManager() {
   const handleSeedDefaults = useCallback(async () => {
     setSeedingDefaults(true);
     const existing = new Set(expenseTypes.map(t => t.name));
-    const toCreate = DEFAULT_EXPENSE_TYPES.filter(t => !existing.has(t));
+    const toCreate = DEFAULT_EXPENSE_TYPE_NAMES.filter(t => !existing.has(t));
     if (toCreate.length === 0) {
       toast.info('جميع أنواع المصروفات الافتراضية موجودة بالفعل');
       setSeedingDefaults(false);
@@ -137,7 +129,6 @@ function ExpenseTypesManager() {
     let failed = 0;
     for (const typeName of toCreate) {
       try {
-        // ✅ استخدام `expense_type` كحقل التسمية
         await createMutation.mutateAsync({ expense_type: typeName });
         created++;
       } catch {
@@ -148,7 +139,6 @@ function ExpenseTypesManager() {
     if (failed > 0) toast.warning(`فشل إضافة ${failed} نوع`);
     refetch();
     setSeedingDefaults(false);
-    // بعد إنشاء الأنواع، نعين الحسابات الافتراضية تلقائياً
     if (created > 0) {
       handleConfigureAccounts();
     }
@@ -183,12 +173,10 @@ function ExpenseTypesManager() {
       return;
     }
     try {
-      // ✅ Expense Claim Type uses `expense_type` as the naming field (autoname: "field:expense_type")
       const payload: Record<string, unknown> = {
         expense_type: newTypeName.trim(),
       };
       if (newTypeAccount?.trim()) {
-        // ✅ الحساب الافتراضي يُضاف عبر الجدول الفرعي accounts
         const company = defaultCompany || '';
         if (company) {
           payload.accounts = [{
@@ -211,7 +199,7 @@ function ExpenseTypesManager() {
         toast.error(msg);
       }
     }
-  }, [newTypeName, createMutation, refetch]);
+  }, [newTypeName, newTypeAccount, defaultCompany, createMutation, refetch]);
 
   const handleDelete = useCallback(async () => {
     if (!toDelete) return;
@@ -250,7 +238,8 @@ function ExpenseTypesManager() {
 
   return (
     <div className="mt-4 space-y-4">
-      <div className="flex items-center justify-between">
+      {/* رأس القسم وأزرار الإجراءات */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" />
@@ -261,17 +250,19 @@ function ExpenseTypesManager() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" className="gap-2" onClick={handleConfigureAccounts} disabled={configuringAccounts}>
-            {configuringAccounts ? <Loader2 className="h-4 w-4 animate-spin" /> : <Landmark className="h-4 w-4" />}
-            {configuringAccounts ? 'جاري التعيين...' : 'تعيين الحسابات الافتراضية'}
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={handleConfigureAccounts} disabled={configuringAccounts}>
+            {configuringAccounts ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Landmark className="h-3.5 w-3.5" />}
+            <span className="hidden sm:inline">{configuringAccounts ? 'جاري التعيين...' : 'تعيين الحسابات'}</span>
+            <span className="sm:hidden">{configuringAccounts ? 'جاري...' : 'حسابات'}</span>
           </Button>
-          <Button variant="outline" className="gap-2" onClick={handleSeedDefaults} disabled={seedingDefaults}>
-            {seedingDefaults ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            {seedingDefaults ? 'جاري الإضافة...' : 'إضافة الأنواع الافتراضية'}
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={handleSeedDefaults} disabled={seedingDefaults}>
+            {seedingDefaults ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+            <span className="hidden sm:inline">{seedingDefaults ? 'جاري الإضافة...' : 'إضافة الافتراضية'}</span>
+            <span className="sm:hidden">{seedingDefaults ? 'جاري...' : 'افتراضية'}</span>
           </Button>
-          <Button className="gap-2" onClick={() => setAddDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            إضافة نوع مصروف
+          <Button size="sm" className="gap-1.5" onClick={() => setAddDialogOpen(true)}>
+            <Plus className="h-3.5 w-3.5" />
+            إضافة نوع
           </Button>
         </div>
       </div>
@@ -280,7 +271,6 @@ function ExpenseTypesManager() {
 
       {/* تنبيه إذا كانت هناك أنواع بدون حسابات افتراضية */}
       {!isLoading && expenseTypes.length > 0 && expenseTypes.some(t => {
-        // فحص الحسابات — إما من child table accounts أو من default_account المباشر
         const hasAccount = !!t.default_account || (Array.isArray(t.accounts) && t.accounts.some(a => a.default_account));
         return !hasAccount;
       }) && (
@@ -303,9 +293,22 @@ function ExpenseTypesManager() {
         </Alert>
       )}
 
+      {/* حالة التحميل */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} className="border-border/40">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
+                  <div className="space-y-2 flex-1">
+                    <Skeleton className="h-3.5 w-28 rounded" />
+                    <Skeleton className="h-2.5 w-20 rounded" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       ) : expenseTypes.length === 0 ? (
         <Card className="border-dashed">
@@ -313,13 +316,13 @@ function ExpenseTypesManager() {
             <Receipt className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
             <p className="text-muted-foreground font-medium">لا توجد أنواع مصروفات مسجلة</p>
             <p className="text-xs text-muted-foreground mt-1">أضف أنواع المصروفات لتصنيف مطالبات المصروفات</p>
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <Button variant="outline" className="gap-2" onClick={handleSeedDefaults} disabled={seedingDefaults}>
-                {seedingDefaults ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                {seedingDefaults ? 'جاري الإضافة...' : 'إضافة الأنواع الافتراضية'}
+            <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={handleSeedDefaults} disabled={seedingDefaults}>
+                {seedingDefaults ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                إضافة الأنواع الافتراضية
               </Button>
-              <Button variant="secondary" className="gap-2" onClick={() => setAddDialogOpen(true)}>
-                <Plus className="h-4 w-4" />
+              <Button variant="secondary" size="sm" className="gap-1.5" onClick={() => setAddDialogOpen(true)}>
+                <Plus className="h-3.5 w-3.5" />
                 إضافة نوع مخصص
               </Button>
             </div>
@@ -328,7 +331,6 @@ function ExpenseTypesManager() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {expenseTypes.map((type) => {
-            // فحص الحسابات من child table أو default_account المباشر
             const hasAccount = !!type.default_account || (Array.isArray(type.accounts) && type.accounts.some(a => a.default_account));
             const accountDisplay = type.default_account
               || (Array.isArray(type.accounts) && type.accounts.find(a => a.default_account)?.default_account)
@@ -403,7 +405,7 @@ function ExpenseTypesManager() {
                 placeholder="اسم حساب المصروف من شجرة الحسابات"
               />
               <p className="text-xs text-muted-foreground">
-                الحساب الافتراضي الذي ستُسجل فيه مطالبات هذا النوع. إن لم تدخل حساباً، يمكنك تعيينه لاحقاً عبر زر «تعيين الحسابات الافتراضية».
+                الحساب الافتراضي الذي ستُسجل فيه مطالبات هذا النوع. إن لم تدخل حساباً، يمكنك تعيينه لاحقاً عبر زر «تعيين الحسابات».
               </p>
             </div>
           </div>
@@ -439,7 +441,39 @@ function ExpenseTypesManager() {
   );
 }
 
-export default function AccountingSettingsPage() {
+/** أسماء أنواع المصروفات الافتراضية (المصدر الوحيد - بدلاً من التكرار مع API) */
+const DEFAULT_EXPENSE_TYPE_NAMES = [
+  'مصاريف إدارية',
+  'مصاريف سفر وتنقل',
+  'مصاريف ضيافة',
+  'مصاريف صيانة',
+  'مصاريف نقل وشحن',
+  'مصاريف اتصالات',
+  'مصاريف قرطاسية ومستلزمات',
+  'مصاريف وقود',
+  'مصاريف إيجار',
+  'مصاريف كهرباء وماء',
+  'مصاريف تسويق وإعلان',
+  'مصاريف تدريب وتطوير',
+  'مصاريف طبية وتأمين',
+  'مصاريف مهنية وخدمية',
+  'مصاريف متنوعة',
+];
+
+/* ─── المحتوى الرئيسي (مع دعم searchParams) ─── */
+function AccountingSettingsContent() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'operations';
+  const shouldAutoCreate = searchParams.get('create') === '1';
+  const tabFromUrl = (() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'expense-types' || tab === 'payment-methods') return 'expense-types';
+    if (tab === 'general') return 'general';
+    if (tab === 'operations') return 'operations';
+    if (tab === 'tax') return 'tax';
+    return 'operations';
+  })();
+
   const { company: defaultCompany, isLoading: companyLoading } = useDefaultCompanyName();
 
   /* ── Fetch real ERPNext data ── */
@@ -449,7 +483,7 @@ export default function AccountingSettingsPage() {
     order_by: 'year_start_date desc',
   });
 
-  const { data: accounts = [] } = useDocList<{ name: string; root_type: string; is_group: number }>('Account', {
+  const { data: accounts = [], isLoading: accountsLoading } = useDocList<{ name: string; root_type: string; is_group: number }>('Account', {
     fields: ['name', 'root_type', 'is_group'],
     limit: 500,
   });
@@ -477,11 +511,13 @@ export default function AccountingSettingsPage() {
     return counts;
   }, [accounts]);
 
+  const isKpiLoading = companyLoading || accountsLoading;
+
   return (
     <div className="erp-page-enter space-y-5" dir="rtl">
       <PageHeader
         title="إعدادات المحاسبة"
-        description="إدارة إعدادات وعمومات المحاسبة والمالية"
+        description="إدارة إعدادات وعمليات المحاسبة والمالية"
         iconify="solar:settings-bold-duotone"
         accent="primary"
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting/dashboard' }, { label: 'الإعدادات' }]}
@@ -497,16 +533,22 @@ export default function AccountingSettingsPage() {
         </CardHeader>
         <CardContent>
           <ListQueryAlert error={fyError ? fyErr : null} onRetry={() => {}} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            <KpiStat icon={Building2} label="الشركة" value={companyLoading ? '...' : (defaultCompany || '—')} accent="bg-primary/10 text-primary" />
-            <KpiStat icon={CalendarDays} label="السنة المالية النشطة" value={activeFy ? activeFy.name : '—'} accent="bg-chart-3/10 text-chart-3" />
-            <KpiStat icon={FileText} label="إجمالي الحسابات" value={String(totalLeafAccounts)} accent="bg-chart-1/10 text-chart-1" />
-            <KpiStat icon={Wallet} label="مراكز التكلفة" value={String(costCenters.length)} accent="bg-chart-5/10 text-chart-5" />
-            <KpiStat icon={TrendingUp} label="حسابات الأصول" value={String(rootTypeCounts['Asset'] || 0)} accent="bg-chart-1/10 text-chart-1" />
-            <KpiStat icon={TrendingDown} label="حسابات الالتزامات" value={String(rootTypeCounts['Liability'] || 0)} accent="bg-chart-2/10 text-chart-2" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+            {isKpiLoading ? (
+              Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)
+            ) : (
+              <>
+                <KpiStat icon={Building2} label="الشركة" value={defaultCompany || '—'} accent="bg-primary/10 text-primary" />
+                <KpiStat icon={CalendarDays} label="السنة المالية النشطة" value={activeFy ? activeFy.name : '—'} accent="bg-chart-3/10 text-chart-3" />
+                <KpiStat icon={FileText} label="إجمالي الحسابات" value={String(totalLeafAccounts)} accent="bg-chart-1/10 text-chart-1" />
+                <KpiStat icon={Wallet} label="مراكز التكلفة" value={String(costCenters.length)} accent="bg-chart-5/10 text-chart-5" />
+                <KpiStat icon={TrendingUp} label="حسابات الأصول" value={String(rootTypeCounts['Asset'] || 0)} accent="bg-chart-1/10 text-chart-1" />
+                <KpiStat icon={TrendingDown} label="حسابات الالتزامات" value={String(rootTypeCounts['Liability'] || 0)} accent="bg-chart-2/10 text-chart-2" />
+              </>
+            )}
           </div>
           {activeFy && (
-            <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <CalendarDays className="h-3 w-3" />
                 من {formatDate(activeFy.year_start_date)} إلى {formatDate(activeFy.year_end_date)}
@@ -520,13 +562,15 @@ export default function AccountingSettingsPage() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="operations" dir="rtl">
-        <TabsList>
-          <TabsTrigger value="operations">عمليات المحاسبة</TabsTrigger>
-          <TabsTrigger value="general">الإعدادات العامة</TabsTrigger>
-          <TabsTrigger value="expense-types">أنواع المصروفات</TabsTrigger>
-          <TabsTrigger value="tax">الضرائب والفواتير</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue={tabFromUrl} dir="rtl">
+        <div className="overflow-x-auto -mx-1 px-1">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="operations" className="text-xs sm:text-sm">عمليات المحاسبة</TabsTrigger>
+            <TabsTrigger value="general" className="text-xs sm:text-sm">الإعدادات العامة</TabsTrigger>
+            <TabsTrigger value="expense-types" className="text-xs sm:text-sm">أنواع المصروفات</TabsTrigger>
+            <TabsTrigger value="tax" className="text-xs sm:text-sm">الضرائب والفواتير</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="operations">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
@@ -651,7 +695,7 @@ export default function AccountingSettingsPage() {
         </TabsContent>
 
         <TabsContent value="expense-types">
-          <ExpenseTypesManager />
+          <ExpenseTypesManager autoOpenCreate={shouldAutoCreate && tabFromUrl === 'expense-types'} />
         </TabsContent>
 
         <TabsContent value="tax">
@@ -696,5 +740,26 @@ export default function AccountingSettingsPage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+/* ─── الصفحة مع Suspense boundary (مطلوب لـ useSearchParams) ─── */
+export default function AccountingSettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="erp-page-enter space-y-5 p-6" dir="rtl">
+        <Skeleton className="h-8 w-48 rounded" />
+        <Skeleton className="h-4 w-64 rounded" />
+        <Card className="border-border/40">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <AccountingSettingsContent />
+    </Suspense>
   );
 }

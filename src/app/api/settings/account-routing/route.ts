@@ -41,12 +41,12 @@ export async function POST(request: NextRequest) {
   }
 
   // Create
-  if (!body.document_type || !body.default_account || !body.company) {
-    return NextResponse.json({ success: false, error: 'جميع الحقول مطلوبة' }, { status: 400 });
+  if (!body.document_type || !body.company) {
+    return NextResponse.json({ success: false, error: 'نوع المستند والشركة مطلوبان' }, { status: 400 });
   }
   const rule = addAccountRoutingRule({
     document_type: body.document_type,
-    default_account: body.default_account,
+    default_account: body.default_account || '',
     company: body.company,
   });
   return NextResponse.json({ success: true, data: rule }, { status: 201 });
