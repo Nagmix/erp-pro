@@ -31,7 +31,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Receipt, Send, CheckCircle2, XCircle, Info, Loader2, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Receipt, Send, CheckCircle2, XCircle, Info, Loader2, Trash2, Users, Wallet, CalendarDays, Landmark, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
@@ -67,6 +68,108 @@ const statusTabs: ErpStatusTab[] = [
   { value: '1', label: 'مرحّل' },
   { value: '2', label: 'ملغي' },
 ];
+
+/* ─── Section fieldset header component ─── */
+
+function SectionFieldset({
+  legend,
+  icon: Icon,
+  title,
+  accent = 'primary',
+  children,
+}: {
+  legend: string;
+  icon: React.ElementType;
+  title: string;
+  accent?: 'primary' | 'info' | 'success' | 'warning' | 'destructive';
+  children: React.ReactNode;
+}) {
+  const accentMap: Record<string, string> = {
+    primary: 'from-primary/[0.04] via-transparent to-transparent',
+    info: 'from-info/[0.04] via-transparent to-transparent',
+    success: 'from-success/[0.04] via-transparent to-transparent',
+    warning: 'from-warning/[0.04] via-transparent to-transparent',
+    destructive: 'from-destructive/[0.04] via-transparent to-transparent',
+  };
+  const iconBgMap: Record<string, string> = {
+    primary: 'bg-primary/10',
+    info: 'bg-info/10',
+    success: 'bg-success/10',
+    warning: 'bg-warning/10',
+    destructive: 'bg-destructive/10',
+  };
+  const iconTextMap: Record<string, string> = {
+    primary: 'text-primary',
+    info: 'text-info',
+    success: 'text-success',
+    warning: 'text-warning',
+    destructive: 'text-destructive',
+  };
+
+  return (
+    <fieldset className="rounded-2xl border border-border/40 overflow-hidden">
+      <legend className="sr-only">{legend}</legend>
+      <div className={`bg-gradient-to-l ${accentMap[accent]} px-4 py-2.5 border-b border-border/30`}>
+        <h4 className="text-[12px] font-bold text-foreground/70 flex items-center gap-2">
+          <span className={`h-5 w-5 rounded-md ${iconBgMap[accent]} flex items-center justify-center`}>
+            <Icon className={`h-3 w-3 ${iconTextMap[accent]}`} />
+          </span>
+          {title}
+        </h4>
+      </div>
+      <div className="p-4 space-y-4 bg-card/50">
+        {children}
+      </div>
+    </fieldset>
+  );
+}
+
+/* ─── Form field with icon label ─── */
+
+function FormField({
+  label,
+  icon: Icon,
+  error,
+  children,
+  required,
+  hint,
+}: {
+  label: string;
+  icon: React.ElementType;
+  error?: string;
+  children: React.ReactNode;
+  required?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+        <span className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        </span>
+        {label}
+        {required && <span className="text-destructive text-xs me-0.5">*</span>}
+      </Label>
+      {children}
+      {hint && !error && (
+        <p className="text-[11px] text-muted-foreground/60 pe-8">{hint}</p>
+      )}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-[11px] text-destructive font-medium flex items-center gap-1 pe-8"
+          >
+            <Info className="h-3 w-3 shrink-0" />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function DailyExpensesPage() {
   const { company: defaultCompany } = useDefaultCompanyName();
@@ -466,17 +569,11 @@ export default function DailyExpensesPage() {
       />
 
       {/* New Expense Form */}
-      <Card className="border-warning/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Plus className="h-4 w-4 text-warning" />
-            إضافة مصروف جديد
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="space-y-4">
+        {/* ── Section 1: Expense Info ── */}
+        <SectionFieldset legend="معلومات المصروف" icon={CalendarDays} title="معلومات المصروف" accent="primary">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">الموظف <span className="text-destructive">*</span></Label>
+            <FormField label="الموظف" icon={Users} required hint="اختر الموظف الذي تحمّل المصروف">
               <ErpLinkCombobox
                 doctype="Employee"
                 value={employee}
@@ -484,18 +581,16 @@ export default function DailyExpensesPage() {
                 placeholder="اختر الموظف"
                 displayKey="employee_name"
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">نوع المصروف <span className="text-destructive">*</span></Label>
+            </FormField>
+            <FormField label="نوع المصروف" icon={Receipt} required hint="تصنيف المصروف مثل سفر، ضيافة...">
               <ErpLinkCombobox
                 doctype="Expense Claim Type"
                 value={expenseType}
                 onChange={setExpenseType}
                 placeholder="اختر نوع المصروف"
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">المبلغ (ر.ي) <span className="text-destructive">*</span></Label>
+            </FormField>
+            <FormField label="المبلغ (ر.ي)" icon={Wallet} required hint="المبلغ المطلوب تعويضه">
               <Input
                 type="number"
                 value={amount}
@@ -504,17 +599,17 @@ export default function DailyExpensesPage() {
                 dir="ltr"
                 className="h-9"
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">التاريخ</Label>
+            </FormField>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField label="التاريخ" icon={CalendarDays} hint="تاريخ تحمّل المصروف">
               <DatePicker
                 value={expenseDate}
                 onChange={setExpenseDate}
                 className="h-9"
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">مركز التكلفة</Label>
+            </FormField>
+            <FormField label="مركز التكلفة" icon={Landmark} hint="اختياري — لتوزيع التكلفة">
               <ErpLinkCombobox
                 doctype="Cost Center"
                 value={costCenter}
@@ -522,26 +617,39 @@ export default function DailyExpensesPage() {
                 placeholder="اختر مركز التكلفة"
                 displayKey="cost_center_name"
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">ملاحظات</Label>
+            </FormField>
+          </div>
+        </SectionFieldset>
+
+        {/* ── Section 2: Additional Details ── */}
+        <SectionFieldset legend="تفاصيل إضافية" icon={MessageSquare} title="تفاصيل إضافية" accent="info">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField label="ملاحظات" icon={MessageSquare} hint="وصف تفصيلي للمصروف">
               <Textarea
                 value={remark}
                 onChange={(e) => setRemark(e.target.value)}
-                placeholder="ملاحظات إضافية..."
-                rows={1}
-                className="min-h-[36px]"
+                placeholder="ملاحظات إضافية عن المصروف..."
+                rows={2}
+                className="min-h-[36px] resize-none"
               />
+            </FormField>
+            <div className="flex items-end">
+              <div className="rounded-lg bg-muted/30 p-3 border border-border/30 w-full">
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <Info className="h-3 w-3 inline-block me-1 -mt-0.5" />
+                  الحقول المعلّمة بـ <span className="text-destructive">*</span> مطلوبة. يُرجى التأكد من صحة البيانات قبل الإضافة.
+                </p>
+              </div>
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
+          <div className="flex justify-end pt-2">
             <Button onClick={handleCreateExpense} disabled={busy} className="gap-1.5 min-w-[160px]">
               <Send className="h-3.5 w-3.5" />
               {busy ? 'جارٍ الإضافة...' : 'إضافة مصروف'}
             </Button>
           </div>
-        </CardContent>
-      </Card>
+        </SectionFieldset>
+      </div>
 
       {/* Expenses Table */}
       <Card>

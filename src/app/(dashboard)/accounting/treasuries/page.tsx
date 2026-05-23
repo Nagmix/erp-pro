@@ -12,7 +12,11 @@ import {
   RefreshCw,
   Trash2,
   Loader2,
+  Hash,
+  FolderTree,
+  Info,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +55,53 @@ type VaultRow = {
   is_group?: number | boolean;
   balance?: number;
 };
+
+/* ─── Form field with icon label ─── */
+
+function FormField({
+  label,
+  icon: Icon,
+  error,
+  children,
+  required,
+  hint,
+}: {
+  label: string;
+  icon: React.ElementType;
+  error?: string;
+  children: React.ReactNode;
+  required?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+        <span className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        </span>
+        {label}
+        {required && <span className="text-destructive text-xs me-0.5">*</span>}
+      </Label>
+      {children}
+      {hint && !error && (
+        <p className="text-[11px] text-muted-foreground/60 pe-8">{hint}</p>
+      )}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-[11px] text-destructive font-medium flex items-center gap-1 pe-8"
+          >
+            <Info className="h-3 w-3 shrink-0" />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 /* ───────────── Page Component ───────────── */
 
@@ -263,49 +314,60 @@ export default function TreasuriesPage() {
                   خزينة جديدة
                 </Button>
               </DialogTrigger>
-              <DialogContent size="md">
+              <DialogContent size="md" dir="rtl">
                 <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-emerald-600" />
-                    إنشاء خزينة نقدية
+                  <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+                    <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center border border-emerald-500/15">
+                      <Wallet className="h-4.5 w-4.5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <span>إنشاء خزينة نقدية</span>
+                      <p className="text-xs font-normal text-muted-foreground mt-0.5">أدخل بيانات الخزينة في الحقول أدناه</p>
+                    </div>
                   </DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-medium">اسم الخزينة *</Label>
+                  <FormField label="اسم الخزينة" icon={Wallet} required hint="الاسم الوصفي للخزينة مثل: الصندوق الرئيسي">
                     <Input
                       value={vaultName}
                       onChange={(e) => setVaultName(e.target.value)}
                       placeholder="مثال: الصندوق الرئيسي، خزينة الفرع"
                     />
+                  </FormField>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField label="رقم الحساب" icon={Hash} hint="الرقم التسلسلي في دليل الحسابات">
+                      <Input
+                        value={vaultAccountNumber}
+                        onChange={(e) => setVaultAccountNumber(e.target.value)}
+                        placeholder="مثال: 1101"
+                        dir="ltr"
+                      />
+                    </FormField>
+                    <FormField label="الحساب الأب" icon={FolderTree} hint="يُستخدم الافتراضي إذا تُرك فارغاً">
+                      <ErpLinkCombobox
+                        doctype="Account"
+                        value={vaultParentAccount}
+                        onChange={setVaultParentAccount}
+                        placeholder="اختر الحساب الأب..."
+                      />
+                    </FormField>
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-medium">رقم الحساب (اختياري)</Label>
-                    <Input
-                      value={vaultAccountNumber}
-                      onChange={(e) => setVaultAccountNumber(e.target.value)}
-                      placeholder="مثال: 1101"
-                      dir="ltr"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-medium">الحساب الأب (اختياري)</Label>
-                    <ErpLinkCombobox
-                      doctype="Account"
-                      value={vaultParentAccount}
-                      onChange={setVaultParentAccount}
-                      placeholder="اختر الحساب الأب..."
-                    />
-                    <p className="text-[10px] text-muted-foreground">
-                      إذا تُرك فارغاً، سيُستخدم الحساب الأب الافتراضي &quot;النقدية بالخزينة&quot;
-                    </p>
-                  </div>
-                  <div className="flex justify-end gap-2 pt-2">
+                  <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
                     <Button type="button" variant="outline" onClick={() => setOpenVaultDialog(false)}>
                       إلغاء
                     </Button>
-                    <Button type="button" onClick={() => void createVault()} disabled={vaultBusy}>
-                      {vaultBusy ? "جاري الإنشاء..." : "إنشاء الخزينة"}
+                    <Button type="button" onClick={() => void createVault()} disabled={vaultBusy} className="gap-1.5 min-w-[130px]">
+                      {vaultBusy ? (
+                        <>
+                          <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                          جاري الإنشاء...
+                        </>
+                      ) : (
+                        <>
+                          <PlusCircle className="h-3.5 w-3.5" />
+                          إنشاء الخزينة
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

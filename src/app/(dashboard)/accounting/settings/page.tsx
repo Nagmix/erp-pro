@@ -481,16 +481,16 @@ function AccountingSettingsContent() {
 
       {/* ── التبويبات ── */}
       <Tabs defaultValue={initialTab} dir="rtl">
-        <TabsList className="h-9 p-0.5 bg-muted/40">
-          <TabsTrigger value="general" className="text-xs h-8 px-3 gap-1.5">
+        <TabsList className="h-9 p-0.5 bg-muted/40 w-full overflow-x-auto scrollbar-none">
+          <TabsTrigger value="general" className="text-xs h-8 px-3 gap-1.5 shrink-0">
             <Settings className="h-3.5 w-3.5" />
             <span>إعدادات عامة</span>
           </TabsTrigger>
-          <TabsTrigger value="tax" className="text-xs h-8 px-3 gap-1.5">
+          <TabsTrigger value="tax" className="text-xs h-8 px-3 gap-1.5 shrink-0">
             <Percent className="h-3.5 w-3.5" />
             <span>الضرائب</span>
           </TabsTrigger>
-          <TabsTrigger value="expense-types" className="text-xs h-8 px-3 gap-1.5">
+          <TabsTrigger value="expense-types" className="text-xs h-8 px-3 gap-1.5 shrink-0">
             <Receipt className="h-3.5 w-3.5" />
             <span>أنواع المصروفات</span>
           </TabsTrigger>

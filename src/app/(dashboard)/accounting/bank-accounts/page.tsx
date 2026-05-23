@@ -20,7 +20,15 @@ import {
   RotateCcw,
   GitCompareArrows,
   Trash2,
+  Hash,
+  BookOpen,
+  Tag,
+  CreditCard,
+  Wallet,
+  Building2,
+  Info,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -90,6 +98,53 @@ type ReconcileMatch = {
 /* ───────────── Helpers ───────────── */
 
 const RECON_DECISIONS_STORAGE_KEY = 'erp_pro_bank_recon_decisions_v2';
+
+/* ─── Form field with icon label ─── */
+
+function FormField({
+  label,
+  icon: Icon,
+  error,
+  children,
+  required,
+  hint,
+}: {
+  label: string;
+  icon: React.ElementType;
+  error?: string;
+  children: React.ReactNode;
+  required?: boolean;
+  hint?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+        <span className="h-6 w-6 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        </span>
+        {label}
+        {required && <span className="text-destructive text-xs me-0.5">*</span>}
+      </Label>
+      {children}
+      {hint && !error && (
+        <p className="text-[11px] text-muted-foreground/60 pe-8">{hint}</p>
+      )}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            className="text-[11px] text-destructive font-medium flex items-center gap-1 pe-8"
+          >
+            <Info className="h-3 w-3 shrink-0" />
+            {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 function loadReconDecisionsFromStorage(): Record<string, 'confirmed' | 'rejected'> {
   if (typeof window === 'undefined') return {};
@@ -593,34 +648,53 @@ export default function BankAccountsPage() {
                             حساب بنكي جديد
                           </Button>
                         </DialogTrigger>
-                        <DialogContent size="lg">
-                          <DialogHeader><DialogTitle>إنشاء حساب بنكي</DialogTitle></DialogHeader>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="space-y-1.5">
-                              <Label>البنك *</Label>
-                              <ErpLinkCombobox doctype="Bank" value={accBank} onChange={setAccBank} placeholder="اختر البنك" />
+                        <DialogContent size="lg" dir="rtl">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+                              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/15">
+                                <Landmark className="h-4.5 w-4.5 text-primary" />
+                              </div>
+                              <div>
+                                <span>إنشاء حساب بنكي</span>
+                                <p className="text-xs font-normal text-muted-foreground mt-0.5">أدخل بيانات الحساب البنكي</p>
+                              </div>
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField label="البنك" icon={Landmark} required hint="اختر البنك المسجّل مسبقاً">
+                                <ErpLinkCombobox doctype="Bank" value={accBank} onChange={setAccBank} placeholder="اختر البنك" />
+                              </FormField>
+                              <FormField label="الشركة" icon={Building2} hint="تُخذ تلقائياً من الإعدادات">
+                                <div className="h-9 flex items-center text-sm font-semibold rounded-md border border-border/40 bg-muted/30 px-3">{accCompany || defaultCompany || '—'}</div>
+                              </FormField>
                             </div>
-                            <div className="space-y-1.5">
-                              <Label>الشركة</Label>
-                              <div className="text-sm font-semibold">{accCompany || defaultCompany || '—'}</div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField label="حساب GL" icon={BookOpen} required hint="الحساب المحاسبي المرتبط">
+                                <ErpLinkCombobox doctype="Account" value={accGlAccount} onChange={setAccGlAccount} placeholder="الحساب المحاسبي" />
+                              </FormField>
+                              <FormField label="رقم الحساب" icon={Hash} required hint="رقم IBAN أو الحساب البنكي">
+                                <Input value={accNumber} onChange={(e) => setAccNumber(e.target.value)} placeholder="SAxxxxxxxx" dir="ltr" />
+                              </FormField>
                             </div>
-                            <div className="space-y-1.5">
-                              <Label>حساب GL *</Label>
-                              <ErpLinkCombobox doctype="Account" value={accGlAccount} onChange={setAccGlAccount} placeholder="الحساب المحاسبي" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label>رقم الحساب *</Label>
-                              <Input value={accNumber} onChange={(e) => setAccNumber(e.target.value)} placeholder="SAxxxxxxxx" dir="ltr" />
-                            </div>
-                            <div className="space-y-1.5 md:col-span-2">
-                              <Label>اسم العرض (اختياري)</Label>
+                            <FormField label="اسم العرض" icon={Tag} hint="اختياري — اسم وصفي للحساب">
                               <Input value={accLabel} onChange={(e) => setAccLabel(e.target.value)} placeholder="الحساب الجاري - الرئيسي" />
-                            </div>
+                            </FormField>
                           </div>
-                          <div className="flex justify-end gap-2 mt-4">
+                          <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
                             <Button type="button" variant="outline" onClick={() => setOpenBankAccDialog(false)}>إلغاء</Button>
-                            <Button type="button" onClick={() => void createBankAccount()} disabled={createBusy === 'account'}>
-                              {createBusy === 'account' ? 'جاري الإنشاء...' : 'إنشاء'}
+                            <Button type="button" onClick={() => void createBankAccount()} disabled={createBusy === 'account'} className="gap-1.5 min-w-[130px]">
+                              {createBusy === 'account' ? (
+                                <>
+                                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                                  جاري الإنشاء...
+                                </>
+                              ) : (
+                                <>
+                                  <PlusCircle className="h-3.5 w-3.5" />
+                                  إنشاء
+                                </>
+                              )}
                             </Button>
                           </div>
                         </DialogContent>
@@ -655,23 +729,41 @@ export default function BankAccountsPage() {
                             بنك جديد
                           </Button>
                         </DialogTrigger>
-                        <DialogContent size="md">
-                          <DialogHeader><DialogTitle>إنشاء بنك</DialogTitle></DialogHeader>
-                          <div className="space-y-3">
-                            <div className="space-y-1.5">
-                              <Label>اسم البنك *</Label>
+                        <DialogContent size="md" dir="rtl">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+                              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-chart-1/20 to-chart-1/5 flex items-center justify-center border border-chart-1/15">
+                                <Landmark className="h-4.5 w-4.5 text-chart-1" />
+                              </div>
+                              <div>
+                                <span>إنشاء بنك</span>
+                                <p className="text-xs font-normal text-muted-foreground mt-0.5">أدخل بيانات البنك الجديد</p>
+                              </div>
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <FormField label="اسم البنك" icon={Landmark} required hint="الاسم الرسمي للبنك">
                               <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="مثال: البنك الأهلي" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label>SWIFT (اختياري)</Label>
+                            </FormField>
+                            <FormField label="SWIFT" icon={Hash} hint="اختياري — رمز SWIFT الدولي للبنك">
                               <Input value={bankSwift} onChange={(e) => setBankSwift(e.target.value)} placeholder="NCBKSARI" dir="ltr" />
-                            </div>
-                            <div className="flex justify-end gap-2">
-                              <Button type="button" variant="outline" onClick={() => setOpenBankDialog(false)}>إلغاء</Button>
-                              <Button type="button" onClick={() => void createBank()} disabled={createBusy === 'bank'}>
-                                {createBusy === 'bank' ? 'جاري الإنشاء...' : 'إنشاء'}
-                              </Button>
-                            </div>
+                            </FormField>
+                          </div>
+                          <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
+                            <Button type="button" variant="outline" onClick={() => setOpenBankDialog(false)}>إلغاء</Button>
+                            <Button type="button" onClick={() => void createBank()} disabled={createBusy === 'bank'} className="gap-1.5 min-w-[130px]">
+                              {createBusy === 'bank' ? (
+                                <>
+                                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                                  جاري الإنشاء...
+                                </>
+                              ) : (
+                                <>
+                                  <PlusCircle className="h-3.5 w-3.5" />
+                                  إنشاء
+                                </>
+                              )}
+                            </Button>
                           </div>
                         </DialogContent>
                       </Dialog>
@@ -701,15 +793,23 @@ export default function BankAccountsPage() {
                             طريقة دفع جديدة
                           </Button>
                         </DialogTrigger>
-                        <DialogContent size="md">
-                          <DialogHeader><DialogTitle>إنشاء طريقة دفع</DialogTitle></DialogHeader>
-                          <div className="space-y-3">
-                            <div className="space-y-1.5">
-                              <Label>اسم طريقة الدفع *</Label>
+                        <DialogContent size="md" dir="rtl">
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+                              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-chart-5/20 to-chart-5/5 flex items-center justify-center border border-chart-5/15">
+                                <CreditCard className="h-4.5 w-4.5 text-chart-5" />
+                              </div>
+                              <div>
+                                <span>إنشاء طريقة دفع</span>
+                                <p className="text-xs font-normal text-muted-foreground mt-0.5">أدخل بيانات طريقة الدفع الجديدة</p>
+                              </div>
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <FormField label="اسم طريقة الدفع" icon={CreditCard} required hint="الاسم الوصفي لطريقة الدفع">
                               <Input value={modeName} onChange={(e) => setModeName(e.target.value)} placeholder="مثال: تحويل بنكي" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label>النوع</Label>
+                            </FormField>
+                            <FormField label="النوع" icon={Wallet} hint="تصنيف طريقة الدفع">
                               <div className="flex gap-3">
                                 {(['Cash', 'Bank', 'General'] as const).map((t) => (
                                   <label key={t} className="flex items-center gap-1.5 text-sm cursor-pointer">
@@ -718,13 +818,23 @@ export default function BankAccountsPage() {
                                   </label>
                                 ))}
                               </div>
-                            </div>
-                            <div className="flex justify-end gap-2">
-                              <Button type="button" variant="outline" onClick={() => setOpenModeDialog(false)}>إلغاء</Button>
-                              <Button type="button" onClick={() => void createMode()} disabled={createBusy === 'mode'}>
-                                {createBusy === 'mode' ? 'جاري الإنشاء...' : 'إنشاء'}
-                              </Button>
-                            </div>
+                            </FormField>
+                          </div>
+                          <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
+                            <Button type="button" variant="outline" onClick={() => setOpenModeDialog(false)}>إلغاء</Button>
+                            <Button type="button" onClick={() => void createMode()} disabled={createBusy === 'mode'} className="gap-1.5 min-w-[130px]">
+                              {createBusy === 'mode' ? (
+                                <>
+                                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                                  جاري الإنشاء...
+                                </>
+                              ) : (
+                                <>
+                                  <PlusCircle className="h-3.5 w-3.5" />
+                                  إنشاء
+                                </>
+                              )}
+                            </Button>
                           </div>
                         </DialogContent>
                       </Dialog>

@@ -204,7 +204,7 @@ function AccountTreeItem({
       <div
         className="hidden md:grid items-center h-9 px-4 group transition-colors hover:bg-accent/50 border-b border-border/20 last:border-b-0 text-xs"
         style={{
-          paddingRight: `${level * 1.25 + 1}rem`,
+          paddingInlineStart: `${level * 1.25 + 1}rem`,
           gridTemplateColumns: '1fr 96px 112px 110px 64px',
         }}
       >
@@ -283,7 +283,7 @@ function AccountTreeItem({
         className="md:hidden border-b border-border/20 last:border-b-0 group transition-colors hover:bg-accent/50"
       >
         {/* Main row: name + actions */}
-        <div className="flex items-center gap-1.5 py-2 text-xs" style={{ paddingInlineStart: `${Math.min(level, 4) * 0.5 + 0.5}rem`, paddingInlineEnd: '0.5rem' }}>
+        <div className="flex items-center gap-1.5 py-2 text-xs" style={{ paddingInlineStart: `${Math.min(level, 4) * 0.5 + 0.5}rem`, paddingInlineEnd: '0.75rem' }}>
           {/* Expand arrow */}
           {hasChildren ? (
             <button
