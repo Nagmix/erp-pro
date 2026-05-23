@@ -4,9 +4,8 @@ import { useMemo, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/erp/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ModernIcon } from '@/components/ui/modern-icon';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { useDocList, useCreateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -18,6 +17,13 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
@@ -34,53 +40,96 @@ import {
   Loader2,
   Receipt,
   AlertTriangle,
+  Route,
+  Globe,
+  Scale,
+  Shield,
+  Percent,
+  ClipboardList,
+  FileBadge,
+  Flag,
+  Settings,
+  ChevronLeft,
 } from 'lucide-react';
 
-/* ─── مكون بطاقة الإعداد ─── */
-function SettingsCard({ icon, title, description, href, badge }: { icon: string; title: string; description: string; href: string; badge?: string }) {
+/* ─── أنواع الإعدادات المسموح بها ─── */
+type SettingItem = {
+  title: string;
+  description: string;
+  href: string;
+  icon: React.ElementType;
+  badge?: string;
+};
+
+/* ─── مجموعات الإعدادات الحقيقية ─── */
+const SETTINGS_GROUPS = {
+  general: {
+    label: 'إعدادات عامة',
+    items: [
+      { title: 'توجيه الحسابات', description: 'ربط الحسابات الافتراضية بأنواع المستندات', href: '/settings/account-routing', icon: Route },
+      { title: 'السنوات المالية', description: 'إدارة السنوات المالية والفترات المحاسبية', href: '/accounting/fiscal-year', icon: CalendarDays },
+      { title: 'متعدد العملات', description: 'إعدادات العملات وأسعار الصرف', href: '/accounting/multi-currency', icon: Globe },
+      { title: 'الأرصدة الافتتاحية', description: 'إعداد أرصدة الحسابات الافتتاحية', href: '/accounting/opening-balances', icon: Scale },
+      { title: 'صلاحيات الخزائن', description: 'إدارة صلاحيات الوصول للخزائن', href: '/accounting/vault-permissions', icon: Shield },
+    ] as SettingItem[],
+  },
+  tax: {
+    label: 'الضرائب',
+    items: [
+      { title: 'معدلات الضريبة', description: 'إعداد معدلات الضرائب المختلفة', href: '/settings/tax-rates', icon: Percent },
+      { title: 'قواعد الضرائب', description: 'إعداد قواعد تطبيق الضرائب', href: '/settings/tax-rules', icon: ClipboardList },
+      { title: 'الإقرار الضريبي', description: 'إعداد وتقديم الإقرارات الضريبية', href: '/accounting/tax-declaration', icon: FileBadge },
+      { title: 'تكوين الضرائب اليمنية', description: 'إعدادات الضرائب الخاصة باليمن', href: '/settings/yemen-tax-config', icon: Flag },
+    ] as SettingItem[],
+  },
+};
+
+/* ─── مكون بطاقة الإعداد الاحترافية ─── */
+function SettingCard({ item }: { item: SettingItem }) {
+  const Icon = item.icon;
   return (
-    <Link href={href}>
-      <Card className="hover:bg-accent/50 transition-all duration-200 cursor-pointer group h-full border-border/40 hover:border-primary/20 hover:shadow-[var(--shadow-sm-ui)]">
-        <CardContent className="p-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted/60 text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-all duration-200">
-            <ModernIcon iconify={icon} className="h-5 w-5" />
+    <Link href={item.href}>
+      <Card className="group h-full border-border/30 bg-card hover:bg-accent/30 transition-all duration-200 cursor-pointer hover:border-primary/20 hover:shadow-sm">
+        <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+          <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary/70 group-hover:bg-primary/15 group-hover:text-primary transition-colors duration-200">
+            <Icon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="font-medium text-sm leading-tight">{title}</div>
-            <div className="text-xs text-muted-foreground mt-0.5 truncate">{description}</div>
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-[13px] sm:text-sm leading-tight">{item.title}</span>
+              {item.badge && (
+                <Badge variant="secondary" className="text-[9px] h-4 px-1.5 shrink-0">{item.badge}</Badge>
+              )}
+            </div>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">{item.description}</p>
           </div>
-          {badge && (
-            <Badge variant="secondary" className="text-[10px] shrink-0">{badge}</Badge>
-          )}
+          <ChevronLeft className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary/50 shrink-0 transition-colors" />
         </CardContent>
       </Card>
     </Link>
   );
 }
 
-/* ─── مكون مؤشر الأداء ─── */
-function KpiStat({ icon: Icon, label, value, accent }: { icon: React.ElementType; label: string; value: string; accent: string }) {
+/* ─── مؤشر الأداء المصغر ─── */
+function KpiChip({ icon: Icon, label, value, accent }: { icon: React.ElementType; label: string; value: string; accent: string }) {
   return (
-    <div className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30">
-      <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${accent}`}>
-        <Icon className="h-4 w-4" />
-      </div>
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${accent}`}>
+      <Icon className="h-3.5 w-3.5 shrink-0" />
       <div className="min-w-0">
-        <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
+        <p className="text-[9px] leading-tight opacity-70">{label}</p>
         <p className="text-xs font-semibold truncate">{value}</p>
       </div>
     </div>
   );
 }
 
-/* ─── مؤشر تحميل ─── */
 function KpiSkeleton() {
   return (
-    <div className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/30">
-      <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
-      <div className="space-y-1.5">
-        <Skeleton className="h-2.5 w-16 rounded" />
-        <Skeleton className="h-3.5 w-20 rounded" />
+    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/30">
+      <Skeleton className="h-3.5 w-3.5 rounded shrink-0" />
+      <div className="space-y-1">
+        <Skeleton className="h-2 w-12 rounded" />
+        <Skeleton className="h-3 w-16 rounded" />
       </div>
     </div>
   );
@@ -96,13 +145,19 @@ type ExpenseTypeRow = {
   accounts?: Array<{ company: string; default_account: string }>;
 };
 
+const DEFAULT_EXPENSE_TYPE_NAMES = [
+  'مصاريف إدارية', 'مصاريف سفر وتنقل', 'مصاريف ضيافة', 'مصاريف صيانة',
+  'مصاريف نقل وشحن', 'مصاريف اتصالات', 'مصاريف قرطاسية ومستلزمات', 'مصاريف وقود',
+  'مصاريف إيجار', 'مصاريف كهرباء وماء', 'مصاريف تسويق وإعلان', 'مصاريف تدريب وتطوير',
+  'مصاريف طبية وتأمين', 'مصاريف مهنية وخدمية', 'مصاريف متنوعة',
+];
+
 function ExpenseTypesManager({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
   const { company: defaultCompany } = useDefaultCompanyName();
   const { data: expenseTypes = [], isLoading, isError, error, refetch } = useDocList<ExpenseTypeRow>('Expense Claim Type', {
     fields: ['name', 'expense_type'],
     limit: 200,
   });
-
   const createMutation = useCreateDoc('Expense Claim Type');
   const deleteMutation = useDeleteDoc('Expense Claim Type');
 
@@ -115,7 +170,6 @@ function ExpenseTypesManager({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
   const [seedingDefaults, setSeedingDefaults] = useState(false);
   const [configuringAccounts, setConfiguringAccounts] = useState(false);
 
-  /** إضافة أنواع المصروفات الافتراضية دفعة واحدة */
   const handleSeedDefaults = useCallback(async () => {
     setSeedingDefaults(true);
     const existing = new Set(expenseTypes.map(t => t.name));
@@ -125,79 +179,46 @@ function ExpenseTypesManager({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
       setSeedingDefaults(false);
       return;
     }
-    let created = 0;
-    let failed = 0;
+    let created = 0, failed = 0;
     for (const typeName of toCreate) {
-      try {
-        await createMutation.mutateAsync({ expense_type: typeName });
-        created++;
-      } catch {
-        failed++;
-      }
+      try { await createMutation.mutateAsync({ expense_type: typeName }); created++; }
+      catch { failed++; }
     }
     if (created > 0) toast.success(`تم إضافة ${created} نوع مصروف بنجاح`);
     if (failed > 0) toast.warning(`فشل إضافة ${failed} نوع`);
     refetch();
     setSeedingDefaults(false);
-    if (created > 0) {
-      handleConfigureAccounts();
-    }
+    if (created > 0) handleConfigureAccounts();
   }, [expenseTypes, createMutation, refetch]);
 
-  /** تعيين الحسابات الافتراضية تلقائياً لأنواع المصروفات */
   const handleConfigureAccounts = useCallback(async () => {
     setConfiguringAccounts(true);
     try {
       const res = await fetch('/api/setup/configure-expense-accounts', { method: 'POST' });
       const data = await res.json();
       if (data.success) {
-        if (data.updated > 0) {
-          toast.success(data.message || `تم تعيين الحسابات لـ ${data.updated} نوع مصروف`);
-        } else {
-          toast.info(data.message || 'جميع أنواع المصروفات لديها حسابات بالفعل');
-        }
+        toast.success(data.updated > 0 ? (data.message || `تم تعيين الحسابات لـ ${data.updated} نوع`) : (data.message || 'جميع الأنواع لديها حسابات'));
         refetch();
       } else {
-        toast.error(data.error || 'فشل تعيين الحسابات الافتراضية');
+        toast.error(data.error || 'فشل تعيين الحسابات');
       }
-    } catch {
-      toast.error('تعذر الاتصال بالخادم لتعيين الحسابات');
-    } finally {
-      setConfiguringAccounts(false);
-    }
+    } catch { toast.error('تعذر الاتصال بالخادم'); }
+    finally { setConfiguringAccounts(false); }
   }, [refetch]);
 
   const handleAdd = useCallback(async () => {
-    if (!newTypeName.trim()) {
-      toast.error('يرجى إدخال اسم نوع المصروف');
-      return;
-    }
+    if (!newTypeName.trim()) { toast.error('يرجى إدخال اسم نوع المصروف'); return; }
     try {
-      const payload: Record<string, unknown> = {
-        expense_type: newTypeName.trim(),
-      };
-      if (newTypeAccount?.trim()) {
-        const company = defaultCompany || '';
-        if (company) {
-          payload.accounts = [{
-            company: company,
-            default_account: newTypeAccount.trim(),
-          }];
-        }
+      const payload: Record<string, unknown> = { expense_type: newTypeName.trim() };
+      if (newTypeAccount?.trim() && defaultCompany) {
+        payload.accounts = [{ company: defaultCompany, default_account: newTypeAccount.trim() }];
       }
       await createMutation.mutateAsync(payload);
-      toast.success(`تم إضافة نوع المصروف "${newTypeName.trim()}" بنجاح`);
-      setNewTypeName('');
-      setNewTypeAccount('');
-      setAddDialogOpen(false);
-      refetch();
+      toast.success(`تم إضافة نوع المصروف "${newTypeName.trim()}"`);
+      setNewTypeName(''); setNewTypeAccount(''); setAddDialogOpen(false); refetch();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'فشل إضافة نوع المصروف';
-      if (msg.includes('already exists') || msg.includes('Duplicate') || msg.includes('duplicate')) {
-        toast.error('نوع المصروف موجود بالفعل');
-      } else {
-        toast.error(msg);
-      }
+      toast.error(msg.includes('already exists') || msg.includes('Duplicate') ? 'نوع المصروف موجود بالفعل' : msg);
     }
   }, [newTypeName, newTypeAccount, defaultCompany, createMutation, refetch]);
 
@@ -206,214 +227,162 @@ function ExpenseTypesManager({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
     setDeleting(true);
     try {
       await deleteMutation.mutateAsync(toDelete.name);
-      toast.success(`تم حذف نوع المصروف "${toDelete.name}" بنجاح`);
-      setDeleteDialogOpen(false);
-      setToDelete(null);
-      refetch();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'فشل حذف نوع المصروف';
-      toast.error(msg);
-    } finally {
-      setDeleting(false);
-    }
+      toast.success(`تم حذف "${toDelete.name}"`);
+      setDeleteDialogOpen(false); setToDelete(null); refetch();
+    } catch (err) { toast.error(err instanceof Error ? err.message : 'فشل الحذف'); }
+    finally { setDeleting(false); }
   }, [toDelete, deleteMutation, refetch]);
 
   if (isError) {
     return (
-      <div className="mt-4 space-y-4">
-        <Alert variant="destructive" className="border-destructive/35 bg-destructive/5">
-          <Receipt className="h-4 w-4" />
-          <AlertTitle>فشل تحميل أنواع المصروفات</AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p className="text-sm">{error instanceof Error ? error.message : 'خطأ غير معروف'}</p>
-            <p className="text-xs text-muted-foreground">
-              قد تكون وحدة الموارد البشرية (HR) غير مثبتة على الخادم. أنواع المصروفات تتطلب تفعيل وحدة الموارد البشرية في النظام.
-            </p>
-            <Button variant="outline" size="sm" onClick={() => refetch()}>إعادة المحاولة</Button>
-          </AlertDescription>
-        </Alert>
-      </div>
+      <Alert variant="destructive" className="mt-4 border-destructive/35 bg-destructive/5">
+        <Receipt className="h-4 w-4" />
+        <AlertTitle>فشل تحميل أنواع المصروفات</AlertTitle>
+        <AlertDescription className="space-y-2">
+          <p className="text-sm">{error instanceof Error ? error.message : 'خطأ غير معروف'}</p>
+          <p className="text-xs text-muted-foreground">قد تكون وحدة HR غير مثبتة. أنواع المصروفات تتطلب تفعيل وحدة الموارد البشرية.</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>إعادة المحاولة</Button>
+        </AlertDescription>
+      </Alert>
     );
   }
 
+  const typesWithoutAccount = expenseTypes.filter(t => {
+    const hasAccount = !!t.default_account || (Array.isArray(t.accounts) && t.accounts.some(a => a.default_account));
+    return !hasAccount;
+  });
+
   return (
-    <div className="mt-4 space-y-4">
-      {/* رأس القسم وأزرار الإجراءات */}
+    <div className="space-y-4">
+      {/* شريط الإجراءات */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-primary" />
-            أنواع المصروفات
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            إدارة أنواع وتصنيفات المصروفات المستخدمة في مطالبات المصروفات
-          </p>
+        <div className="flex items-center gap-2">
+          <Receipt className="h-4 w-4 text-primary shrink-0" />
+          <span className="text-sm font-medium">{expenseTypes.length} نوع مسجل</span>
+          {typesWithoutAccount.length > 0 && (
+            <Badge variant="outline" className="text-amber-600 border-amber-500/30 bg-amber-500/5 text-[10px]">
+              {typesWithoutAccount.length} بدون حساب
+            </Badge>
+          )}
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={handleConfigureAccounts} disabled={configuringAccounts}>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={handleConfigureAccounts} disabled={configuringAccounts}>
             {configuringAccounts ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Landmark className="h-3.5 w-3.5" />}
-            <span className="hidden sm:inline">{configuringAccounts ? 'جاري التعيين...' : 'تعيين الحسابات'}</span>
-            <span className="sm:hidden">{configuringAccounts ? 'جاري...' : 'حسابات'}</span>
+            تعيين الحسابات
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={handleSeedDefaults} disabled={seedingDefaults}>
+          <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={handleSeedDefaults} disabled={seedingDefaults}>
             {seedingDefaults ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-            <span className="hidden sm:inline">{seedingDefaults ? 'جاري الإضافة...' : 'إضافة الافتراضية'}</span>
-            <span className="sm:hidden">{seedingDefaults ? 'جاري...' : 'افتراضية'}</span>
+            الأنواع الافتراضية
           </Button>
-          <Button size="sm" className="gap-1.5" onClick={() => setAddDialogOpen(true)}>
+          <Button size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setAddDialogOpen(true)}>
             <Plus className="h-3.5 w-3.5" />
             إضافة نوع
           </Button>
         </div>
       </div>
 
-      <Separator />
-
-      {/* تنبيه إذا كانت هناك أنواع بدون حسابات افتراضية */}
-      {!isLoading && expenseTypes.length > 0 && expenseTypes.some(t => {
-        const hasAccount = !!t.default_account || (Array.isArray(t.accounts) && t.accounts.some(a => a.default_account));
-        return !hasAccount;
-      }) && (
-        <Alert className="border-amber-500/40 bg-amber-500/5">
-          <AlertTriangle className="h-4 w-4 text-amber-500" />
-          <AlertTitle className="text-amber-700">أنواع مصروفات بدون حسابات افتراضية</AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p className="text-sm">
-              يوجد {expenseTypes.filter(t => {
-                const hasAccount = !!t.default_account || (Array.isArray(t.accounts) && t.accounts.some(a => a.default_account));
-                return !hasAccount;
-              }).length} نوع مصروف بدون حساب افتراضي.
-              لن يمكن حفظ مطالبات المصروفات لهذه الأنواع ما لم يتم تعيين حساب افتراضي لكل نوع.
-            </p>
-            <Button variant="outline" size="sm" onClick={handleConfigureAccounts} disabled={configuringAccounts} className="gap-1.5">
-              {configuringAccounts ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Landmark className="h-3.5 w-3.5" />}
-              تعيين الحسابات تلقائياً
-            </Button>
+      {/* تنبيه الأنواع بدون حسابات */}
+      {typesWithoutAccount.length > 0 && (
+        <Alert className="border-amber-500/30 bg-amber-500/5 py-2">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+          <AlertDescription className="text-xs">
+            يوجد {typesWithoutAccount.length} نوع بدون حساب افتراضي. اضغط «تعيين الحسابات» للتعيين التلقائي.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* حالة التحميل */}
+      <Separator />
+
+      {/* قائمة الأنواع */}
       {isLoading ? (
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="border-border/40">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <Skeleton className="h-9 w-9 rounded-lg shrink-0" />
-                  <div className="space-y-2 flex-1">
-                    <Skeleton className="h-3.5 w-28 rounded" />
-                    <Skeleton className="h-2.5 w-20 rounded" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="border-border/30">
+              <CardContent className="p-3 flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-lg shrink-0" />
+                <div className="space-y-1.5 flex-1">
+                  <Skeleton className="h-3 w-24 rounded" />
+                  <Skeleton className="h-2.5 w-16 rounded" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : expenseTypes.length === 0 ? (
         <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <Receipt className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-muted-foreground font-medium">لا توجد أنواع مصروفات مسجلة</p>
-            <p className="text-xs text-muted-foreground mt-1">أضف أنواع المصروفات لتصنيف مطالبات المصروفات</p>
-            <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
-              <Button variant="outline" size="sm" className="gap-1.5" onClick={handleSeedDefaults} disabled={seedingDefaults}>
-                {seedingDefaults ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                إضافة الأنواع الافتراضية
+          <CardContent className="py-10 text-center">
+            <Receipt className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">لا توجد أنواع مصروفات مسجلة</p>
+            <div className="flex items-center justify-center gap-2 mt-3">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={handleSeedDefaults} disabled={seedingDefaults}>
+                <Plus className="h-3 w-3" /> إضافة الأنواع الافتراضية
               </Button>
-              <Button variant="secondary" size="sm" className="gap-1.5" onClick={() => setAddDialogOpen(true)}>
-                <Plus className="h-3.5 w-3.5" />
-                إضافة نوع مخصص
+              <Button size="sm" variant="secondary" className="gap-1.5 text-xs" onClick={() => setAddDialogOpen(true)}>
+                <Plus className="h-3 w-3" /> إضافة نوع مخصص
               </Button>
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {expenseTypes.map((type) => {
             const hasAccount = !!type.default_account || (Array.isArray(type.accounts) && type.accounts.some(a => a.default_account));
             const accountDisplay = type.default_account
               || (Array.isArray(type.accounts) && type.accounts.find(a => a.default_account)?.default_account)
               || '';
             return (
-            <Card key={type.name} className={`border-border/40 hover:border-primary/20 transition-all duration-200 group ${!hasAccount ? 'border-amber-500/30 bg-amber-500/5' : ''}`}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${hasAccount ? 'bg-primary/10' : 'bg-amber-500/10'}`}>
-                    {hasAccount ? (
-                      <Receipt className="h-4 w-4 text-primary" />
-                    ) : (
-                      <AlertTriangle className="h-4 w-4 text-amber-500" />
-                    )}
+              <Card key={type.name} className={`border-border/30 group ${!hasAccount ? 'border-amber-500/20 bg-amber-500/[0.02]' : ''}`}>
+                <CardContent className="p-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className={`h-7 w-7 rounded-md flex items-center justify-center shrink-0 ${hasAccount ? 'bg-primary/10 text-primary' : 'bg-amber-500/10 text-amber-500'}`}>
+                      {hasAccount ? <Receipt className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-medium truncate">{type.name}</p>
+                      {accountDisplay ? (
+                        <p className="text-[10px] text-muted-foreground truncate">{accountDisplay}</p>
+                      ) : (
+                        <p className="text-[10px] text-amber-600">بدون حساب</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">{type.name}</p>
-                    {accountDisplay ? (
-                      <p className="text-[11px] text-muted-foreground truncate">{accountDisplay}</p>
-                    ) : (
-                      <p className="text-[11px] text-amber-600">بدون حساب افتراضي</p>
-                    )}
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                  onClick={() => { setToDelete(type); setDeleteDialogOpen(true); }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground/50 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                    onClick={() => { setToDelete(type); setDeleteDialogOpen(true); }}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
       )}
 
-      <div className="text-xs text-muted-foreground">
-        إجمالي أنواع المصروفات: <strong>{expenseTypes.length}</strong>
-      </div>
-
-      {/* حوار إضافة نوع مصروف */}
+      {/* حوار إضافة */}
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent dir="rtl">
+        <DialogContent dir="rtl" className="sm:max-w-[420px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-primary" />
-              إضافة نوع مصروف جديد
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Plus className="h-4 w-4 text-primary" /> إضافة نوع مصروف جديد
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground -mt-2">أدخل اسم نوع المصروف الجديد ليتم تسجيله في النظام</p>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="expense-type-name">اسم نوع المصروف</Label>
-              <Input
-                id="expense-type-name"
-                value={newTypeName}
-                onChange={(e) => setNewTypeName(e.target.value)}
-                placeholder="مثال: مصاريف سفر، مصاريف طعام، مصاريف نقل"
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
-              />
-              <p className="text-xs text-muted-foreground">سيتم استخدام هذا الاسم في تصنيف مطالبات المصروفات</p>
+          <div className="space-y-3 py-1">
+            <div className="space-y-1.5">
+              <Label htmlFor="et-name" className="text-xs">اسم نوع المصروف</Label>
+              <Input id="et-name" value={newTypeName} onChange={(e) => setNewTypeName(e.target.value)}
+                placeholder="مثال: مصاريف سفر" className="h-9 text-sm"
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }} />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="expense-type-account">الحساب الافتراضي (اختياري)</Label>
-              <Input
-                id="expense-type-account"
-                value={newTypeAccount}
-                onChange={(e) => setNewTypeAccount(e.target.value)}
-                placeholder="اسم حساب المصروف من شجرة الحسابات"
-              />
-              <p className="text-xs text-muted-foreground">
-                الحساب الافتراضي الذي ستُسجل فيه مطالبات هذا النوع. إن لم تدخل حساباً، يمكنك تعيينه لاحقاً عبر زر «تعيين الحسابات».
-              </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="et-acct" className="text-xs">الحساب الافتراضي (اختياري)</Label>
+              <Input id="et-acct" value={newTypeAccount} onChange={(e) => setNewTypeAccount(e.target.value)}
+                placeholder="اسم حساب المصروف من شجرة الحسابات" className="h-9 text-sm" />
+              <p className="text-[10px] text-muted-foreground">يمكنك تعيينه لاحقاً عبر «تعيين الحسابات»</p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>إلغاء</Button>
-            <Button onClick={handleAdd} disabled={createMutation.isPending} className="gap-2">
-              {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-              إضافة
+            <Button variant="outline" size="sm" onClick={() => setAddDialogOpen(false)}>إلغاء</Button>
+            <Button size="sm" onClick={handleAdd} disabled={createMutation.isPending} className="gap-1.5">
+              {createMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />} إضافة
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -421,18 +390,15 @@ function ExpenseTypesManager({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
 
       {/* حوار تأكيد الحذف */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent dir="rtl">
-          <DialogHeader>
-            <DialogTitle>تأكيد حذف نوع المصروف</DialogTitle>
-          </DialogHeader>
+        <DialogContent dir="rtl" className="sm:max-w-[380px]">
+          <DialogHeader><DialogTitle className="text-base">تأكيد الحذف</DialogTitle></DialogHeader>
           <p className="text-sm text-muted-foreground">
-            هل أنت متأكد من حذف نوع المصروف &laquo;{toDelete?.name}&raquo;؟ لا يمكن التراجع عن هذا الإجراء.
+            هل أنت متأكد من حذف &laquo;{toDelete?.name}&raquo;؟ لا يمكن التراجع.
           </p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>إلغاء</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-2">
-              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-              حذف
+            <Button variant="outline" size="sm" onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>إلغاء</Button>
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting} className="gap-1.5">
+              {deleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />} حذف
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -441,322 +407,133 @@ function ExpenseTypesManager({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
   );
 }
 
-/** أسماء أنواع المصروفات الافتراضية (المصدر الوحيد - بدلاً من التكرار مع API) */
-const DEFAULT_EXPENSE_TYPE_NAMES = [
-  'مصاريف إدارية',
-  'مصاريف سفر وتنقل',
-  'مصاريف ضيافة',
-  'مصاريف صيانة',
-  'مصاريف نقل وشحن',
-  'مصاريف اتصالات',
-  'مصاريف قرطاسية ومستلزمات',
-  'مصاريف وقود',
-  'مصاريف إيجار',
-  'مصاريف كهرباء وماء',
-  'مصاريف تسويق وإعلان',
-  'مصاريف تدريب وتطوير',
-  'مصاريف طبية وتأمين',
-  'مصاريف مهنية وخدمية',
-  'مصاريف متنوعة',
-];
-
-/* ─── المحتوى الرئيسي (مع دعم searchParams) ─── */
+/* ─── المحتوى الرئيسي ─── */
 function AccountingSettingsContent() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') || 'operations';
+  const tabFromUrl = searchParams.get('tab');
   const shouldAutoCreate = searchParams.get('create') === '1';
-  const tabFromUrl = (() => {
-    const tab = searchParams.get('tab');
-    if (tab === 'expense-types' || tab === 'payment-methods') return 'expense-types';
-    if (tab === 'general') return 'general';
-    if (tab === 'operations') return 'operations';
-    if (tab === 'tax') return 'tax';
-    return 'operations';
-  })();
+
+  const initialTab = tabFromUrl === 'expense-types' ? 'expense-types'
+    : tabFromUrl === 'tax' ? 'tax'
+    : 'general';
 
   const { company: defaultCompany, isLoading: companyLoading } = useDefaultCompanyName();
 
-  /* ── Fetch real ERPNext data ── */
   const { data: fiscalYears = [], isError: fyError, error: fyErr } = useDocList<{ name: string; year_start_date: string; year_end_date: string; disabled: number }>('Fiscal Year', {
     fields: ['name', 'year_start_date', 'year_end_date', 'disabled'],
-    limit: 20,
-    order_by: 'year_start_date desc',
+    limit: 20, order_by: 'year_start_date desc',
   });
-
   const { data: accounts = [], isLoading: accountsLoading } = useDocList<{ name: string; root_type: string; is_group: number }>('Account', {
-    fields: ['name', 'root_type', 'is_group'],
-    limit: 500,
+    fields: ['name', 'root_type', 'is_group'], limit: 500,
   });
+  const { data: costCenters = [] } = useDocList<{ name: string }>('Cost Center', { fields: ['name'], limit: 200 });
+  const { data: currencies = [] } = useDocList<{ name: string }>('Currency', { fields: ['name'], limit: 100 });
 
-  const { data: costCenters = [] } = useDocList<{ name: string }>('Cost Center', {
-    fields: ['name'],
-    limit: 200,
-  });
-
-  const { data: currencies = [] } = useDocList<{ name: string }>('Currency', {
-    fields: ['name'],
-    limit: 100,
-  });
-
-  /* ── Computed stats ── */
   const activeFy = useMemo(() => fiscalYears.find(fy => !fy.disabled), [fiscalYears]);
   const totalLeafAccounts = useMemo(() => accounts.filter(a => !a.is_group).length, [accounts]);
   const rootTypeCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const a of accounts) {
-      if (!a.is_group) {
-        counts[a.root_type] = (counts[a.root_type] || 0) + 1;
-      }
-    }
-    return counts;
+    const c: Record<string, number> = {};
+    for (const a of accounts) { if (!a.is_group) c[a.root_type] = (c[a.root_type] || 0) + 1; }
+    return c;
   }, [accounts]);
 
+  // إضافة badge للسنوات المالية والعملات
+  const generalItems: SettingItem[] = useMemo(() => SETTINGS_GROUPS.general.items.map(item => {
+    if (item.href === '/accounting/fiscal-year' && fiscalYears.length > 0) return { ...item, badge: String(fiscalYears.length) };
+    if (item.href === '/accounting/multi-currency' && currencies.length > 0) return { ...item, badge: String(currencies.length) };
+    return item;
+  }), [fiscalYears.length, currencies.length]);
+
+  const taxItems = SETTINGS_GROUPS.tax.items;
   const isKpiLoading = companyLoading || accountsLoading;
 
   return (
-    <div className="erp-page-enter space-y-5" dir="rtl">
+    <div className="erp-page-enter space-y-4" dir="rtl">
       <PageHeader
         title="إعدادات المحاسبة"
-        description="إدارة إعدادات وعمليات المحاسبة والمالية"
+        description="ضبط إعدادات الحسابات والضرائب والتكوين المحاسبي"
         iconify="solar:settings-bold-duotone"
         accent="primary"
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting/dashboard' }, { label: 'الإعدادات' }]}
       />
 
-      {/* ── الوضع المحاسبي الحالي ── */}
-      <Card className="border-border/40">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Landmark className="h-4 w-4 text-primary" />
-            الوضع المحاسبي الحالي
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ListQueryAlert error={fyError ? fyErr : null} onRetry={() => {}} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
-            {isKpiLoading ? (
-              Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)
-            ) : (
-              <>
-                <KpiStat icon={Building2} label="الشركة" value={defaultCompany || '—'} accent="bg-primary/10 text-primary" />
-                <KpiStat icon={CalendarDays} label="السنة المالية النشطة" value={activeFy ? activeFy.name : '—'} accent="bg-chart-3/10 text-chart-3" />
-                <KpiStat icon={FileText} label="إجمالي الحسابات" value={String(totalLeafAccounts)} accent="bg-chart-1/10 text-chart-1" />
-                <KpiStat icon={Wallet} label="مراكز التكلفة" value={String(costCenters.length)} accent="bg-chart-5/10 text-chart-5" />
-                <KpiStat icon={TrendingUp} label="حسابات الأصول" value={String(rootTypeCounts['Asset'] || 0)} accent="bg-chart-1/10 text-chart-1" />
-                <KpiStat icon={TrendingDown} label="حسابات الالتزامات" value={String(rootTypeCounts['Liability'] || 0)} accent="bg-chart-2/10 text-chart-2" />
-              </>
-            )}
-          </div>
-          {activeFy && (
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
+      {/* ── شريط الحالة المحاسبي ── */}
+      <div className="flex flex-wrap gap-2">
+        {isKpiLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <KpiSkeleton key={i} />)
+        ) : (
+          <>
+            <KpiChip icon={Building2} label="الشركة" value={defaultCompany || '—'} accent="bg-primary/8 text-primary" />
+            <KpiChip icon={CalendarDays} label="السنة المالية" value={activeFy?.name || '—'} accent="bg-chart-3/8 text-chart-3" />
+            <KpiChip icon={FileText} label="الحسابات" value={String(totalLeafAccounts)} accent="bg-chart-1/8 text-chart-1" />
+            <KpiChip icon={Wallet} label="مراكز التكلفة" value={String(costCenters.length)} accent="bg-chart-5/8 text-chart-5" />
+            {activeFy && (
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted/30 text-xs text-muted-foreground">
                 <CalendarDays className="h-3 w-3" />
-                من {formatDate(activeFy.year_start_date)} إلى {formatDate(activeFy.year_end_date)}
-              </span>
-              <span className="flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3 text-chart-3" />
-                {currencies.length} عملة مسجلة
-              </span>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <span>{formatDate(activeFy.year_start_date)} — {formatDate(activeFy.year_end_date)}</span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
-      <Tabs defaultValue={tabFromUrl} dir="rtl">
-        <div className="overflow-x-auto -mx-1 px-1">
-          <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="operations" className="text-xs sm:text-sm">عمليات المحاسبة</TabsTrigger>
-            <TabsTrigger value="general" className="text-xs sm:text-sm">الإعدادات العامة</TabsTrigger>
-            <TabsTrigger value="expense-types" className="text-xs sm:text-sm">أنواع المصروفات</TabsTrigger>
-            <TabsTrigger value="tax" className="text-xs sm:text-sm">الضرائب والفواتير</TabsTrigger>
-          </TabsList>
-        </div>
+      <ListQueryAlert error={fyError ? fyErr : null} onRetry={() => {}} />
 
-        <TabsContent value="operations">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-            <SettingsCard
-              icon="solar:transfer-horizontal-bold-duotone"
-              title="التحويل بين الخزائن"
-              description="تحويل الأموال بين الخزائن المختلفة"
-              href="/accounting/treasury-transfer"
-            />
-            <SettingsCard
-              icon="solar:wallet-money-bold-duotone"
-              title="المصاريف اليومية"
-              description="تسجيل ومتابعة المصاريف اليومية"
-              href="/accounting/daily-expenses"
-            />
-            <SettingsCard
-              icon="solar:lock-keyhole-bold-duotone"
-              title="الإغلاق اليومي للخزنة"
-              description="إغلاق رصيد الخزنة في نهاية اليوم"
-              href="/accounting/treasury-closing"
-            />
-            <SettingsCard
-              icon="solar:calendar-bold-duotone"
-              title="إقفال الفترة"
-              description="إقفال الفترات المحاسبية ومنع التعديل"
-              href="/accounting/period-closing"
-            />
-            <SettingsCard
-              icon="solar:bank-bold-duotone"
-              title="التسوية البنكية"
-              description="مطابقة كشوف الحسابات البنكية"
-              href="/accounting/bank-reconciliation"
-            />
-            <SettingsCard
-              icon="solar:refresh-circle-bold-duotone"
-              title="القيود المتكررة"
-              description="إدارة القيود المحاسبية المتكررة"
-              href="/accounting/recurring-entries"
-            />
-            <SettingsCard
-              icon="solar:shield-keyhole-bold-duotone"
-              title="صلاحيات الخزائن"
-              description="إدارة صلاحيات الوصول للخزائن"
-              href="/accounting/vault-permissions"
-            />
-            <SettingsCard
-              icon="solar:scale-bold-duotone"
-              title="الأرصدة الافتتاحية"
-              description="إعداد الأرصدة الافتتاحية للحسابات"
-              href="/accounting/opening-balances"
-            />
-            <SettingsCard
-              icon="solar:document-text-bold-duotone"
-              title="السجل المالي الموحد"
-              description="عرض السجل المالي الموحد للشركة"
-              href="/accounting/financial-register"
-            />
+      {/* ── التبويبات ── */}
+      <Tabs defaultValue={initialTab} dir="rtl">
+        <TabsList className="h-9 p-0.5 bg-muted/40">
+          <TabsTrigger value="general" className="text-xs h-8 px-3 gap-1.5">
+            <Settings className="h-3.5 w-3.5" />
+            <span>إعدادات عامة</span>
+          </TabsTrigger>
+          <TabsTrigger value="tax" className="text-xs h-8 px-3 gap-1.5">
+            <Percent className="h-3.5 w-3.5" />
+            <span>الضرائب</span>
+          </TabsTrigger>
+          <TabsTrigger value="expense-types" className="text-xs h-8 px-3 gap-1.5">
+            <Receipt className="h-3.5 w-3.5" />
+            <span>أنواع المصروفات</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* ── إعدادات عامة ── */}
+        <TabsContent value="general" className="mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {generalItems.map((item) => (
+              <SettingCard key={item.href} item={item} />
+            ))}
           </div>
         </TabsContent>
 
-        <TabsContent value="general">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-            <SettingsCard
-              icon="solar:routing-bold-duotone"
-              title="توجيه الحسابات"
-              description="إعداد توجيه الحسابات الافتراضية"
-              href="/settings/account-routing"
-            />
-            <SettingsCard
-              icon="solar:calendar-mark-bold-duotone"
-              title="السنوات المالية"
-              description="إدارة السنوات المالية والفترات"
-              href="/accounting/fiscal-year"
-              badge={fiscalYears.length > 0 ? String(fiscalYears.length) : undefined}
-            />
-            <SettingsCard
-              icon="solar:clock-circle-bold-duotone"
-              title="الإيرادات المؤجلة"
-              description="إدارة الإيرادات المؤجلة والمعترف بها"
-              href="/accounting/deferred-revenue"
-            />
-            <SettingsCard
-              icon="solar:dollar-minimalistic-bold-duotone"
-              title="متعدد العملات"
-              description="إعدادات العملات وأسعار الصرف"
-              href="/accounting/multi-currency"
-              badge={currencies.length > 0 ? String(currencies.length) : undefined}
-            />
-            <SettingsCard
-              icon="solar:card-recive-bold-duotone"
-              title="الشيكات والدفاتر"
-              description="إدارة الشيكات ودفاتر الشيكات"
-              href="/accounting/cheque-books"
-            />
-            <SettingsCard
-              icon="solar:lock-bold-duotone"
-              title="إقفال الفترات المتقدم"
-              description="إقفال متقدم للفترات المحاسبية"
-              href="/accounting/period-closing-v2"
-            />
-            <SettingsCard
-              icon="solar:chart-bold-duotone"
-              title="الميزانيات"
-              description="إعداد ومتابعة الميزانيات"
-              href="/accounting/budgets"
-            />
-            <SettingsCard
-              icon="solar:book-2-bold-duotone"
-              title="دليل الحسابات"
-              description="إدارة الهيكل المحاسبي وشجرة الحسابات"
-              href="/accounting/chart-of-accounts"
-              badge={totalLeafAccounts > 0 ? String(totalLeafAccounts) : undefined}
-            />
-            <SettingsCard
-              icon="solar:buildings-3-bold-duotone"
-              title="مراكز التكلفة"
-              description="إدارة مراكز التكلفة والتقسيمات"
-              href="/accounting/cost-centers"
-              badge={costCenters.length > 0 ? String(costCenters.length) : undefined}
-            />
+        {/* ── الضرائب ── */}
+        <TabsContent value="tax" className="mt-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {taxItems.map((item) => (
+              <SettingCard key={item.href} item={item} />
+            ))}
           </div>
         </TabsContent>
 
-        <TabsContent value="expense-types">
-          <ExpenseTypesManager autoOpenCreate={shouldAutoCreate && tabFromUrl === 'expense-types'} />
-        </TabsContent>
-
-        <TabsContent value="tax">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-4">
-            <SettingsCard
-              icon="solar:percent-bold-duotone"
-              title="معدلات الضريبة"
-              description="إعداد معدلات الضرائب المختلفة"
-              href="/settings/tax-rates"
-            />
-            <SettingsCard
-              icon="solar:clipboard-list-bold-duotone"
-              title="قواعد الضرائب"
-              description="إعداد قواعد تطبيق الضرائب"
-              href="/settings/tax-rules"
-            />
-            <SettingsCard
-              icon="solar:document-bold-duotone"
-              title="الإقرار الضريبي"
-              description="إعداد وتقديم الإقرارات الضريبية"
-              href="/accounting/tax-declaration"
-            />
-            <SettingsCard
-              icon="solar:flag-bold-duotone"
-              title="تكوين الضرائب اليمنية"
-              description="إعدادات الضرائب الخاصة باليمن"
-              href="/settings/yemen-tax-config"
-            />
-            <SettingsCard
-              icon="solar:bell-bold-duotone"
-              title="قواعد الإرسال الآلي"
-              description="إعداد قواعد التنبيهات والإرسال الآلي"
-              href="/settings/notification-rules"
-            />
-            <SettingsCard
-              icon="solar:letter-bold-duotone"
-              title="إعدادات البريد SMTP"
-              description="تكوين خادم البريد الإلكتروني"
-              href="/settings/email-smtp"
-            />
-          </div>
+        {/* ── أنواع المصروفات ── */}
+        <TabsContent value="expense-types" className="mt-3">
+          <ExpenseTypesManager autoOpenCreate={shouldAutoCreate && initialTab === 'expense-types'} />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-/* ─── الصفحة مع Suspense boundary (مطلوب لـ useSearchParams) ─── */
+/* ─── الصفحة مع Suspense ─── */
 export default function AccountingSettingsPage() {
   return (
     <Suspense fallback={
-      <div className="erp-page-enter space-y-5 p-6" dir="rtl">
-        <Skeleton className="h-8 w-48 rounded" />
-        <Skeleton className="h-4 w-64 rounded" />
-        <Card className="border-border/40">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="erp-page-enter space-y-4 p-6" dir="rtl">
+        <Skeleton className="h-7 w-40 rounded" />
+        <Skeleton className="h-4 w-56 rounded" />
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: 4 }).map((_, i) => <KpiSkeleton key={i} />)}
+        </div>
+        <Skeleton className="h-9 w-72 rounded-lg" />
       </div>
     }>
       <AccountingSettingsContent />
