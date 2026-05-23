@@ -8,6 +8,23 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -22,17 +39,24 @@ import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { translateAccountName } from '@/lib/core/arabic-labels';
 import { toast } from 'sonner';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Receipt, Send, CheckCircle2, XCircle, Info, Loader2, Trash2, Users, Wallet, CalendarDays, Landmark, MessageSquare } from 'lucide-react';
+  Plus,
+  Receipt,
+  Send,
+  CheckCircle2,
+  XCircle,
+  Info,
+  Loader2,
+  Trash2,
+  Users,
+  Wallet,
+  CalendarDays,
+  Landmark,
+  MessageSquare,
+  Banknote,
+  Hash,
+  FileText,
+} from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { docDetailPath } from '@/lib/erp/doc-detail-routes';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
@@ -223,6 +247,9 @@ export default function DailyExpensesPage() {
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
 
+  // Dialog state
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   // Form state
   const [employee, setEmployee] = useState('');
   const [expenseType, setExpenseType] = useState('');
@@ -279,6 +306,10 @@ export default function DailyExpensesPage() {
     () => filteredExpenses.reduce((s, e) => s + (Number(e.total_claimed_amount) || 0), 0),
     [filteredExpenses]
   );
+  const totalSanctionedAmount = useMemo(
+    () => filteredExpenses.filter(e => e.docstatus === 1).reduce((s, e) => s + (Number(e.total_sanctioned_amount) || 0), 0),
+    [filteredExpenses]
+  );
   const draftCount = useMemo(
     () => filteredExpenses.filter(e => e.docstatus === 0).length,
     [filteredExpenses]
@@ -287,6 +318,16 @@ export default function DailyExpensesPage() {
     () => filteredExpenses.filter(e => e.docstatus === 1).length,
     [filteredExpenses]
   );
+
+  // Reset form
+  const resetForm = useCallback(() => {
+    setEmployee('');
+    setExpenseType('');
+    setAmount('');
+    setCostCenter('');
+    setRemark('');
+    setExpenseDate(today);
+  }, [today]);
 
   // Create expense
   const handleCreateExpense = useCallback(async () => {
@@ -321,12 +362,8 @@ export default function DailyExpensesPage() {
       });
       await createExpense.mutateAsync(doc);
       toast.success('تم إنشاء المصروف بنجاح');
-      setEmployee('');
-      setExpenseType('');
-      setAmount('');
-      setCostCenter('');
-      setRemark('');
-      setExpenseDate(today);
+      resetForm();
+      setDialogOpen(false);
       void refetch();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -338,7 +375,7 @@ export default function DailyExpensesPage() {
     } finally {
       setBusy(false);
     }
-  }, [employee, expenseType, amount, expenseDate, costCenter, remark, defaultCompany, createExpense, refetch, today]);
+  }, [employee, expenseType, amount, expenseDate, costCenter, remark, defaultCompany, createExpense, refetch, today, resetForm]);
 
   // Submit expense
   const handleSubmit = useCallback(async (name: string) => {
@@ -506,7 +543,68 @@ export default function DailyExpensesPage() {
         iconify="solar:wallet-money-bold-duotone"
         accent="warning"
         breadcrumbs={[{ label: 'المحاسبة', href: '/accounting' }, { label: 'المصاريف اليومية' }]}
+        actions={
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => {
+              resetForm();
+              setDialogOpen(true);
+            }}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            مصروف جديد
+          </Button>
+        }
       />
+
+      {/* KPI Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-border/40">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center shrink-0">
+              <Banknote className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-muted-foreground font-medium">إجمالي المصروفات</p>
+              <p className="text-lg font-bold tabular-nums" dir="ltr">{formatCurrency(totalExpensesAmount)}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-muted-foreground font-medium">المعتمد</p>
+              <p className="text-lg font-bold tabular-nums" dir="ltr">{formatCurrency(totalSanctionedAmount)}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-muted-foreground font-medium">مسودات معلّقة</p>
+              <p className="text-lg font-bold tabular-nums">{draftCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-info/10 text-info flex items-center justify-center shrink-0">
+              <Receipt className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[11px] text-muted-foreground font-medium">مرحّلة</p>
+              <p className="text-lg font-bold tabular-nums">{approvedCount}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* ── فلاتر التاريخ والحالة ── */}
       <ErpListDateStatusFilters
@@ -568,89 +666,6 @@ export default function DailyExpensesPage() {
         }
       />
 
-      {/* New Expense Form */}
-      <div className="space-y-4">
-        {/* ── Section 1: Expense Info ── */}
-        <SectionFieldset legend="معلومات المصروف" icon={CalendarDays} title="معلومات المصروف" accent="primary">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField label="الموظف" icon={Users} required hint="اختر الموظف الذي تحمّل المصروف">
-              <ErpLinkCombobox
-                doctype="Employee"
-                value={employee}
-                onChange={setEmployee}
-                placeholder="اختر الموظف"
-                displayKey="employee_name"
-              />
-            </FormField>
-            <FormField label="نوع المصروف" icon={Receipt} required hint="تصنيف المصروف مثل سفر، ضيافة...">
-              <ErpLinkCombobox
-                doctype="Expense Claim Type"
-                value={expenseType}
-                onChange={setExpenseType}
-                placeholder="اختر نوع المصروف"
-              />
-            </FormField>
-            <FormField label="المبلغ (ر.ي)" icon={Wallet} required hint="المبلغ المطلوب تعويضه">
-              <Input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-                dir="ltr"
-                className="h-9"
-              />
-            </FormField>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField label="التاريخ" icon={CalendarDays} hint="تاريخ تحمّل المصروف">
-              <DatePicker
-                value={expenseDate}
-                onChange={setExpenseDate}
-                className="h-9"
-              />
-            </FormField>
-            <FormField label="مركز التكلفة" icon={Landmark} hint="اختياري — لتوزيع التكلفة">
-              <ErpLinkCombobox
-                doctype="Cost Center"
-                value={costCenter}
-                onChange={setCostCenter}
-                placeholder="اختر مركز التكلفة"
-                displayKey="cost_center_name"
-              />
-            </FormField>
-          </div>
-        </SectionFieldset>
-
-        {/* ── Section 2: Additional Details ── */}
-        <SectionFieldset legend="تفاصيل إضافية" icon={MessageSquare} title="تفاصيل إضافية" accent="info">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label="ملاحظات" icon={MessageSquare} hint="وصف تفصيلي للمصروف">
-              <Textarea
-                value={remark}
-                onChange={(e) => setRemark(e.target.value)}
-                placeholder="ملاحظات إضافية عن المصروف..."
-                rows={2}
-                className="min-h-[36px] resize-none"
-              />
-            </FormField>
-            <div className="flex items-end">
-              <div className="rounded-lg bg-muted/30 p-3 border border-border/30 w-full">
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  <Info className="h-3 w-3 inline-block me-1 -mt-0.5" />
-                  الحقول المعلّمة بـ <span className="text-destructive">*</span> مطلوبة. يُرجى التأكد من صحة البيانات قبل الإضافة.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-end pt-2">
-            <Button onClick={handleCreateExpense} disabled={busy} className="gap-1.5 min-w-[160px]">
-              <Send className="h-3.5 w-3.5" />
-              {busy ? 'جارٍ الإضافة...' : 'إضافة مصروف'}
-            </Button>
-          </div>
-        </SectionFieldset>
-      </div>
-
       {/* Expenses Table */}
       <Card>
         <CardHeader className="pb-3">
@@ -673,6 +688,107 @@ export default function DailyExpensesPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Create Expense Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
+                <Receipt className="h-5 w-5" />
+              </div>
+              <div>
+                <span>إضافة مصروف جديد</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">أدخل بيانات المصروف وتأكد من صحة المعلومات قبل الحفظ</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-5 py-4">
+            {/* Section 1: Expense Info */}
+            <SectionFieldset legend="معلومات المصروف" icon={CalendarDays} title="معلومات المصروف" accent="primary">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="الموظف" icon={Users} required hint="اختر الموظف الذي تحمّل المصروف">
+                  <ErpLinkCombobox
+                    doctype="Employee"
+                    value={employee}
+                    onChange={setEmployee}
+                    placeholder="اختر الموظف"
+                    displayKey="employee_name"
+                  />
+                </FormField>
+                <FormField label="نوع المصروف" icon={Receipt} required hint="تصنيف المصروف مثل سفر، ضيافة...">
+                  <ErpLinkCombobox
+                    doctype="Expense Claim Type"
+                    value={expenseType}
+                    onChange={setExpenseType}
+                    placeholder="اختر نوع المصروف"
+                  />
+                </FormField>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="المبلغ (ر.ي)" icon={Wallet} required hint="المبلغ المطلوب تعويضه">
+                  <Input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    dir="ltr"
+                    className="h-9"
+                  />
+                </FormField>
+                <FormField label="التاريخ" icon={CalendarDays} hint="تاريخ تحمّل المصروف">
+                  <DatePicker
+                    value={expenseDate}
+                    onChange={setExpenseDate}
+                    className="h-9"
+                  />
+                </FormField>
+              </div>
+            </SectionFieldset>
+
+            {/* Section 2: Additional Details */}
+            <SectionFieldset legend="تفاصيل إضافية" icon={MessageSquare} title="تفاصيل إضافية" accent="info">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField label="مركز التكلفة" icon={Landmark} hint="اختياري — لتوزيع التكلفة">
+                  <ErpLinkCombobox
+                    doctype="Cost Center"
+                    value={costCenter}
+                    onChange={setCostCenter}
+                    placeholder="اختر مركز التكلفة"
+                    displayKey="cost_center_name"
+                  />
+                </FormField>
+                <FormField label="ملاحظات" icon={MessageSquare} hint="وصف تفصيلي للمصروف">
+                  <Textarea
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                    placeholder="ملاحظات إضافية عن المصروف..."
+                    rows={2}
+                    className="min-h-[36px] resize-none"
+                  />
+                </FormField>
+              </div>
+              <div className="rounded-lg bg-muted/30 p-3 border border-border/30 w-full">
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <Info className="h-3 w-3 inline-block me-1 -mt-0.5" />
+                  الحقول المعلّمة بـ <span className="text-destructive">*</span> مطلوبة. يُرجى التأكد من صحة البيانات قبل الإضافة.
+                </p>
+              </div>
+            </SectionFieldset>
+          </div>
+
+          <DialogFooter className="gap-2 pt-4 mt-3 border-t border-border/40">
+            <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)} className="text-muted-foreground">
+              إلغاء
+            </Button>
+            <Button onClick={handleCreateExpense} disabled={busy} className="gap-1.5 min-w-[160px]">
+              <Send className="h-3.5 w-3.5" />
+              {busy ? 'جارٍ الإضافة...' : 'إضافة مصروف'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
