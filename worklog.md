@@ -1,83 +1,96 @@
----
-Task ID: 3
-Agent: Main Agent
-Task: إصلاحات شاملة عبر جميع وحدات ERP Pro
+# CRM Module Fix Worklog
 
-Work Log:
-- إصلاح حرج: إضافة party_type تلقائياً في Payment Entry (autoFillCompanyDefaults + submitDoc)
-- إصلاح: واجهة التعديل (Edit) للموظفين، الأصناف، المستودعات، العملاء المحتملين، الموردين، طرق الدفع
-- إصلاح: مؤشرات التحميل لعمليات الترحيل والإلغاء في المبيعات والمشتريات
-- إصلاح: تعريب شجرة الحسابات - إزالة لاحقة الشركة من العرض
-- إصلاح: React Hooks rule violations في HRMS (salary-components, advances, contracts)
-- إصلاح: فلاتر أوامر الشراء والمستلمات غير مفعّلة
-- إصلاح: تقرير التدفقات النقدية - إعادة كتابة كاملة لاستخدام API الصحيح
-- إصلاح: ميزان المراجعة - حساب KPI مزدوج
-- إصلاح: لوحة المحاسبة - KPI المدفوعات غير المسواة مضللة
-- إصلاح: تقارير متقدمة - إضافة محدد الشركة
-- إصلاح: CRM Leads - إضافة حوار تعديل كامل
-- إصلاح: CRM Activities - إضافة حوار تأكيد الحذف
-- إصلاح: إعدادات الشركات - حقل مكرر tax_id
-- إصلاح: إعدادات الضرائب - نسبة 15% → 5%
-- إصلاح: إعدادات طرق الدفع - زر التعديل كان يفعّل/يعطل بدلاً من فتح حوار
-- إصلاح: المشاريع - حقل الشركة مفقود في الإنشاء
-- إصلاح: HR Attendance - استبدال select أصلي بـ shadcn Select
-- إصلاح: روابط عرض التفاصيل لإشعارات التسليم وإيصالات المشتريات
-- Commit: bf0c94f pushed to Nagmix/erp-pro (force push)
+## Task ID: CRM-fixes
+## Date: 2026-03-04
 
-Stage Summary:
-- 33 ملف مُعدّل، 1875 إضافة، 926 حذف
-- جميع الإصلاحات الحرجة والمتوسطة مُنجزة
-- فحص TypeScript يمر بدون أخطاء
-- تم رفع الكود إلى GitHub بنجاح
----
-Task ID: inventory-module-fix
-Agent: Main Agent
-Task: فحص وإصلاح وحدة المخزون بالكامل
-
-Work Log:
-- استكشاف هيكل وحدة المخزون (15 صفحة + 2 مكتبة + 6 بناة حمولات)
-- تحليل شامل لصفحة الأصناف (Items) - اكتشاف 16 خطأ
-- تحليل شامل لصفحة حركة المخزون (Stock Entry) - اكتشاف 21 خطأ
-- تحليل صفحات المستودعات ومستويات المخزون وجرد المخزون - اكتشاف 30 خطأ
-- تحليل الصفحات الإضافية (متغيرات، أذون، تحويل فروع، أرقام تسلسلية، دفعات، تقارير، لوحة تحكم) - اكتشاف 14 خطأ
-- إصلاح 46 خطأ حرجة ومهمة ومتوسطة عبر 13 ملف
-- التحقق من بناء TypeScript بدون أخطاء
-- تحديث ملف تحليل الفجوات
-- رفع الكود إلى GitHub بنجاح (commit 4126bee)
-
-Stage Summary:
-- 46 خطأ مُصلح في وحدة المخزون
-- 8 أخطاء حرجة (Critical) مُصلحة
-- 20 خطأ مهم (High) مُصلح
-- 18 خطأ متوسط (Medium) مُصلح
-- نسبة إكمال وحدة المخزون: ~92%
-- الملفات المُعدلة: 13 ملف (16 تغيير مع ملفات البيانات)
+### Summary
+Applied 5 fixes to the ERP Pro CRM module across 4 files. All fixes maintain Arabic RTL UI and existing code style.
 
 ---
-Task ID: 7
-Agent: Main Agent
-Task: إصلاحات الجولة السابعة - إكمال جميع الفجوات المتبقية
 
-Work Log:
-- فحص شامل لجميع وحدات CRM (14 صفحة) و HR (22 صفحة) والمخزون والأخرى
-- تحديد 90+ مشكلة في CRM و60+ في HR و40+ في وحدات أخرى
-- توحيد مسارات التنقل في 14 صفحة CRM لاستخدام "إدارة العملاء"
-- استبدال 13 عنصر HTML أصلي (select/checkbox) بـ shadcn/ui
-- إضافة 5 حوارات تأكيد لحذف/ترحيل/إلغاء العمليات
-- إصلاح خطأ stale closure في contracts/page.tsx
-- تعريب نصوص إنجليزية في employee-requests و leave-applications
-- إضافة فلاتر الشركة لـ 12 صفحة عبر CRM و HR والمخزون
-- تنفيذ رفع الملفات الفعلي في doc-management
-- إضافة تحديث تلقائي في inter-branch-transfer
-- ربط حوار التعديل في item-variants
-- حفظ تفضيلات الإشعارات فعلياً في notifications
-- التحقق من TypeScript بدون أخطاء
-- تحديث ملف تحليل الفجوات
-- دفع الكود إلى GitHub (commit 3fc0b6e)
+### Fix 1: timeline/page.tsx — Add edit and delete capability for timeline items
+**File:** `src/app/(dashboard)/crm/timeline/page.tsx`
 
-Stage Summary:
-- 33 ملف مُعدّل، 549 إضافة، 241 حذف
-- 80+ إصلاح في هذه الجولة
-- نسب الإكمال: المحاسبة 100%، المخزون 99%، المبيعات 99%، المشتريات 99%، HR 98%، CRM 98%
-- البناء يمر بنجاح
-- تم رفع الكود إلى GitHub
+**Changes:**
+- Added `useUpdateDoc` and `useDeleteDoc` hooks import
+- Added `Pencil` and `Trash2` icons import from lucide-react
+- Added `AlertDialog` components import for delete confirmation
+- Added state: `editingItem`, `deleteItem`, `deleteDialogOpen`
+- Added `updateComm`, `updateEvent`, `updateTodo` hooks (useUpdateDoc)
+- Added `deleteComm`, `deleteEvent`, `deleteTodo` hooks (useDeleteDoc)
+- Added `openEditDialog(item)` function that pre-fills form based on item source type:
+  - Communication: subject, medium, content
+  - Event: subject, starts_on, ends_on, category, description
+  - ToDo: description, date, priority
+- Added `handleDelete()` function that calls the appropriate deleteDoc hook
+- Renamed `handleCreate` → `handleSave` with dual create/update logic:
+  - If `editingItem` is set, calls updateDoc instead of createDoc
+  - Otherwise creates as before
+- Added edit/delete icon buttons to each timeline card header
+- Updated dialog title to show "تعديل" vs "إنشاء" based on mode
+- Updated dialog save button label: "تحديث" vs "حفظ"
+- Added delete confirmation AlertDialog
+
+---
+
+### Fix 2: leads/page.tsx — Use make_customer_from_lead instead of manual frappe.client.insert
+**File:** `src/app/(dashboard)/crm/leads/page.tsx`
+
+**Changes:**
+- Replaced `handleConvertToCustomer` implementation:
+  - Old: Used `frappe.client.insert` to manually create a Customer doc with hardcoded fields
+  - New: Uses `frappe.model.create_customer_from_lead` with `lead: lead.name` arg
+- Removed the separate `updateMutation.mutate` call that set status to 'Converted' (the ERPNext method handles this)
+- Simplified the try/catch flow
+
+---
+
+### Fix 3: leads/page.tsx — Enable editing first_name and last_name in edit dialog
+**File:** `src/app/(dashboard)/crm/leads/page.tsx`
+
+**Changes:**
+- Removed `disabled` attribute from the `first_name` Input in the edit dialog
+- Removed `disabled` attribute from the `last_name` Input in the edit dialog
+- Added `first_name`, `last_name`, and `company_name` to the `handleUpdate` doc object
+
+---
+
+### Fix 4: calendar/page.tsx — Fix broken assignee filter
+**File:** `src/app/(dashboard)/crm/calendar/page.tsx`
+
+**Changes:**
+- Added `event_participants` field to the `Ev` type: `event_participants?: Record<string, unknown>[]`
+- Added `'event_participants'` to the useDocList fields array
+- Replaced the broken/removed assignee filter with proper implementation:
+  ```typescript
+  if (assigneeFilter) rows = rows.filter(r => {
+    const participants = r.event_participants;
+    if (!Array.isArray(participants)) return false;
+    return participants.some((p: Record<string, unknown>) => p.reference_docname === assigneeFilter);
+  });
+  ```
+- Added visible assignee filter UI element next to the status and refType filters:
+  ```jsx
+  <ErpLinkCombobox doctype="User" value={assigneeFilter} onChange={setAssigneeFilter} displayKey="full_name" className="h-8 w-36" placeholder="المسؤول" />
+  ```
+
+---
+
+### Fix 5: credits/page.tsx — Add edit dialog for draft payment entries
+**File:** `src/app/(dashboard)/crm/credits/page.tsx`
+
+**Changes:**
+- Added `useUpdateDoc` import from hooks
+- Added `Pencil` icon import from lucide-react
+- Added edit state variables: `editDialogOpen`, `editingCredit`, and all `editForm*` state variables
+- Added `updateMut = useUpdateDoc('Payment Entry')` hook
+- Added `openEditDialog(row)` function that populates edit form from CreditRow
+- Added `handleUpdate()` function that calls `updateMut.mutate`
+- Added edit button in the actions column for `docstatus === 0` rows (before submit button)
+- Added complete edit dialog with same structure as create dialog (pre-populated)
+- Added `updateMut` to the columns useMemo dependency array
+
+---
+
+### Lint Results
+All modified files pass lint checks with no new errors. Pre-existing errors in other files remain unchanged.

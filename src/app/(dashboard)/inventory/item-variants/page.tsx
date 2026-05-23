@@ -721,16 +721,23 @@ export default function ItemVariantsPage() {
     try {
       const targets = viewVariants
         .filter((v) => selectedVariantIds.size === 0 || selectedVariantIds.has(v.name));
+
+      // Process in parallel batches of 5 to avoid overwhelming the server
+      const BATCH_SIZE = 5;
       let ok = 0;
       let fail = 0;
-      for (const v of targets) {
-        try {
-          await apiUpdateDoc('Item', v.name, { disabled: enable ? 0 : 1 } as Record<string, unknown>);
-          ok++;
-        } catch {
-          fail++;
+
+      for (let i = 0; i < targets.length; i += BATCH_SIZE) {
+        const batch = targets.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((v) => apiUpdateDoc('Item', v.name, { disabled: enable ? 0 : 1 } as Record<string, unknown>))
+        );
+        for (const result of results) {
+          if (result.status === 'fulfilled') ok++;
+          else fail++;
         }
       }
+
       toast.success(enable ? 'تم التفعيل' : 'تم التعطيل', { description: `نجح ${ok}، فشل ${fail}` });
       if (viewingGroup) void handleViewVariants(viewingGroup);
     } catch {

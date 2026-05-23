@@ -19,6 +19,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ClipboardList, Plus, Pencil, Trash2, LogIn, Filter, Send, XCircle, Activity, Inbox, RotateCcw } from 'lucide-react';
 import { useDocList } from '@/lib/client/hooks';
 import { PageHeader } from '@/components/erp/page-header';
+import { useDefaultCompanyName } from '@/lib/erp/default-company';
 
 type ActionType = 'create' | 'edit' | 'delete' | 'submit' | 'cancel' | 'login';
 
@@ -107,9 +108,11 @@ const exportColumns = [
 ];
 
 export default function AuditLogPage() {
+  const { company } = useDefaultCompanyName();
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [userFilter, setUserFilter] = useState<string>('all');
   const [doctypeFilter, setDoctypeFilter] = useState<string>('all');
+  const [companyFilter, setCompanyFilter] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
@@ -117,6 +120,11 @@ export default function AuditLogPage() {
     fields: ['name', 'creation', 'user', 'operation', 'subject', 'reference_doctype', 'reference_name', 'status'],
     limit: 500,
     order_by: 'creation desc',
+  });
+
+  const { data: companyList } = useDocList<Record<string, unknown>>('Company', {
+    fields: ['name'],
+    limit: 50,
   });
 
   const normalizedLive: AuditEntry[] = useMemo(() =>
@@ -140,6 +148,10 @@ export default function AuditLogPage() {
 
   const uniqueUsers = useMemo(() => Array.from(new Set(normalizedLive.map(e => e.user))), [normalizedLive]);
   const uniqueDoctypes = useMemo(() => Array.from(new Set(normalizedLive.map(e => e.documentType))).filter(d => d !== 'Activity'), [normalizedLive]);
+  const uniqueCompanies = useMemo(() => {
+    const companies = (companyList || []).map((c) => String(c.name || '')).filter(Boolean);
+    return companies.length > 0 ? companies : (company ? [company] : []);
+  }, [companyList, company]);
 
   const today = new Date().toISOString().split('T')[0];
   const todayCount = normalizedLive.filter(e => e.timestamp.startsWith(today)).length;
@@ -148,6 +160,10 @@ export default function AuditLogPage() {
     if (actionFilter !== 'all' && entry.actionType !== actionFilter) return false;
     if (userFilter !== 'all' && entry.user !== userFilter) return false;
     if (doctypeFilter !== 'all' && entry.documentType !== doctypeFilter) return false;
+    if (companyFilter !== 'all' && companyFilter !== '') {
+      const companyName = companyFilter;
+      if (!entry.details.includes(companyName) && !entry.documentType.includes(companyName) && !entry.documentName.includes(companyName)) return false;
+    }
     if (dateFrom) {
       const entryDate = entry.timestamp.split(' ')[0];
       if (entryDate < dateFrom) return false;
@@ -157,12 +173,13 @@ export default function AuditLogPage() {
       if (entryDate > dateTo) return false;
     }
     return true;
-  }), [normalizedLive, actionFilter, userFilter, doctypeFilter, dateFrom, dateTo]);
+  }), [normalizedLive, actionFilter, userFilter, doctypeFilter, companyFilter, dateFrom, dateTo]);
 
   const clearFilters = () => {
     setActionFilter('all');
     setUserFilter('all');
     setDoctypeFilter('all');
+    setCompanyFilter('all');
     setDateFrom('');
     setDateTo('');
   };
@@ -252,6 +269,16 @@ export default function AuditLogPage() {
                 <SelectContent>
                   <SelectItem value="all">الكل</SelectItem>
                   {uniqueDoctypes.map(dt => <SelectItem key={dt} value={dt}>{dt}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">الشركة</Label>
+              <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">الكل</SelectItem>
+                  {uniqueCompanies.map(co => <SelectItem key={co} value={co}>{co}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

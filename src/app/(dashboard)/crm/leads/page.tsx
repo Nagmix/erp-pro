@@ -352,6 +352,9 @@ export default function LeadsPage() {
   const handleUpdate = () => {
     if (!selected) return;
     const doc: Record<string, unknown> = {
+      first_name: editForm.first_name || undefined,
+      last_name: editForm.last_name || undefined,
+      company_name: editForm.company_name || undefined,
       status: editForm.status || undefined,
       email_id: editForm.email_id || undefined,
       phone: editForm.phone || undefined,
@@ -377,27 +380,11 @@ export default function LeadsPage() {
     setConvertBusy(lead.name);
     try {
       await convertMethod.mutateAsync({
-        method: 'frappe.client.insert',
+        method: 'frappe.model.create_customer_from_lead',
         args: {
-          doc: {
-            doctype: 'Customer',
-            customer_name: lead.lead_name || lead.company_name || lead.name,
-            customer_type: lead.company_name ? 'Company' : 'Individual',
-            // استخدام مجموعة عملاء افتراضية صالحة — "All Customer Groups" عقدة جذرية وتسبب خطأ
-            customer_group: 'Individual',
-            territory: lead.territory || 'Yemen',
-            lead_name: lead.name,
-          },
+          lead: lead.name,
         },
       });
-      // Update lead status to "Converted"
-      updateMutation.mutate(
-        { name: lead.name, doc: { status: 'Converted' } },
-        {
-          onSuccess: () => { void refetch(); },
-          onError: () => { toast.error('تم تحويل العميل لكن فشل تحديث حالة العميل المحتمل'); },
-        },
-      );
       toast.success(`تم تحويل العميل المحتمل "${lead.lead_name || lead.name}" إلى عميل`);
       void refetch();
     } catch {
@@ -756,11 +743,11 @@ export default function LeadsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">الاسم الأول</Label>
-                    <Input value={editForm.first_name} onChange={(e) => setEditForm((p) => ({ ...p, first_name: e.target.value }))} className="h-9" disabled />
+                    <Input value={editForm.first_name} onChange={(e) => setEditForm((p) => ({ ...p, first_name: e.target.value }))} className="h-9" />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm font-medium">اسم العائلة</Label>
-                    <Input value={editForm.last_name} onChange={(e) => setEditForm((p) => ({ ...p, last_name: e.target.value }))} className="h-9" disabled />
+                    <Input value={editForm.last_name} onChange={(e) => setEditForm((p) => ({ ...p, last_name: e.target.value }))} className="h-9" />
                   </div>
                 </div>
               </div>

@@ -46,6 +46,7 @@ type Ev = {
   reference_doctype?: string;
   reference_docname?: string;
   repeat_this_event?: number | boolean;
+  event_participants?: Record<string, unknown>[];
 };
 
 /* ──────────────── Constants ──────────────── */
@@ -186,7 +187,7 @@ export default function CalendarPage() {
 
   // ── Fetch Events ──
   const { data, isLoading, isError, error, refetch } = useDocList<Ev>('Event', {
-    fields: ['name', 'subject', 'starts_on', 'ends_on', 'status', 'event_category', 'event_type', 'description', 'reference_doctype', 'reference_docname', 'repeat_this_event'],
+    fields: ['name', 'subject', 'starts_on', 'ends_on', 'status', 'event_category', 'event_type', 'description', 'reference_doctype', 'reference_docname', 'repeat_this_event', 'event_participants'],
     filters: [['event_category', '=', 'Meeting']],
     limit: 500,
     order_by: 'starts_on desc',
@@ -199,8 +200,11 @@ export default function CalendarPage() {
   const events = useMemo(() => {
     let rows = data || [];
     if (statusFilter !== 'all') rows = rows.filter(r => r.status === statusFilter);
-    // Removed broken assigneeFilter (r.name is event ID, not assignee)
-    // Client-side assignee filtering not possible without event_participants field
+    if (assigneeFilter) rows = rows.filter(r => {
+      const participants = r.event_participants;
+      if (!Array.isArray(participants)) return false;
+      return participants.some((p: Record<string, unknown>) => p.reference_docname === assigneeFilter);
+    });
     if (refTypeFilter) rows = rows.filter(r => r.reference_doctype === refTypeFilter);
     return rows;
   }, [data, statusFilter, assigneeFilter, refTypeFilter]);
@@ -449,6 +453,7 @@ export default function CalendarPage() {
               <SelectItem value="Opportunity">فرصة</SelectItem>
             </SelectContent>
           </Select>
+          <ErpLinkCombobox doctype="User" value={assigneeFilter} onChange={setAssigneeFilter} displayKey="full_name" className="h-8 w-36" placeholder="المسؤول" />
         </div>
       </div>
 

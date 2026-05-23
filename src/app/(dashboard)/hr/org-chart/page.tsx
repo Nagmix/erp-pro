@@ -40,12 +40,16 @@ import {
   UserCircle,
   Loader2,
   AlertTriangle,
+  Edit,
+  Save,
 } from 'lucide-react';
-import { useDocList } from '@/lib/client/hooks';
+import { useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { PageHeader } from '@/components/erp/page-header';
 import { cn } from '@/lib/utils';
 import { KpiCard } from '@/components/erp/kpi-card';
+import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { toast } from 'sonner';
 import { useHrmsCheck } from '@/hooks/use-hrms-check';
 import { HrmsRequiredBanner } from '@/components/erp/hrms-required-banner';
 
@@ -256,23 +260,87 @@ function EmployeeDetailDialog({
   employee,
   open,
   onOpenChange,
+  onUpdate,
 }: {
   employee: TreeNode | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onUpdate: () => void;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    designation: '',
+    department: '',
+    reports_to: '',
+    company_email: '',
+  });
+  const updateMut = useUpdateDoc('Employee');
+
   if (!employee) return null;
   const nm = employee.employee_name || employee.name;
   const initials = nm.slice(0, 2);
   const deptColor = getDeptColor(employee.department);
 
+  const handleStartEdit = () => {
+    setEditData({
+      designation: employee.designation || '',
+      department: employee.department || '',
+      reports_to: employee.reports_to || '',
+      company_email: employee.company_email || '',
+    });
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveEdit = () => {
+    updateMut.mutate(
+      {
+        name: employee.name,
+        doc: {
+          designation: editData.designation,
+          department: editData.department,
+          reports_to: editData.reports_to,
+          company_email: editData.company_email,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('تم تحديث بيانات الموظف');
+          setIsEditing(false);
+          onUpdate();
+        },
+        onError: () => {
+          toast.error('فشل تحديث البيانات');
+        },
+      }
+    );
+  };
+
+  const handleDialogClose = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setIsEditing(false);
+    }
+    onOpenChange(nextOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent dir="rtl" className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <UserCircle className="h-5 w-5 text-primary" />
-            تفاصيل الموظف
+          <DialogTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <UserCircle className="h-5 w-5 text-primary" />
+              تفاصيل الموظف
+            </div>
+            {!isEditing && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={handleStartEdit}>
+                <Edit className="h-3 w-3" />
+                تعديل
+              </Button>
+            )}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-2">
@@ -297,64 +365,117 @@ function EmployeeDetailDialog({
             </div>
           </div>
 
-          {/* Details grid */}
-          <div className="grid grid-cols-1 gap-3">
-            {employee.designation && (
-              <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
-                <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                  <Briefcase className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">المسمى الوظيفي</p>
-                  <p className="text-sm font-medium">{employee.designation}</p>
-                </div>
+          {isEditing ? (
+            /* Edit form */
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">المسمى الوظيفي</Label>
+                <ErpLinkCombobox
+                  doctype="Designation"
+                  value={editData.designation}
+                  onChange={(v) => setEditData((p) => ({ ...p, designation: v }))}
+                  placeholder="اختر المسمى..."
+                />
               </div>
-            )}
-            {employee.department && (
-              <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
-                <div className={cn('h-8 w-8 rounded-md flex items-center justify-center shrink-0', deptColor, 'bg-opacity-15')}>
-                  <Building2 className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">القسم</p>
-                  <p className="text-sm font-medium">{employee.department}</p>
-                </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">القسم</Label>
+                <ErpLinkCombobox
+                  doctype="Department"
+                  value={editData.department}
+                  onChange={(v) => setEditData((p) => ({ ...p, department: v }))}
+                  placeholder="اختر القسم..."
+                />
               </div>
-            )}
-            {employee.company_email && (
-              <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
-                <div className="h-8 w-8 rounded-md bg-chart-1/10 flex items-center justify-center shrink-0">
-                  <Mail className="h-4 w-4 text-sky-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">البريد الإلكتروني</p>
-                  <p className="text-sm font-medium" dir="ltr">{employee.company_email}</p>
-                </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">المدير المباشر</Label>
+                <ErpLinkCombobox
+                  doctype="Employee"
+                  value={editData.reports_to}
+                  onChange={(v) => setEditData((p) => ({ ...p, reports_to: v }))}
+                  displayKey="employee_name"
+                  placeholder="اختر المدير..."
+                />
               </div>
-            )}
-            {employee.reports_to && (
-              <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
-                <div className="h-8 w-8 rounded-md bg-chart-2/10 flex items-center justify-center shrink-0">
-                  <Network className="h-4 w-4 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">المدير المباشر</p>
-                  <p className="text-sm font-medium">{employee.reports_to}</p>
-                </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">البريد الإلكتروني</Label>
+                <Input
+                  value={editData.company_email}
+                  onChange={(e) => setEditData((p) => ({ ...p, company_email: e.target.value }))}
+                  dir="ltr"
+                  placeholder="email@company.com"
+                />
               </div>
-            )}
-            {employee.children.length > 0 && (
-              <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
-                <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                  <Users className="h-4 w-4 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">المرؤوسون المباشرون</p>
-                  <p className="text-sm font-medium">{employee.children.length} موظف</p>
-                </div>
+              <div className="flex items-center gap-2 pt-2">
+                <Button size="sm" className="gap-1.5" onClick={handleSaveEdit} disabled={updateMut.isPending}>
+                  <Save className="h-3.5 w-3.5" />
+                  {updateMut.isPending ? 'جاري الحفظ...' : 'حفظ'}
+                </Button>
+                <Button variant="ghost" size="sm" className="gap-1" onClick={handleCancelEdit}>
+                  <X className="h-3.5 w-3.5" />
+                  إلغاء
+                </Button>
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            /* Read-only details grid */
+            <div className="grid grid-cols-1 gap-3">
+              {employee.designation && (
+                <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
+                  <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                    <Briefcase className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">المسمى الوظيفي</p>
+                    <p className="text-sm font-medium">{employee.designation}</p>
+                  </div>
+                </div>
+              )}
+              {employee.department && (
+                <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
+                  <div className={cn('h-8 w-8 rounded-md flex items-center justify-center shrink-0', deptColor, 'bg-opacity-15')}>
+                    <Building2 className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">القسم</p>
+                    <p className="text-sm font-medium">{employee.department}</p>
+                  </div>
+                </div>
+              )}
+              {employee.company_email && (
+                <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
+                  <div className="h-8 w-8 rounded-md bg-chart-1/10 flex items-center justify-center shrink-0">
+                    <Mail className="h-4 w-4 text-sky-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">البريد الإلكتروني</p>
+                    <p className="text-sm font-medium" dir="ltr">{employee.company_email}</p>
+                  </div>
+                </div>
+              )}
+              {employee.reports_to && (
+                <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
+                  <div className="h-8 w-8 rounded-md bg-chart-2/10 flex items-center justify-center shrink-0">
+                    <Network className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">المدير المباشر</p>
+                    <p className="text-sm font-medium">{employee.reports_to}</p>
+                  </div>
+                </div>
+              )}
+              {employee.children.length > 0 && (
+                <div className="flex items-center gap-3 p-2.5 rounded-lg border border-border/30 bg-card">
+                  <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                    <Users className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">المرؤوسون المباشرون</p>
+                    <p className="text-sm font-medium">{employee.children.length} موظف</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -625,6 +746,7 @@ export default function OrgChartPage() {
         employee={selectedEmployee}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+        onUpdate={() => refetch()}
       />
     </div>
   );

@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/erp/page-header';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { StatusBadge } from '@/components/erp/status-badge';
-import { useDocList, useCreateDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import {
   buildCommunicationCreate,
   buildEventCreate,
@@ -26,6 +26,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
@@ -51,6 +61,8 @@ import {
   Filter,
   X,
   Loader2,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -265,6 +277,11 @@ export default function CrmTimelinePage() {
   const [refType, setRefType] = useState('');
   const [refName, setRefName] = useState('');
 
+  // Edit & delete state
+  const [editingItem, setEditingItem] = useState<TimelineItem | null>(null);
+  const [deleteItem, setDeleteItem] = useState<TimelineItem | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   /* ── Data fetching ── */
   const commFilters = useMemo(() => {
     const f: string[][] = [['communication_type', '=', 'Communication']];
@@ -312,6 +329,14 @@ export default function CrmTimelinePage() {
   const createComm = useCreateDoc('Communication');
   const createEvent = useCreateDoc('Event');
   const createTodo = useCreateDoc('ToDo');
+
+  const updateComm = useUpdateDoc('Communication');
+  const updateEvent = useUpdateDoc('Event');
+  const updateTodo = useUpdateDoc('ToDo');
+
+  const deleteComm = useDeleteDoc('Communication');
+  const deleteEvent = useDeleteDoc('Event');
+  const deleteTodo = useDeleteDoc('ToDo');
 
   /* ── Timeline data ── */
   const timelineItems = useMemo<TimelineItem[]>(() => {
@@ -382,8 +407,56 @@ export default function CrmTimelinePage() {
   /* ── Dialog helpers ── */
   const openCreateDialog = (type: 'Communication' | 'Event' | 'ToDo') => {
     setDialogType(type);
+    setEditingItem(null);
     setDialogOpen(true);
     resetForm();
+  };
+
+  const openEditDialog = (item: TimelineItem) => {
+    setDialogType(item.source);
+    setEditingItem(item);
+    setDialogOpen(true);
+    // Pre-fill form based on source type
+    if (item.source === 'Communication') {
+      const raw = item.raw as Comm;
+      setCommSubject(raw.subject || '');
+      setCommMedium(raw.communication_medium || 'Phone');
+      setCommContent(raw.content || '');
+      setRefType(raw.reference_doctype || '');
+      setRefName(raw.reference_name || '');
+    } else if (item.source === 'Event') {
+      const raw = item.raw as Event;
+      setEventSubject(raw.subject || '');
+      setEventStartsOn(raw.starts_on || '');
+      setEventEndsOn(raw.ends_on || '');
+      setEventCategory(raw.event_category || 'Meeting');
+      setEventDescription(raw.description || '');
+      setRefType(raw.reference_doctype || '');
+      setRefName(raw.reference_docname || '');
+    } else {
+      const raw = item.raw as Todo;
+      setTodoDescription(stripHtml(String(raw.description || '')));
+      setTodoDate(raw.date || '');
+      setTodoPriority(raw.priority || 'Medium');
+      setRefType(raw.reference_type || '');
+      setRefName(raw.reference_name || '');
+    }
+  };
+
+  const handleDelete = () => {
+    if (!deleteItem) return;
+    const doctype = deleteItem.source;
+    const name = (deleteItem.raw as { name: string }).name;
+    const deleteMut = doctype === 'Communication' ? deleteComm : doctype === 'Event' ? deleteEvent : deleteTodo;
+    deleteMut.mutate(name, {
+      onSuccess: () => {
+        toast.success('تم الحذف بنجاح');
+        setDeleteDialogOpen(false);
+        setDeleteItem(null);
+        refetchAll();
+      },
+      onError: () => toast.error('فشل الحذف'),
+    });
   };
 
   const resetForm = () => {
@@ -393,10 +466,60 @@ export default function CrmTimelinePage() {
     setRefType(''); setRefName('');
   };
 
-  const handleCreate = () => {
+  const handleSave = () => {
     const refDoctype = refType || undefined;
     const refNameVal = refName || undefined;
 
+    if (editingItem) {
+      // ── Update mode ──
+      const name = (editingItem.raw as { name: string }).name;
+      if (dialogType === 'Communication') {
+        if (!commSubject.trim()) { toast.error('الموضوع مطلوب'); return; }
+        const doc: Record<string, unknown> = {
+          subject: commSubject,
+          communication_medium: commMedium,
+          content: commContent || undefined,
+          reference_doctype: refDoctype,
+          reference_name: refNameVal,
+        };
+        updateComm.mutate({ name, doc }, {
+          onSuccess: () => { toast.success('تم تحديث الاتصال'); setDialogOpen(false); setEditingItem(null); resetForm(); },
+          onError: () => toast.error('فشل تحديث الاتصال'),
+        });
+      } else if (dialogType === 'Event') {
+        if (!eventSubject.trim()) { toast.error('الموضوع مطلوب'); return; }
+        if (!eventStartsOn) { toast.error('تاريخ البدء مطلوب'); return; }
+        const doc: Record<string, unknown> = {
+          subject: eventSubject,
+          starts_on: eventStartsOn,
+          ends_on: eventEndsOn || undefined,
+          event_category: eventCategory,
+          description: eventDescription || undefined,
+          reference_doctype: refDoctype,
+          reference_docname: refNameVal,
+        };
+        updateEvent.mutate({ name, doc }, {
+          onSuccess: () => { toast.success('تم تحديث الحدث'); setDialogOpen(false); setEditingItem(null); resetForm(); },
+          onError: () => toast.error('فشل تحديث الحدث'),
+        });
+      } else {
+        if (!todoDescription.trim()) { toast.error('الوصف مطلوب'); return; }
+        const doc: Record<string, unknown> = {
+          description: todoDescription,
+          date: todoDate || undefined,
+          priority: todoPriority,
+          reference_type: refDoctype,
+          reference_name: refNameVal,
+        };
+        updateTodo.mutate({ name, doc }, {
+          onSuccess: () => { toast.success('تم تحديث المهمة'); setDialogOpen(false); setEditingItem(null); resetForm(); },
+          onError: () => toast.error('فشل تحديث المهمة'),
+        });
+      }
+      return;
+    }
+
+    // ── Create mode ──
     if (dialogType === 'Communication') {
       if (!commSubject.trim()) { toast.error('الموضوع مطلوب'); return; }
       const doc = buildCommunicationCreate({
@@ -442,7 +565,8 @@ export default function CrmTimelinePage() {
     }
   };
 
-  const isCreating = createComm.isPending || createEvent.isPending || createTodo.isPending;
+  const isSaving = createComm.isPending || createEvent.isPending || createTodo.isPending
+    || updateComm.isPending || updateEvent.isPending || updateTodo.isPending;
 
   /* ── Render status badge for timeline item ── */
   const renderStatus = (item: TimelineItem) => {
@@ -663,8 +787,26 @@ export default function CrmTimelinePage() {
                               )}
                             </div>
 
-                            {/* Status & date */}
+                            {/* Status & date & actions */}
                             <div className="flex items-center gap-2 shrink-0 sm:flex-col sm:items-end sm:gap-1.5">
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                  onClick={(e) => { e.stopPropagation(); openEditDialog(item); }}
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                                  onClick={(e) => { e.stopPropagation(); setDeleteItem(item); setDeleteDialogOpen(true); }}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
                               {renderStatus(item)}
                               <div className="flex items-center gap-1 text-[11px] text-muted-foreground" dir="ltr">
                                 <Clock className="h-3 w-3" />
@@ -690,9 +832,10 @@ export default function CrmTimelinePage() {
         <DialogContent dir="rtl" className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {dialogType === 'Communication' && 'تسجيل اتصال جديد'}
-              {dialogType === 'Event' && 'إنشاء حدث جديد'}
-              {dialogType === 'ToDo' && 'إنشاء مهمة جديدة'}
+              {editingItem
+                ? dialogType === 'Communication' ? 'تعديل الاتصال' : dialogType === 'Event' ? 'تعديل الحدث' : 'تعديل المهمة'
+                : dialogType === 'Communication' ? 'تسجيل اتصال جديد' : dialogType === 'Event' ? 'إنشاء حدث جديد' : 'إنشاء مهمة جديدة'
+              }
             </DialogTitle>
           </DialogHeader>
 
@@ -810,16 +953,33 @@ export default function CrmTimelinePage() {
           </div>
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isCreating}>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); setEditingItem(null); }} disabled={isSaving}>
               إلغاء
             </Button>
-            <Button onClick={handleCreate} disabled={isCreating}>
-              {isCreating && <Loader2 className="h-4 w-4 animate-spin ms-1" />}
-              حفظ
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="h-4 w-4 animate-spin ms-1" />}
+              {editingItem ? 'تحديث' : 'حفظ'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* ═══════ Delete Confirmation Dialog ═══════ */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>تأكيد الحذف</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف {deleteItem ? SOURCE_AR[deleteItem.source] : ''} &quot;{deleteItem?.title}&quot;؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleDelete}>
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

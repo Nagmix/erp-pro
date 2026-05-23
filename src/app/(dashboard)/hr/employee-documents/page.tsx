@@ -77,13 +77,35 @@ type DocRow = {
   file_type?: string;
   creation?: string;
   is_private?: number | boolean;
-  /* Custom metadata fields we store via description / tags */
+  description?: string;
+  /* Parsed from description JSON */
   document_type?: string;
   document_name?: string;
   issued_on?: string;
   valid_from?: string;
   valid_to?: string;
 };
+
+/* ───────────── Metadata Helper ───────────── */
+function parseFileMetadata(desc?: string): { document_type?: string; issued_on?: string; valid_from?: string; valid_to?: string } {
+  if (!desc) return {};
+  try {
+    const parsed = JSON.parse(desc);
+    if (typeof parsed === 'object' && parsed !== null) return parsed;
+  } catch {}
+  return {};
+}
+
+function enrichDocWithMetadata(row: DocRow): DocRow {
+  const meta = parseFileMetadata(row.description);
+  return {
+    ...row,
+    document_type: meta.document_type || row.document_type,
+    issued_on: meta.issued_on || row.issued_on,
+    valid_from: meta.valid_from || row.valid_from,
+    valid_to: meta.valid_to || row.valid_to,
+  };
+}
 
 interface DocFormState {
   employee: string;
@@ -155,7 +177,7 @@ function ValidityBadge({ validTo }: { validTo?: string }) {
 /* ───────────── Page ───────────── */
 export default function EmployeeDocumentsPage() {
   const {
-    data = [],
+    data: rawData = [],
     isLoading,
     isError,
     error,
@@ -170,11 +192,15 @@ export default function EmployeeDocumentsPage() {
       'file_type',
       'creation',
       'is_private',
+      'description',
     ],
     filters: [['attached_to_doctype', '=', 'Employee']],
     order_by: 'creation desc',
     limit: 500,
   });
+
+  /* Enrich data with parsed metadata from description */
+  const data = useMemo(() => rawData.map(enrichDocWithMetadata), [rawData]);
 
   const createMut = useCreateDoc('File');
   const updateMut = useUpdateDoc('File');
@@ -252,14 +278,15 @@ export default function EmployeeDocumentsPage() {
 
   const openEditDialog = (row: DocRow) => {
     setEditingDoc(row);
+    const meta = parseFileMetadata(row.description);
     setFormData({
       employee: row.attached_to_name || '',
-      document_type: row.document_type || '',
+      document_type: meta.document_type || row.document_type || '',
       document_name: row.file_name || '',
       file_url: row.file_url || '',
-      issued_on: row.issued_on || '',
-      valid_from: row.valid_from || '',
-      valid_to: row.valid_to || '',
+      issued_on: meta.issued_on || row.issued_on || '',
+      valid_from: meta.valid_from || row.valid_from || '',
+      valid_to: meta.valid_to || row.valid_to || '',
     });
     setDialogOpen(true);
   };
@@ -278,6 +305,13 @@ export default function EmployeeDocumentsPage() {
       return;
     }
 
+    const metadata = JSON.stringify({
+      document_type: formData.document_type,
+      issued_on: formData.issued_on,
+      valid_from: formData.valid_from,
+      valid_to: formData.valid_to,
+    });
+
     if (editingDoc) {
       updateMut.mutate(
         {
@@ -286,6 +320,7 @@ export default function EmployeeDocumentsPage() {
             file_url: formData.file_url,
             file_name: formData.document_name,
             attached_to_name: formData.employee,
+            description: metadata,
           },
         },
         {
@@ -306,6 +341,7 @@ export default function EmployeeDocumentsPage() {
           attached_to_doctype: 'Employee',
           attached_to_name: formData.employee,
           is_private: 1,
+          description: metadata,
         },
         {
           onSuccess: () => {

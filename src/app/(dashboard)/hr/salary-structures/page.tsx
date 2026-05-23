@@ -82,6 +82,8 @@ type AssignRow = {
   salary_structure?: string;
   from_date?: string;
   company?: string;
+  base?: number | string;
+  docstatus?: number;
 };
 
 const columns: Column<StructureRow>[] = [
@@ -177,6 +179,14 @@ export default function SalaryStructuresPage() {
     salary_structure: '',
     from_date: '',
   });
+  const [editAssignOpen, setEditAssignOpen] = useState(false);
+  const [editAssignData, setEditAssignData] = useState<AssignRow | null>(null);
+  const [editAssignForm, setEditAssignForm] = useState({
+    salary_structure: '',
+    from_date: '',
+    base: '',
+  });
+  const [deleteAssignDialog, setDeleteAssignDialog] = useState<AssignRow | null>(null);
   const { company, isLoading: coLoading } = useDefaultCompanyName();
   const qc = useQueryClient();
   // Edit state
@@ -276,6 +286,8 @@ export default function SalaryStructuresPage() {
   const updateMutation = useUpdateDoc('Salary Structure');
   const deleteMutation = useDeleteDoc('Salary Structure');
   const createAssign = useCreateDoc('Salary Structure Assignment');
+  const updateAssignMut = useUpdateDoc('Salary Structure Assignment');
+  const deleteAssignMut = useDeleteDoc('Salary Structure Assignment');
   const submitMutation = useSubmitDoc('Salary Structure');
   const cancelMutation = useCancelDoc('Salary Structure');
 
@@ -413,6 +425,47 @@ export default function SalaryStructuresPage() {
         earnings: [{ salary_component: '', amount: '0' }],
         deductions: [{ salary_component: '', amount: '0' }],
       });
+    }
+  };
+
+  const openEditAssignDialog = (row: AssignRow) => {
+    setEditAssignData(row);
+    setEditAssignForm({
+      salary_structure: row.salary_structure || '',
+      from_date: row.from_date || '',
+      base: String(row.base || ''),
+    });
+    setEditAssignOpen(true);
+  };
+
+  const handleEditAssign = () => {
+    if (!editAssignData) return;
+    const doc: Record<string, unknown> = {
+      salary_structure: editAssignForm.salary_structure,
+      from_date: editAssignForm.from_date,
+    };
+    if (editAssignForm.base) doc.base = Number(editAssignForm.base);
+    updateAssignMut.mutate(
+      { name: editAssignData.name, doc },
+      {
+        onSuccess: () => {
+          toast.success('تم تعديل التعيين');
+          setEditAssignOpen(false);
+          setEditAssignData(null);
+          ar();
+        },
+        onError: () => toast.error('فشل تعديل التعيين'),
+      }
+    );
+  };
+
+  const handleDeleteAssign = async (row: AssignRow) => {
+    try {
+      await deleteAssignMut.mutateAsync(row.name);
+      toast.success('تم حذف التعيين');
+      setDeleteAssignDialog(null);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : 'تعذر الحذف');
     }
   };
 
@@ -589,7 +642,37 @@ export default function SalaryStructuresPage() {
           <PageShell padded={false}>
             <DataTable
               data={assigns || []}
-              columns={assignCols}
+              columns={[
+                ...assignCols,
+                {
+                  key: '_actions',
+                  header: 'إجراءات',
+                  width: 'w-28',
+                  render: (_: unknown, row: AssignRow) => (
+                    <div className="flex flex-wrap gap-1">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-7 text-xs gap-1"
+                        onClick={() => openEditAssignDialog(row)}
+                      >
+                        <Edit className="h-3 w-3" />
+                        تعديل
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 text-xs text-destructive"
+                        onClick={() => setDeleteAssignDialog(row)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ),
+                } as Column<AssignRow>,
+              ]}
               searchable
               loading={al}
             />
@@ -768,6 +851,75 @@ export default function SalaryStructuresPage() {
                   },
                 })
               }
+            >
+              حذف
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Assignment Dialog */}
+      <Dialog open={editAssignOpen} onOpenChange={setEditAssignOpen}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>تعديل تعيين هيكل الراتب</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">هيكل الراتب</Label>
+              <ErpLinkCombobox
+                doctype="Salary Structure"
+                value={editAssignForm.salary_structure}
+                onChange={(v) => setEditAssignForm((p) => ({ ...p, salary_structure: v }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">من تاريخ</Label>
+              <Input
+                type="date"
+                dir="ltr"
+                value={editAssignForm.from_date}
+                onChange={(e) => setEditAssignForm((p) => ({ ...p, from_date: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">الراتب الأساسي (اختياري)</Label>
+              <Input
+                type="number"
+                dir="ltr"
+                placeholder="0"
+                value={editAssignForm.base}
+                onChange={(e) => setEditAssignForm((p) => ({ ...p, base: e.target.value }))}
+              />
+            </div>
+            <Button
+              className="w-full"
+              onClick={handleEditAssign}
+              disabled={updateAssignMut.isPending}
+            >
+              {updateAssignMut.isPending ? 'جاري الحفظ...' : 'حفظ التعديل'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Assignment Confirmation */}
+      <AlertDialog
+        open={!!deleteAssignDialog}
+        onOpenChange={() => setDeleteAssignDialog(null)}
+      >
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف تعيين هيكل الراتب؟</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف تعيين الهيكل {deleteAssignDialog?.name} للموظف {deleteAssignDialog?.employee_name}؟
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteAssignDialog && handleDeleteAssign(deleteAssignDialog)}
+              variant="destructive"
             >
               حذف
             </AlertDialogAction>

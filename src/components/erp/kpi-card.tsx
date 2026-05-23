@@ -57,6 +57,8 @@ interface KpiCardProps {
   sparkline?: number[];
   /** صف ثانٍ من KPIs: حشو وأحجام أصغر */
   compact?: boolean;
+  /** مؤشر التحميل */
+  loading?: boolean;
 }
 
 /** شريط تمييز خفيف فقط — بدون تدرجات أو ظلال ملوّنة */
@@ -88,6 +90,7 @@ export function KpiCard({
   accent = 'primary',
   sparkline,
   compact = false,
+  loading = false,
 }: KpiCardProps) {
   const showChange =
     change !== undefined && !(change === 0 && changeType === 'neutral');
@@ -122,7 +125,11 @@ export function KpiCard({
                   compact ? 'text-base sm:text-lg' : 'text-xl sm:text-2xl',
                 )}
               >
-                {value}
+                {loading ? (
+                  <span className="inline-block w-12 h-5 rounded bg-muted animate-pulse" />
+                ) : (
+                  value
+                )}
               </p>
               {showChange && (
                 <div className="flex items-center gap-1 pt-0.5">

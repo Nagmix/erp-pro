@@ -367,19 +367,19 @@ export default function HrDashboardPage() {
 
       {/* ── KPI Row 1 ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <KpiCard title="إجمالي الموظفين" value={totalEmployees} icon={UserCheck} accent="primary" compact />
-        <KpiCard title="حاضرون اليوم" value={presentToday} icon={UserCheck} accent="success" compact />
-        <KpiCard title="في إجازة اليوم" value={onLeaveToday} icon={PlaneTakeoff} accent="info" compact />
-        <KpiCard title="وظائف شاغرة" value={openPositions} icon={ClipboardCheck} accent="warning" compact />
-        <KpiCard title="رواتب هذا الشهر" value={formatCurrency(payrollThisMonth)} icon={DollarSign} accent="primary" compact />
-        <KpiCard title="طلبات إجازة معلّقة" value={pendingLeaveRequests} icon={Clock} accent="destructive" compact />
+        <KpiCard title="إجمالي الموظفين" value={totalEmployees} icon={UserCheck} accent="primary" compact loading={empLoading} />
+        <KpiCard title="حاضرون اليوم" value={presentToday} icon={UserCheck} accent="success" compact loading={attLoading} />
+        <KpiCard title="في إجازة اليوم" value={onLeaveToday} icon={PlaneTakeoff} accent="info" compact loading={attLoading} />
+        <KpiCard title="وظائف شاغرة" value={openPositions} icon={ClipboardCheck} accent="warning" compact loading={empLoading} />
+        <KpiCard title="رواتب هذا الشهر" value={formatCurrency(payrollThisMonth)} icon={DollarSign} accent="primary" compact loading={salaryLoading} />
+        <KpiCard title="طلبات إجازة معلّقة" value={pendingLeaveRequests} icon={Clock} accent="destructive" compact loading={leaveLoading} />
       </div>
 
       {/* ── KPI Row 2 ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <KpiCard title="عقود تنتهي قريباً" value={contractsExpiring || '—'} icon={AlertCircle} accent="warning" compact />
-        <KpiCard title="معدل الحضور" value={`${avgAttendanceRate}%`} icon={ClipboardCheck} accent="success" compact />
-        <KpiCard title="عطلات قادمة" value={upcomingHolidays.length} icon={CalendarDays} accent="info" compact />
+        <KpiCard title="عقود تنتهي قريباً" value={contractsExpiring || '—'} icon={AlertCircle} accent="warning" compact loading={empLoading} />
+        <KpiCard title="معدل الحضور" value={`${avgAttendanceRate}%`} icon={ClipboardCheck} accent="success" compact loading={attLoading} />
+        <KpiCard title="عطلات قادمة" value={upcomingHolidays.length} icon={CalendarDays} accent="info" compact loading={holLoading} />
       </div>
 
       {/* ── Quick Actions ── */}

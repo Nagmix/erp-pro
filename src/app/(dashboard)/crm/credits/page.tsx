@@ -59,8 +59,9 @@ import {
   Clock,
   AlertTriangle,
   Download,
+  Pencil,
 } from 'lucide-react';
-import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useCancelDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
@@ -118,6 +119,20 @@ export default function CreditsPage() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [toCancel, setToCancel] = useState<string | null>(null);
 
+  // تعديل القيد
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingCredit, setEditingCredit] = useState<CreditRow | null>(null);
+  const [editFormPaymentType, setEditFormPaymentType] = useState<'Receive' | 'Pay'>('Receive');
+  const [editFormCustomer, setEditFormCustomer] = useState('');
+  const [editFormAmount, setEditFormAmount] = useState('');
+  const [editFormModeOfPayment, setEditFormModeOfPayment] = useState('');
+  const [editFormPaidFrom, setEditFormPaidFrom] = useState('');
+  const [editFormPaidTo, setEditFormPaidTo] = useState('');
+  const [editFormCurrency, setEditFormCurrency] = useState('YER');
+  const [editFormReference, setEditFormReference] = useState('');
+  const [editFormRemarks, setEditFormRemarks] = useState('');
+  const [editFormPostingDate, setEditFormPostingDate] = useState('');
+
   // فلاتر
   const [customerFilter, setCustomerFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -170,6 +185,7 @@ export default function CreditsPage() {
   const deleteMut = useDeleteDoc('Payment Entry');
   const submitMut = useSubmitDoc<CreditRow>('Payment Entry');
   const cancelMut = useCancelDoc<CreditRow>('Payment Entry');
+  const updateMut = useUpdateDoc('Payment Entry');
 
   // جلب بيانات الفواتير المستحقة لحساب الرصيد المستحق والتقادم
   const outstandingList = useDocList<OutstandingRow>('Sales Invoice', {
@@ -288,6 +304,52 @@ export default function CreditsPage() {
     setFormReference('');
     setFormRemarks('');
     setFormPostingDate(new Date().toISOString().slice(0, 10));
+  };
+
+  // ── Open Edit Dialog ──
+  const openEditDialog = (row: CreditRow) => {
+    setEditingCredit(row);
+    setEditFormPaymentType(row.payment_type as 'Receive' | 'Pay');
+    setEditFormCustomer(row.party || '');
+    setEditFormAmount(String(row.paid_amount || ''));
+    setEditFormModeOfPayment(row.mode_of_payment || '');
+    setEditFormPaidFrom(row.paid_from || '');
+    setEditFormPaidTo(row.paid_to || '');
+    setEditFormCurrency(row.currency || 'YER');
+    setEditFormReference(row.reference_no || '');
+    setEditFormRemarks(row.remarks || '');
+    setEditFormPostingDate(row.posting_date || '');
+    setEditDialogOpen(true);
+  };
+
+  // ── Handle Update ──
+  const handleUpdate = () => {
+    if (!editingCredit) return;
+    if (!editFormCustomer || !editFormAmount || Number(editFormAmount) <= 0) {
+      toast.error('يرجى إكمال جميع الحقول المطلوبة');
+      return;
+    }
+    const doc: Record<string, unknown> = {
+      payment_type: editFormPaymentType,
+      party_type: 'Customer',
+      party: editFormCustomer,
+      paid_amount: Number(editFormAmount),
+      received_amount: Number(editFormAmount),
+      mode_of_payment: editFormModeOfPayment || undefined,
+      paid_from: editFormPaidFrom || undefined,
+      paid_to: editFormPaidTo || undefined,
+      currency: editFormCurrency || 'YER',
+      reference_no: editFormReference || undefined,
+      posting_date: editFormPostingDate || undefined,
+      remarks: editFormRemarks || undefined,
+    };
+    updateMut.mutate(
+      { name: editingCredit.name, doc },
+      {
+        onSuccess: () => { toast.success('تم تحديث القيد'); setEditDialogOpen(false); setEditingCredit(null); void list.refetch(); },
+        onError: () => toast.error('فشل تحديث القيد'),
+      }
+    );
   };
 
   // ── Create Handler ──
@@ -509,6 +571,18 @@ export default function CreditsPage() {
               <Button
                 type="button"
                 size="sm"
+                variant="outline"
+                className="h-7 text-xs px-2"
+                onClick={() => openEditDialog(row)}
+              >
+                <Pencil className="h-3 w-3 ms-1" />
+                تعديل
+              </Button>
+            )}
+            {Number(row.docstatus) === 0 && (
+              <Button
+                type="button"
+                size="sm"
                 className="h-7 text-xs px-2"
                 onClick={() => { setToSubmit(row.name); setSubmitDialogOpen(true); }}
               >
@@ -543,7 +617,7 @@ export default function CreditsPage() {
         ),
       },
     ],
-    [submitMut, cancelMut, deleteMut, list]
+    [submitMut, cancelMut, deleteMut, list, updateMut]
   );
 
   // ── Render ──
@@ -1063,6 +1137,206 @@ export default function CreditsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ═══════ نافذة تعديل القيد ═══════ */}
+      <Dialog
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) setEditingCredit(null);
+        }}
+      >
+        <DialogContent dir="rtl" className="max-w-xl max-h-[90vh] overflow-y-auto p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                <Pencil className="h-5 w-5" />
+              </div>
+              <div>
+                <span>تعديل قيد الدفع</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">تعديل القيد: {editingCredit?.name}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* نوع العملية */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">نوع العملية *</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant={editFormPaymentType === 'Receive' ? 'default' : 'outline'}
+                  className={cn(
+                    'h-auto py-2.5 text-xs gap-2',
+                    editFormPaymentType === 'Receive' &&
+                      'bg-chart-3 hover:bg-chart-3 text-white'
+                  )}
+                  onClick={() => setEditFormPaymentType('Receive')}
+                >
+                  <ArrowUpLeft className="h-4 w-4" />
+                  استلام (شحن رصيد)
+                </Button>
+                <Button
+                  type="button"
+                  variant={editFormPaymentType === 'Pay' ? 'default' : 'outline'}
+                  className={cn(
+                    'h-auto py-2.5 text-xs gap-2',
+                    editFormPaymentType === 'Pay' &&
+                      'bg-destructive hover:bg-destructive text-white'
+                  )}
+                  onClick={() => setEditFormPaymentType('Pay')}
+                >
+                  <ArrowDownLeft className="h-4 w-4" />
+                  صرف (استخدام رصيد)
+                </Button>
+              </div>
+            </div>
+
+            {/* العميل */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">العميل *</Label>
+              <ErpLinkCombobox
+                doctype="Customer"
+                value={editFormCustomer}
+                onChange={setEditFormCustomer}
+                displayKey="customer_name"
+                placeholder="اختر العميل"
+              />
+            </div>
+
+            {/* المبلغ والعملة */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="col-span-2 space-y-2">
+                <Label className="text-sm font-medium">المبلغ *</Label>
+                <Input
+                  type="number"
+                  dir="ltr"
+                  placeholder="0.00"
+                  value={editFormAmount}
+                  onChange={(e) => setEditFormAmount(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">العملة</Label>
+                <Select value={editFormCurrency} onValueChange={setEditFormCurrency}>
+                  <SelectTrigger className="h-9 text-xs" dir="ltr">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="YER">YER</SelectItem>
+                    <SelectItem value="SAR">SAR</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="AED">AED</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* طريقة الدفع */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">طريقة الدفع</Label>
+              <ErpLinkCombobox
+                doctype="Mode of Payment"
+                value={editFormModeOfPayment}
+                onChange={setEditFormModeOfPayment}
+                placeholder="اختر طريقة الدفع"
+              />
+            </div>
+
+            {/* الحسابات */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  {editFormPaymentType === 'Receive'
+                    ? 'الحساب المستلم (إلى)'
+                    : 'الحساب الدافع (من)'}
+                </Label>
+                <ErpLinkCombobox
+                  doctype="Account"
+                  value={editFormPaymentType === 'Receive' ? editFormPaidTo : editFormPaidFrom}
+                  onChange={(v) => {
+                    if (editFormPaymentType === 'Receive') setEditFormPaidTo(v);
+                    else setEditFormPaidFrom(v);
+                  }}
+                  placeholder="الحساب"
+                  filters={[['account_type', '=', 'Cash']]}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">
+                  {editFormPaymentType === 'Receive'
+                    ? 'حساب العميل (من)'
+                    : 'حساب العميل (إلى)'}
+                </Label>
+                <ErpLinkCombobox
+                  doctype="Account"
+                  value={editFormPaymentType === 'Receive' ? editFormPaidFrom : editFormPaidTo}
+                  onChange={(v) => {
+                    if (editFormPaymentType === 'Receive') setEditFormPaidFrom(v);
+                    else setEditFormPaidTo(v);
+                  }}
+                  placeholder="الحساب"
+                  filters={[['account_type', '=', 'Receivable']]}
+                />
+              </div>
+            </div>
+
+            {/* التاريخ والمرجع */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">تاريخ القيد *</Label>
+                <Input
+                  type="date"
+                  dir="ltr"
+                  value={editFormPostingDate}
+                  onChange={(e) => setEditFormPostingDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">رقم المرجع</Label>
+                <Input
+                  placeholder="رقم الشيك / التأكيد"
+                  dir="ltr"
+                  value={editFormReference}
+                  onChange={(e) => setEditFormReference(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* ملاحظات */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">ملاحظات</Label>
+              <Input
+                placeholder="ملاحظات إضافية"
+                value={editFormRemarks}
+                onChange={(e) => setEditFormRemarks(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* أزرار الحفظ */}
+          <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-border/40">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setEditDialogOpen(false)}
+              className="text-muted-foreground"
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="button"
+              onClick={handleUpdate}
+              disabled={updateMut.isPending}
+              className="gap-1.5 min-w-[130px]"
+            >
+              {updateMut.isPending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

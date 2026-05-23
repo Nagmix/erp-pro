@@ -137,7 +137,7 @@ export default function StockEntryPage() {
     }
   }, [editDoc, editDialogOpen]);
 
-  const clearFilters = () => { setSearch(''); setStockEntryTypeFilter('all'); setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
+  const clearFilters = () => { setSearch(''); setFilter('all'); setStockEntryTypeFilter('all'); setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
 
   const rows = data || [];
   let filtered = filter === 'all' ? rows : rows.filter((s) => s.stock_entry_type === filter);
