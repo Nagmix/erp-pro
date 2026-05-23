@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
@@ -22,9 +22,9 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Plus, Trash2, Send, Undo2, Package, Filter, ChevronDown, X } from 'lucide-react';
+import { Plus, Trash2, Send, Undo2, Package, Filter, ChevronDown, X, Loader2, Eye } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc, useUpdateDoc, useDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { buildStockEntry } from '@/lib/erp/erpnext-payloads';
@@ -42,6 +42,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 
 interface SERow {
   name: string;
@@ -79,6 +80,22 @@ export default function StockEntryPage() {
   const [dateTo, setDateTo] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // ── Edit dialog state ──
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDocName, setEditDocName] = useState('');
+  const [editEntryType, setEditEntryType] = useState('Material Receipt');
+  const [editPostingDate, setEditPostingDate] = useState('');
+  const [editFromWh, setEditFromWh] = useState('');
+  const [editToWh, setEditToWh] = useState('');
+  const [editLines, setEditLines] = useState<Line[]>([emptyLine()]);
+  const [viewRow, setViewRow] = useState<SERow | null>(null);
+
+  // Auto-open create dialog when ?create=1
+  useEffect(() => {
+    consumeCreateQueryParam(() => setDialogOpen(true));
+  }, []);
+
   const { data, isLoading, isError, error, refetch } = useDocList<SERow>('Stock Entry', {
     fields: ['name', 'stock_entry_type', 'posting_date', 'total_outgoing_value', 'total_incoming_value', 'docstatus'],
     filters: company ? [['company', '=', company]] : undefined,
@@ -89,6 +106,36 @@ export default function StockEntryPage() {
   const submitMutation = useSubmitDoc<SERow>('Stock Entry');
   const cancelMutation = useCancelDoc<SERow>('Stock Entry');
   const deleteMutation = useDeleteDoc('Stock Entry');
+  const updateMutation = useUpdateDoc<SERow>('Stock Entry');
+
+  // Fetch full document for editing
+  const { data: editDoc, isLoading: editDocLoading } = useDoc<Record<string, unknown>>('Stock Entry', editDocName, {
+    enabled: Boolean(editDocName) && editDialogOpen,
+  });
+
+  // Populate edit form when document loads
+  useEffect(() => {
+    if (!editDoc || !editDialogOpen) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- form initialization from fetched doc
+    setEditEntryType(String(editDoc.stock_entry_type || editDoc.purpose || 'Material Receipt'));
+    setEditPostingDate(String(editDoc.posting_date || ''));
+    setEditFromWh(String(editDoc.from_warehouse || ''));
+    setEditToWh(String(editDoc.to_warehouse || ''));
+    const items = (editDoc.items as Record<string, unknown>[]) || [];
+    if (items.length > 0) {
+      setEditLines(
+        items.map((it) => ({
+          item_code: String(it.item_code || ''),
+          qty: Number(it.qty) || 0,
+          basic_rate: String(it.basic_rate ?? ''),
+          s_warehouse: String(it.s_warehouse || ''),
+          t_warehouse: String(it.t_warehouse || ''),
+        }))
+      );
+    } else {
+      setEditLines([emptyLine()]);
+    }
+  }, [editDoc, editDialogOpen]);
 
   const clearFilters = () => { setSearch(''); setStockEntryTypeFilter('all'); setDateFrom(''); setDateTo(''); setStatusFilter('all'); };
 
@@ -119,6 +166,14 @@ export default function StockEntryPage() {
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {
+      const n = [...prev];
+      n[i] = { ...n[i]!, ...patch };
+      return n;
+    });
+  };
+
+  const updateEditLine = (i: number, patch: Partial<Line>) => {
+    setEditLines((prev) => {
       const n = [...prev];
       n[i] = { ...n[i]!, ...patch };
       return n;
@@ -172,6 +227,73 @@ export default function StockEntryPage() {
         void refetch();
       },
       onError: () => toast.error('تعذر الحفظ')});
+  };
+
+  const handleUpdate = () => {
+    if (!editDocName || !company) return;
+    if (!editPostingDate) {
+      toast.error('التاريخ مطلوب');
+      return;
+    }
+    const showSrc = editEntryType === 'Material Issue' || editEntryType === 'Material Transfer' || editEntryType === 'Manufacture';
+    const showTgt = editEntryType === 'Material Receipt' || editEntryType === 'Material Transfer' || editEntryType === 'Manufacture';
+    if (showSrc && !editFromWh) {
+      toast.error('مستودع المصدر مطلوب');
+      return;
+    }
+    if (showTgt && !editToWh) {
+      toast.error('مستودع الوجهة مطلوب');
+      return;
+    }
+    if (editLines.every((l) => !l.item_code)) {
+      toast.error('أضف بنوداً');
+      return;
+    }
+    if (editLines.some((l) => l.item_code && l.qty <= 0)) {
+      toast.error('الكمية يجب أن تكون أكبر من صفر');
+      return;
+    }
+    const doc = buildStockEntry({
+      company,
+      purpose: editEntryType,
+      posting_date: editPostingDate,
+      from_warehouse: editFromWh || undefined,
+      to_warehouse: editToWh || undefined,
+      items: editLines
+        .filter((l) => l.item_code)
+        .map((l) => ({
+          item_code: l.item_code,
+          qty: l.qty,
+          s_warehouse: l.s_warehouse || editFromWh || undefined,
+          t_warehouse: l.t_warehouse || editToWh || undefined,
+          basic_rate: l.basic_rate ? Number(l.basic_rate) : undefined,
+        })),
+    });
+    // Remove doctype from update payload
+    delete (doc as Record<string, unknown>).doctype;
+    updateMutation.mutate(
+      { name: editDocName, doc },
+      {
+        onSuccess: () => {
+          toast.success('تم تحديث حركة المخزون');
+          setEditDialogOpen(false);
+          setEditDocName('');
+          void refetch();
+        },
+        onError: () => toast.error('تعذر التحديث'),
+      },
+    );
+  };
+
+  const openEdit = (row: SERow) => {
+    const ds = Number(row.docstatus);
+    if (ds === 0) {
+      setEditDocName(row.name);
+      setEditDialogOpen(true);
+    } else {
+      setViewRow(row);
+      setViewDialogOpen(true);
+    }
   };
 
   const columns: Column<SERow>[] = useMemo(
@@ -251,6 +373,8 @@ export default function StockEntryPage() {
 
   const showSource = entryType === 'Material Issue' || entryType === 'Material Transfer' || entryType === 'Manufacture';
   const showTarget = entryType === 'Material Receipt' || entryType === 'Material Transfer' || entryType === 'Manufacture';
+  const editShowSource = editEntryType === 'Material Issue' || editEntryType === 'Material Transfer' || editEntryType === 'Manufacture';
+  const editShowTarget = editEntryType === 'Material Receipt' || editEntryType === 'Material Transfer' || editEntryType === 'Manufacture';
 
   return (
     <div className="erp-page-enter space-y-6" dir="rtl">
@@ -346,7 +470,9 @@ export default function StockEntryPage() {
             </TabsList>
           </Tabs>
         </div>
-        <DataTable data={filtered} columns={columns} searchable loading={isLoading} onDelete={(r) => {
+        <DataTable data={filtered} columns={columns} searchable loading={isLoading}
+          onEdit={(r) => openEdit(r)}
+          onDelete={(r) => {
           if (Number(r.docstatus) !== 0) {
             toast.error('لا يمكن حذف مستند مرحّل أو ملغي');
             return;
@@ -375,6 +501,7 @@ export default function StockEntryPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* ══════ Create Dialog ══════ */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 <DialogContent dir="rtl" className="max-w-3xl max-h-[90vh] overflow-y-auto p-5 gap-0">
           <DialogHeader className="pb-4">
@@ -491,6 +618,169 @@ export default function StockEntryPage() {
               {createMutation.isPending ? '...' : 'حفظ'}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════ Edit Dialog (Drafts only) ══════ */}
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+        setEditDialogOpen(open);
+        if (!open) {
+          setEditDocName('');
+          setEditLines([emptyLine()]);
+        }
+      }}>
+        <DialogContent dir="rtl" className="max-w-3xl max-h-[90vh] overflow-y-auto p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
+                <Package className="h-5 w-5" />
+              </div>
+              <div>
+                <span>تعديل حركة المخزون</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">{editDocName}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          {editDocLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs">نوع الحركة</Label>
+                  <Input value={editEntryType} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">التاريخ</Label>
+                  <Input type="date" dir="ltr" value={editPostingDate} onChange={(e) => setEditPostingDate(e.target.value)} />
+                </div>
+              </div>
+              {editShowSource && (
+                <div className="space-y-2">
+                  <Label className="text-xs">من مستودع</Label>
+                  <ErpLinkCombobox doctype="Warehouse" value={editFromWh} onChange={setEditFromWh} />
+                </div>
+              )}
+              {editShowTarget && (
+                <div className="space-y-2">
+                  <Label className="text-xs">إلى مستودع</Label>
+                  <ErpLinkCombobox doctype="Warehouse" value={editToWh} onChange={setEditToWh} />
+                </div>
+              )}
+              <div className="border rounded-lg">
+                <div className="bg-muted/50 px-3 py-2 flex justify-between">
+                  <span className="text-xs font-semibold">البنود</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditLines((p) => [...p, emptyLine()])}>
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">الصنف</TableHead>
+                      <TableHead className="text-xs w-20">الكمية</TableHead>
+                      {editEntryType === 'Material Receipt' && <TableHead className="text-xs w-24">تكلفة تقديرية</TableHead>}
+                      {editEntryType === 'Material Issue' && <TableHead className="text-xs">مستودع مصدر (اختياري)</TableHead>}
+                      {(editEntryType === 'Material Transfer' || editEntryType === 'Manufacture') && (
+                        <>
+                          <TableHead className="text-xs">من</TableHead>
+                          <TableHead className="text-xs">إلى</TableHead>
+                        </>
+                      )}
+                      <TableHead className="w-8" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {editLines.map((line, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell>
+                          <ErpLinkCombobox doctype="Item" value={line.item_code} onChange={(v) => updateEditLine(idx, { item_code: v })} />
+                        </TableCell>
+                        <TableCell>
+                          <Input type="number" className="h-8 text-xs" value={line.qty} onChange={(e) => updateEditLine(idx, { qty: Math.max(0, Number(e.target.value)) })} />
+                        </TableCell>
+                        {editEntryType === 'Material Receipt' && (
+                          <TableCell>
+                            <Input type="number" className="h-8 text-xs" dir="ltr" value={line.basic_rate} onChange={(e) => updateEditLine(idx, { basic_rate: e.target.value })} placeholder="0" />
+                          </TableCell>
+                        )}
+                        {editEntryType === 'Material Issue' && (
+                          <TableCell>
+                            <ErpLinkCombobox doctype="Warehouse" value={line.s_warehouse} onChange={(v) => updateEditLine(idx, { s_warehouse: v })} />
+                          </TableCell>
+                        )}
+                        {(editEntryType === 'Material Transfer' || editEntryType === 'Manufacture') && (
+                          <>
+                            <TableCell>
+                              <ErpLinkCombobox doctype="Warehouse" value={line.s_warehouse} onChange={(v) => updateEditLine(idx, { s_warehouse: v })} />
+                            </TableCell>
+                            <TableCell>
+                              <ErpLinkCombobox doctype="Warehouse" value={line.t_warehouse} onChange={(v) => updateEditLine(idx, { t_warehouse: v })} />
+                            </TableCell>
+                          </>
+                        )}
+                        <TableCell>
+                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => editLines.length > 1 && setEditLines((p) => p.filter((_, j) => j !== idx))} disabled={editLines.length === 1}>
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <Button className="w-full" onClick={handleUpdate} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? (
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> جاري التحديث...</>
+                ) : 'حفظ التعديل'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════ View Dialog (Read-only for submitted/cancelled) ══════ */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <Eye className="h-5 w-5 text-muted-foreground" />
+              عرض حركة المخزون
+            </DialogTitle>
+          </DialogHeader>
+          {viewRow && (
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">الرقم</span>
+                  <span className="font-medium text-primary">{viewRow.name}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">النوع</span>
+                  <span>{viewRow.stock_entry_type}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">التاريخ</span>
+                  <span>{formatDate(viewRow.posting_date)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">قيمة الوارد</span>
+                  <span className="tabular-nums">{formatCurrency(Number(viewRow.total_incoming_value ?? 0))}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">قيمة الصادر</span>
+                  <span className="tabular-nums">{formatCurrency(Number(viewRow.total_outgoing_value ?? 0))}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">حالة المستند</span>
+                  <DocStatusBadge docstatus={Number(viewRow.docstatus) as 0 | 1 | 2} />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">هذا مستند مرحّل أو ملغي ولا يمكن تعديله</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

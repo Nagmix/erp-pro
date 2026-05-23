@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Plus, Filter, ChevronDown, X, Layers, CheckCircle, AlertTriangle, Send } from 'lucide-react';
+import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useUpdateDoc } from '@/lib/client/hooks';
@@ -63,6 +64,11 @@ export default function BatchesPage() {
   // Edit dialog fields
   const [editExpiryDate, setEditExpiryDate] = useState('');
   const [editManufacturingDate, setEditManufacturingDate] = useState('');
+
+  // Auto-open create dialog when ?create=1
+  useEffect(() => {
+    consumeCreateQueryParam(() => setDialogOpen(true));
+  }, []);
 
   const { data, isLoading, isError, error, refetch } = useDocList<BatchRow>('Batch', {
     fields: ['name', 'item', 'batch_id', 'expiry_date', 'manufacturing_date', 'docstatus'],

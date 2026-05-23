@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Table,
@@ -21,6 +21,7 @@ import { useCreateDoc, useDocList } from '@/lib/client/hooks';
 import { buildStockEntry } from '@/lib/erp/erpnext-payloads';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { toast } from 'sonner';
+import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { formatDate } from '@/lib/core/helpers';
@@ -49,6 +50,14 @@ export default function InterBranchTransferPage() {
   const [fromWh, setFromWh] = useState('');
   const [toWh, setToWh] = useState('');
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
+
+  // Auto-open create section when ?create=1 (this page has no dialog, but we focus the form)
+  useEffect(() => {
+    consumeCreateQueryParam(() => {
+      // Scroll to form
+      document.querySelector('.rounded-2xl')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  }, []);
 
   const list = useDocList<{ name: string; branch?: string }>('Warehouse', {
     fields: ['name', 'branch'],
@@ -109,7 +118,7 @@ export default function InterBranchTransferPage() {
       return;
     }
     if (fromWh === toWh) {
-      toast.error('المستودع المصدر يجب أن يختلف عن الوجهة');
+      toast.error('يجب أن يكون المستودع المصدر مختلفاً عن المستودع الهدف');
       return;
     }
     const filled = lines.filter((l) => l.item_code);

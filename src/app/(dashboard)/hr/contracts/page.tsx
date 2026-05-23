@@ -367,6 +367,10 @@ export default function ContractsPage() {
       toast.error('تاريخ البدء مطلوب');
       return;
     }
+    if (formData.end_date && formData.start_date >= formData.end_date) {
+      toast.error('تاريخ البدء يجب أن يكون قبل تاريخ الانتهاء');
+      return;
+    }
     if (!formData.contract_terms) {
       toast.error('شروط العقد مطلوبة');
       return;

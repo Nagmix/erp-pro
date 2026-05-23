@@ -383,6 +383,11 @@ export default function PayrollEntryPage() {
       return;
     }
 
+    if (formData.start_date >= formData.end_date) {
+      toast.error('تاريخ البداية يجب أن يكون قبل تاريخ النهاية');
+      return;
+    }
+
     if (editingDoc) {
       updateMut.mutate(
         {

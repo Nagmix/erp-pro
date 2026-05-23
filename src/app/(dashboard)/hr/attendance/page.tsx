@@ -20,7 +20,7 @@ import {
 import { Plus, Clock, UserCheck, UserX, Filter, ChevronDown, X } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useUpdateDoc } from '@/lib/client/hooks';
 import { rowInDateRangeISO } from '@/lib/core/list-date-filter';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -77,7 +77,8 @@ export default function AttendancePage() {
   const [token, setToken] = useState('');
   const [search, setSearch] = useState('');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [attendanceStatusFilter, setAttendanceStatusFilter] = useState('all');
+  const [editDialog, setEditDialog] = useState<AttendanceRow | null>(null);
+  const [editForm, setEditForm] = useState({ status: '', in_time: '', out_time: '' });
 
   const { company } = useDefaultCompanyName();
 
@@ -88,6 +89,7 @@ export default function AttendancePage() {
     order_by: 'attendance_date desc'});
   const createMutation = useCreateDoc('Attendance');
   const createCheckinMutation = useCreateDoc('Employee Checkin');
+  const updateMutation = useUpdateDoc('Attendance');
 
   const { hrmsInstalled, loaded: hrmsLoaded } = useHrmsCheck();
 
@@ -110,10 +112,8 @@ export default function AttendancePage() {
     }
     // Date range filter
     result = result.filter((a) => rowInDateRangeISO(a.attendance_date, dateFrom, dateTo));
-    // Advanced status filter
-    if (attendanceStatusFilter !== 'all') result = result.filter((a) => a.status === attendanceStatusFilter);
     return result;
-  }, [attendanceRecords, statusFilter, dateFilter, search, dateFrom, dateTo, attendanceStatusFilter]);
+  }, [attendanceRecords, statusFilter, dateFilter, search, dateFrom, dateTo]);
 
   const parsedRows = useMemo(() => {
     return bulkCsv
@@ -188,7 +188,38 @@ export default function AttendancePage() {
       onSuccess: () => { toast.success('تم تسجيل الحضور'); setCheckinEmployee(''); setCheckinTime(''); },
       onError: () => toast.error('فشل تسجيل الحضور')});
   };
-  const clearFilters = () => { setStatusFilter('all'); setSearch(''); setAttendanceStatusFilter('all'); setDateFrom(''); setDateTo(''); };
+  const clearFilters = () => { setStatusFilter('all'); setSearch(''); setDateFrom(''); setDateTo(''); };
+
+  const openEditDialog = (row: AttendanceRow) => {
+    setEditDialog(row);
+    setEditForm({
+      status: row.status || 'Present',
+      in_time: row.in_time ? String(row.in_time).slice(0, 5) : '',
+      out_time: row.out_time ? String(row.out_time).slice(0, 5) : '',
+    });
+  };
+
+  const handleEditSave = () => {
+    if (!editDialog) return;
+    if (editForm.in_time && editForm.out_time && editForm.in_time >= editForm.out_time) {
+      toast.error('وقت الحضور يجب أن يكون قبل وقت الانصراف');
+      return;
+    }
+    updateMutation.mutate(
+      {
+        name: editDialog.name,
+        doc: {
+          status: editForm.status,
+          ...(editForm.in_time ? { in_time: editForm.in_time } : {}),
+          ...(editForm.out_time ? { out_time: editForm.out_time } : {}),
+        },
+      },
+      {
+        onSuccess: () => { toast.success('تم تعديل سجل الحضور'); setEditDialog(null); },
+        onError: () => toast.error('فشل التعديل'),
+      }
+    );
+  };
 
 
   return (
@@ -260,7 +291,7 @@ export default function AttendancePage() {
                 <ChevronDown className={cn('h-3 w-3 transition-transform', filtersOpen && 'rotate-180')} />
               </Button>
             </CollapsibleTrigger>
-            {(dateFrom || dateTo || attendanceStatusFilter !== 'all' || search) && (
+            {(dateFrom || dateTo || search) && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
                 <X className="h-3 w-3" /> مسح الفلاتر
               </Button>
@@ -276,19 +307,7 @@ export default function AttendancePage() {
             <Label className="text-xs">إلى تاريخ</Label>
             <Input type="date" dir="ltr" value={dateTo} onChange={e => setDateTo(e.target.value)} className="h-8 text-xs w-36" />
           </div>
-          <div className="space-y-1">
-            <Label className="text-xs">الحالة</Label>
-            <Select value={attendanceStatusFilter} onValueChange={setAttendanceStatusFilter}>
-              <SelectTrigger className="h-8 text-xs w-32"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">الكل</SelectItem>
-                <SelectItem value="Present">حاضر</SelectItem>
-                <SelectItem value="Absent">غائب</SelectItem>
-                <SelectItem value="Half Day">نصف يوم</SelectItem>
-                <SelectItem value="On Leave">في إجازة</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -346,7 +365,33 @@ export default function AttendancePage() {
         </Card>
       </div>
 
-      <DataTable data={filtered} columns={columns} searchable loading={isLoading} />
+      <DataTable data={filtered} columns={columns} searchable loading={isLoading} onEdit={(row) => { openEditDialog(row as AttendanceRow); }} />
+
+      {/* Edit Attendance Dialog */}
+      <Dialog open={!!editDialog} onOpenChange={(open) => { if (!open) setEditDialog(null); }}>
+        <DialogContent dir="rtl" className="max-w-md">
+          <DialogHeader><DialogTitle>تعديل سجل الحضور — {editDialog?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">الحالة</Label>
+              <Select value={editForm.status} onValueChange={(v) => setEditForm((p) => ({ ...p, status: v }))}>
+                <SelectTrigger className="w-full h-9 text-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Present">حاضر</SelectItem>
+                  <SelectItem value="Absent">غائب</SelectItem>
+                  <SelectItem value="Half Day">نصف يوم</SelectItem>
+                  <SelectItem value="On Leave">في إجازة</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2"><Label className="text-sm font-medium">وقت الحضور</Label><Input type="time" dir="ltr" value={editForm.in_time} onChange={(e) => setEditForm((p) => ({ ...p, in_time: e.target.value }))} /></div>
+              <div className="space-y-2"><Label className="text-sm font-medium">وقت الانصراف</Label><Input type="time" dir="ltr" value={editForm.out_time} onChange={(e) => setEditForm((p) => ({ ...p, out_time: e.target.value }))} /></div>
+            </div>
+            <Button className="w-full" onClick={handleEditSave} disabled={updateMutation.isPending}>{updateMutation.isPending ? 'جاري الحفظ...' : 'حفظ التعديل'}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

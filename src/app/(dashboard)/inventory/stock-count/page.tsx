@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
@@ -20,9 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, Trash2, Send, Undo2, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Send, Undo2, Loader2, Eye } from 'lucide-react';
 import { formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc, useUpdateDoc, useDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { buildStockReconciliation } from '@/lib/erp/erpnext-payloads';
@@ -38,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 
 interface SRRow {
   name: string;
@@ -65,6 +66,22 @@ export default function StockCountPage() {
   const [costCenter, setCostCenter] = useState('');
   const [lines, setLines] = useState<Line[]>([emptyLine()]);
 
+  // ── Edit dialog state ──
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [editDocName, setEditDocName] = useState('');
+  const [editPostingDate, setEditPostingDate] = useState('');
+  const [editPurpose, setEditPurpose] = useState('Stock Reconciliation');
+  const [editExpenseAccount, setEditExpenseAccount] = useState('');
+  const [editCostCenter, setEditCostCenter] = useState('');
+  const [editLines, setEditLines] = useState<Line[]>([emptyLine()]);
+  const [viewRow, setViewRow] = useState<SRRow | null>(null);
+
+  // Auto-open create dialog when ?create=1
+  useEffect(() => {
+    consumeCreateQueryParam(() => setDialogOpen(true));
+  }, []);
+
   const { data, isLoading, isError, error, refetch } = useDocList<SRRow>('Stock Reconciliation', {
     fields: ['name', 'posting_date', 'purpose', 'docstatus'],
     filters: company ? [['company', '=', company]] : undefined,
@@ -75,6 +92,35 @@ export default function StockCountPage() {
   const submitMutation = useSubmitDoc<SRRow>('Stock Reconciliation');
   const cancelMutation = useCancelDoc<SRRow>('Stock Reconciliation');
   const deleteMutation = useDeleteDoc('Stock Reconciliation');
+  const updateMutation = useUpdateDoc<SRRow>('Stock Reconciliation');
+
+  // Fetch full document for editing
+  const { data: editDoc, isLoading: editDocLoading } = useDoc<Record<string, unknown>>('Stock Reconciliation', editDocName, {
+    enabled: Boolean(editDocName) && editDialogOpen,
+  });
+
+  // Populate edit form when document loads
+  useEffect(() => {
+    if (!editDoc || !editDialogOpen) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- form initialization from fetched doc
+    setEditPostingDate(String(editDoc.posting_date || ''));
+    setEditPurpose(String(editDoc.purpose || 'Stock Reconciliation'));
+    setEditExpenseAccount(String(editDoc.expense_account || ''));
+    setEditCostCenter(String(editDoc.cost_center || ''));
+    const items = (editDoc.items as Record<string, unknown>[]) || [];
+    if (items.length > 0) {
+      setEditLines(
+        items.map((it) => ({
+          item_code: String(it.item_code || ''),
+          warehouse: String(it.warehouse || ''),
+          qty: String(it.qty ?? ''),
+          valuation_rate: String(it.valuation_rate ?? ''),
+        }))
+      );
+    } else {
+      setEditLines([emptyLine()]);
+    }
+  }, [editDoc, editDialogOpen]);
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | '0' | '1' | '2'>('all');
@@ -196,6 +242,61 @@ export default function StockCountPage() {
     });
   };
 
+  const handleUpdate = () => {
+    if (!editDocName || !company) return;
+    if (!editPostingDate) {
+      toast.error('التاريخ مطلوب');
+      return;
+    }
+    if (editLines.every((l) => !l.item_code || !l.warehouse || !l.qty)) {
+      toast.error('أكمل الصنف والمستودع والكمية الفعلية');
+      return;
+    }
+    if (editLines.some((l) => l.item_code && l.warehouse && l.qty && Number(l.qty) < 0)) {
+      toast.error('الكمية لا يمكن أن تكون سالبة');
+      return;
+    }
+    const doc = buildStockReconciliation({
+      company,
+      posting_date: editPostingDate,
+      purpose: editPurpose,
+      expense_account: editExpenseAccount || undefined,
+      cost_center: editCostCenter || undefined,
+      items: editLines
+        .filter((l) => l.item_code && l.warehouse && l.qty !== '')
+        .map((l) => ({
+          item_code: l.item_code,
+          warehouse: l.warehouse,
+          qty: Number(l.qty),
+          valuation_rate: l.valuation_rate ? Number(l.valuation_rate) : undefined,
+        })),
+    });
+    delete (doc as Record<string, unknown>).doctype;
+    updateMutation.mutate(
+      { name: editDocName, doc },
+      {
+        onSuccess: () => {
+          toast.success('تم تحديث جرد المخزون');
+          setEditDialogOpen(false);
+          setEditDocName('');
+          void refetch();
+        },
+        onError: () => toast.error('تعذر التحديث'),
+      },
+    );
+  };
+
+  const openEdit = (row: SRRow) => {
+    const ds = Number(row.docstatus);
+    if (ds === 0) {
+      setEditDocName(row.name);
+      setEditDialogOpen(true);
+    } else {
+      setViewRow(row);
+      setViewDialogOpen(true);
+    }
+  };
+
   return (
     <div className="erp-page-enter space-y-6" dir="rtl">
       <ListQueryAlert error={isError ? error : null} onRetry={() => void refetch()} />
@@ -226,7 +327,9 @@ export default function StockCountPage() {
         </div>
       </div>
       <PageShell padded={false}>
-        <DataTable data={filteredRows} columns={columns} searchable loading={isLoading} onDelete={(r) => {
+        <DataTable data={filteredRows} columns={columns} searchable loading={isLoading}
+          onEdit={(r) => openEdit(r)}
+          onDelete={(r) => {
           if (Number(r.docstatus) !== 0) {
             toast.error('لا يمكن حذف مستند مرحّل أو ملغي');
             return;
@@ -256,6 +359,7 @@ export default function StockCountPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* ══════ Create Dialog ══════ */}
       <Dialog open={dialogOpen} onOpenChange={(open) => {
         setDialogOpen(open);
         if (!open) {
@@ -344,6 +448,139 @@ export default function StockCountPage() {
               ) : 'حفظ مسودة'}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════ Edit Dialog (Drafts only) ══════ */}
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+        setEditDialogOpen(open);
+        if (!open) {
+          setEditDocName('');
+          setEditLines([emptyLine()]);
+        }
+      }}>
+        <DialogContent dir="rtl" className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              تعديل جرد المخزون
+              <span className="text-xs font-normal text-muted-foreground">({editDocName})</span>
+            </DialogTitle>
+          </DialogHeader>
+          {editDocLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs">تاريخ الترحيل</Label>
+                  <Input type="date" dir="ltr" value={editPostingDate} onChange={(e) => setEditPostingDate(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">الغرض</Label>
+                  <select className="w-full h-9 rounded-md border bg-background px-3 text-sm" value={editPurpose} onChange={(e) => setEditPurpose(e.target.value)}>
+                    <option value="Stock Reconciliation">تسوية مخزون</option>
+                    <option value="Opening Stock">رصيد افتتاحي</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs">حساب فرق (اختياري)</Label>
+                  <ErpLinkCombobox doctype="Account" value={editExpenseAccount} onChange={setEditExpenseAccount}
+                    filters={[['account_type', '=', 'Stock Adjustment'], ['company', '=', company]]} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">مركز تكلفة (اختياري)</Label>
+                  <ErpLinkCombobox doctype="Cost Center" value={editCostCenter} onChange={setEditCostCenter}
+                    filters={[['company', '=', company]]} />
+                </div>
+              </div>
+              <div className="border rounded-lg">
+                <div className="bg-muted/50 px-3 py-2 flex justify-between">
+                  <span className="text-xs font-semibold">البنود — الكمية = الرصيد الفعلي بعد الجرد</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setEditLines((p) => [...p, emptyLine()])}>
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">الصنف</TableHead>
+                      <TableHead className="text-xs">المستودع</TableHead>
+                      <TableHead className="text-xs w-24">الكمية</TableHead>
+                      <TableHead className="text-xs w-28">سعر التقييم</TableHead>
+                      <TableHead className="w-8" />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {editLines.map((line, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell>
+                          <ErpLinkCombobox doctype="Item" value={line.item_code} onChange={(v) => setEditLines((p) => { const n = [...p]; n[idx] = { ...n[idx]!, item_code: v }; return n; })} />
+                        </TableCell>
+                        <TableCell>
+                          <ErpLinkCombobox doctype="Warehouse" value={line.warehouse} onChange={(v) => setEditLines((p) => { const n = [...p]; n[idx] = { ...n[idx]!, warehouse: v }; return n; })} />
+                        </TableCell>
+                        <TableCell>
+                          <Input type="number" className="h-8 text-xs" dir="ltr" value={line.qty} onChange={(e) => setEditLines((p) => { const n = [...p]; n[idx] = { ...n[idx]!, qty: e.target.value }; return n; })} />
+                        </TableCell>
+                        <TableCell>
+                          <Input type="number" className="h-8 text-xs" dir="ltr" value={line.valuation_rate} onChange={(e) => setEditLines((p) => { const n = [...p]; n[idx] = { ...n[idx]!, valuation_rate: e.target.value }; return n; })} placeholder="0" />
+                        </TableCell>
+                        <TableCell>
+                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => editLines.length > 1 && setEditLines((p) => p.filter((_, j) => j !== idx))} disabled={editLines.length === 1}>
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <Button className="w-full" onClick={handleUpdate} disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? (
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> جاري التحديث...</>
+                ) : 'حفظ التعديل'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ══════ View Dialog (Read-only for submitted/cancelled) ══════ */}
+      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+        <DialogContent dir="rtl" className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-muted-foreground" />
+              عرض جرد المخزون
+            </DialogTitle>
+          </DialogHeader>
+          {viewRow && (
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">الرقم</span>
+                  <span className="font-medium text-primary">{viewRow.name}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">التاريخ</span>
+                  <span>{formatDate(viewRow.posting_date)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">الغرض</span>
+                  <span>{viewRow.purpose === 'Stock Reconciliation' ? 'تسوية مخزون' : viewRow.purpose === 'Opening Stock' ? 'رصيد افتتاحي' : viewRow.purpose || '—'}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">حالة المستند</span>
+                  <DocStatusBadge docstatus={Number(viewRow.docstatus) as 0 | 1 | 2} />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">هذا مستند مرحّل أو ملغي ولا يمكن تعديله</p>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

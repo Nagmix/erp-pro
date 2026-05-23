@@ -51,7 +51,6 @@ import {
   Download,
 } from 'lucide-react';
 import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useCancelDoc } from '@/lib/client/hooks';
-import { ErpLinkCombobox as AccCombobox } from '@/components/erp/erp-link-combobox';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
@@ -279,6 +278,14 @@ export default function CreditsPage() {
   const handleCreate = () => {
     if (!company || !formCustomer || !formAmount || Number(formAmount) <= 0) {
       toast.error('يرجى إكمال جميع الحقول المطلوبة');
+      return;
+    }
+    if (!formPaidFrom) {
+      toast.error('يرجى تحديد حساب الدفع (من)');
+      return;
+    }
+    if (!formPaidTo) {
+      toast.error('يرجى تحديد حساب الاستلام (إلى)');
       return;
     }
     const payload = {
@@ -873,7 +880,7 @@ export default function CreditsPage() {
                     ? 'الحساب المستلم (إلى)'
                     : 'الحساب الدافع (من)'}
                 </Label>
-                <AccCombobox
+                <ErpLinkCombobox
                   doctype="Account"
                   value={formPaymentType === 'Receive' ? formPaidTo : formPaidFrom}
                   onChange={(v) => {
@@ -890,7 +897,7 @@ export default function CreditsPage() {
                     ? 'حساب العميل (من)'
                     : 'حساب العميل (إلى)'}
                 </Label>
-                <AccCombobox
+                <ErpLinkCombobox
                   doctype="Account"
                   value={formPaymentType === 'Receive' ? formPaidFrom : formPaidTo}
                   onChange={(v) => {

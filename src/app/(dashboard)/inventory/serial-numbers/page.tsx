@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
+import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 
 type SerialRow = {
   name: string;
@@ -92,6 +93,11 @@ export default function SerialNumbersPage() {
   const [editWarehouse, setEditWarehouse] = useState('');
   const [editPurchaseDate, setEditPurchaseDate] = useState('');
   const [editWarrantyExpiry, setEditWarrantyExpiry] = useState('');
+
+  // Auto-open create dialog when ?create=1
+  useEffect(() => {
+    consumeCreateQueryParam(() => setDialogOpen(true));
+  }, []);
 
   const { data, isLoading, isError, error, refetch } = useDocList<SerialRow>('Serial No', {
     fields: ['name', 'item_code', 'item_name', 'warehouse', 'status', 'purchase_date', 'warranty_expiry_date', 'docstatus'],

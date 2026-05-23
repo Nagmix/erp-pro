@@ -48,6 +48,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
+import { consumeCreateQueryParam } from '@/lib/client/open-create-query';
 import { formatCurrency } from '@/lib/core/helpers';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -71,6 +72,11 @@ interface ItemPriceRow {
 export default function PriceListsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteName, setDeleteName] = useState<string | null>(null);
+
+  // Auto-open create dialog when ?create=1
+  useEffect(() => {
+    consumeCreateQueryParam(() => setDialogOpen(true));
+  }, []);
   const [plName, setPlName] = useState('');
   const [currency, setCurrency] = useState('YER');
   const [buying, setBuying] = useState(true);

@@ -228,8 +228,8 @@ export default function EmployeeDocumentsPage() {
       }
       if (employeeFilter && row.attached_to_name !== employeeFilter) return false;
       if (docTypeFilter !== 'all') {
-        const ext = row.file_type || row.file_name?.split('.').pop()?.toUpperCase() || '';
-        if (docTypeFilter !== ext) return false;
+        const rowDocType = row.document_type || '';
+        if (docTypeFilter !== rowDocType) return false;
       }
       return true;
     });

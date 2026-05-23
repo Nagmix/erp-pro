@@ -32,7 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Send, Undo2, Filter, FileText, Briefcase, Check, Loader2 } from 'lucide-react';
+import { Plus, Send, Undo2, Filter, FileText, Briefcase, Check, Loader2, Trash2 } from 'lucide-react';
 import { useCreateDoc, useUpdateDoc, useDocList, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { buildLeaveAllocationCreate, buildLeavePolicyCreate, prepareFrappeDocForCreate } from '@/lib/erp/erpnext-payloads';
@@ -226,7 +226,7 @@ export default function LeavePoliciesPage() {
                   className="h-7 text-[10px] gap-1 text-destructive hover:text-destructive"
                   onClick={() => setDeleteTarget({ type: 'policy', name: row.name })}
                 >
-                  <Loader2 className="h-3 w-3" />
+                  <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
             );
@@ -329,7 +329,7 @@ export default function LeavePoliciesPage() {
                   className="h-7 text-[10px] gap-1 text-destructive hover:text-destructive"
                   onClick={() => setDeleteTarget({ type: 'allocation', name: row.name })}
                 >
-                  <Loader2 className="h-3 w-3" />
+                  <Trash2 className="h-3 w-3" />
                 </Button>
               </div>
             );

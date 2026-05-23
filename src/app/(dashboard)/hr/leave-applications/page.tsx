@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, CheckCircle, Clock, FileX, Calendar, Filter, ChevronDown, X, Undo2 } from 'lucide-react';
+import { Plus, CheckCircle, Clock, FileX, Calendar, Filter, ChevronDown, X, Undo2, Edit } from 'lucide-react';
 import { PageHeader } from '@/components/erp/page-header';
 import { formatDate } from '@/lib/core/helpers';
 import { useDocList, useCreateDoc, useDeleteDoc, useSubmitDoc, useUpdateDoc, useCancelDoc } from '@/lib/client/hooks';
@@ -85,6 +85,8 @@ export default function LeaveApplicationsPage() {
   const [leaveStatusFilter, setLeaveStatusFilter] = useState('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [editDialog, setEditDialog] = useState<LeaveRow | null>(null);
+  const [editForm, setEditForm] = useState({ leave_type: '', from_date: '', to_date: '', half_day: false, description: '' });
 
   const { company } = useDefaultCompanyName();
 
@@ -157,6 +159,7 @@ export default function LeaveApplicationsPage() {
     if (!formData.employee) { toast.error('يرجى اختيار الموظف'); return; }
     if (!formData.leave_type) { toast.error('اختر نوع الإجازة'); return; }
     if (!formData.from_date || !formData.to_date) { toast.error('حدد الفترة'); return; }
+    if (formData.from_date > formData.to_date) { toast.error('تاريخ البداية يجب أن يكون قبل تاريخ النهاية'); return; }
     const mapped = buildLeaveApplicationCreate({
       employee: formData.employee,
       leave_type: formData.leave_type,
@@ -187,6 +190,44 @@ export default function LeaveApplicationsPage() {
   };
 
   const clearFilters = () => { setSearch(''); setLeaveStatusFilter('all'); };
+
+  const openEditLeaveDialog = (row: LeaveRow) => {
+    setEditDialog(row);
+    setEditForm({
+      leave_type: row.leave_type || '',
+      from_date: row.from_date || '',
+      to_date: row.to_date || '',
+      half_day: false,
+      description: row.description || '',
+    });
+  };
+
+  const handleEditLeaveSave = () => {
+    if (!editDialog) return;
+    if (Number(editDialog.docstatus) !== 0) {
+      toast.error('لا يمكن تعديل طلب غير مسودة');
+      return;
+    }
+    if (!editForm.leave_type) { toast.error('اختر نوع الإجازة'); return; }
+    if (!editForm.from_date || !editForm.to_date) { toast.error('حدد الفترة'); return; }
+    if (editForm.from_date > editForm.to_date) { toast.error('تاريخ البداية يجب أن يكون قبل تاريخ النهاية'); return; }
+    updateMut.mutate(
+      {
+        name: editDialog.name,
+        doc: {
+          leave_type: editForm.leave_type,
+          from_date: editForm.from_date,
+          to_date: editForm.to_date,
+          half_day: editForm.half_day ? 1 : 0,
+          description: editForm.description || undefined,
+        },
+      },
+      {
+        onSuccess: () => { toast.success('تم تعديل طلب الإجازة'); setEditDialog(null); void refetch(); },
+        onError: () => toast.error('فشل التعديل'),
+      }
+    );
+  };
 
 
   return (
@@ -302,7 +343,7 @@ export default function LeaveApplicationsPage() {
         </TabsList>
       </Tabs>
 
-      <DataTable data={filtered} columns={columns} searchable loading={isLoading} onDelete={(row) => Number(row.docstatus) === 0 && setDeleteDialog(row)} />
+      <DataTable data={filtered} columns={columns} searchable loading={isLoading} onDelete={(row) => Number(row.docstatus) === 0 && setDeleteDialog(row)} onEdit={(row) => { const l = row as LeaveRow; if (Number(l.docstatus) === 0) { openEditLeaveDialog(l); } else { openEditLeaveDialog(l); } }} />
 
       <div className="border rounded-lg p-3 space-y-2">
         <p className="text-xs font-semibold">رصيد الإجازات (Leave Ledger)</p>
@@ -352,6 +393,73 @@ export default function LeaveApplicationsPage() {
       <AlertDialog open={!!deleteDialog} onOpenChange={() => setDeleteDialog(null)}>
         <AlertDialogContent dir="rtl"><AlertDialogHeader><AlertDialogTitle>تأكيد الحذف</AlertDialogTitle><AlertDialogDescription>حذف {deleteDialog?.name}؟</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>إلغاء</AlertDialogCancel><AlertDialogAction onClick={() => deleteDialog && handleDelete(deleteDialog)} variant="destructive">حذف</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Leave Application Dialog */}
+      <Dialog open={!!editDialog} onOpenChange={(open) => { if (!open) setEditDialog(null); }}>
+        <DialogContent dir="rtl" className="max-w-lg p-5 gap-0">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="flex items-center gap-3 text-lg font-bold">
+              <div className="h-9 w-9 rounded-lg bg-info/10 text-info flex items-center justify-center">
+                <Edit className="h-5 w-5" />
+              </div>
+              <div>
+                <span>{Number(editDialog?.docstatus) === 0 ? 'تعديل طلب الإجازة' : 'عرض طلب الإجازة'}</span>
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">{editDialog?.name} — {editDialog?.employee_name}</p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          {editDialog && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">نوع الإجازة</Label>
+                {Number(editDialog.docstatus) === 0 ? (
+                  <ErpLinkCombobox doctype="Leave Type" value={editForm.leave_type} onChange={(v) => setEditForm((p) => ({ ...p, leave_type: v }))} className="h-9" />
+                ) : (
+                  <span className="text-sm font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{editDialog.leave_type}</span>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">من تاريخ</Label>
+                  {Number(editDialog.docstatus) === 0 ? (
+                    <Input type="date" dir="ltr" value={editForm.from_date} onChange={(e) => setEditForm((p) => ({ ...p, from_date: e.target.value }))} className="h-9" />
+                  ) : (
+                    <span className="text-sm">{editDialog.from_date ? formatDate(String(editDialog.from_date)) : '—'}</span>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-medium">إلى تاريخ</Label>
+                  {Number(editDialog.docstatus) === 0 ? (
+                    <Input type="date" dir="ltr" value={editForm.to_date} onChange={(e) => setEditForm((p) => ({ ...p, to_date: e.target.value }))} className="h-9" />
+                  ) : (
+                    <span className="text-sm">{editDialog.to_date ? formatDate(String(editDialog.to_date)) : '—'}</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="edit-half" checked={editForm.half_day} onChange={(e) => setEditForm((p) => ({ ...p, half_day: e.target.checked }))} className="rounded" disabled={Number(editDialog.docstatus) !== 0} />
+                <Label htmlFor="edit-half" className="text-xs">نصف يوم</Label>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium">السبب</Label>
+                {Number(editDialog.docstatus) === 0 ? (
+                  <Textarea placeholder="سبب الإجازة..." value={editForm.description} onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))} rows={2} />
+                ) : (
+                  <span className="text-sm text-muted-foreground">{editDialog.description || '—'}</span>
+                )}
+              </div>
+              {Number(editDialog.docstatus) === 0 && (
+                <div className="flex items-center justify-end gap-2 pt-4 mt-3 border-t border-border/40">
+                  <Button type="button" variant="ghost" onClick={() => setEditDialog(null)} className="text-muted-foreground">إلغاء</Button>
+                  <Button onClick={handleEditLeaveSave} disabled={updateMut.isPending} className="gap-1.5 min-w-[130px]">
+                    {updateMut.isPending ? 'جاري الحفظ...' : 'حفظ التعديل'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
