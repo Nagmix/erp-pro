@@ -1,0 +1,195 @@
+kind: Environment
+name: erp-pro
+type: primary
+
+volumes:
+    - name: mariadb-data
+      size: 1Gi
+      type: disk
+    - name: frappe-sites
+      size: 2Gi
+      type: disk
+    - name: frontend-data
+      size: 1Gi
+      type: disk
+
+components:
+    # ============================================================
+    # MariaDB 10.6 (ERPNext-compatible charset settings)
+    # ============================================================
+    - kind: Database
+      name: mariadb
+      dockerCompose:
+          image: 'mariadb:10.6'
+          environment:
+              MARIADB_ROOT_PASSWORD: 'ErpPro2025Root!'
+              MYSQL_ROOT_PASSWORD: 'ErpPro2025Root!'
+          command:
+              - '--character-set-client-handshake=FALSE'
+              - '--character-set-server=utf8mb4'
+              - '--collation-server=utf8mb4_unicode_ci'
+              - '--innodb-buffer-pool-size=384M'
+              - '--max-connections=300'
+              - '--wait-timeout=28800'
+              - '--interactive-timeout=28800'
+          ports:
+              - '3306:3306'
+          deploy:
+              replicas: 1
+              resources:
+                  limits:
+                      cpus: '0.5'
+                      memory: '1500M'
+                  reservations:
+                      cpus: '0.25'
+                      memory: '750M'
+      volumes:
+          - name: mariadb-data
+            mount: /var/lib/mysql
+            subPath: ''
+
+    # ============================================================
+    # Redis x3 (cache / queue / socketio) — ephemeral
+    # ============================================================
+    - kind: Service
+      name: redis-cache
+      dockerCompose:
+          image: 'redis:7-alpine'
+          ports:
+              - '6379:6379'
+          deploy:
+              replicas: 1
+              resources:
+                  limits:
+                      cpus: '0.1'
+                      memory: '256M'
+                  reservations:
+                      cpus: '0.05'
+                      memory: '128M'
+
+    - kind: Service
+      name: redis-queue
+      dockerCompose:
+          image: 'redis:7-alpine'
+          ports:
+              - '6379:6379'
+          deploy:
+              replicas: 1
+              resources:
+                  limits:
+                      cpus: '0.1'
+                      memory: '256M'
+                  reservations:
+                      cpus: '0.05'
+                      memory: '128M'
+
+    - kind: Service
+      name: redis-socketio
+      dockerCompose:
+          image: 'redis:7-alpine'
+          ports:
+              - '6379:6379'
+          deploy:
+              replicas: 1
+              resources:
+                  limits:
+                      cpus: '0.1'
+                      memory: '256M'
+                  reservations:
+                      cpus: '0.05'
+                      memory: '128M'
+
+    # ============================================================
+    # Frappe/ERPNext v16 + HRMS backend (custom image, built from repo)
+    # Runs: gunicorn :8000 + socketio :9000 + workers + scheduler
+    # ============================================================
+    - kind: Application
+      name: backend
+      gitRepo: 'https://github.com/Nagmix/erp-pro.git'
+      gitBranch: main
+      gitApplicationPath: docker/erpnext-hrms
+      dockerCompose:
+          build:
+              context: .
+              dockerfile: Dockerfile
+          environment:
+              DB_HOST: mariadb
+              DB_PORT: '3306'
+              SITE_NAME: erppro
+              MARIADB_ROOT_PASSWORD: 'ErpPro2025Root!'
+              ADMIN_PASSWORD: 'ErpPro2025Admin!'
+              REDIS_CACHE: 'redis://redis-cache:6379'
+              REDIS_QUEUE: 'redis://redis-queue:6379'
+              REDIS_SOCKETIO: 'redis://redis-socketio:6379'
+              SOCKETIO_PORT: '9000'
+          ports:
+              - '8000:8000'
+              - '9000:9000'
+          deploy:
+              replicas: 1
+              resources:
+                  limits:
+                      cpus: '1'
+                      memory: '2560M'
+                  reservations:
+                      cpus: '0.5'
+                      memory: '1500M'
+      volumes:
+          - name: frappe-sites
+            mount: /home/frappe/frappe-bench/sites
+            subPath: ''
+      dependsOn:
+          - mariadb
+          - redis-cache
+          - redis-queue
+          - redis-socketio
+
+    # ============================================================
+    # Next.js frontend (public entry point)
+    # ============================================================
+    - kind: Application
+      name: frontend
+      gitRepo: 'https://github.com/Nagmix/erp-pro.git'
+      gitBranch: main
+      gitApplicationPath: /
+      dockerCompose:
+          build:
+              context: .
+              dockerfile: Dockerfile
+              args:
+                  BACKEND_HOST: 'http://backend:8000'
+          environment:
+              BACKEND_HOST: 'http://backend:8000'
+              BACKEND_SITE_NAME: 'erppro'
+              BACKEND_ADMIN_USER: 'Administrator'
+              BACKEND_ADMIN_PASSWORD: 'ErpPro2025Admin!'
+              BACKEND_VERSION: 'v16'
+              ERPNEXT_TRY_LOGIN: 'true'
+              AUTH_JWT_SECRET: 'erp_pro_dev_secret_please_change'
+              DATABASE_URL: 'file:/app/data/custom.db'
+              NODE_ENV: production
+          ports:
+              - '3000:3000'
+          deploy:
+              replicas: 1
+              resources:
+                  limits:
+                      cpus: '0.75'
+                      memory: '1750M'
+                  reservations:
+                      cpus: '0.25'
+                      memory: '750M'
+          command:
+              - /bin/sh
+              - '-c'
+              - 'if [ ! -f /app/data/app-config.json ] && [ -d /app/data_baked ]; then cp -a /app/data_baked/. /app/data/ || true; fi; npx --yes prisma@6 db push --skip-generate >/dev/null 2>&1 || true; exec node server.js'
+      volumes:
+          - name: frontend-data
+            mount: /app/data
+            subPath: ''
+      hosts:
+          - hostname: 'app-{{ env.base_domain }}'
+            path: /
+            servicePort: 3000
+      dependsOn:
+          - backend
