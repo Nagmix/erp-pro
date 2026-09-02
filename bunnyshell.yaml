@@ -110,7 +110,7 @@ components:
       gitApplicationPath: docker/erpnext-hrms
       dockerCompose:
           build:
-              context: .
+              context: ./docker/erpnext-hrms
               dockerfile: Dockerfile
           environment:
               DB_HOST: mariadb
