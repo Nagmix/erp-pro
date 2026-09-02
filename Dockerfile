@@ -72,6 +72,8 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 RUN mkdir -p /app/data
 COPY --from=builder /app/data ./data
 RUN chown -R nextjs:nodejs /app/data
+# Bake a restore copy of the app-config data (used when /app/data is a persistent volume)
+RUN cp -a /app/data /app/data_baked
 
 USER nextjs
 
