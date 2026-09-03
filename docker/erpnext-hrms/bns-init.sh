@@ -44,6 +44,33 @@ if [ "$DB_OK" != "1" ]; then
   exit 1
 fi
 
+# ---------- 1.5 تدوير حي تلقائي (يُنفذ عند كل إقلاع) ----------
+# (أ) كلمة مرور Administrator من متغير المنصة — تدوير SEC-05 تلقائياً
+if [ -n "${ADMIN_PASSWORD:-}" ] && [ "${ADMIN_PASSWORD:-}" != "admin" ]; then
+  if bench --site "$SITE_NAME" set-admin-password "$ADMIN_PASSWORD" >> sites/bns-init.log 2>&1; then
+    log "Admin password synced from platform variable ✓"
+  else
+    # الموقع قد لا يكون موجوداً بعد (إقلاع أول) — لا يفشل الإقلاع
+    log "WARN: set-admin-password failed (normal on first boot before new-site)"
+  fi
+else
+  log "WARN: ADMIN_PASSWORD platform variable missing/weak — admin rotation skipped"
+fi
+
+# (ب) تدوير MariaDB root: إن فشل الدخول بالقيمة الجديدة ونجح بالقيمة القديمة (LEGACY_) يدوّرها
+# LEGACY_MARIADB_ROOT_PASSWORD اختياري في متغيرات المنصة — يُحذف منها بعد نجاح التدوير
+if [ -n "${MARIADB_ROOT_PASSWORD:-}" ]; then
+  if mysql -h "$DB_HOST" -P "$DB_PORT" -uroot -p"$MARIADB_ROOT_PASSWORD" -e 'SELECT 1' >/dev/null 2>&1; then
+    log "MariaDB root password already matches platform value ✓"
+  elif [ -n "${LEGACY_MARIADB_ROOT_PASSWORD:-}" ] && \
+       mysql -h "$DB_HOST" -P "$DB_PORT" -uroot -p"$LEGACY_MARIADB_ROOT_PASSWORD" \
+         -e "ALTER USER 'root'@'%' IDENTIFIED BY '$MARIADB_ROOT_PASSWORD'; FLUSH PRIVILEGES;" >> sites/bns-init.log 2>&1; then
+    log "MariaDB root password ROTATED from legacy value ✓ — remove LEGACY variable now"
+  else
+    log "WARN: MariaDB root rotation skipped (new value not applied yet / legacy not provided)"
+  fi
+fi
+
 # ---------- 2. common_site_config.json (direct write, then sync via bench) ----------
 CFG="sites/common_site_config.json"
 if [ ! -f "$CFG" ]; then
