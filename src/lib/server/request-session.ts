@@ -20,3 +20,19 @@ export function getFrappeSidFromRequest(request: NextRequest): string | undefine
 
   return undefined;
 }
+
+/** أدوار المستخدم من توكن الجلسة (فارغة للمجهول/التوكن غير الصالح). */
+export function getUserRolesFromRequest(request: NextRequest): string[] {
+  const token = bearerOrCookieToken(request);
+  if (!token) return [];
+  const payload = verifyErpSessionToken(token);
+  return payload?.roles ?? [];
+}
+
+/** هل المستخدم مدير نظام (System Manager أو Administrator)؟ — بوابة الإدارة الموحدة. */
+export function isSystemManager(roles: string[]): boolean {
+  return roles.some((r) => {
+    const k = (r || '').toLowerCase();
+    return k === 'system manager' || k === 'administrator' || k.includes('system manager');
+  });
+}

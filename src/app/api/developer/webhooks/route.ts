@@ -5,12 +5,23 @@ import {
   loadDeveloperPortalStoreResolved,
   saveDeveloperPortalStore,
 } from '@/lib/server/developer-portal-store';
+import { assertSafeExternalUrl } from '@/lib/server/ssrf-guard';
+import { getUserRolesFromRequest, isSystemManager } from '@/lib/server/request-session';
 
 // Prevent static analysis during build
 export const dynamic = 'force-dynamic';
 
 
 async function deliverWebhook(row: DeliveryRow, hookUrl: string) {
+  // MED-01: فحص SSRF قبل كل محاولة توصيل — الرابط المخزن قد يكون داخلياً
+  try {
+    await assertSafeExternalUrl(hookUrl);
+  } catch (err) {
+    row.status = 'failed';
+    row.lastError = `SSRF: ${(err as Error).message}`;
+    row.nextRetryAt = undefined;
+    return;
+  }
   const maxAttempts = 3;
   while (row.attempts < maxAttempts) {
     row.attempts += 1;
@@ -38,7 +49,20 @@ async function deliverWebhook(row: DeliveryRow, hookUrl: string) {
   }
 }
 
-export async function GET() {
+// MED-01: إدارة Webhooks إدارة حساسة (تخزين روابط + توصيل منها) — للمدراء فقط
+function forbiddenIfNotAdmin(request: NextRequest): NextResponse | null {
+  if (!isSystemManager(getUserRolesFromRequest(request))) {
+    return NextResponse.json(
+      { success: false, error: 'إدارة Webhooks تتطلب صلاحية مدير النظام' },
+      { status: 403 }
+    );
+  }
+  return null;
+}
+
+export async function GET(request: NextRequest) {
+  const denied = forbiddenIfNotAdmin(request);
+  if (denied) return denied;
   const store = await loadDeveloperPortalStoreResolved();
   return NextResponse.json({
     success: true,
@@ -47,9 +71,18 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const denied = forbiddenIfNotAdmin(request);
+  if (denied) return denied;
+
   const body = (await request.json()) as { event?: string; url?: string };
   if (!body.event || !body.url) {
     return NextResponse.json({ success: false, error: 'event and url required' }, { status: 400 });
+  }
+  // MED-01: منع تخزين روابط داخلية/غير قياسية (كان يخزن أي URL ويوصل إليه لاحقاً)
+  try {
+    await assertSafeExternalUrl(body.url);
+  } catch (err) {
+    return NextResponse.json({ success: false, error: (err as Error).message }, { status: 400 });
   }
   const store = await loadDeveloperPortalStoreResolved();
   const row = {
@@ -64,6 +97,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const denied = forbiddenIfNotAdmin(request);
+  if (denied) return denied;
+
   const body = (await request.json()) as { event?: string; payload?: unknown };
   if (!body.event) return NextResponse.json({ success: false, error: 'event required' }, { status: 400 });
 

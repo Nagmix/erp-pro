@@ -19,6 +19,8 @@ export type ErpSessionPayload = {
   iat: number;
   /** short vs long (remember me) — used on refresh */
   sk?: 's' | 'l';
+  /** MED-04: معرف فريد للتوكن — يُبطل في Redis عند logout/refresh (تدوير) */
+  jti?: string;
 };
 
 export function signErpSessionToken(payload: Omit<ErpSessionPayload, 'iat'> & { iat?: number }): string {

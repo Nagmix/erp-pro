@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { appendAppAuditLog } from '@/lib/server/app-audit-log';
 import { getList, getDoc } from '@/lib/server/backend';
-import { getFrappeSidFromRequest } from '@/lib/server/request-session';
+import { getFrappeSidFromRequest, getUserRolesFromRequest, isSystemManager } from '@/lib/server/request-session';
+import { assertSafeExternalUrl } from '@/lib/server/ssrf-guard';
 
 // Prevent static analysis during build
 export const dynamic = 'force-dynamic';
@@ -29,6 +30,14 @@ function looksLikeHttpsUrl(s: string): boolean {
  * يتحقق من وجود إعدادات التكامل في ERPNext ويحاول قراءة البيانات
  */
 export async function POST(request: NextRequest) {
+  // MED-01: اختبار التكامل إدارة — للمدراء فقط (كان متاحاً لأي مستخدم مسجل)
+  if (!isSystemManager(getUserRolesFromRequest(request))) {
+    return NextResponse.json(
+      { success: false, error: 'اختبار التكاملات يتطلب صلاحية مدير النظام' },
+      { status: 403 }
+    );
+  }
+
   let body: Body;
   try {
     body = (await request.json()) as Body;
@@ -97,14 +106,17 @@ export async function POST(request: NextRequest) {
       } else if (looksLikeHttpsUrl(woo)) {
         // Try to verify the URL is reachable (basic check)
         try {
-          const response = await fetch(woo, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
+          // MED-01: حرس SSRF — منع النطاقات الداخلية بعد حل DNS والمنافذ غير القياسية
+          const safeUrl = await assertSafeExternalUrl(woo);
+          const response = await fetch(safeUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
           if (response.ok) {
             messages.push({ platform: 'WooCommerce', status: 'ok', message: `الخادم يستجيب (${response.status}) — لم يتم العثور على إعدادات WooCommerce في ERPNext` });
           } else {
             messages.push({ platform: 'WooCommerce', status: 'warning', message: `الخادم استجاب بـ ${response.status} — تحقق من صلاحيات API` });
           }
-        } catch {
-          messages.push({ platform: 'WooCommerce', status: 'warning', message: 'لم يتمكن من الاتصال بالخادم — تحقق من الرابط' });
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : '';
+          messages.push({ platform: 'WooCommerce', status: 'error', message: msg || 'لم يتمكن من الاتصال بالخادم — تحقق من الرابط' });
         }
       } else {
         messages.push({ platform: 'WooCommerce', status: 'error', message: 'أدخل رابطاً كاملاً يبدأ بـ https://' });

@@ -34,7 +34,13 @@ function canWrite(request: NextRequest): boolean {
   if (secret && request.headers.get('x-frappe-setup-secret') === secret) return true;
   const raw = request.cookies.get('erp_session')?.value?.trim();
   const p = raw ? verifyErpSessionToken(raw) : null;
-  return Boolean(p?.roles?.includes('System Manager'));
+  // MED-01: بوابة الإدارة — System Manager أو Administrator
+  return Boolean(
+    p?.roles?.some((r) => {
+      const k = (r || '').toLowerCase();
+      return k === 'system manager' || k === 'administrator' || k.includes('system manager');
+    })
+  );
 }
 
 async function frappeLogin(

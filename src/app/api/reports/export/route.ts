@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runReport, resolveReportExecutionName } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
+import { ensureReportAllowed } from '@/lib/server/report-access';
+import { verifyErpSessionToken } from '@/lib/server/jwt-session';
 import { getReportDef } from '@/lib/reports/catalog';
 import ExcelJS from 'exceljs';
 
@@ -25,6 +27,14 @@ export async function POST(request: NextRequest) {
     const def = getReportDef(reportName);
     if (!def) {
       return NextResponse.json({ success: false, error: 'التقرير غير مدعوم' }, { status: 404 });
+    }
+
+    // MED-06: نفس بوابة صلاحيات /api/reports/[reportName] — كانت التصدير مكشوفة لأي مستخدم
+    const token = request.cookies.get('erp_session')?.value;
+    const payload = token ? verifyErpSessionToken(token) : null;
+    const gate = ensureReportAllowed(reportName, payload?.roles || []);
+    if (!gate.ok) {
+      return NextResponse.json({ success: false, error: gate.reason || 'غير مصرح' }, { status: 403 });
     }
 
     const frappeSid = getFrappeSidFromRequest(request);

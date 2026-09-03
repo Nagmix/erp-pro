@@ -22,7 +22,8 @@ export async function appendAppAuditLog(action: string, subject?: string, payloa
         payload: payloadStr,
       },
     });
-  } catch {
-    /* قاعدة غير جاهزة أو خطأ كتابة */
+  } catch (error) {
+    // MED-08: فشل كتابة سجل التدقيق لم يعد صامتاً — سجل صاخب يظهر في اللوجات
+    console.error('[audit-log] فشل كتابة حدث التدقيق:', { action, subject, error });
   }
 }

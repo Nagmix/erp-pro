@@ -1,20 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requestPasswordResetFromErp } from '@/lib/server/backend';
-import { isForgotPasswordRateLimited } from '@/lib/server/forgot-password-rate-limit';
+import { checkRateLimit, clientIpFromRequest } from '@/lib/server/rate-limit';
 
 // Prevent static analysis during build
 export const dynamic = 'force-dynamic';
 
-
-function clientIp(request: NextRequest): string {
-  const xff = request.headers.get('x-forwarded-for');
-  if (xff) return xff.split(',')[0]?.trim() || 'unknown';
-  return request.headers.get('x-real-ip') || 'unknown';
-}
-
 export async function POST(request: NextRequest) {
-  const ip = clientIp(request);
-  if (isForgotPasswordRateLimited(ip)) {
+  // MED-03: عدّاد Redis مشترك + IP بمنطق rightmost-trusted
+  const ip = clientIpFromRequest(request);
+  const rate = await checkRateLimit(`forgot-password:${ip}`, {
+    windowMs: 60_000,
+    max: 10,
+  });
+  if (!rate.allowed) {
     return NextResponse.json(
       { success: false, error: 'عدد كبير من الطلبات. حاول لاحقاً.' },
       { status: 429 }

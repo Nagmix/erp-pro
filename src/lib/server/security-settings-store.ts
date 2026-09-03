@@ -69,6 +69,14 @@ function loadSecurityUiSettingsLocal(): SecurityUiSettings {
   }
 }
 
+/**
+ * MED-05: قارئ محلي سريع (ملف فقط، بلا نداء ERPNext) — مخصص لمنطق تسجيل
+ * الدخول حتى لا يضيف كل محاولة دخول نداءات خلفية وسجلات تدقيق نظامية.
+ */
+export function loadSecurityPolicyForLogin(): SecurityUiSettings {
+  return loadSecurityUiSettingsLocal();
+}
+
 async function syncToErpnext(data: SecurityUiSettings, sid?: string) {
   try {
     const existing = await getDoc(ERPNEXT_DOCTYPE, ERPNEXT_DOC_NAME, sid).catch(() => null);

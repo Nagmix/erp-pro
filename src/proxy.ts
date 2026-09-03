@@ -4,6 +4,7 @@ import { jwtVerify } from 'jose';
 import { getJwtSecretBytes } from '@/lib/auth/jwt-secret';
 import { canAccessPath } from '@/lib/auth/route-access';
 import { CSRF_COOKIE, CSRF_HEADER } from '@/lib/auth/csrf-constants';
+import { timingSafeEqualStr } from '@/lib/auth/timing-safe';
 import fs from 'fs';
 import path from 'path';
 
@@ -82,7 +83,8 @@ function csrfOk(request: NextRequest): boolean {
   const tokenCookie = request.cookies.get(CSRF_COOKIE)?.value;
   const tokenHeader = request.headers.get(CSRF_HEADER) || request.headers.get('X-CSRF-Token');
   if (!tokenCookie || !tokenHeader) return false;
-  return tokenCookie === tokenHeader;
+  // MED-12: مقارنة ثابتة الزمن بدل === (تمنع قياس زمن التنفيذ)
+  return timingSafeEqualStr(tokenCookie, tokenHeader);
 }
 
 function redirectToLogin(request: NextRequest, pathname: string): NextResponse {

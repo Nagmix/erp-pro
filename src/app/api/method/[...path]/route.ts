@@ -1,64 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { callMethod } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
+import { checkRateLimit, clientIpFromRequest } from '@/lib/server/rate-limit';
 
 // Prevent static analysis during build
 export const dynamic = 'force-dynamic';
 
-// Simple in-memory rate limiter
-const requestCounts = new Map<string, { count: number; windowStart: number }>();
+// MED-03: محدد المعدل أصبح مشتركاً عبر Redis (يبقى بعد restart ويُشارك بين النسخ)
+// بدل عدّاد في الذاكرة، وIP العميل يُستخرج بمنطق rightmost-trusted
 const WINDOW_SECONDS = 60;
 const MAX_REQUESTS_PER_WINDOW = 120;
-const BURST_LIMIT = 40;
-
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number } {
-  const now = Date.now();
-  const entry = requestCounts.get(ip);
-
-  if (!entry || (now - entry.windowStart) > WINDOW_SECONDS * 1000) {
-    requestCounts.set(ip, { count: 1, windowStart: now });
-    return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - 1, resetAt: now + WINDOW_SECONDS * 1000 };
-  }
-
-  if (entry.count >= MAX_REQUESTS_PER_WINDOW) {
-    return { allowed: false, remaining: 0, resetAt: entry.windowStart + WINDOW_SECONDS * 1000 };
-  }
-
-  entry.count++;
-  return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - entry.count, resetAt: entry.windowStart + WINDOW_SECONDS * 1000 };
-}
-
-// Clean up old entries periodically — only start the interval at runtime, not during build
-let cleanupStarted = false;
-function startCleanupInterval() {
-  if (cleanupStarted) return;
-  cleanupStarted = true;
-  setInterval(() => {
-    const now = Date.now();
-    for (const [ip, entry] of requestCounts) {
-      if (now - entry.windowStart > WINDOW_SECONDS * 1000 * 2) {
-        requestCounts.delete(ip);
-      }
-    }
-  }, 60000);
-}
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  // Start cleanup interval at runtime only
-  startCleanupInterval();
-
   const { path } = await params;
   const method = path.join('.');
   const body = await request.json().catch(() => ({}));
 
-  // Rate limiting
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || request.headers.get('x-real-ip')
-    || 'unknown';
-  const rateCheck = checkRateLimit(ip);
+  // Rate limiting (MED-03: Redis مشترك + rightmost-trusted XFF)
+  const ip = clientIpFromRequest(request);
+  const rateCheck = await checkRateLimit(`method:${ip}`, {
+    windowMs: WINDOW_SECONDS * 1000,
+    max: MAX_REQUESTS_PER_WINDOW,
+  });
 
   if (!rateCheck.allowed) {
     return NextResponse.json(

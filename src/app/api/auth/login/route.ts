@@ -1,10 +1,12 @@
+import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import {
   authenticateUser,
   loadUserProfileFromErpSession,
 } from '@/lib/server/backend';
 import { signErpSessionToken } from '@/lib/server/jwt-session';
-import { isLoginRateLimited } from '@/lib/server/login-rate-limit';
+import { loadSecurityPolicyForLogin } from '@/lib/server/security-settings-store';
+import { checkRateLimit, clientIpFromRequest } from '@/lib/server/rate-limit';
 import { applyCsrfCookie, generateCsrfToken } from '@/lib/auth/csrf';
 
 // Prevent static analysis during build
@@ -56,22 +58,42 @@ function isDemoModeActive(): boolean {
   return process.env.DEMO_MODE === 'true';
 }
 
+// MED-03: استخراج IP بمنطق rightmost-trusted بدل الثقة بأول قيمة XFF قابلة للتزييف
 function clientIp(request: NextRequest): string {
-  const xff = request.headers.get('x-forwarded-for');
-  if (xff) return xff.split(',')[0]?.trim() || 'unknown';
-  return request.headers.get('x-real-ip') || 'unknown';
+  return clientIpFromRequest(request);
 }
 
-function sessionTtlSec(rememberMe: boolean): number {
+/**
+ * MED-05: مدة الجلسة القصيرة أصبحت من سياسة الأمان المحفوظة (sessionHours)
+ * بدل قراءة env فقط — تظل clamp لحدود آمنة.
+ */
+function sessionTtlSec(rememberMe: boolean, policySessionHours: number): number {
   const longDays = Math.min(90, Math.max(7, parseInt(process.env.AUTH_REMEMBER_ME_DAYS || '30', 10)));
-  const shortHours = Math.min(72, Math.max(1, parseInt(process.env.AUTH_SESSION_HOURS || '12', 10)));
+  const shortHours = Math.min(72, Math.max(1, policySessionHours || parseInt(process.env.AUTH_SESSION_HOURS || '12', 10)));
   return rememberMe ? longDays * 24 * 3600 : shortHours * 3600;
 }
 
-function passwordPolicyOk(password: string): { ok: boolean; message?: string } {
-  const min = parseInt(process.env.AUTH_PASSWORD_MIN_LENGTH || '0', 10);
+/**
+ * MED-05: سياسة كلمات المرور المحفوظة في صفحة الأمان تُطبّق فعلاً الآن
+ * (كانت تُحفظ ولا تُقرأ أبداً — وهم أمني). تُطبق على دخول ERPNext فقط،
+ * وليس على حسابات الديمو في بيئة التطوير.
+ */
+function passwordPolicyOk(
+  password: string,
+  policy: ReturnType<typeof loadSecurityPolicyForLogin>
+): { ok: boolean; message?: string } {
+  const min = Math.max(0, Number(policy.minPasswordLength) || 0);
   if (min > 0 && password.length < min) {
-    return { ok: false, message: `كلمة المرور يجب أن لا تقل عن ${min} أحرف` };
+    return { ok: false, message: `سياسة كلمات المرور الحالية تتطلب ${min} أحرف على الأقل` };
+  }
+  const checks: Array<[boolean, string]> = [];
+  if (policy.requireUppercase) checks.push([/[A-Z]/.test(password), 'حرف إنجليزي كبير (A-Z)']);
+  if (policy.requireLowercase) checks.push([/[a-z]/.test(password), 'حرف إنجليزي صغير (a-z)']);
+  if (policy.requireNumbers) checks.push([/[0-9]/.test(password), 'رقم (0-9)']);
+  if (policy.requireSymbols) checks.push([/[^A-Za-z0-9]/.test(password), 'رمز خاص']);
+  const missing = checks.filter(([ok]) => !ok).map(([, label]) => label);
+  if (missing.length > 0) {
+    return { ok: false, message: `كلمة المرور يجب أن تحتوي على: ${missing.join('، ')}` };
   }
   return { ok: true };
 }
@@ -98,7 +120,15 @@ function buildAuthResponse(
 
 export async function POST(request: NextRequest) {
   const ip = clientIp(request);
-  if (isLoginRateLimited(ip)) {
+
+  // MED-05 + MED-03: حدود المحاولات من سياسة الأمان المحفوظة (maxLoginAttempts/lockoutDuration)
+  // بعدّاد مشترك عبر Redis (يبقى بعد restart ويُشارك بين النسخ)
+  const policy = loadSecurityPolicyForLogin();
+  const rate = await checkRateLimit(`login:${ip}`, {
+    windowMs: Math.max(1, policy.lockoutDuration) * 60_000,
+    max: Math.max(1, policy.maxLoginAttempts),
+  });
+  if (!rate.allowed) {
     return NextResponse.json(
       { success: false, error: 'عدد كبير من المحاولات. حاول لاحقاً.' },
       { status: 429 }
@@ -120,17 +150,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const policy = passwordPolicyOk(password);
-  if (!policy.ok) {
-    return NextResponse.json({ success: false, error: policy.message }, { status: 400 });
-  }
-
-  const ttlSec = sessionTtlSec(rememberMe === true);
-  const expSec = Math.floor(Date.now() / 1000) + ttlSec;
-  const sk: 's' | 'l' = rememberMe === true ? 'l' : 's';
-
   const demoMode = isDemoModeActive();
   const tryErp = process.env.ERPNEXT_TRY_LOGIN === 'true';
+
+  // MED-05: تطبيق سياسة كلمات المرور المحفوظة (يستثني الديمو في بيئة التطوير)
+  if (!demoMode) {
+    const pwd = passwordPolicyOk(password, policy);
+    if (!pwd.ok) {
+      return NextResponse.json({ success: false, error: pwd.message }, { status: 400 });
+    }
+  }
+
+  const ttlSec = sessionTtlSec(rememberMe === true, policy.sessionHours);
+  const expSec = Math.floor(Date.now() / 1000) + ttlSec;
+  const sk: 's' | 'l' = rememberMe === true ? 'l' : 's';
 
   /* -------- Production auth flow: ERPNext backend -------- */
   if (tryErp) {
@@ -154,6 +187,7 @@ export async function POST(request: NextRequest) {
         roles,
         exp: expSec,
         sk,
+        jti: randomUUID(),
       });
       return buildAuthResponse(
         token,
@@ -187,6 +221,7 @@ export async function POST(request: NextRequest) {
         roles: demoAccount.roles,
         exp: expSec,
         sk,
+        jti: randomUUID(),
       });
       return buildAuthResponse(
         token,

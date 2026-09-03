@@ -32,6 +32,9 @@ const BACKEND_API_PREFIX = '/api';
 const LIST_CACHE_TTL = Math.min(600, Math.max(0, parseInt(process.env.REDIS_CACHE_LIST_TTL_SEC || '45', 10)));
 const DOC_CACHE_TTL = Math.min(600, Math.max(0, parseInt(process.env.REDIS_CACHE_DOC_TTL_SEC || '60', 10)));
 
+// MED-02: مهلة قصوى لكل نداء للباك إند — بلا مهلة كان الطلب المعلّق يستهلك الاتصال إلى ما لا نهاية
+const BACKEND_TIMEOUT_MS = Math.max(5_000, parseInt(process.env.BACKEND_TIMEOUT_MS || '30_000', 10));
+
 // Internal session management
 let systemSession: string | null = null;
 let sessionExpiry: number = 0;
@@ -322,6 +325,9 @@ async function internalRequest(
   const host = getResolvedBackendHost();
   const url = `${host}${BACKEND_API_PREFIX}${path}`;
 
+  // MED-02: إعادة المحاولة على GET فقط — تكرار POST قد ينشئ/يرحّل مستنداً مرتين
+  if (method !== 'GET') retries = 0;
+
   const isSystemContext = userSession === SYSTEM_CONTEXT;
   const hasUserSession = Boolean(userSession) && !isSystemContext;
 
@@ -373,6 +379,7 @@ async function internalRequest(
         method,
         headers,
         body: body ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
       });
 
       if (response.status === 401 && !userSession) {
@@ -457,6 +464,7 @@ async function ensureSystemSession(forceLogin: boolean = false): Promise<void> {
         method: 'POST',
         headers: withSiteHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ usr: adminUser, pwd: adminPass }),
+        signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
       }
     );
 
@@ -496,6 +504,7 @@ export async function authenticateUser(username: string, password: string): Prom
         method: 'POST',
         headers: withSiteHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ usr: username, pwd: password }),
+        signal: AbortSignal.timeout(BACKEND_TIMEOUT_MS),
       }
     );
 
@@ -583,8 +592,10 @@ export async function getDoc(
   userSession?: string
 ): Promise<unknown> {
   await ensureSystemSession();
+  // MED-07: ترميز doctype أيضاً — doctype يحوي '/' كان يعيد تشكيل الرابط
+  const encDoctype = encodeURIComponent(doctype);
   const encName = encodeURIComponent(name);
-  const path = `/resource/${doctype}/${encName}`;
+  const path = `/resource/${encDoctype}/${encName}`;
 
   if (DOC_CACHE_TTL > 0 && process.env.REDIS_URL) {
     const sid = userSession || systemSession || '';
