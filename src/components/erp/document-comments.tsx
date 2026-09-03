@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useDocComments, useAddDocComment } from '@/lib/client/hooks';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { sanitizeHtml } from '@/lib/client/sanitize';
 
 type DocumentCommentsProps = {
   doctype: string;
@@ -130,7 +131,7 @@ function CommentItem({ comment }: { comment: import('@/lib/client/api').DocComme
         </div>
         <div
           className="mt-1 text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap break-words"
-          dangerouslySetInnerHTML={{ __html: comment.content || '' }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(comment.content) }}
         />
       </div>
     </div>

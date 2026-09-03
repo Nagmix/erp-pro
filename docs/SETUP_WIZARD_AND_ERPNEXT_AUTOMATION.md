@@ -140,7 +140,7 @@
       sh -c "
         wait-for-it mariadb:3306 --timeout=120 -- &&
         bench new-site ${SITE_NAME:-erppro}
-          --db-root-password ${DB_ROOT_PASSWORD:-erppro_root_2025}
+          --db-root-password ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
           --admin-password ${ADMIN_PASSWORD:-admin}
           --install-app erpnext
           --set-default
@@ -151,7 +151,7 @@
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-erppro_db}
       DB_USER: ${DB_USER:-erppro_user}
-      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
     depends_on:
       mariadb:
         condition: service_healthy

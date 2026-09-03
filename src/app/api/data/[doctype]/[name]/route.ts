@@ -6,9 +6,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDoc, updateDoc, deleteDoc, submitDoc, cancelDoc, amendDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
+import { isDoctypeAllowed } from '@/lib/server/doctype-allowlist';
 
 // Prevent static analysis during build
 export const dynamic = 'force-dynamic';
+
+/** SEC-04: فحص موحد في بداية كل معالج */
+async function guardDoctype<T extends { doctype: string }>(
+  params: Promise<T>
+): Promise<T | null> {
+  const p = await params;
+  if (!isDoctypeAllowed(p.doctype)) return null;
+  return p;
+}
 
 
 // GET - Single document
@@ -17,7 +27,11 @@ export async function GET(
   { params }: { params: Promise<{ doctype: string; name: string }> }
 ) {
   try {
-    const { doctype, name } = await params;
+    const p = await guardDoctype(params);
+    if (!p) {
+      return NextResponse.json({ success: false, error: 'نوع المستند غير مسموح عبر بروكسي البيانات' }, { status: 403 });
+    }
+    const { doctype, name } = p;
     const userSession = getFrappeSidFromRequest(request);
     const data = await getDoc(doctype, name, userSession);
     return NextResponse.json({ success: true, data });
@@ -33,7 +47,11 @@ export async function PUT(
   { params }: { params: Promise<{ doctype: string; name: string }> }
 ) {
   try {
-    const { doctype, name } = await params;
+    const p = await guardDoctype(params);
+    if (!p) {
+      return NextResponse.json({ success: false, error: 'نوع المستند غير مسموح عبر بروكسي البيانات' }, { status: 403 });
+    }
+    const { doctype, name } = p;
     const userSession = getFrappeSidFromRequest(request);
     const body = await request.json();
     const data = await updateDoc(doctype, name, body, userSession);
@@ -50,7 +68,11 @@ export async function DELETE(
   { params }: { params: Promise<{ doctype: string; name: string }> }
 ) {
   try {
-    const { doctype, name } = await params;
+    const p = await guardDoctype(params);
+    if (!p) {
+      return NextResponse.json({ success: false, error: 'نوع المستند غير مسموح عبر بروكسي البيانات' }, { status: 403 });
+    }
+    const { doctype, name } = p;
     const userSession = getFrappeSidFromRequest(request);
     await deleteDoc(doctype, name, userSession);
     return NextResponse.json({ success: true });
@@ -66,7 +88,11 @@ export async function POST(
   { params }: { params: Promise<{ doctype: string; name: string }> }
 ) {
   try {
-    const { doctype, name } = await params;
+    const p = await guardDoctype(params);
+    if (!p) {
+      return NextResponse.json({ success: false, error: 'نوع المستند غير مسموح عبر بروكسي البيانات' }, { status: 403 });
+    }
+    const { doctype, name } = p;
     const userSession = getFrappeSidFromRequest(request);
     const body = await request.json();
     

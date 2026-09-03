@@ -9,6 +9,11 @@
 // ============================================================
 
 import { CSRF_HEADER } from '@/lib/auth/csrf-constants';
+import {
+  storeClientExpFromToken,
+  clearClientExp,
+  isClientSessionAlive,
+} from '@/lib/client/session-token';
 import type {
   POSCheckOpeningResponse,
   POSCreateInvoiceResponse,
@@ -32,22 +37,23 @@ function getCsrfFromDocument(): string | null {
   return null;
 }
 
-// Get the stored auth token
+// SEC-08: لا توكن في localStorage — الاعتماد هو كوكي httpOnly erp_session
+// الذي يُرسَل تلقائياً مع كل طلب same-origin. يبقى طابع انتهاء غير حساس للواجهة.
 function getToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('erp_session');
+  // يُستخدم الآن فقط كمؤشر وجود جلسة (لأغراض الواجهة) — لا يعاد أي توكن
+  return isClientSessionAlive() ? 'cookie-session' : null;
 }
 
-// Set the auth token
+// يحفظ طابع الانتهاء فقط (غير حساس) — التوكن لا يُخزَّن
 function setToken(token: string): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('erp_session', token);
+  storeClientExpFromToken(token);
 }
 
 // Remove the auth token
 function removeToken(): void {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('erp_session');
+  clearClientExp();
 }
 
 // Generic request helper
@@ -57,16 +63,12 @@ async function request<T>(
   body?: unknown
 ): Promise<{ success: boolean; data?: T; error?: string }> {
   const url = `${API_BASE}${path}`;
-  const token = getToken();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
+  // SEC-08: لا رأس Authorization — الكوكي httpOnly يُرسل تلقائياً (credentials نفس الأصل)
   const mutating = method === 'POST' || method === 'PUT' || method === 'PATCH' || method === 'DELETE';
   const csrf = getCsrfFromDocument();
   if (mutating && csrf) {

@@ -65,16 +65,9 @@ function getDefaultTemplate(doctype: string): string {
 /** Fetches document data from ERPNext API */
 async function fetchDocument(doctype: string, name: string): Promise<Record<string, unknown> | null> {
   try {
-    const sid = localStorage.getItem('erp_session');
-    const baseUrl = process.env.NEXT_PUBLIC_ERP_URL || '';
-    const url = baseUrl
-      ? `${baseUrl}/api/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`
-      : `/api/erp/proxy/resource/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`;
-
-    const res = await fetch(url, {
-      headers: sid ? { Cookie: `sid=${sid}` } : {},
-      credentials: 'include',
-    });
+    // SEC-08 + QUA-01: نفس الأصل عبر مسار البيانات الفعلي — الكوكي httpOnly يُرسل تلقائياً
+    const url = `/api/data/${encodeURIComponent(doctype)}/${encodeURIComponent(name)}`;
+    const res = await fetch(url, { credentials: 'same-origin' });
     if (!res.ok) return null;
     const json = await res.json();
     return json.data ?? null;
@@ -149,22 +142,16 @@ export async function printDocument(options: PrintOptions): Promise<void> {
 /** Quick print using ERPNext Print Format API */
 export async function printWithERPFormat(doctype: string, name: string, format?: string): Promise<void> {
   try {
-    const sid = localStorage.getItem('erp_session');
-    const baseUrl = process.env.NEXT_PUBLIC_ERP_URL || '';
+    // SEC-08 + QUA-01: المسار الصحيح لبروكسي الطرق — الكوكي يُرسل تلقائياً
     const params = new URLSearchParams({
       doctype,
       name,
       format: format || 'Standard',
       no_letterhead: '1',
     });
-    const url = baseUrl
-      ? `${baseUrl}/api/method/frappe.www.printview.get_html?${params}`
-      : `/api/erp/proxy/method/frappe.www.printview.get_html?${params}`;
+    const url = `/api/method/frappe.www.printview.get_html?${params}`;
 
-    const res = await fetch(url, {
-      headers: sid ? { Cookie: `sid=${sid}` } : {},
-      credentials: 'include',
-    });
+    const res = await fetch(url, { credentials: 'same-origin' });
     if (!res.ok) throw new Error('فشل جلب قالب الطباعة');
     const json = await res.json();
     const html = json.message || json.html || '';

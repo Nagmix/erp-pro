@@ -28,7 +28,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAuthStore } from '@/stores/auth-store';
-import { isSessionTokenAlive } from '@/lib/client/session-token';
+import { isClientSessionAlive, clearClientExp } from '@/lib/client/session-token';
 import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
@@ -48,20 +48,19 @@ export default function LoginPage() {
   // Setup status check
   const [needsSetup, setNeedsSetup] = useState(false);
 
-  // Check if already logged in on mount
+  // Check if already logged in on mount (SEC-08: بدون قراءة أي توكن — طابع انتهاء غير حساس)
   useEffect(() => {
-    const token = localStorage.getItem('erp_session');
-    if (token && isSessionTokenAlive(token)) {
+    if (isClientSessionAlive()) {
       const params = new URLSearchParams(window.location.search);
-      const redirect = params.get('redirect') || '/';
+      const redirect = safeLocalRedirect(params.get('redirect'));
       window.location.replace(redirect);
       return;
     }
-    if (token) {
-      localStorage.removeItem('erp_session');
-      localStorage.removeItem('erp_user');
-      document.cookie = 'erp_session=; max-age=0; path=/; SameSite=Lax';
-    }
+    clearClientExp();
+    // تنظيف بقايا نموذج التوكن القديم من متصفحات سبق لها الزيارة
+    localStorage.removeItem('erp_session');
+    localStorage.removeItem('erp_user');
+    document.cookie = 'erp_session=; max-age=0; path=/; SameSite=Lax';
 
     // Check if initial setup is needed
     fetch('/api/setup/status')
@@ -74,10 +73,28 @@ export default function LoginPage() {
       .catch(() => { /* ignore */ });
   }, []);
 
+
+  // SEC-11: قبول المسارات المحلية فقط — منع open redirect إلى مواقع خارجية
+  const safeLocalRedirect = useCallback((raw: string | null): string => {
+    const fallback = '/';
+    if (!raw) return fallback;
+    let value = raw;
+    try {
+      value = decodeURIComponent(raw);
+    } catch {
+      /* قيمة غير مُرمّزة — استخدمها كما هي */
+    }
+    if (!value.startsWith('/')) return fallback;      // يجب أن يبدأ بـ /
+    if (value.startsWith('//')) return fallback;      // منع protocol-relative URLs
+    if (value.includes('\\')) return fallback;           // منع backslash tricks
+    if (/^[\/]+[@a-z]/i.test(value)) return fallback; // منع /[email] style
+    return value;
+  }, []);
+
   // Navigate to dashboard after successful login
   const navigateToDashboard = useCallback(() => {
     const params = new URLSearchParams(window.location.search);
-    const redirect = params.get('redirect') || '/';
+    const redirect = safeLocalRedirect(params.get('redirect'));
 
     // Use window.location.href for a full page reload
     // This ensures the middleware reads the fresh cookie

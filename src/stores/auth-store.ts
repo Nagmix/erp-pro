@@ -3,7 +3,12 @@
 import { create } from 'zustand';
 import type { User } from '@/lib/core/types';
 import { CSRF_HEADER } from '@/lib/auth/csrf-constants';
-import { decodeJwtPayloadBrowser, isSessionTokenAlive } from '@/lib/client/session-token';
+import {
+  storeClientExpFromToken,
+  clearClientExp,
+  isClientSessionAlive,
+  CLIENT_EXP_KEY,
+} from '@/lib/client/session-token';
 
 // ============================================================
 // AUTH STORE - Manages authentication state
@@ -46,47 +51,25 @@ function loadUser(): User | null {
   }
 }
 
-// Token in localStorage + Authorization; `erp_session` cookie is httpOnly (set by `/api/auth/login`).
+// SEC-08: لا توكن في localStorage. الكوكي httpOnly erp_session (يضبطه الخادم)
+// هو الاعتماد الوحيد. في المتصفح يبقى فقط ملف تعريف المستخدم + طابع انتهاء غير حساس.
 function saveToken(token: string) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('erp_session', token);
+  // يحفظ طابع الانتهاء فقط (غير حساس) — التوكن نفسه لا يُكتب في أي تخزين
+  storeClientExpFromToken(token);
 }
 
 // Clear all auth data
 function clearAuth() {
   if (typeof window === 'undefined') return;
+  // تنظيف مفاتيح قديمة من نموذج التوكن السابق
   localStorage.removeItem('erp_session');
+  localStorage.removeItem(CLIENT_EXP_KEY);
+  clearClientExp();
   localStorage.removeItem('erp_user');
   deleteCookie('erp_session');
   deleteCookie('erp_csrf');
 }
 
-function validateToken(token: string): { userId: string; fullName: string; email: string; roles: string[]; exp: number } | null {
-  if (!isSessionTokenAlive(token)) return null;
-  const trimmed = token.trim();
-  let decoded: Record<string, unknown> | null = null;
-
-  if (trimmed.split('.').length === 3) {
-    decoded = decodeJwtPayloadBrowser(trimmed);
-  } else {
-    try {
-      decoded = JSON.parse(atob(trimmed)) as Record<string, unknown>;
-    } catch {
-      return null;
-    }
-  }
-
-  if (!decoded?.userId) return null;
-  const exp = typeof decoded.exp === 'number' ? decoded.exp : 0;
-
-  return {
-    userId: String(decoded.userId),
-    fullName: String(decoded.fullName || decoded.userId),
-    email: String(decoded.email || ''),
-    roles: Array.isArray(decoded.roles) ? (decoded.roles as string[]).filter((r): r is string => typeof r === 'string' && Boolean(r)) : [],
-    exp,
-  };
-}
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -181,51 +164,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkAuth: () => {
     if (typeof window === 'undefined') return false;
 
-    // First try localStorage
-    let token = localStorage.getItem('erp_session');
-
-    // If not in localStorage, try cookie
-    if (!token) {
-      const cookieValue = getCookie('erp_session');
-      if (cookieValue) {
-        token = cookieValue;
-        localStorage.setItem('erp_session', token);
-      }
-    }
-
-    if (!token) {
+    // SEC-08: حالة الواجهة تعتمد على erp_user + erp_exp (غير حساسين).
+    // الصلاحية الفعلية يفرضها الخادم عبر كوكي httpOnly على كل طلب.
+    if (!isClientSessionAlive()) {
       clearAuth();
       set({ isAuthenticated: false, user: null });
       return false;
     }
 
-    // Validate the token
-    const decoded = validateToken(token);
-    if (!decoded) {
-      // Token is invalid or expired → clean up everything
-      clearAuth();
-      set({ isAuthenticated: false, user: null });
-      return false;
-    }
-
-    // Load user from localStorage
     const user = loadUser();
     if (user) {
       set({ isAuthenticated: true, user });
       return true;
-    } else {
-      // Reconstruct user from token
-      const reconstructedUser: User = {
-        id: decoded.userId,
-        name: decoded.fullName || decoded.userId,
-        fullName: decoded.fullName || decoded.userId,
-        email: decoded.email || '',
-        roles: decoded.roles || [],
-      };
-      saveUser(reconstructedUser);
-      set({ isAuthenticated: true, user: reconstructedUser });
-      return true;
     }
+
+    // لا ملف تعريف محلي؟ الجلسة قد تكون سليمة لكن المتصفح جديد —
+    // اعتبر المستخدم غير مسجل من منظور الواجهة (الـ middleware سيعيد التوجيه للدخول)
+    clearAuth();
+    set({ isAuthenticated: false, user: null });
+    return false;
   },
 
   clearError: () => set({ error: null }),

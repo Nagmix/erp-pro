@@ -82,15 +82,14 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Default backend connection for Railway deployment
-# Can be overridden via Railway environment variables
-ARG BACKEND_HOST_DEFAULT=https://erpnext-backend-production-cde7.up.railway.app
-ENV BACKEND_HOST=$BACKEND_HOST_DEFAULT
+# SEC-05/SEC-07: لا أسرار ولا أهداف خادم مدمجة في الصورة.
+# بيانات الاتصال والأسرار تُمرَّر وقت التشغيل عبر متغيرات البيئة
+# (BACKEND_HOST / AUTH_JWT_SECRET / ... — راجع .env.example).
 ARG BACKEND_SITE_NAME=erppro
 ENV BACKEND_SITE_NAME=$BACKEND_SITE_NAME
 ARG BACKEND_ADMIN_USER=Administrator
 ENV BACKEND_ADMIN_USER=$BACKEND_ADMIN_USER
-# Generate a default JWT secret at build time
-RUN echo "AUTH_JWT_SECRET=$(openssl rand -base64 32)" >> /app/.env.local 2>/dev/null || true
+# SEC-07: AUTH_JWT_SECRET إلزامي وقت التشغيل (jwt-secret.ts يرفض البدء بدونه) —
+# لا توليد وقت البناء: نفس الصورة لكل الحاويات + لا أسرار في طبقات الصورة.
 
 CMD ["node", "server.js"]

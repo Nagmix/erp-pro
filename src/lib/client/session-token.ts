@@ -36,3 +36,36 @@ export function isSessionTokenAlive(token: string): boolean {
     return false;
   }
 }
+
+// ============================================================
+// SEC-08: نموذج الجلسة الجديد — «الكوكي أولاً»
+// لا يُخزَّن أي توكن JWT في localStorage بعد الآن. الكوكي httpOnly
+// `erp_session` (يفضّه الخادم عند الدخول/التحديث) هو الاعتماد الوحيد،
+// ويبقى في المتصفح: ملف تعريف المستخدم (erp_user) وطابع انتهاء
+// غير حساس (erp_exp) لحالة الواجهة فقط — الحماية الفعلية على الخادم.
+// ============================================================
+
+export const CLIENT_EXP_KEY = 'erp_exp';
+
+/** يحفظ طابع الانتهاء (ثوانٍ) من توكن JWT في erp_exp — بدون تخزين التوكن نفسه. */
+export function storeClientExpFromToken(token: string): void {
+  if (typeof window === 'undefined') return;
+  const decoded = decodeJwtPayloadBrowser(token);
+  const exp = typeof decoded?.exp === 'number' ? decoded.exp : 0;
+  if (exp > 0) localStorage.setItem(CLIENT_EXP_KEY, String(exp));
+}
+
+export function clearClientExp(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(CLIENT_EXP_KEY);
+}
+
+/** هل جلسة الواجهة ما تزال ضمن مدة الصلاحية المعروفة؟ */
+export function isClientSessionAlive(): boolean {
+  if (typeof window === 'undefined') return false;
+  const raw = localStorage.getItem(CLIENT_EXP_KEY);
+  if (!raw) return false;
+  const exp = parseInt(raw, 10);
+  if (!Number.isFinite(exp) || exp <= 0) return false;
+  return Date.now() / 1000 < exp;
+}

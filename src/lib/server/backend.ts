@@ -10,6 +10,8 @@
 // ============================================================
 
 import { createHash } from 'crypto';
+import fs from 'fs';
+import path from 'path';
 import type { ReportDef } from '@/lib/reports/catalog';
 import { logBackendRequest } from '@/lib/server/backend-log';
 import { cacheGet, cacheSet } from '@/lib/server/redis-cache';
@@ -259,6 +261,57 @@ function normalizeConnectionErrorMessage(message: string): string {
   }
   return message;
 }
+
+// ============================================================
+// SEC-03: منع "سقوط" نداءات بلا جلسة مستخدم إلى صلاحيات Administrator
+// ============================================================
+// المشكلة الأصلية: أي نداء داخلي بلا userSession كان يستخدم توكن/جلسة
+// Administrator بصمت — فلو نسيت مسارًا أن يمرر sid المستخدم كانت العملية
+// تُنفَّذ بصلاحيات كاملة (تجاوز صلاحيات الأدوار وسجلات Frappe).
+//
+// السياسة الجديدة:
+//  - القراءات بلا جلسة: مسموحة (سياق نظامي) لكن مع سجل تدقيق صاخب.
+//  - الكتابات (POST/PUT/PATCH/DELETE على /resource/) بلا جلسة بعد اكتمال
+//    الإعداد: مرفوضة صراحة (fail-closed) — إلا للعمليات النظامية المصرّح
+//    بها صراحة عبر SYSTEM_CONTEXT.
+//  - قبل اكتمال الإعداد كل شيء مسموح (معالج الإعداد يعمل بلا جلسة).
+
+/** مرّر هذا الثابت مكان userSession للعمليات النظامية المشروعة فقط (إعداد/تثبيت وحدات/خلفيات). */
+export const SYSTEM_CONTEXT = '__SYSTEM_CONTEXT__';
+
+const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+const SYSTEM_WRITE_ALLOWLIST = [
+  /^\/method\/login/,
+  /^\/method\/logout/,
+  /^\/method\/frappe\.core\.doctype\.user\.user\.reset_password/,
+  /^\/method\/frappe\.client\.set_value/, // تستخدمه عمليات الإعداد والتهيئة
+];
+
+let _setupCompleteCacheB: { value: boolean; at: number } | null = null;
+
+function appSetupComplete(): boolean {
+  const now = Date.now();
+  if (_setupCompleteCacheB && now - _setupCompleteCacheB.at < 10_000) {
+    return _setupCompleteCacheB.value;
+  }
+  try {
+    const dir = process.env.ERP_PRO_DATA_DIR || path.join(process.cwd(), 'data');
+    const raw = fs.readFileSync(path.join(dir, 'app-config.json'), 'utf8');
+    const value = (JSON.parse(raw) as { setupComplete?: boolean }).setupComplete === true;
+    _setupCompleteCacheB = { value, at: now };
+    return value;
+  } catch {
+    _setupCompleteCacheB = { value: false, at: now };
+    return false;
+  }
+}
+
+/** SEC-03 audit: سجل صاخب لكل نداء يعمل بصلاحيات النظام بلا جلسة مستخدم. */
+function auditSystemContextCall(method: string, path: string): void {
+  console.warn('[SEC-03][system-context]', method, path);
+}
+
 async function internalRequest(
   method: string,
   path: string,
@@ -269,12 +322,37 @@ async function internalRequest(
   const host = getResolvedBackendHost();
   const url = `${host}${BACKEND_API_PREFIX}${path}`;
 
+  const isSystemContext = userSession === SYSTEM_CONTEXT;
+  const hasUserSession = Boolean(userSession) && !isSystemContext;
+
+  if (isSystemContext) {
+    // عملية نظامية مصرّح بها صراحة — سجل تدقيق فقط
+    auditSystemContextCall(method, path);
+  } else if (!hasUserSession) {
+    // لا جلسة مستخدم — SEC-03: هل هي مسموحة؟
+    const isWrite = WRITE_METHODS.has(method);
+    const isDocResourceWrite = isWrite && path.startsWith('/resource/');
+    const systemAllowedWrite = SYSTEM_WRITE_ALLOWLIST.some((re) => re.test(path));
+    const setupPending = !appSetupComplete();
+
+    if (isDocResourceWrite && !systemAllowedWrite && !setupPending) {
+      console.error('[SEC-03][blocked] write without user session:', method, path);
+      throw new Error(
+        'SEC-03: عملية الكتابة على المستندات تتطلب جلسة مستخدم صالحة — رُفضت المحاولة بصلاحيات النظام'
+      );
+    }
+    if (isWrite || isDocResourceWrite) {
+      // كتابة نظامية مسموحة (login/logout/setup) — سجل تدقيق
+      auditSystemContextCall(method, path);
+    }
+  }
+
   const headers: Record<string, string> = withSiteHeader({
     'Content-Type': 'application/json',
     Accept: 'application/json',
   });
 
-  if (userSession) {
+  if (hasUserSession) {
     headers['Cookie'] = `sid=${userSession}`;
   } else {
     const pair = getFrappeApiTokenPair();

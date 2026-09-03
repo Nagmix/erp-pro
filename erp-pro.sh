@@ -78,7 +78,7 @@ setup() {
     echo -e "${YELLOW}═══ إنشاء الموقع ═══${NC}"
     docker compose exec backend bench new-site erppro \
         --admin-password "${ADMIN_PASSWORD:-admin}" \
-        --db-root-password "${DB_ROOT_PASSWORD:-erppro_root_2025}" \
+        --db-root-password "${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}" \
         --install-app erpnext \
         --set-default || true
 

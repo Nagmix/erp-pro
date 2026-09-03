@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createDoc } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
+import { isDoctypeAllowed } from '@/lib/server/doctype-allowlist';
 
 // Prevent static analysis during build
 export const dynamic = 'force-dynamic';
@@ -11,6 +12,13 @@ export async function POST(
   { params }: { params: Promise<{ doctype: string }> }
 ) {
   const { doctype } = await params;
+  // SEC-04: قائمة سماح أنواع المستندات
+  if (!isDoctypeAllowed(doctype)) {
+    return NextResponse.json(
+      { success: false, error: `نوع المستند "${doctype}" غير مسموح عبر بروكسي البيانات` },
+      { status: 403 }
+    );
+  }
   const body = await request.json();
   const docs = body.docs as Record<string, unknown>[];
 

@@ -49,6 +49,7 @@ import {
 } from 'lucide-react';
 import { useCreateDoc, useDeleteDoc, useDocList, useUpdateDoc } from '@/lib/client/hooks';
 import { toast } from 'sonner';
+import { sanitizeHtml } from '@/lib/client/sanitize';
 
 /* ─── Types ─── */
 type TermsRow = {
@@ -513,7 +514,7 @@ export default function TermsSettingsPage() {
     {previewContent.terms ? (
     <div
      className="prose prose-sm max-w-none text-foreground text-xs leading-relaxed"
-     dangerouslySetInnerHTML={{ __html: previewContent.terms }}
+     dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewContent.terms) }}
     />
     ) : (
     <p className="text-sm text-muted-foreground text-center py-8">

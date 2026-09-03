@@ -44,17 +44,16 @@ const DEMO_ACCOUNTS: Record<string, { password: string; name: string; email: str
 };
 
 /**
- * Demo mode is active when either:
- *  - DEMO_MODE env var is explicitly set to "true", OR
- *  - ERPNEXT_TRY_LOGIN is not configured (no ERPNext backend available)
+ * SEC-06: نمط الديمو فعال فقط بشرطين معاً (fail-closed):
+ *  1) DEMO_MODE=true صراحةً، و
+ *  2) البيئة ليست إنتاج (NODE_ENV !== 'production').
  *
- * In production, set DEMO_MODE to anything other than "true" and
- * configure ERPNEXT_TRY_LOGIN=true to disable demo accounts entirely.
+ * قبل الإصلاح كان غياب ERPNEXT_TRY_LOGIN يُفعّل الديمو تلقائياً —
+ * أي نشر منسي الإعداد كان يمنح حساب admin/admin للعامة.
  */
 function isDemoModeActive(): boolean {
-  if (process.env.DEMO_MODE === 'true') return true;
-  if (!process.env.ERPNEXT_TRY_LOGIN) return true;
-  return false;
+  if (process.env.NODE_ENV === 'production') return false;
+  return process.env.DEMO_MODE === 'true';
 }
 
 function clientIp(request: NextRequest): string {
@@ -169,33 +168,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ERPNext login failed — if demo mode is active, fall back to demo accounts
-    if (demoMode) {
-      const demoAccount = DEMO_ACCOUNTS[username];
-      if (demoAccount && demoAccount.password === password) {
-        const token = signErpSessionToken({
-          userId: username,
-          fullName: demoAccount.name,
-          email: demoAccount.email,
-          roles: demoAccount.roles,
-          exp: expSec,
-          sk,
-        });
-        return buildAuthResponse(
-          token,
-          {
-            id: username,
-            name: demoAccount.name,
-            fullName: demoAccount.name,
-            email: demoAccount.email,
-            roles: demoAccount.roles,
-          },
-          ttlSec
-        );
-      }
-    }
-
-    // ERPNext configured but login failed — generic error, never expose demo credentials
+    // SEC-06: فشل دخول ERPNext = رفض. لا سقوط إلى حسابات الديمو في الإنتاج.
+    // (كان الفشل يسقط للديمو عند تفعيله — الآن مسار الديمو منفصل تماماً أدناه)
     return NextResponse.json(
       { success: false, error: 'بيانات الدخول غير صحيحة.' },
       { status: 401 }

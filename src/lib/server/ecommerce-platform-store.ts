@@ -210,3 +210,12 @@ export async function loadEcommercePlatformSettingsResolved(): Promise<Ecommerce
     return fromFile;
   }
 }
+
+/** SEC-14: نسخة مقنّعة من إعدادات منصة — للعرض فقط */
+export function maskPlatformSecrets(p: PlatformConfig): PlatformConfig {
+  return {
+    ...p,
+    apiKey: p.apiKey ? '••••••••' : '',
+    apiSecret: p.apiSecret ? '••••••••' : '',
+  };
+}

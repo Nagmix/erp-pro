@@ -92,3 +92,6 @@ logs/
 # Temp files
 tmp/
 temp/
+# Frappe connection (secrets — never commit)
+.frappe-connection.json
+data/frappe-connection.json

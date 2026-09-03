@@ -16,15 +16,26 @@ import path from 'path';
 const PUBLIC_API_PATHS = new Set([
   '/api/auth/login',
   '/api/auth/forgot-password',
+  // حالة الإعداد فقط — لا تكشف أي شيء حساس وتحتاجها صفحة الدخول قبل وجود جلسة
+  '/api/setup/status',
+]);
+
+// SEC-01: نقاط نهاية معالج الإعداد — عامة فقط قبل اكتمال الإعداد
+// (معالج الإعداد لا يملك جلسة بعد). بعد الاكتمال تصبح محمية بجلسة إدارية.
+const PRE_SETUP_PUBLIC_PATHS = new Set([
   '/api/setup/status',
   '/api/setup/test-connection',
   '/api/setup/execute',
 ]);
 
-function isPublicApiPath(pathname: string): boolean {
+function isSetupApiPath(pathname: string): boolean {
+  return pathname === '/api/setup' || pathname.startsWith('/api/setup/');
+}
+
+function isPublicApiPath(pathname: string, setupDone: boolean): boolean {
   if (PUBLIC_API_PATHS.has(pathname)) return true;
-  // Allow any /api/setup/* sub-path for future extensibility
-  if (pathname.startsWith('/api/setup/')) return true;
+  // SEC-01: لا wildcard عام لمسارات الإعداد — العامة فقط قبل اكتمال الإعداد
+  if (!setupDone && PRE_SETUP_PUBLIC_PATHS.has(pathname)) return true;
   return false;
 }
 
@@ -149,7 +160,7 @@ export async function proxy(request: NextRequest) {
         return redirectToSetup(request);
       }
       // لطلبات API: إذا كان الإعداد غير مكتمل، اسمح فقط بمسارات الإعداد العامة
-      if (!isPublicApiPath(pathname)) {
+      if (!isPublicApiPath(pathname, setupDone)) {
         return NextResponse.json(
           { success: false, error: 'الإعداد غير مكتمل. يرجى إكمال الإعداد أولاً.' },
           { status: 503 }
@@ -158,9 +169,13 @@ export async function proxy(request: NextRequest) {
     }
 
     if (isApiRoute) {
-      if (isPublicApiPath(pathname)) {
+      if (isPublicApiPath(pathname, setupDone)) {
         return NextResponse.next();
       }
+
+      // SEC-01: بعد اكتمال الإعداد — كل مسارات /api/setup/* الأخرى تتطلب جلسة صالحة
+      // (تستدعيها صفحات لوحة التحكم المحمية)، ويسدها الحارس العام أدناه للمجهولين.
+      // ملاحظة: قبل اكتمال الإعداد أي مسار setup غير معتمد يُردّ بـ 503 من الحارس أعلاه.
 
       // Try cookie first, then fall back to Authorization Bearer header
       let sessionToken = request.cookies.get('erp_session')?.value?.trim() || '';
@@ -178,6 +193,17 @@ export async function proxy(request: NextRequest) {
       const session = await verifySessionCookie(sessionToken);
       if (!session) {
         return NextResponse.json({ success: false, error: 'غير مصرح' }, { status: 401 });
+      }
+
+      // SEC-01: مسارات الإعداد بعد الاكتمال — للمدراء فقط
+      if (isSetupApiPath(pathname) && setupDone) {
+        const ADMIN_ROLES = new Set(['Administrator', 'System Manager']);
+        if (!session.roles.some((r) => ADMIN_ROLES.has(r))) {
+          return NextResponse.json(
+            { success: false, error: 'عمليات الإعداد تتطلب صلاحيات مدير النظام' },
+            { status: 403 }
+          );
+        }
       }
 
       if (MUTATING.has(request.method) && !csrfOk(request)) {

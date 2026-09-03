@@ -37,6 +37,7 @@ import {
 import { toast } from 'sonner';
 import { useDocList, useCreateDoc, useUpdateDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { apiGetList } from '@/lib/client/api';
+import { sanitizeHtml } from '@/lib/client/sanitize';
 import {
  Mail,
  Eye,
@@ -573,7 +574,7 @@ export default function EmailTemplatesPage() {
    ) : previewHtml ? (
     <div
     className="prose prose-sm max-w-none text-foreground"
-    dangerouslySetInnerHTML={{ __html: previewHtml }}
+    dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewHtml) }}
     />
    ) : (
     <p className="text-sm text-muted-foreground text-center py-8">

@@ -9,7 +9,7 @@ function bearerOrCookieToken(request: NextRequest): string | undefined {
 
 /**
  * Frappe `sid` for backend requests. Undefined → `backend.ts` uses system session.
- * Supports signed JWT; legacy unsigned base64 JSON (dev only) if `AUTH_ALLOW_LEGACY_TOKEN=1`.
+ * SEC-12: signed JWT only — the legacy unsigned base64 token path was removed entirely.
  */
 export function getFrappeSidFromRequest(request: NextRequest): string | undefined {
   const token = bearerOrCookieToken(request);
@@ -18,18 +18,5 @@ export function getFrappeSidFromRequest(request: NextRequest): string | undefine
   const jwtPayload = verifyErpSessionToken(token);
   if (jwtPayload) return frappeSidFromPayload(jwtPayload);
 
-  if (process.env.AUTH_ALLOW_LEGACY_TOKEN === '1') {
-    try {
-      const raw = JSON.parse(Buffer.from(token, 'base64').toString('utf8')) as {
-        sid?: string;
-        userId?: string;
-        exp?: number;
-      };
-      if (raw.exp && Date.now() > raw.exp) return undefined;
-      if (raw.sid && raw.sid !== 'demo-session') return raw.sid;
-    } catch {
-      /* ignore */
-    }
-  }
   return undefined;
 }

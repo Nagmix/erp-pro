@@ -14,9 +14,18 @@ function generateToken() {
   return `erp_${randomUUID().replace(/-/g, '').slice(0, 20)}`;
 }
 
+/** SEC-14: قناع المفتاح في القوائم — أول 6 أحرف فقط */
+function maskKey(key: string): string {
+  if (!key) return '';
+  return key.length <= 6 ? '••••••••' : `${key.slice(0, 6)}••••••••`;
+}
+
 export async function GET() {
   const { apiKeys } = await loadDeveloperPortalStoreResolved();
-  return NextResponse.json({ success: true, data: apiKeys });
+  return NextResponse.json({
+    success: true,
+    data: apiKeys.map((k) => ({ ...k, key: maskKey(k.key) })),
+  });
 }
 
 export async function POST(request: NextRequest) {

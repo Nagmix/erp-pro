@@ -118,6 +118,11 @@ fi
 
 bench use "$SITE_NAME" >/dev/null 2>&1 || true
 
+# ---------- 3.5 Backup configuration (INF-04) ----------
+# الاحتفاظ بـ 7 نسخ + نسخة ليلية كاملة (قاعدة البيانات + الملفات)
+bench --site "$SITE_NAME" set-config backup_limit 7 >> sites/bns-init.log 2>&1 || true
+bench --site "$SITE_NAME" set-config backup_on_restart true >> sites/bns-init.log 2>&1 || true
+
 # ---------- 4. Start everything ----------
 log "Starting background processes: socketio, workers, scheduler ..."
 (
@@ -135,6 +140,19 @@ log "Starting background processes: socketio, workers, scheduler ..."
 (
   while [ ! -f "${SITE_DIR}/site_config.json" ]; do sleep 5; done
   while true; do bench schedule; sleep 5; done
+) &
+
+# ---------- 4.5 Nightly backup loop (INF-04) ----------
+# نسخة احتياطية كاملة كل 24 ساعة (قاعدة البيانات + الملفات) — استبقاء 7 نسخ
+(
+  while [ ! -f "${SITE_DIR}/site_config.json" ]; do sleep 5; done
+  sleep 120
+  while true; do
+    log "Running nightly backup (--with-files) ..."
+    bench --site "$SITE_NAME" backup --with-files >> sites/bns-init.log 2>&1 \
+      || log "WARN: nightly backup failed"
+    sleep 86400
+  done
 ) &
 
 log "Starting Gunicorn on :8000 ..."

@@ -47,7 +47,7 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle2,
-  Search,
+
   Printer,
   Send,
   ShieldCheck,
@@ -206,6 +206,7 @@ function AgingBar({ label, amount, maxAmount, colorClass }: {
 export default function PortalPage() {
   const { isAuthenticated, user, checkAuth, logout } = useAuthStore();
   const [customer, setCustomer] = useState('');
+  const [bindingState, setBindingState] = useState<'loading' | 'bound' | 'none' | 'error'>('loading');
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [invoiceFilter, setInvoiceFilter] = useState('all');
@@ -225,6 +226,36 @@ export default function PortalPage() {
   }, [checkAuth]);
 
   const sessionReady = isAuthenticated && Boolean(customer.trim());
+
+  // ─── SEC-10: الربط الخادمي مستخدم↔عميل — المصدر الوحيد لتحديد العميل ───
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    setBindingState('loading');
+    fetch('/api/portal/my-customer', { credentials: 'same-origin' })
+      .then(async (res) => {
+        const json = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (json.success && json.data) {
+          const customers: string[] = Array.isArray(json.data.customers) ? json.data.customers : [];
+          if (customers.length > 0) {
+            setCustomer(customers[0]);
+            setBindingState('bound');
+            return;
+          }
+          setCustomer('');
+          setBindingState('none');
+          return;
+        }
+        setBindingState('error');
+      })
+      .catch(() => {
+        if (!cancelled) setBindingState('error');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   // ─── Data Queries ───────────────────────────────────────────
   const invoices = useDocList<InvoiceRow>('Sales Invoice', {
@@ -746,32 +777,51 @@ export default function PortalPage() {
             </div>
           </div>
 
-          {/* Customer Input Card */}
+          {/* SEC-10: حساب العميل المرتبط — يأتي من الخادم ولا يمكن تغييره يدوياً */}
           <Card className="border-border/40 shadow-xl">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
-                تحديد حساب العميل
+                حسابك المرتبط
               </CardTitle>
               <CardDescription>
-                أدخل معرّف العميل للوصول إلى بياناتك وفواتيرك وتقاريرك
+                تم ربط حسابك بعميل من قِبل إدارة النظام — لا يمكن إدخال معرّف آخر
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="customer-id" className="text-sm font-medium">معرّف العميل</Label>
-                <Input
-                  id="customer-id"
-                  value={customer}
-                  onChange={(e) => setCustomer(e.target.value)}
-                  placeholder="مثال: CUST-0001"
-                  dir="ltr"
-                  className="font-mono text-sm h-11"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  أدخل معرّف العميل كما يظهر في نظام ERP Pro
-                </p>
-              </div>
+              {bindingState === 'loading' && (
+                <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                  جارٍ جلب حساب العميل المرتبط...
+                </div>
+              )}
+              {bindingState === 'bound' && customer && (
+                <div className="rounded-lg bg-muted/50 p-3 flex items-center gap-3">
+                  <div className="rounded-full bg-primary/10 p-2">
+                    <User className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium font-mono" dir="ltr">{customer}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {customerInfo?.customer_name || 'العميل المرتبط بحسابك'}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {bindingState === 'none' && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+                  <p className="font-medium text-amber-700 dark:text-amber-400">لا يوجد عميل مرتبط بحسابك</p>
+                  <p className="text-muted-foreground mt-1">
+                    تواصل مع إدارة النظام لربط حسابك بجهة اتصال (Contact) تحمل بريدك وتشير إلى عميلك.
+                  </p>
+                </div>
+              )}
+              {bindingState === 'error' && (
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm">
+                  <p className="font-medium text-red-700 dark:text-red-400">تعذر جلب ربط العميل</p>
+                  <p className="text-muted-foreground mt-1">حدث خطأ أثناء التحقق من حسابك. أعد تحديث الصفحة للمحاولة مجدداً.</p>
+                </div>
+              )}
               {user && (
                 <div className="rounded-lg bg-muted/50 p-3 flex items-center gap-3">
                   <div className="rounded-full bg-primary/10 p-2">
@@ -784,21 +834,6 @@ export default function PortalPage() {
                 </div>
               )}
             </CardContent>
-            <CardFooter>
-              <Button
-                className="w-full gap-2"
-                disabled={!customer.trim()}
-                onClick={() => {
-                  if (customer.trim()) {
-                    void invoices.refetch();
-                    void quotes.refetch();
-                  }
-                }}
-              >
-                <Search className="h-4 w-4" />
-                عرض بيانات العميل
-              </Button>
-            </CardFooter>
           </Card>
         </div>
       </div>

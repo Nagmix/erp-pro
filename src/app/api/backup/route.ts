@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { callMethod } from '@/lib/server/backend';
 import { getFrappeSidFromRequest } from '@/lib/server/request-session';
 import { writeFile, readFile, mkdir, unlink, readdir, stat } from 'fs/promises';
-import { join } from 'path';
+import { join, basename, resolve, sep } from 'path';
 
 // Prevent static analysis during build
 export const dynamic = 'force-dynamic';
@@ -311,8 +311,17 @@ export async function DELETE(request: NextRequest) {
 
     // Delete local file
     try {
-      const filePath = join(DATA_DIR, id);
-      await unlink(filePath);
+      // SEC-13: منع تجاوز المسار — اسم ملف أساسي فقط داخل مجلد البيانات حصراً
+      const safeName = basename(id);
+      const filePath = join(DATA_DIR, safeName);
+      const resolved = resolve(filePath);
+      if (!resolved.startsWith(resolve(DATA_DIR) + sep)) {
+        return NextResponse.json(
+          { success: false, error: 'مسار غير صالح' },
+          { status: 400 }
+        );
+      }
+      await unlink(resolved);
     } catch {
       // file may not exist
     }

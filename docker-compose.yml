@@ -27,10 +27,10 @@ services:
     container_name: erppro-db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-erppro_root_2025}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?set DB_ROOT_PASSWORD in .env}
       MYSQL_DATABASE: ${DB_NAME:-erppro_db}
       MYSQL_USER: ${DB_USER:-erppro_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
     volumes:
       - mariadb_data:/var/lib/mysql
       - ./docker/mariadb/conf.d:/etc/mysql/conf.d
@@ -88,7 +88,7 @@ services:
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-erppro_db}
       DB_USER: ${DB_USER:-erppro_user}
-      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       REDIS_CACHE: redis-cache:6379
       REDIS_QUEUE: redis-queue:6379
       REDIS_SOCKETIO: redis-socketio:6379
@@ -139,7 +139,7 @@ services:
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-erppro_db}
       DB_USER: ${DB_USER:-erppro_user}
-      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       REDIS_CACHE: redis-cache:6379
       REDIS_QUEUE: redis-queue:6379
     depends_on:
@@ -165,7 +165,7 @@ services:
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-erppro_db}
       DB_USER: ${DB_USER:-erppro_user}
-      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       REDIS_CACHE: redis-cache:6379
       REDIS_QUEUE: redis-queue:6379
     depends_on:
@@ -190,7 +190,7 @@ services:
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-erppro_db}
       DB_USER: ${DB_USER:-erppro_user}
-      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       REDIS_CACHE: redis-cache:6379
       REDIS_QUEUE: redis-queue:6379
     depends_on:
@@ -211,7 +211,7 @@ services:
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-erppro_db}
       DB_USER: ${DB_USER:-erppro_user}
-      DB_PASSWORD: ${DB_PASSWORD:-erppro_pass_2025}
+      DB_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
       REDIS_CACHE: redis-cache:6379
       REDIS_QUEUE: redis-queue:6379
     depends_on:
@@ -241,7 +241,7 @@ services:
       # ERPNext version — used by backend.ts for API compatibility shims
       BACKEND_VERSION: ${ERPNEXT_VERSION:-v16}
       ERPNEXT_TRY_LOGIN: "true"
-      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:-erp_pro_dev_secret_please_change}
+      AUTH_JWT_SECRET: ${AUTH_JWT_SECRET:?set AUTH_JWT_SECRET in .env}
       DATABASE_URL: file:/app/data/custom.db
     ports:
       - "3000:3000"

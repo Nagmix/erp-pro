@@ -22,8 +22,8 @@ components:
       dockerCompose:
           image: 'mariadb:10.6'
           environment:
-              MARIADB_ROOT_PASSWORD: 'ErpPro2025Root!'
-              MYSQL_ROOT_PASSWORD: 'ErpPro2025Root!'
+              MARIADB_ROOT_PASSWORD: '${MARIADB_ROOT_PASSWORD}'
+              MYSQL_ROOT_PASSWORD: '${MARIADB_ROOT_PASSWORD}'
           command:
               - '--character-set-client-handshake=FALSE'
               - '--character-set-server=utf8mb4'
@@ -116,8 +116,8 @@ components:
               DB_HOST: mariadb
               DB_PORT: '3306'
               SITE_NAME: erppro
-              MARIADB_ROOT_PASSWORD: 'ErpPro2025Root!'
-              ADMIN_PASSWORD: 'ErpPro2025Admin!'
+              MARIADB_ROOT_PASSWORD: '${MARIADB_ROOT_PASSWORD}'
+              ADMIN_PASSWORD: '${ADMIN_PASSWORD}'
               REDIS_CACHE: 'redis://redis-cache:6379'
               REDIS_QUEUE: 'redis://redis-queue:6379'
               REDIS_SOCKETIO: 'redis://redis-socketio:6379'
@@ -162,10 +162,10 @@ components:
               BACKEND_HOST: 'http://backend:8000'
               BACKEND_SITE_NAME: 'erppro'
               BACKEND_ADMIN_USER: 'Administrator'
-              BACKEND_ADMIN_PASSWORD: 'ErpPro2025Admin!'
+              BACKEND_ADMIN_PASSWORD: '${ADMIN_PASSWORD}'
               BACKEND_VERSION: 'v16'
               ERPNEXT_TRY_LOGIN: 'true'
-              AUTH_JWT_SECRET: 'erp_pro_dev_secret_please_change'
+              AUTH_JWT_SECRET: '${AUTH_JWT_SECRET}'
               DATABASE_URL: 'file:/app/data/custom.db'
               NODE_ENV: production
           ports:

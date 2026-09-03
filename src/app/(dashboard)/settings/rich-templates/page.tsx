@@ -70,6 +70,7 @@ import {
  User,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { sanitizeHtml } from '@/lib/client/sanitize';
 
 /* ──────────────────────────────────────────── */
 /* Types & Constants       */
@@ -696,7 +697,7 @@ export default function RichTemplatesPage() {
      <div
      className="p-4 rounded-lg border border-border/40 bg-card text-sm leading-relaxed overflow-auto max-h-[350px]"
      dir="rtl"
-     dangerouslySetInnerHTML={{ __html: previewTemplate.response || '<p class="text-muted-foreground">لا محتوى</p>' }}
+     dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewTemplate.response) || '<p class="text-muted-foreground">لا محتوى</p>' }}
      />
     ) : (
      <div className="p-4 rounded-lg border border-border/40 bg-card overflow-auto max-h-[350px]">
