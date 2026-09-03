@@ -29,7 +29,7 @@ import {
 import { Plus, Trash2, Send, Undo2, FileText, FileInput, Truck, Package, Calculator, Upload, Filter, ChevronDown, X, Coins } from 'lucide-react';
 import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { formatCurrency, formatDate } from '@/lib/core/helpers';
-import { useDocList, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
+import { useDocList, useDoc, useCreateDoc, useSubmitDoc, useCancelDoc, useDeleteDoc } from '@/lib/client/hooks';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { buildPurchaseInvoice } from '@/lib/erp/erpnext-payloads';
@@ -172,16 +172,27 @@ export default function PurchasesPurchaseInvoicesPage() {
     () => lines.reduce((s, l) => s + (l.item_code ? l.qty * l.rate : 0), 0),
     [lines]
   );
-  // TODO: Tax should come from ERPNext tax template; hardcoded 0 as placeholder until tax template response is integrated
-  const taxTotal = useMemo(
-    () => (taxesAndCharges.trim() ? 0 : 0),
-    [netTotal, taxesAndCharges]
+  // QUA-11 (تدقيق 2026-09): الضريبة من قالب ERPNext الحقيقي — كانت 0 ثابتة (TODO معلن)
+  const { data: taxTemplateDoc } = useDoc<Record<string, unknown>>(
+    'Purchase Taxes and Charges',
+    taxesAndCharges.trim() || '—'
   );
-  const grandTotal = useMemo(() => {
-    const disc = discountAmount > 0 ? discountAmount : 0;
-    if (taxesAndCharges.trim()) return netTotal - disc;
-    return netTotal + taxTotal - disc;
-  }, [netTotal, taxTotal, discountAmount, taxesAndCharges]);
+  const taxRateSum = useMemo(() => {
+    const taxes = (taxTemplateDoc as { taxes?: Array<{ rate?: number; type?: string }> } | null)?.taxes;
+    if (!Array.isArray(taxes)) return 0;
+    // تقريب عملي: جمع نسب «On Net Total» — الحالات الأعقد (On Previous Row) تُدار بالترحيل الكامل
+    return taxes
+      .filter((t) => !t.type || t.type === 'On Net Total')
+      .reduce((s, t) => s + (Number(t.rate) || 0), 0);
+  }, [taxTemplateDoc]);
+  const taxTotal = useMemo(() => {
+    if (!taxesAndCharges.trim()) return 0;
+    return netTotal * (taxRateSum / 100);
+  }, [netTotal, taxRateSum, taxesAndCharges]);
+  const grandTotal = useMemo(
+    () => netTotal + taxTotal - (discountAmount > 0 ? discountAmount : 0),
+    [netTotal, taxTotal, discountAmount]
+  );
 
   const updateLine = (i: number, patch: Partial<Line>) => {
     setLines((prev) => {
@@ -768,7 +779,7 @@ export default function PurchasesPurchaseInvoicesPage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => { if (lines.length > 1) setLines((p) => p.filter((_, j) => j !== idx)); }} disabled={lines.length === 1}>
+                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> { if (lines.length > 1) setLines((p) => p.filter((_, j) => j !== idx)); }} disabled={lines.length === 1}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
                         </TableCell>

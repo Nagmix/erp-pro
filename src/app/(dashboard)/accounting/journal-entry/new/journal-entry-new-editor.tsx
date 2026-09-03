@@ -310,7 +310,7 @@ function JournalLineRow({
               variant="ghost"
               size="icon"
               className="h-9 w-9 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 shrink-0"
-              onClick={() => removeLine(index)}
+              onClick={()=> removeLine(index)}
               aria-label="حذف البند"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -545,7 +545,7 @@ export function JournalEntryNewEditor() {
         {/* Decorative background element */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(var(--primary),0.06),transparent_60%)] pointer-events-none" />
         <div className="relative flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="shrink-0 hover:bg-primary/10" asChild>
+          <Button variant="ghost" size="icon" className="shrink-0 hover:bg-primary/10" asChild aria-label="رابط">
             <Link href="/accounting/journal-entry" aria-label="العودة">
               <ArrowRight className="h-4 w-4" />
             </Link>

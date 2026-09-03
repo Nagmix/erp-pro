@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { formatDate } from '@/lib/core/helpers';
 import { PageHeader } from '@/components/erp/page-header';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { ListQueryAlert } from '@/components/erp/list-query-alert';
@@ -310,7 +311,7 @@ export default function TermsSettingsPage() {
   render: (v) => {
    if (!v) return <span className="text-xs text-muted-foreground">—</span>;
    const d = new Date(String(v));
-   return <span className="text-xs text-muted-foreground">{d.toLocaleDateString('en-US')}</span>;
+   return <span className="text-xs text-muted-foreground">{formatDate(d.toISOString())}</span>;
   },
   },
  ],

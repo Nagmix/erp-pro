@@ -1,6 +1,7 @@
 'use client';
 
 import { Download, FileSpreadsheet, FileText, Loader2, Printer } from 'lucide-react';
+import { formatDate } from '@/lib/core/helpers';
 import { useState } from 'react';
 import ExcelJS from 'exceljs';
 import { Document, Page, StyleSheet, Text, View, pdf } from '@react-pdf/renderer';
@@ -158,7 +159,7 @@ async function exportToPdf(data: Record<string, unknown>[], filename: string, co
     <Document title={filename}>
       <Page size="A4" style={pdfStyles.page}>
         <Text style={pdfStyles.title}>{filename}</Text>
-        <Text style={pdfStyles.meta}>تاريخ التصدير: {new Date().toLocaleDateString('en-US')}</Text>
+        <Text style={pdfStyles.meta}>تاريخ التصدير: {formatDate(new Date().toISOString())}</Text>
         <View style={pdfStyles.table}>
           <View style={pdfStyles.row}>
             {headers.map((header) => (

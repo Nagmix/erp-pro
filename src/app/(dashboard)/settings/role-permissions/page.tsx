@@ -789,7 +789,7 @@ export default function RolePermissionsPage() {
        size="icon"
        variant="ghost"
        className="h-7 w-7 text-destructive hover:text-destructive"
-       onClick={(e) => {
+       onClick={(e)=> {
        e.stopPropagation();
        openDeleteDialog(role.name);
        }}
@@ -1008,7 +1008,7 @@ export default function RolePermissionsPage() {
          variant="ghost"
          className="h-7 w-7 text-chart-3 hover:text-chart-3"
          title="تحديد الكل"
-         onClick={() => handleSelectAllRow(dt.name)}
+         onClick={()=> handleSelectAllRow(dt.name)}
         >
          <CheckSquare className="h-3.5 w-3.5" />
         </Button>
@@ -1017,7 +1017,7 @@ export default function RolePermissionsPage() {
          variant="ghost"
          className="h-7 w-7 text-destructive hover:text-destructive"
          title="إلغاء الكل"
-         onClick={() => handleDeselectAllRow(dt.name)}
+         onClick={()=> handleDeselectAllRow(dt.name)}
         >
          <XSquare className="h-3.5 w-3.5" />
         </Button>

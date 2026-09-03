@@ -617,7 +617,7 @@ export default function ProductionPlansPage() {
                             variant="ghost"
                             size="icon"
                             className="h-7"
-                            onClick={() =>
+                            onClick={()=>
                               poItems.length > 1 &&
                               setPoItems((rows) => rows.filter((_, j) => j !== idx))
                             }

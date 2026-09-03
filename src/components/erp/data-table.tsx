@@ -602,7 +602,7 @@ export function DataTable<T = unknown>({
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 min-h-9 min-w-9 opacity-80 group-hover:opacity-100 transition-opacity"
-                            >
+                             aria-label="المزيد">
                               <MoreHorizontal className="h-3.5 w-3.5" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -702,7 +702,7 @@ export function DataTable<T = unknown>({
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 shrink-0"
-                        onClick={() => toggleCardExpand(id)}
+                        onClick={()=> toggleCardExpand(id)}
                         aria-label={isExpanded ? "عرض أقل" : "عرض المزيد"}
                       >
                         {isExpanded ? (
@@ -764,7 +764,7 @@ export function DataTable<T = unknown>({
               size="icon"
               className="h-8 w-8 min-h-9 min-w-9"
               disabled={safeCurrentPage <= 1}
-              onClick={() => setCurrentPage(safeCurrentPage - 1)}
+              onClick={()=> setCurrentPage(safeCurrentPage - 1)}
             >
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
@@ -775,6 +775,7 @@ export function DataTable<T = unknown>({
               variant="outline"
               size="icon"
               className="h-8 w-8 min-h-9 min-w-9"
+              aria-label="الصفحة التالية"
               disabled={safeCurrentPage >= totalPages}
               onClick={() => setCurrentPage(safeCurrentPage + 1)}
             >

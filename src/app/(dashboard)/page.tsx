@@ -644,7 +644,7 @@ export default function DashboardPage() {
           <Link href="/reports">مركز التقارير</Link>
         </Button>
         <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" asChild>
-          <Link href="/accounting/bank-and-cash">البنوك والصناديق</Link>
+          <Link href="/accounting/bank-accounts">البنوك والصناديق</Link>
         </Button>
         <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" asChild>
           <Link href="/settings">الإعدادات</Link>

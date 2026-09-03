@@ -2,8 +2,9 @@
 
 <div dir="rtl">
 
-[![Status](https://img.shields.io/badge/الحالة-نموذج_مبدئي-yellow)]()
-[![Progress](https://img.shields.io/badge/الإنجاز-28%25-blue)]()
+[![Status](https://img.shields.io/badge/الحالة-إنتاج_تجريبي-green)]()
+[![Progress](https://img.shields.io/badge/الإنجاز-72%25-blue)]()
+[![Security](https://img.shields.io/badge/الأمان-P0%2BP1_مكتملة-brightgreen)]()
 [![Language](https://img.shields.io/badge/اللغة-العربية-green)]()
 [![License](https://img.shields.io/badge/الرخصة-MIT-blue)]()
 
@@ -131,16 +132,14 @@ src/
 
 | الملف | المحتوى |
 |-------|---------|
-| [docs/PROJECT_IDEA.md](docs/PROJECT_IDEA.md) | فكرة المشروع والرؤية |
-| [docs/WORK_MECHANISM.md](docs/WORK_MECHANISM.md) | آلية عمل النظام |
-| [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) | هيكل المشروع |
+| [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) | **حالة المشروع — المصدر الوحيد للحقيقة** |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | سجل التغييرات |
-| [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md) | حالة المشروع ونسبة الإنجاز |
-| [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) | خطة التطوير الشاملة |
+| [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) | هيكل المشروع |
+| [docs/archive/](docs/archive/) | وثائق تاريخية (أُرشفت — لا تعتبر مرجعاً) |
 
 ## المساهمة
 
-نرحب بمساهماتكم! يرجى قراءة [خطة التطوير](docs/DEVELOPMENT_PLAN.md) و[حالة المشروع](docs/PROJECT_STATUS.md) قبل البدء.
+نرحب بمساهماتكم! يرجى قراءة [حالة المشروع](docs/PROJECT_STATUS.md) (المصدر الوحيد للنِسَب والحالة) قبل البدء.
 
 ## الرخصة
 

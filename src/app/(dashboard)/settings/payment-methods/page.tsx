@@ -464,7 +464,7 @@ const handleEdit = async () => {
      </div>
      <div className="md:col-span-2 flex justify-center">
       {accountRows.length > 1 && (
-      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeAccountRow(idx)}>
+      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={()=> removeAccountRow(idx)}>
        <Trash2 className="h-3 w-3" />
       </Button>
       )}

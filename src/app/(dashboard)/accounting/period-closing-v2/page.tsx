@@ -612,7 +612,7 @@ export default function PeriodClosingV2Page() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="معلومات">
                     <Info className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -900,7 +900,7 @@ export default function PeriodClosingV2Page() {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => {
+                  onClick={()=> {
                     if (calMonth === 0) {
                       setCalMonth(11);
                       setCalYear((y) => y - 1);
@@ -933,7 +933,7 @@ export default function PeriodClosingV2Page() {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => {
+                  onClick={()=> {
                     if (calMonth === 11) {
                       setCalMonth(0);
                       setCalYear((y) => y + 1);

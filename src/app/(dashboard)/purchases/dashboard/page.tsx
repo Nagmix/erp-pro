@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
+import { useServerKPIs, currentMonthExpenses } from '@/lib/client/use-dashboard-kpis';
 import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,11 +87,15 @@ export default function PurchasesDashboardPage() {
   const isLoading = piLoading || poLoading || supLoading || prLoading;
 
   /* ---------- KPI calculations ---------- */
+  // QUA-03: مشتريات الشهر من الخادم (دقيقة حتى تجاوز 100 مستند)
+  const { data: serverKpis } = useServerKPIs();
   const totalPurchases = useMemo(
-    () => purchaseInvoices
-      .filter((inv) => String(inv.posting_date ?? '').startsWith(thisMonth) && Number(inv.docstatus) === 1)
-      .reduce((sum, inv) => sum + Number(inv.grand_total || 0), 0),
-    [purchaseInvoices, thisMonth]
+    () =>
+      currentMonthExpenses(serverKpis) ||
+      purchaseInvoices
+        .filter((inv) => String(inv.posting_date ?? '').startsWith(thisMonth) && Number(inv.docstatus) === 1)
+        .reduce((sum, inv) => sum + Number(inv.grand_total || 0), 0),
+    [serverKpis, purchaseInvoices, thisMonth]
   );
 
   const openPurchaseOrders = useMemo(
@@ -114,8 +119,10 @@ export default function PurchasesDashboardPage() {
   );
 
   const pendingReceipts = useMemo(
-    () => purchaseOrders.filter((po) => Number(po.docstatus) === 1 && ['To Receive and Bill', 'To Receive'].includes(String(po.status))).length,
-    [purchaseOrders]
+    () =>
+      serverKpis?.openPurchaseOrders ??
+      purchaseOrders.filter((po) => Number(po.docstatus) === 1 && ['To Receive and Bill', 'To Receive'].includes(String(po.status))).length,
+    [serverKpis, purchaseOrders]
   );
 
   const returnsThisMonth = useMemo(

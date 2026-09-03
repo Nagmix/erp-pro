@@ -22,8 +22,24 @@ jobs:
       - name: Prisma generate
         run: npx prisma generate
 
+      - name: Prisma validate
+        run: npx prisma validate
+
       - name: TypeScript
         run: npx tsc --noEmit
 
+      - name: Lint
+        run: npm run lint
+
       - name: Unit tests
         run: npm run test
+
+      # INF-12: انكسار البناء/الstandalone يُكتشف في CI بدل الإنتاج
+      - name: Production build
+        run: npm run build
+        env:
+          BACKEND_HOST: http://localhost:9999
+          AUTH_JWT_SECRET: ci-dummy-secret-not-used-at-runtime
+
+      - name: Audit (production deps, high+)
+        run: npm audit --omit=dev --audit-level=high || true

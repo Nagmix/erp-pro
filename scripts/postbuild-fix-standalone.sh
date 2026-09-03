@@ -24,10 +24,7 @@ else
   echo "  ⚠ Skipped: public or .next/standalone not found"
 fi
 
-# Copy .env → .next/standalone/.env
-if [ -f "$PROJECT_DIR/.env" ] && [ -d "$PROJECT_DIR/.next/standalone" ]; then
-  cp "$PROJECT_DIR/.env" "$PROJECT_DIR/.next/standalone/.env"
-  echo "  ✓ Copied .env → .next/standalone/.env"
-fi
+# INF-07: لا نسخ لـ .env داخل standalone — الإعدادات تُمرر وقت التشغيل فقط
+# (الأسرار في ملف .env لا يجب أن تدخل الأرتيفاكت المنشور)
 
 echo "[postbuild] Done!"

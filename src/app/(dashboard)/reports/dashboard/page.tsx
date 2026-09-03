@@ -34,6 +34,7 @@ import { DataTable, type Column } from '@/components/erp/data-table';
 import { EmptyState } from '@/components/erp/empty-state';
 import { ExportButton } from '@/components/erp/export-button';
 import { useDocList, useRunReport } from '@/lib/client/hooks';
+import ExcelJS from 'exceljs';
 import { formatCurrency, formatDate, CHART_PALETTE } from '@/lib/core/helpers';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { toast } from 'sonner';
@@ -731,14 +732,81 @@ export default function ReportsDashboardPage() {
     window.print();
   }, []);
 
+  // F-01 (تدقيق 2026-09): الطباعة هي مسار PDF الحقيقي (حفظ كـ PDF من حوار الطباعة)
   const handleExportPDF = useCallback(() => {
-    toast.success('جاري تجهيز PDF', { description: 'سيتم تنزيل الملف قريباً' });
-    window.print();
+    toast.info('حفظ كـ PDF', {
+      description: 'اختر «حفظ كـ PDF» من حوار الطباعة الذي سيفتح الآن',
+    });
+    setTimeout(() => window.print(), 400);
   }, []);
 
-  const handleExportExcel = useCallback(() => {
-    toast.success('جاري تجهيز Excel', { description: 'سيتم تنزيل الملف قريباً' });
-  }, []);
+  // F-01 (تدقيق 2026-09): تصدير Excel حقيقي متعدد الأوراق — كان زراً وهمياً
+  const handleExportExcel = useCallback(async () => {
+    const sheets: Array<{ name: string; rows: Record<string, unknown>[] }> = [
+      { name: 'قيود دفتر الأستاذ', rows: (glEntries || []).slice(0, 1000) },
+      { name: 'فواتير المبيعات', rows: (salesInvoices || []).slice(0, 1000) },
+      { name: 'فواتير المشتريات', rows: (purchaseInvoices || []).slice(0, 1000) },
+      { name: 'مطالبات المصروفات', rows: (expenseClaims || []).slice(0, 1000) },
+      { name: 'الرواتب', rows: (salarySlips || []).slice(0, 1000) },
+      { name: 'الموظفون', rows: (employees || []).slice(0, 1000) },
+      { name: 'المخزون', rows: (bins || []).slice(0, 1000) },
+      { name: 'الحضور', rows: (attendance || []).slice(0, 1000) },
+      { name: 'الإجازات', rows: (leaveApps || []).slice(0, 1000) },
+      { name: 'إشعارات التسليم', rows: (deliveryNotes || []).slice(0, 1000) },
+    ].filter((s) => s.rows.length > 0);
+
+    if (sheets.length === 0) {
+      toast.warning('لا توجد بيانات للتصدير بعد');
+      return;
+    }
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      workbook.views = [{ rightToLeft: true } as unknown as ExcelJS.WorkbookView];
+      for (const sheet of sheets) {
+        const ws = workbook.addWorksheet(sheet.name.slice(0, 31));
+        const keys = Array.from(new Set(sheet.rows.flatMap((r) => Object.keys(r)))).filter(
+          (k) => k !== 'docstatus' && k !== 'owner' && k !== 'creation' && k !== 'modified'
+        );
+        ws.views = [{ rightToLeft: true } as unknown as ExcelJS.WorksheetView];
+        ws.addRow(keys);
+        for (const row of sheet.rows) {
+          ws.addRow(keys.map((k) => (row[k] ?? '') instanceof Object ? JSON.stringify(row[k]) : (row[k] ?? '')));
+        }
+        const header = ws.getRow(1);
+        header.font = { bold: true };
+        header.alignment = { vertical: 'middle', horizontal: 'right' };
+        header.eachCell((cell) => {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+          cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        });
+        ws.columns.forEach((col) => {
+          let max = 10;
+          col.eachCell?.({ includeEmpty: true }, (c) => {
+            max = Math.max(max, String(c.value ?? '').length);
+          });
+          col.width = Math.min(max + 2, 40);
+        });
+      }
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `erp-pro-dashboard-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success('تم تنزيل ملف Excel', { description: `${sheets.length} ورقة بيانات` });
+    } catch (e) {
+      toast.error('فشل التصدير', {
+        description: e instanceof Error ? e.message : 'خطأ غير متوقع',
+      });
+    }
+  }, [glEntries, salesInvoices, purchaseInvoices, expenseClaims, salarySlips, employees, bins, attendance, leaveApps, deliveryNotes]);
 
   // ════════════════════════════════════════════════════════════
   // Render

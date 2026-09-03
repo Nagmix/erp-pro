@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
+import { useServerKPIs, currentMonthRevenue } from '@/lib/client/use-dashboard-kpis';
 import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -149,11 +150,16 @@ export default function SalesDashboardPage() {
   const isLoading = siLoading || soLoading || qoLoading || dnLoading || custLoading;
 
   /* ---------- KPI calculations ---------- */
+  // QUA-03: مبيعات الشهر من الخادم (دقيقة حتى تجاوز 100 مستند) مع fallback محلي
+  const { data: serverKpis } = useServerKPIs();
+  const serverMonthSales = currentMonthRevenue(serverKpis);
   const totalSales = useMemo(
-    () => salesInvoices
-      .filter((inv) => String(inv.posting_date ?? '').startsWith(thisMonth) && Number(inv.docstatus) === 1)
-      .reduce((sum, inv) => sum + Number(inv.grand_total || 0), 0),
-    [salesInvoices, thisMonth]
+    () =>
+      serverMonthSales ||
+      salesInvoices
+        .filter((inv) => String(inv.posting_date ?? '').startsWith(thisMonth) && Number(inv.docstatus) === 1)
+        .reduce((sum, inv) => sum + Number(inv.grand_total || 0), 0),
+    [serverMonthSales, salesInvoices, thisMonth]
   );
 
   const avgOrderValue = useMemo(() => {
@@ -167,8 +173,10 @@ export default function SalesDashboardPage() {
   );
 
   const openOrders = useMemo(
-    () => salesOrders.filter((so) => Number(so.docstatus) === 1 && ['To Deliver and Bill', 'To Deliver', 'To Bill'].includes(String(so.status))).length,
-    [salesOrders]
+    () =>
+      serverKpis?.openSalesOrders ??
+      salesOrders.filter((so) => Number(so.docstatus) === 1 && ['To Deliver and Bill', 'To Deliver', 'To Bill'].includes(String(so.status))).length,
+    [serverKpis, salesOrders]
   );
 
   const pendingQuotations = useMemo(

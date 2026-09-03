@@ -39,7 +39,9 @@ for i in $(seq 1 120); do
   sleep 2
 done
 if [ "$DB_OK" != "1" ]; then
-  log "ERROR: MariaDB not reachable after 240s — starting services anyway"
+  log "ERROR: MariaDB not reachable after 240s — aborting boot (INF-09: fail hard بدل بدء نظام مكسور بصمت)"
+  touch sites/bns-INIT-FAILED
+  exit 1
 fi
 
 # ---------- 2. common_site_config.json (direct write, then sync via bench) ----------
@@ -97,26 +99,62 @@ if [ ! -f "${SITE_DIR}/site_config.json" ]; then
 
   if [ "$NS_RC" = "0" ]; then
     log "Site created — installing HRMS ..."
-    bench --site "$SITE_NAME" install-app hrms >> sites/bns-init.log 2>&1 || log "WARN: HRMS install failed (check bns-init.log)"
+    # INF-09: تثبيت HRMS حرج — 3 محاولات ثم فشل صريح (كان يُبتلع بصمت ويبدأ نظام مكسور)
+    HRMS_OK=0
+    for attempt in 1 2 3; do
+      if bench --site "$SITE_NAME" install-app hrms >> sites/bns-init.log 2>&1; then
+        HRMS_OK=1
+        break
+      fi
+      log "WARN: HRMS install attempt ${attempt} failed — retrying in 10s ..."
+      sleep 10
+    done
+    if [ "$HRMS_OK" != "1" ]; then
+      log "ERROR: HRMS install failed after 3 attempts — aborting (see sites/bns-init.log)"
+      touch sites/bns-INIT-FAILED
+      exit 1
+    fi
     bench --site "$SITE_NAME" set-maintenance-mode off >> sites/bns-init.log 2>&1 || true
     bench --site "$SITE_NAME" enable-scheduler >> sites/bns-init.log 2>&1 || true
     log "Site '${SITE_NAME}' is ready"
   else
-    log "ERROR: bench new-site failed (rc=${NS_RC}) — see sites/bns-init.log. Starting services anyway for debugging."
+    log "ERROR: bench new-site failed (rc=${NS_RC}) — aborting boot (pod will restart and retry)"
+    touch sites/bns-INIT-FAILED
+    exit 1
   fi
 else
   log "Site '${SITE_NAME}' already exists — running migrate ..."
-  bench --site "$SITE_NAME" migrate >> sites/bns-init.log 2>&1 || true
+  # INF-09: فشل migrate = فشل إقلاع صريح (كان يُبتلع بصمت)
+  if ! bench --site "$SITE_NAME" migrate >> sites/bns-init.log 2>&1; then
+    log "ERROR: bench migrate failed — aborting boot (pod will restart and retry)"
+    touch sites/bns-INIT-FAILED
+    exit 1
+  fi
   bench --site "$SITE_NAME" set-maintenance-mode off >> sites/bns-init.log 2>&1 || true
   if hrms_installed; then
     log "HRMS already installed"
   else
     log "HRMS missing — installing ..."
-    bench --site "$SITE_NAME" install-app hrms >> sites/bns-init.log 2>&1 || log "WARN: HRMS install failed"
+    HRMS_OK=0
+    for attempt in 1 2 3; do
+      if bench --site "$SITE_NAME" install-app hrms >> sites/bns-init.log 2>&1; then
+        HRMS_OK=1
+        break
+      fi
+      log "WARN: HRMS install attempt ${attempt} failed — retrying in 10s ..."
+      sleep 10
+    done
+    if [ "$HRMS_OK" != "1" ]; then
+      log "ERROR: HRMS install failed after 3 attempts — aborting"
+      touch sites/bns-INIT-FAILED
+      exit 1
+    fi
   fi
 fi
 
 bench use "$SITE_NAME" >/dev/null 2>&1 || true
+rm -f sites/bns-INIT-FAILED
+log "Bootstrap completed successfully"
 
 # ---------- 3.5 Backup configuration (INF-04) ----------
 # الاحتفاظ بـ 7 نسخ + نسخة ليلية كاملة (قاعدة البيانات + الملفات)

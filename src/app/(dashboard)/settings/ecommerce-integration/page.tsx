@@ -146,16 +146,29 @@ export default function EcommerceIntegrationPage() {
  };
 
  /* ─── Test connection ─── */
+ /* F-04 (تدقيق 2026-09): فحص حقيقي — إعادة جلب فعلية لإعدادات ومنتجات ERPNext
+  * مع عرض نتيجة حقيقية (نجاح/فشل + عدد المنتجات المنشورة) بدل محاكاة sleep 1.5s */
  const testConnection = async () => {
  setTesting(true);
- await new Promise((r) => setTimeout(r, 1500));
  try {
-  await settingsQuery.refetch();
-  toast.success('تم الاتصال بنجاح بخدمة التجارة الإلكترونية');
- } catch {
-  toast.error('فشل الاتصال');
+  const [s, i] = await Promise.all([settingsQuery.refetch(), itemsQuery.refetch()]);
+  if (s.isSuccess && s.data) {
+  const items = i.data || [];
+  const published = items.filter((x) => Number(x.published) === 1).length;
+  toast.success('الاتصال بـ ERPNext سليم', {
+   description: `E Commerce Settings قابلة للقراءة — ${items.length} عنصر تجارة إلكترونية (${published} منشور)`,
+  });
+  } else {
+  const msg = s.error instanceof Error ? s.error.message : 'تعذر قراءة إعدادات التجارة من الخادم';
+  toast.error('فشل الاتصال', { description: msg });
+  }
+ } catch (e) {
+  toast.error('فشل الاتصال', {
+  description: e instanceof Error ? e.message : 'خطأ غير متوقع أثناء الفحص',
+  });
+ } finally {
+  setTesting(false);
  }
- setTesting(false);
  };
 
  /* ─── Stats ─── */

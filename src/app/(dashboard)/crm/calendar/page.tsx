@@ -418,7 +418,7 @@ export default function CalendarPage() {
 
         <div className="flex items-center gap-2">
           <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={goToToday}>اليوم</Button>
-          <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={viewMode === 'week' ? goToPrevWeek : goToPrevMonth}>
+          <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={viewMode === 'week' ? goToPrevWeek : goToPrevMonth} aria-label="السابق">
             <ChevronRight className="h-4 w-4" />
           </Button>
           <span className="text-sm font-semibold min-w-[140px] text-center">
@@ -428,7 +428,7 @@ export default function CalendarPage() {
                 ? `${ARABIC_MONTHS[selectedDay.getMonth()]} ${selectedDay.getDate()}, ${selectedDay.getFullYear()}`
                 : `${ARABIC_MONTHS[currentMonth]} ${currentYear}`}
           </span>
-          <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={viewMode === 'week' ? goToNextWeek : goToNextMonth}>
+          <Button type="button" size="icon" variant="outline" className="h-8 w-8" onClick={viewMode === 'week' ? goToNextWeek : goToNextMonth} aria-label="التالي">
             <ChevronLeft className="h-4 w-4" />
           </Button>
         </div>

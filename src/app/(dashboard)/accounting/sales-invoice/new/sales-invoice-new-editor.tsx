@@ -757,7 +757,7 @@ export function SalesInvoiceNewEditor() {
                             variant="ghost"
                             size="icon"
                             className="h-9 w-9 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => setItems((p) => p.filter((x) => x._rid !== item._rid))}
+                            onClick={()=> setItems((p) => p.filter((x) => x._rid !== item._rid))}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

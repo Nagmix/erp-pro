@@ -13,25 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// نماذج عيّنة من قالب Prisma — غير مستخدمة في منطق ERP Pro؛ تُبقى للتوافق مع هجرات قديمة فقط (M-20).
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-/// نماذج عيّنة من قالب Prisma — غير مستخدمة في منطق ERP Pro.
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+// INF: نماذج قالب Prisma (User/Post) حُذفت — كانت معلنة وغير مستخدمة في منطق ERP Pro
 
 /// مرآة JSON لإعدادات التكاملات المحلية — بالإضافة إلى الملف (M-20).
 model AppLocalSettings {
@@ -40,7 +22,7 @@ model AppLocalSettings {
   updatedAt DateTime @updatedAt
 }
 
-/// سجل تدقيق محلي للتطبيق — لا يزال النموذج القديم User/Post للتوافق؛ التوسيع التدريجي يبدأ هنا (M-20).
+/// سجل تدقيق محلي للتطبيق — التوسيع التدريجي يبدأ هنا (M-20).
 model AppAuditLog {
   id        String   @id @default(cuid())
   action    String

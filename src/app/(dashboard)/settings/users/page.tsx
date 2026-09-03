@@ -845,7 +845,7 @@ export default function UsersManagementPage() {
        variant="ghost"
        className="h-7 w-7"
        title="تعديل"
-       onClick={() => openEditDialog(user)}
+       onClick={()=> openEditDialog(user)}
        >
        <Edit className="h-3.5 w-3.5" />
        </Button>
@@ -854,7 +854,7 @@ export default function UsersManagementPage() {
        variant="ghost"
        className="h-7 w-7"
        title="إدارة الأدوار"
-       onClick={() => openRoleDialog(user)}
+       onClick={()=> openRoleDialog(user)}
        >
        <Shield className="h-3.5 w-3.5" />
        </Button>
@@ -863,7 +863,7 @@ export default function UsersManagementPage() {
        variant="ghost"
        className="h-7 w-7"
        title="إعادة تعيين كلمة المرور"
-       onClick={() => {
+       onClick={()=> {
         setUserToReset(user);
         setResetDialogOpen(true);
        }}
@@ -875,7 +875,7 @@ export default function UsersManagementPage() {
        variant="ghost"
        className="h-7 w-7 text-destructive hover:text-destructive"
        title="حذف"
-       onClick={() => {
+       onClick={()=> {
         setUserToDelete(user);
         setDeleteDialogOpen(true);
        }}

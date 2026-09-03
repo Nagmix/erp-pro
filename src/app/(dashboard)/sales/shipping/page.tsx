@@ -578,7 +578,7 @@ export default function ShippingCompaniesPage() {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-destructive"
-              onClick={() => setDeleteTarget(row)}
+              onClick={()=> setDeleteTarget(row)}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>

@@ -13,6 +13,7 @@ import {
   Legend,
 } from 'recharts';
 import { useDocList } from '@/lib/client/hooks';
+import { useServerKPIs, currentMonthRevenue, currentMonthExpenses } from '@/lib/client/use-dashboard-kpis';
 import { PageHeader, KpiStrip } from '@/components/erp/page-header';
 import { KpiCard } from '@/components/erp/kpi-card';
 import { StatusBadge } from '@/components/erp/status-badge';
@@ -180,34 +181,44 @@ export default function AccountingDashboardPage() {
   const now = new Date();
   const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
+  // QUA-03: القيم من الخادم (getDashboardKPIs — حتى 4000 مستند) مع fallback للمحلي
+  const { data: serverKpis } = useServerKPIs();
   const totalRevenue = useMemo(
-    () => salesInvoices
-      .filter((inv) => String(inv.posting_date ?? '').startsWith(thisMonth) && Number(inv.docstatus) === 1)
-      .reduce((sum, inv) => sum + Number(inv.grand_total || 0), 0),
-    [salesInvoices, thisMonth]
+    () =>
+      currentMonthRevenue(serverKpis) ||
+      salesInvoices
+        .filter((inv) => String(inv.posting_date ?? '').startsWith(thisMonth) && Number(inv.docstatus) === 1)
+        .reduce((sum, inv) => sum + Number(inv.grand_total || 0), 0),
+    [serverKpis, salesInvoices, thisMonth]
   );
 
   const totalExpenses = useMemo(
-    () => purchaseInvoices
-      .filter((inv) => String(inv.posting_date ?? '').startsWith(thisMonth) && Number(inv.docstatus) === 1)
-      .reduce((sum, inv) => sum + Number(inv.grand_total || 0), 0),
-    [purchaseInvoices, thisMonth]
+    () =>
+      currentMonthExpenses(serverKpis) ||
+      purchaseInvoices
+        .filter((inv) => String(inv.posting_date ?? '').startsWith(thisMonth) && Number(inv.docstatus) === 1)
+        .reduce((sum, inv) => sum + Number(inv.grand_total || 0), 0),
+    [serverKpis, purchaseInvoices, thisMonth]
   );
 
   const netProfit = totalRevenue - totalExpenses;
 
   const outstandingReceivables = useMemo(
-    () => salesInvoices
-      .filter((inv) => Number(inv.docstatus) === 1 && Number(inv.outstanding_amount || 0) > 0)
-      .reduce((sum, inv) => sum + Number(inv.outstanding_amount || 0), 0),
-    [salesInvoices]
+    () =>
+      serverKpis?.outstandingReceivables ||
+      salesInvoices
+        .filter((inv) => Number(inv.docstatus) === 1 && Number(inv.outstanding_amount || 0) > 0)
+        .reduce((sum, inv) => sum + Number(inv.outstanding_amount || 0), 0),
+    [serverKpis, salesInvoices]
   );
 
   const outstandingPayables = useMemo(
-    () => purchaseInvoices
-      .filter((inv) => Number(inv.docstatus) === 1 && Number(inv.outstanding_amount || 0) > 0)
-      .reduce((sum, inv) => sum + Number(inv.outstanding_amount || 0), 0),
-    [purchaseInvoices]
+    () =>
+      serverKpis?.outstandingPayables ||
+      purchaseInvoices
+        .filter((inv) => Number(inv.docstatus) === 1 && Number(inv.outstanding_amount || 0) > 0)
+        .reduce((sum, inv) => sum + Number(inv.outstanding_amount || 0), 0),
+    [serverKpis, purchaseInvoices]
   );
 
   // Cash balance: net of received vs paid payments (approximation from Payment Entries)

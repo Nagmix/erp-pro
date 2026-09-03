@@ -21,6 +21,7 @@ import {
  Loader2, AlertTriangle, WifiOff, Cloud, CloudOff, Pencil, RefreshCw, Search,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useDocList } from '@/lib/client/hooks';
 import { SettingsHubTiles } from '@/components/erp/settings-hub-tiles';
 import { PageHeader } from '@/components/erp/page-header';
 import {
@@ -112,6 +113,14 @@ export default function SettingsPage() {
 
  // حالة الإعدادات
  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
+
+ // F-06 (تدقيق 2026-09): قائمتا المستودعات من ERPNext بدل قوائم فارغة
+ const { data: warehouseRows } = useDocList<{ name: string }>('Warehouse', {
+  fields: ['name'],
+  limit: 200,
+  order_by: 'name asc',
+ });
+ const warehouses = warehouseRows || [];
 
  // ─── حالة الأدوار (الصلاحيات) ────────────────────────────────────
  const [roles, setRoles] = useState<RoleData[]>([]);
@@ -506,10 +515,11 @@ export default function SettingsPage() {
     </div>
     <div className="space-y-2">
      <Label className="text-sm font-medium">مستودع نقاط البيع</Label>
-     {/* TODO: جلب المستودعات من ERPNext API ديناميكياً */}
+     {/* F-06: مستودعات ERPNext الحقيقية */}
      <Select value={settings.posWarehouse} onValueChange={v => setSettings(s => ({ ...s, posWarehouse: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر المستودع" /></SelectTrigger>
      <SelectContent>
+      {warehouses.map(w => <SelectItem key={w.name} value={w.name}>{w.name}</SelectItem>)}
      </SelectContent>
      </Select>
     </div>
@@ -590,10 +600,11 @@ export default function SettingsPage() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div className="space-y-2">
      <Label className="text-sm font-medium">المستودع الافتراضي</Label>
-     {/* TODO: جلب المستودعات من ERPNext API ديناميكياً */}
+     {/* F-06: مستودعات ERPNext الحقيقية */}
      <Select value={settings.defaultWarehouse} onValueChange={v => setSettings(s => ({ ...s, defaultWarehouse: v }))}>
      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="اختر المستودع" /></SelectTrigger>
      <SelectContent>
+      {warehouses.map(w => <SelectItem key={w.name} value={w.name}>{w.name}</SelectItem>)}
      </SelectContent>
      </Select>
     </div>

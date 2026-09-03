@@ -95,3 +95,14 @@ temp/
 # Frappe connection (secrets — never commit)
 .frappe-connection.json
 data/frappe-connection.json
+
+# بيئة العمل وملفات الوكلاء — لا تُرفع للمستودع (تدقيق 2026-09)
+daftra_docs_full.md
+daftra_features_analysis.md
+project-contex.md
+fixsystem-progress.md
+worklog.md
+.zscripts/
+mini-services/
+railway/
+nixpacks.toml

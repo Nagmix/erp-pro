@@ -812,7 +812,7 @@ export default function ExpensesPage() {
                       />
                       <div className="md:col-span-1 flex justify-center">
                         {items.length > 1 && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10" type="button" onClick={() => removeItem(idx)}>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10" type="button" onClick={()=> removeItem(idx)}>
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         )}

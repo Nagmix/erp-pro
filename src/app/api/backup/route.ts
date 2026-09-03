@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
     // Create an in_progress record immediately
     const newRecord: BackupRecord = {
       id: generateId(),
-      name: `نسخة احتياطية - ${new Date().toLocaleDateString('en-US')}`,
+      name: `نسخة احتياطية - ${new Date().toISOString().slice(0, 10)}`,
       date: new Date().toISOString(),
       size: 0,
       type: backupType,

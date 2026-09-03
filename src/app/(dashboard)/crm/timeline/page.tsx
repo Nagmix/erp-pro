@@ -794,7 +794,7 @@ export default function CrmTimelinePage() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                  onClick={(e) => { e.stopPropagation(); openEditDialog(item); }}
+                                  onClick={(e)=> { e.stopPropagation(); openEditDialog(item); }}
                                 >
                                   <Pencil className="h-3 w-3" />
                                 </Button>
@@ -802,7 +802,7 @@ export default function CrmTimelinePage() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                  onClick={(e) => { e.stopPropagation(); setDeleteItem(item); setDeleteDialogOpen(true); }}
+                                  onClick={(e)=> { e.stopPropagation(); setDeleteItem(item); setDeleteDialogOpen(true); }}
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </Button>

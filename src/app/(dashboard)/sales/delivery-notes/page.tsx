@@ -406,7 +406,7 @@ export default function DeliveryNotesPage() {
                       <TableCell><Input type="number" className="h-8 text-xs" value={line.qty} onChange={(e) => updateLine(idx, { qty: Math.max(0, Number(e.target.value)) })} /></TableCell>
                       <TableCell><Input type="number" className="h-8 text-xs" value={line.rate} onChange={(e) => updateLine(idx, { rate: Math.max(0, Number(e.target.value)) })} /></TableCell>
                       <TableCell><ErpLinkCombobox doctype="Warehouse" value={line.warehouse} onChange={(v) => updateLine(idx, { warehouse: v })} /></TableCell>
-                      <TableCell><Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => removeLine(idx)} disabled={lines.length === 1}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></TableCell>
+                      <TableCell><Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> removeLine(idx)} disabled={lines.length === 1}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

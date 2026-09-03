@@ -607,7 +607,7 @@ export default function StockEntryPage() {
                         </>
                       )}
                       <TableCell>
-                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => lines.length > 1 && setLines((p) => p.filter((_, j) => j !== idx))} disabled={lines.length === 1}>
+                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> lines.length > 1 && setLines((p) => p.filter((_, j) => j !== idx))} disabled={lines.length === 1}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </TableCell>
@@ -724,7 +724,7 @@ export default function StockEntryPage() {
                           </>
                         )}
                         <TableCell>
-                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => editLines.length > 1 && setEditLines((p) => p.filter((_, j) => j !== idx))} disabled={editLines.length === 1}>
+                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> editLines.length > 1 && setEditLines((p) => p.filter((_, j) => j !== idx))} disabled={editLines.length === 1}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
                         </TableCell>

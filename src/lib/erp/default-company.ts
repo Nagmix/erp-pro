@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { useDocList } from '@/lib/client/hooks';
+import { readStoredDefaultCompanyName } from '@/lib/erp/default-company-storage';
 
 /**
  * الشركة الافتراضية:
@@ -20,16 +21,8 @@ export function useDefaultCompanyName(): { company: string; isLoading: boolean }
 
   useEffect(() => {
     queueMicrotask(() => {
-      if (typeof window === 'undefined') return;
-      try {
-        const raw = window.localStorage.getItem('erp_default_company');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (typeof parsed === 'string') setStoredCompany(parsed);
-        }
-      } catch {
-        setStoredCompany('');
-      }
+      // QUA-05: قارئ موحد عبر default-company-storage
+      setStoredCompany(readStoredDefaultCompanyName());
     });
   }, []);
 

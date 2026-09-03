@@ -273,7 +273,7 @@ export default function BOMPage() {
                         <ErpLinkCombobox doctype="UOM" value={m.uom} onChange={(v) => setMaterials((p) => { const n = [...p]; n[idx] = { ...n[idx]!, uom: v }; return n; })} />
                       </TableCell>
                       <TableCell>
-                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => materials.length > 1 && setMaterials((p) => p.filter((_, j) => j !== idx))} disabled={materials.length === 1}>
+                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> materials.length > 1 && setMaterials((p) => p.filter((_, j) => j !== idx))} disabled={materials.length === 1}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </TableCell>
@@ -318,7 +318,7 @@ export default function BOMPage() {
                           <Input className="h-8 text-xs" dir="ltr" value={op.hourly_rate} onChange={(e) => setOperations((p) => { const n = [...p]; n[idx] = { ...n[idx]!, hourly_rate: e.target.value }; return n; })} />
                         </TableCell>
                         <TableCell>
-                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => setOperations((p) => p.filter((_, j) => j !== idx))}>
+                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> setOperations((p) => p.filter((_, j) => j !== idx))}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
                         </TableCell>

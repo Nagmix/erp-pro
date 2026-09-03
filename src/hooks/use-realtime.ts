@@ -124,6 +124,11 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
   );
   const prevNotificationIdsRef = useRef<Set<string>>(new Set());
   const statusUnsubscribeRef = useRef<(() => void) | null>(null);
+  // QUA-06: refs للـ callbacks — تُبقي معالجات WS محدثة بلا إعادة اتصال
+  const onDocUpdateRef = useRef(onDocUpdate);
+  const onNotificationRef = useRef(onNotification);
+  onDocUpdateRef.current = onDocUpdate;
+  onNotificationRef.current = onNotification;
 
   // Subscribe to global realtime state
   useEffect(() => {
@@ -247,7 +252,14 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
   useEffect(() => {
     if (!enabled || !forUser) return;
 
-    const socketUrl = process.env.NEXT_PUBLIC_ERP_SOCKET_URL || 'ws://localhost:9000/socket.io/?EIO=4&transport=websocket';
+    // QUA-06: العنوان الافتراضي من نافذة المتصفح الحالية بدل ws://localhost:9000
+    // (كل متصفح كان سيحاول الاتصال بجهازه نفسه!) — ويمكن تخصيصه عبر NEXT_PUBLIC_ERP_SOCKET_URL
+    const socketUrl =
+      process.env.NEXT_PUBLIC_ERP_SOCKET_URL ||
+      (typeof window !== 'undefined'
+        ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/socket.io/?EIO=4&transport=websocket`
+        : '');
+    if (!socketUrl) return;
 
     let cancelled = false;
 
@@ -285,13 +297,13 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
                     queryClient.invalidateQueries({ queryKey: ['doc', docData.doctype, docData.name] });
                   }
                 }
-                onDocUpdate?.({
+                onDocUpdateRef.current?.({
                   doctype: docData.doctype,
                   name: docData.name,
                   action: eventName === 'doc_create' ? 'create' : eventName === 'doc_delete' ? 'delete' : 'update',
                 });
               } else if (eventName === 'notification') {
-                onNotification?.(eventData);
+                onNotificationRef.current?.(eventData);
                 queryClient.invalidateQueries({ queryKey: ['docList', 'Notification Log'] });
               }
             }
@@ -327,7 +339,7 @@ export function useRealtime(options: UseRealtimeOptions = {}) {
         wsReconnectTimerRef.current = null;
       }
     };
-  }, [enabled, forUser, doctype, onDocUpdate, onNotification, queryClient]);
+  }, [enabled, forUser, doctype, queryClient]); // QUA-06: callbacks عبر refs — لا اتصال/فصل متكرر
 
   // ── Cleanup on unmount ────────────────────────────────────────
   useEffect(() => {

@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { useDocList } from '@/lib/client/hooks';
+import { useServerKPIs } from '@/lib/client/use-dashboard-kpis';
 import { PageHeader } from '@/components/erp/page-header';
 import { StatusBadge } from '@/components/erp/status-badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -179,9 +180,11 @@ export default function HrDashboardPage() {
   const isLoading = empLoading || attLoading || leaveLoading || salaryLoading || holLoading;
 
   /* ---------- KPI calculations ---------- */
+  // QUA-03: عدد الموظفين من عدّاد الخادم الدقيق
+  const { data: serverKpis } = useServerKPIs();
   const totalEmployees = useMemo(
-    () => employees.filter((e) => String(e.status) === 'Active').length,
-    [employees]
+    () => serverKpis?.totalEmployees || employees.filter((e) => String(e.status) === 'Active').length,
+    [serverKpis, employees]
   );
 
   const presentToday = useMemo(

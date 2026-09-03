@@ -1026,7 +1026,7 @@ export default function BudgetsPage() {
                           size="icon"
                           className="h-6 w-6 text-destructive"
                           type="button"
-                          onClick={() => removeDistRow(idx)}
+                          onClick={()=> removeDistRow(idx)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>

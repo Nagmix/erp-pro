@@ -5,7 +5,8 @@
 # ERPNext الخلفي يحتاج خدمة منفصلة على Railway
 # ============================================================
 
-FROM node:20-alpine AS base
+# INF-05: node:22-alpine — Node 20 انتهت صلاحيته (أبريل 2026)
+FROM node:22-alpine AS base
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -17,7 +18,8 @@ COPY prisma ./prisma
 
 # Install deps
 COPY package.json package-lock.json ./
-RUN npm install --no-audit --no-fund
+# INF-06: npm ci بدل npm install — بناء قابل للتكرار (قفل دقيق)
+RUN npm ci --no-audit --no-fund
 
 # Copy the rest of the source code
 COPY . .
@@ -36,6 +38,7 @@ ENV DATABASE_URL="file:./dev.db"
 RUN npx next build --webpack
 
 # Post-build: copy static files into standalone directory (replaces bash script)
+# INF-07: لا نسخ لـ .env داخل الأرتيفاكت — الإعدادات تُمرر وقت التشغيل فقط
 RUN if [ -d .next/static ] && [ -d .next/standalone ]; then \
       cp -r .next/static .next/standalone/.next/ && \
       echo "✓ Copied .next/static → standalone"; \
@@ -43,10 +46,6 @@ RUN if [ -d .next/static ] && [ -d .next/standalone ]; then \
     if [ -d public ] && [ -d .next/standalone ]; then \
       cp -r public .next/standalone/ && \
       echo "✓ Copied public → standalone"; \
-    fi && \
-    if [ -f .env ] && [ -d .next/standalone ]; then \
-      cp .env .next/standalone/.env && \
-      echo "✓ Copied .env → standalone"; \
     fi
 
 # Production image

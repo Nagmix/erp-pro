@@ -347,7 +347,7 @@ function ExpenseTypesManager({ autoOpenCreate }: { autoOpenCreate?: boolean }) {
                     </div>
                   </div>
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground/50 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                    onClick={() => { setToDelete(type); setDeleteDialogOpen(true); }}>
+                    onClick={()=> { setToDelete(type); setDeleteDialogOpen(true); }}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </CardContent>

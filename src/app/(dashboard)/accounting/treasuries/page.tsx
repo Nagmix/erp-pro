@@ -276,7 +276,7 @@ export default function TreasuriesPage() {
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-destructive hover:text-destructive"
-            onClick={(e) => {
+            onClick={(e)=> {
               e.stopPropagation();
               setSelectedVault(row);
               setDeleteDialogOpen(true);

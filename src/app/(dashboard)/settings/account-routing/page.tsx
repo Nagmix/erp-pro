@@ -532,7 +532,7 @@ export default function AccountRoutingPage() {
        <td className="pe-4 py-3 text-center">
         <DropdownMenu>
         <DropdownMenuTrigger asChild>
-         <Button variant="ghost" size="icon" className="h-8 w-8">
+         <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="المزيد">
          <MoreHorizontal className="h-3.5 w-3.5" />
          </Button>
         </DropdownMenuTrigger>
@@ -601,7 +601,7 @@ export default function AccountRoutingPage() {
         </div>
         <DropdownMenu>
          <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-label="المزيد">
           <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
          </DropdownMenuTrigger>

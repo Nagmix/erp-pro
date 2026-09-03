@@ -487,7 +487,7 @@ export default function YemenTaxConfigPage() {
       </div>
       <div className="flex items-center gap-1.5">
        <Badge variant="outline" className="text-[9px] border-0 bg-primary/10 text-primary">مبيعات</Badge>
-       <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={async () => {
+       <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={async ()=> {
        try {
         await deleteSalesTemplate.mutateAsync(t.name);
         toast.success('تم الحذف');
@@ -535,7 +535,7 @@ export default function YemenTaxConfigPage() {
       </div>
       <div className="flex items-center gap-1.5">
        <Badge variant="outline" className="text-[9px] border-0 bg-chart-2/10 text-chart-2">مشتريات</Badge>
-       <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={async () => {
+       <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={async ()=> {
        try {
         await deletePurchaseTemplate.mutateAsync(t.name);
         toast.success('تم الحذف');

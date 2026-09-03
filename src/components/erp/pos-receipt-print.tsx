@@ -1,7 +1,7 @@
 'use client';
 
 import { useDoc } from '@/lib/client/hooks';
-import { formatCurrency } from '@/lib/core/helpers';
+import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { Button } from '@/components/ui/button';
 import { Printer, X, Loader2 } from 'lucide-react';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
@@ -238,7 +238,7 @@ export function PosReceiptPrint({ docname, onClose }: PosReceiptPrintProps) {
           <p className="font-semibold text-xs">شكراً لزيارتكم</p>
           <p className="text-[9px] text-muted-foreground">نتمنى لكم يوماً سعيداً</p>
           <p className="text-[8px] text-muted-foreground mt-2">
-            {new Date().toLocaleDateString('en-US')} — نظام نقاط البيع
+            {formatDate(new Date().toISOString())} — نظام نقاط البيع
           </p>
         </div>
 

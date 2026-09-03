@@ -122,7 +122,7 @@ export function DynamicRowTable({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-destructive hover:text-destructive"
-              onClick={() => removeRow(rowIdx)}
+              onClick={()=> removeRow(rowIdx)}
               disabled={rows.length <= minRows}
             >
               <Trash2 className="h-3 w-3" />

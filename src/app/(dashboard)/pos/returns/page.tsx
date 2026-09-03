@@ -51,7 +51,7 @@ import { PageHeader, PageShell } from '@/components/erp/page-header';
 import { useDoc, useDocList } from '@/lib/client/hooks';
 import { useCreatePosInvoice } from '@/lib/client/pos-hooks';
 import { buildPosInvoiceReturn, type BuildPosInvoiceReturnOpts } from '@/lib/erp/erpnext-payloads';
-import { formatCurrency } from '@/lib/core/helpers';
+import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { toast } from 'sonner';
 import { PosReturnDialog } from '@/components/pos/pos-return-dialog';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
@@ -227,7 +227,7 @@ export default function PosReturnsPage() {
     if (!w) return;
     w.document.write(`<!DOCTYPE html><html dir="rtl" lang="ar"><head><title>إيصال مرتجع - ${invoiceName}</title>
       <style>body{font-family:system-ui,sans-serif;font-size:12px;padding:16px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:4px;text-align:right;}</style>
-      </head><body><h3>إيصال مرتجع نقطة البيع</h3><p>رقم الفاتورة: ${invoiceName}</p><p>تاريخ الطباعة: ${new Date().toLocaleDateString('en-US')}</p><script>window.print();</script></body></html>`);
+      </head><body><h3>إيصال مرتجع نقطة البيع</h3><p>رقم الفاتورة: ${invoiceName}</p><p>تاريخ الطباعة: ${formatDate(new Date().toISOString())}</p><script>window.print();</script></body></html>`);
     w.document.close();
   };
 

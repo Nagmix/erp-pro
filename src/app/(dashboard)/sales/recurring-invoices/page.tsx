@@ -133,14 +133,16 @@ const FREQUENCY_OPTIONS = [
 
 // ─── API helpers ─────────────────────────────────────────────────────────────
 
-async function fetchRecurringInvoices(): Promise<RecurringInvoiceRow[]> {
+async function fetchRecurringInvoices(): Promise<{ rows: RecurringInvoiceRow[]; capped: boolean }> {
   try {
     const res = await fetch('/api/erpnext/recurring-invoices?fields=' + encodeURIComponent(JSON.stringify(['*'])) + '&limit=500');
     const json = await res.json();
     if (!json.success) throw new Error(json.error || 'فشل تحميل البيانات');
-    return json.data || [];
+    const rows: RecurringInvoiceRow[] = json.data || [];
+    // QUA-12: كشف الوصول للحد الأعلى بدل الصمت
+    return { rows, capped: rows.length >= 500 };
   } catch {
-    return [];
+    return { rows: [], capped: false };
   }
 }
 
@@ -240,8 +242,14 @@ export default function RecurringInvoicesPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchRecurringInvoices();
+      const { rows: data, capped } = await fetchRecurringInvoices();
       setRows(data);
+      // QUA-12: إظهار تحذير عند بلوغ حد الجلب بدل الصمت
+      if (capped) {
+        toast.info('تم جلب أول 500 سجل فقط', {
+          description: 'استخدم الفلاتر لتضييق النطاق — الترقيم الخادمي كامل مُخطط في إصدار قادم',
+        });
+      }
     } catch (e) {
       setError(e as Error);
     } finally {
@@ -587,7 +595,7 @@ export default function RecurringInvoicesPage() {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-destructive"
-                onClick={() => setDeleteTarget(row)}
+                onClick={()=> setDeleteTarget(row)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>

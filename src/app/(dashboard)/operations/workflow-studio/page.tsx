@@ -740,7 +740,7 @@ export default function WorkflowStudioPage() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive"
-                    onClick={() => removeState(s.id)}
+                    onClick={()=> removeState(s.id)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
@@ -866,7 +866,7 @@ export default function WorkflowStudioPage() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive"
-                    onClick={() => removeTransition(t.id)}
+                    onClick={()=> removeTransition(t.id)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>

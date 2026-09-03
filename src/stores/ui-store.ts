@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { writeStoredDefaultCompanyName, clearStoredDefaultCompany } from '@/lib/erp/default-company-storage';
 
 interface CompanyInfo {
   name: string;
@@ -28,10 +29,11 @@ export const useUIStore = create<UIState>()(
       currentCompany: null,
       setCurrentCompany: (company) => {
         if (typeof window !== 'undefined') {
+          // QUA-05: صيغة موحدة عبر default-company-storage (اسم فقط)
           if (company) {
-            localStorage.setItem('erp_default_company', JSON.stringify(company));
+            writeStoredDefaultCompanyName(company.name);
           } else {
-            localStorage.removeItem('erp_default_company');
+            clearStoredDefaultCompany();
           }
         }
         set({ currentCompany: company });

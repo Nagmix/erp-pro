@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { DocStatusBadge } from '@/components/erp/status-badge';
 import { formatDate, formatNumber } from '@/lib/core/helpers';
+import ExcelJS from 'exceljs';
 import { useDefaultCompanyName } from '@/lib/erp/default-company';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
 import { Textarea } from '@/components/ui/textarea';
@@ -178,6 +179,12 @@ export default function OpeningBalancesPage() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [postConfirmOpen, setPostConfirmOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  // F-02: حالة الاستيراد الحقيقي من Excel
+  const [importState, setImportState] = useState<{
+    parsing: boolean;
+    result: string | null;
+    ok: boolean | null;
+  }>({ parsing: false, result: null, ok: null });
 
   // ── Customer form ──
   const [custForm, setCustForm] = useState<CustomerForm>({
@@ -285,6 +292,8 @@ export default function OpeningBalancesPage() {
   const createJournal = useCreateDoc('Journal Entry');
   const submitJournal = useSubmitDoc<JournalEntryRow>('Journal Entry');
   const deleteJournal = useDeleteDoc('Journal Entry');
+  // F-02: إنشاء جرد افتتاحي للمخزون من الاستيراد
+  const createStockRecon = useCreateDoc('Stock Reconciliation');
 
   // ── Computed KPIs ──
   const customerRows = customers || [];
@@ -727,7 +736,7 @@ export default function OpeningBalancesPage() {
           variant="ghost"
           size="icon"
           className="h-7 w-7 text-destructive hover:text-destructive"
-          onClick={() => {
+          onClick={()=> {
             const idx = accountBalances.findIndex((a) => a.account === row.account && a.debit === row.debit && a.credit === row.credit);
             if (idx >= 0) handleRemoveAccountBalance(idx);
           }}
@@ -1113,7 +1122,7 @@ export default function OpeningBalancesPage() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8">
+                  <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="معلومات">
                     <Info className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -1139,34 +1148,180 @@ export default function OpeningBalancesPage() {
                     <Upload className="h-9 w-10 mx-auto text-muted-foreground/60 mb-3" />
                     <p className="text-sm font-medium">اسحب ملف Excel هنا أو انقر للاختيار</p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      يدعم ملفات .xlsx و .xls
+                      يدعم ملفات .xlsx و .xls — التبويب الحالي: {activeTab === 'customers' ? 'العملاء' : activeTab === 'suppliers' ? 'الموردون' : activeTab === 'inventory' ? 'المخزون' : 'الحسابات'}
                     </p>
                     <Input
                       type="file"
                       accept=".xlsx,.xls"
                       className="mt-3 max-w-xs mx-auto"
                       dir="ltr"
-                      onChange={() => {
-                        toast.success('سيتم معالجة الملف قريباً');
+                      disabled={importState.parsing}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setImportState({ parsing: true, result: null, ok: null });
+                        try {
+                          const wb = new ExcelJS.Workbook();
+                          await wb.xlsx.load(await file.arrayBuffer());
+                          const ws = wb.worksheets[0];
+                          if (!ws) throw new Error('الملف لا يحتوي أوراق عمل');
+                          const rows: string[][] = [];
+                          ws.eachRow((row) => {
+                            const vals: string[] = [];
+                            for (let c = 1; c <= 8; c++) {
+                              const v = row.getCell(c).value;
+                              if (v == null) vals.push('');
+                              else if (typeof v === 'object' && 'text' in (v as object)) vals.push(String((v as { text: string }).text).trim());
+                              else if (typeof v === 'object' && 'richText' in (v as object)) {
+                                const rt = (v as { richText: { text: string }[] }).richText;
+                                vals.push(rt.map((x) => x.text).join('').trim());
+                              } else vals.push(String(v).trim());
+                            }
+                            rows.push(vals);
+                          });
+                          // تخطي صف العناوين (الصف الأول إن لم يكن رقماً)
+                          const isHeader = (r: string[]) => Number.isNaN(Number(String(r[1] ?? '').replace(/[,&]/g, '')));
+                          const dataRows = rows.filter((r) => r.some((x) => x !== ''));
+                          const body = dataRows.length > 0 && dataRows.every(() => true) && isHeader(dataRows[0]!) ? dataRows.slice(1) : dataRows;
+
+                          let applied = 0;
+                          const errors: string[] = [];
+
+                          if (activeTab === 'customers' || activeTab === 'suppliers') {
+                            const source = activeTab === 'customers' ? customerRows : supplierRows;
+                            const updateDoc = activeTab === 'customers' ? updateCustomer : updateSupplier;
+                            for (const r of body) {
+                              const name = (r[0] || '').trim();
+                              const bal = Number(String(r[1] ?? '').replace(/[,\s]/g, ''));
+                              if (!name || Number.isNaN(bal)) {
+                                errors.push(`صف غير صالح: "${(r[0] || '').slice(0, 30)}"`);
+                                continue;
+                              }
+                              const match = source.find(
+                                (s) =>
+                                  s.name === name ||
+                                  (activeTab === 'customers'
+                                    ? (s as CustomerRow).customer_name === name
+                                    : (s as SupplierRow).supplier_name === name)
+                              );
+                              if (!match) {
+                                errors.push(`غير موجود في النظام: "${name}"`);
+                                continue;
+                              }
+                              try {
+                                await updateDoc.mutateAsync({
+                                  name: match.name,
+                                  doc: {
+                                    opening_balance: bal,
+                                    ...(r[2] ? { currency: String(r[2]).trim() } : {}),
+                                  },
+                                });
+                                applied += 1;
+                              } catch (err) {
+                                errors.push(`فشل تحديث "${name}": ${err instanceof Error ? err.message : ''}`);
+                              }
+                            }
+                          } else if (activeTab === 'accounts') {
+                            for (const r of body) {
+                              const acc = (r[0] || '').trim();
+                              const debit = Number(String(r[1] ?? '').replace(/[,\s]/g, '')) || 0;
+                              const credit = Number(String(r[2] ?? '').replace(/[,\s]/g, '')) || 0;
+                              if (!acc || (debit === 0 && credit === 0)) {
+                                errors.push(`صف غير صالح: "${(r[0] || '').slice(0, 30)}"`);
+                                continue;
+                              }
+                              const match = accountRows.find((a) => a.name === acc || a.account_name === acc || String(a.account_number || '') === acc);
+                              if (!match) {
+                                errors.push(`حساب غير موجود: "${acc}"`);
+                                continue;
+                              }
+                              setAccountBalances((prev) => {
+                                const filtered = prev.filter((p) => p.account !== match.name);
+                                return [...filtered, { account: match.name, debit, credit, cost_center: (r[3] || '').trim() }];
+                              });
+                              applied += 1;
+                            }
+                          } else {
+                            // المخزون: إنشاء Stock Reconciliation (Opening Stock)
+                            const reconItems: Array<{ item_code: string; warehouse: string; qty: number; valuation_rate: number }> = [];
+                            for (const r of body) {
+                              const item = (r[0] || '').trim();
+                              const wh = (r[1] || '').trim();
+                              const qty = Number(String(r[2] ?? '').replace(/[,\s]/g, ''));
+                              const cost = Number(String(r[3] ?? '').replace(/[,\s]/g, '')) || 0;
+                              if (!item || !wh || Number.isNaN(qty)) {
+                                errors.push(`صف غير صالح: "${(r[0] || '').slice(0, 30)}"`);
+                                continue;
+                              }
+                              const itemMatch = (inventoryItems || []).find((i) => i.item_code === item || i.name === item);
+                              if (!itemMatch) {
+                                errors.push(`صنف غير موجود: "${item}"`);
+                                continue;
+                              }
+                              reconItems.push({ item_code: itemMatch.name, warehouse: wh, qty, valuation_rate: cost });
+                            }
+                            if (reconItems.length > 0) {
+                              const stockAdj = accountRows.find((a) => (a.account_type || '').includes('Stock Adjustment'));
+                              if (!stockAdj) {
+                                errors.push('لم يُعثر على حساب تسوية المخزون (Stock Adjustment) — أنشئه أولاً');
+                              } else {
+                                try {
+                                  await createStockRecon.mutateAsync({
+                                    type: 'Opening Stock',
+                                    expense_account: stockAdj.name,
+                                    items: reconItems,
+                                  });
+                                  applied = reconItems.length;
+                                } catch (err) {
+                                  errors.push(`فشل إنشاء الجرد: ${err instanceof Error ? err.message : ''}`);
+                                }
+                              }
+                            }
+                          }
+
+                          const summary = errors.length > 0
+                            ? `تم تطبيق ${applied} صفاً — فشل ${errors.length}: ${errors.slice(0, 3).join(' | ')}`
+                            : `تم استيراد وتطبيق ${applied} صفاً بنجاح`;
+                          setImportState({ parsing: false, result: summary, ok: errors.length === 0 });
+                          if (errors.length === 0) {
+                            toast.success('تم الاستيراد', { description: summary });
+                          } else if (applied > 0) {
+                            toast.warning('استيراد جزئي', { description: summary });
+                          } else {
+                            toast.error('فشل الاستيراد', { description: summary });
+                          }
+                        } catch (err) {
+                          const msg = err instanceof Error ? err.message : 'تعذر قراءة الملف';
+                          setImportState({ parsing: false, result: msg, ok: false });
+                          toast.error('فشل الاستيراد', { description: msg });
+                        } finally {
+                          e.target.value = '';
+                        }
                       }}
                     />
+                    {importState.result && (
+                      <p className={`mt-2 text-xs ${importState.ok ? 'text-green-600' : 'text-red-600'}`}>
+                        {importState.result}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">تنسيق الملف المطلوب:</p>
+                    <p className="text-xs font-medium text-muted-foreground">تنسيق الملف المطلوب (الصف الأول عناوين ويُتخطى):</p>
                     <div className="rounded-lg border bg-muted/30 p-3 text-xs font-mono leading-relaxed" dir="ltr">
                       {activeTab === 'customers' && 'customer_name | opening_balance | currency'}
                       {activeTab === 'suppliers' && 'supplier_name | opening_balance | currency'}
                       {activeTab === 'inventory' && 'item_code | warehouse | qty | unit_cost'}
                       {activeTab === 'accounts' && 'account | debit | credit | cost_center'}
                     </div>
+                    {activeTab === 'accounts' && (
+                      <p className="text-xs text-muted-foreground">
+                        صفوف الحسابات تُضاف إلى جدول أرصدة الافتتاح أدناه — راجعها ثم رحّل قيد الافتتاح.
+                      </p>
+                    )}
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button type="button" variant="ghost" onClick={() => setImportDialogOpen(false)}>
-                      إلغاء
-                    </Button>
-                    <Button type="button" size="sm" className="gap-1.5" onClick={() => setImportDialogOpen(false)}>
-                      <Upload className="h-3.5 w-3.5" />
-                      استيراد
+                      إغلاق
                     </Button>
                   </div>
                 </div>

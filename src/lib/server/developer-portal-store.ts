@@ -102,33 +102,39 @@ export function saveDeveloperPortalStore(next: DeveloperPortalFile): void {
   void mirrorToDatabase(payload);
 }
 
-/** يدمج ملف JSON مع SQLite ويختار الأحدث محتوىً عند وجود البيانات في المصدرين (M-22). */
+/**
+ * INF-14: ملف JSON هو المصدر الموثوق الوحيد (authoritative).
+ * SQLite نسخة احتياطية باتجاه واحد فقط: تُقرأ في حالة الكوارث فقط
+ * (الملف مفقود/فارغ) ثم تُستعاد إلى الملف — لا دمج ثنائي "الأحدث يفوز"
+ * الذي كان يسمح بتقليب المصدرين وتعارض البيانات.
+ */
 export async function loadDeveloperPortalStoreResolved(): Promise<DeveloperPortalFile> {
   const fromFile = loadDeveloperPortalStore();
-  let fromDb: DeveloperPortalFile | null = null;
-  let dbTime = 0;
+  const fileTime = fromFile.updatedAt ? Date.parse(fromFile.updatedAt) : 0;
+  const fileHas =
+    fromFile.apiKeys.length > 0 || fromFile.webhooks.length > 0 || (fromFile.deliveries?.length ?? 0) > 0;
+
+  // المصدر الموثوق: الملف — موجود أو حتى فارغ-but-valid (كاتب سابق أنشأه)
+  if (fileHas || fileTime > 0) {
+    return fromFile;
+  }
+
+  // كارثة: الملف مفقود تماماً — استعادة من النسخة الاحتياطية في SQLite إن وُجدت
   try {
     const { prisma } = await import('@/lib/server/prisma');
     const row = await prisma.developerPortalBackup.findUnique({ where: { id: 'default' } });
     if (row?.payload) {
-      fromDb = normalizeFile(JSON.parse(row.payload) as Partial<DeveloperPortalFile>);
-      dbTime = row.updatedAt.getTime();
+      const fromDb = normalizeFile(JSON.parse(row.payload) as Partial<DeveloperPortalFile>);
+      const dbHas =
+        fromDb.apiKeys.length > 0 || fromDb.webhooks.length > 0 || (fromDb.deliveries?.length ?? 0) > 0;
+      if (dbHas) {
+        // استعادة ذاتية إلى الملف ثم العمل منه حصرياً
+        saveDeveloperPortalStore(fromDb);
+        return loadDeveloperPortalStore();
+      }
     }
   } catch {
-    /* ignore */
+    /* لا قاعدة — أعد الحالة الفارغة الافتراضية */
   }
-
-  const fileTime = fromFile.updatedAt ? Date.parse(fromFile.updatedAt) : 0;
-  const fileHas =
-    fromFile.apiKeys.length > 0 || fromFile.webhooks.length > 0 || (fromFile.deliveries?.length ?? 0) > 0;
-  const dbHas =
-    fromDb != null &&
-    (fromDb.apiKeys.length > 0 || fromDb.webhooks.length > 0 || (fromDb.deliveries?.length ?? 0) > 0);
-
-  if (fileHas && dbHas && fromDb) {
-    return fileTime >= dbTime ? fromFile : fromDb;
-  }
-  if (fileHas) return fromFile;
-  if (dbHas && fromDb) return fromDb;
   return fromFile;
 }

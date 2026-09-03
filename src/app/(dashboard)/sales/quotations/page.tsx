@@ -483,7 +483,7 @@ export default function QuotationsPage() {
                         </TableCell>
                         <TableCell className="text-xs font-medium tabular-nums">{formatCurrency(line.qty * line.rate)}</TableCell>
                         <TableCell>
-                          <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeLine(idx)} disabled={lines.length === 1}>
+                          <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={()=> removeLine(idx)} disabled={lines.length === 1}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
                         </TableCell>

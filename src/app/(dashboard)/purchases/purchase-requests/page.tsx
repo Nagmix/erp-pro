@@ -405,7 +405,7 @@ export default function PurchaseRequestsPage() {
                           variant="ghost"
                           size="icon"
                           className="h-7"
-                          onClick={() => {
+                          onClick={()=> {
                             if (lines.length <= 1) return;
                             setLines((p) => p.filter((_, j) => j !== idx));
                           }}

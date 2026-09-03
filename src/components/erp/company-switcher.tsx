@@ -15,6 +15,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDocList } from '@/lib/client/hooks';
 import { useUIStore } from '@/stores/ui-store';
+import { readStoredDefaultCompanyName } from '@/lib/erp/default-company-storage';
 import { cn } from '@/lib/utils';
 
 interface CompanyRow {
@@ -32,18 +33,16 @@ export function CompanySwitcher() {
   });
 
   // على أول تحميل، حاول استعادة الشركة من localStorage إذا لم تكن محددة
+  // QUA-05: صيغة موحدة (اسم فقط) عبر default-company-storage
   useEffect(() => {
     if (currentCompany) return;
-    try {
-      const stored = localStorage.getItem('erp_default_company');
-      if (stored) {
-        const parsed = JSON.parse(stored) as CompanyRow;
-        if (parsed?.name) {
-          setCurrentCompany(parsed);
-        }
-      }
-    } catch {
-      // تجاهل أخطاء التحليل
+    const storedName = readStoredDefaultCompanyName();
+    if (storedName) {
+      setCurrentCompany({
+        name: storedName,
+        abbr: '',
+        company_name: storedName,
+      });
     }
   }, [currentCompany, setCurrentCompany]);
 

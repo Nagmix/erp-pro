@@ -182,7 +182,7 @@ export function AppHeader() {
             size="icon"
             className="h-9 w-9 rounded-xl border border-transparent text-muted-foreground hover:text-foreground hover:border-border/60 hover:bg-[color:var(--surface-muted)] transition-all"
             title="اختصارات لوحة المفاتيح (?)"
-            onClick={() => window.dispatchEvent(new Event(ERP_OPEN_SHORTCUTS_EVENT))}
+            onClick={()=> window.dispatchEvent(new Event(ERP_OPEN_SHORTCUTS_EVENT))}
             aria-label="عرض اختصارات لوحة المفاتيح"
           >
             <Question className="h-4 w-4" weight="duotone" />

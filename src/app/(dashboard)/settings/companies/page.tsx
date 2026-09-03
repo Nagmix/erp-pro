@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { readStoredDefaultCompanyName, writeStoredDefaultCompanyName } from '@/lib/erp/default-company-storage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -107,20 +108,12 @@ function generateAbbr(name: string): string {
 }
 
 function getDefaultCompanyFromStorage(): string {
- if (typeof window === 'undefined') return '';
- try {
- const raw = window.localStorage.getItem('erp_default_company');
- if (raw) {
-  const parsed = JSON.parse(raw);
-  if (typeof parsed === 'string') return parsed;
- }
- } catch { /* ignore */ }
- return '';
+ // QUA-05: قارئ موحد متسامح مع الصيغ القديمة
+ return readStoredDefaultCompanyName();
 }
 
 function setDefaultCompanyToStorage(name: string) {
- if (typeof window === 'undefined') return;
- window.localStorage.setItem('erp_default_company', JSON.stringify(name));
+ writeStoredDefaultCompanyName(name);
 }
 
 // ============================================================

@@ -578,7 +578,7 @@ export default function SupplierQuotationsPage() {
                           variant="ghost"
                           size="icon"
                           className="h-7"
-                          onClick={() =>
+                          onClick={()=>
                             lines.length > 1 &&
                             setLines((p) => p.filter((_, j) => j !== idx))
                           }

@@ -51,7 +51,7 @@ import { ListQueryAlert } from '@/components/erp/list-query-alert';
 import { toast } from 'sonner';
 import { buildWorkstation } from '@/lib/erp/erpnext-payloads';
 import { ErpLinkCombobox } from '@/components/erp/erp-link-combobox';
-import { formatCurrency } from '@/lib/core/helpers';
+import { formatCurrency, formatDate } from '@/lib/core/helpers';
 import { cn } from '@/lib/utils';
 
 interface WSRow {
@@ -580,8 +580,8 @@ export default function WorkstationsPage() {
                   </div>
                   <div className="p-4 space-y-3 bg-card/50">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <WSDetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('en-US') : '—'} />
-                      <WSDetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('en-US') : '—'} />
+                      <WSDetailField label="تاريخ الإنشاء" value={viewDoc.creation ? formatDate(String(viewDoc.creation)) : '—'} />
+                      <WSDetailField label="آخر تعديل" value={viewDoc.modified ? formatDate(String(viewDoc.modified)) : '—'} />
                       <WSDetailField label="المُنشئ" value={viewDoc.owner || '—'} dir="ltr" />
                     </div>
                   </div>

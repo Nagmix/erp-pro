@@ -392,7 +392,7 @@ export default function VaultPermissionsPage() {
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-destructive"
-            onClick={() => handleRemoveEmployeeFromVault(row.employeeId)}
+            onClick={()=> handleRemoveEmployeeFromVault(row.employeeId)}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>

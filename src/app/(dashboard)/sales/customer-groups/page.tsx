@@ -230,7 +230,7 @@ export default function CustomerGroupsPage() {
               variant="ghost"
               size="icon"
               className="h-7 w-7"
-              onClick={() => openEditDialog(node)}
+              onClick={()=> openEditDialog(node)}
             >
               <Users className="h-3.5 w-3.5" />
             </Button>
@@ -238,7 +238,7 @@ export default function CustomerGroupsPage() {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-destructive"
-              onClick={() => { setSelectedGroup(node); setDeleteDialogOpen(true); }}
+              onClick={()=> { setSelectedGroup(node); setDeleteDialogOpen(true); }}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -393,7 +393,7 @@ export default function CustomerGroupsPage() {
               variant="ghost"
               size="icon"
               className="h-7 w-7"
-              onClick={() => openEditDialog(row)}
+              onClick={()=> openEditDialog(row)}
             >
               <Users className="h-3.5 w-3.5" />
             </Button>
@@ -401,7 +401,7 @@ export default function CustomerGroupsPage() {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-destructive"
-              onClick={() => { setSelectedGroup(row); setDeleteDialogOpen(true); }}
+              onClick={()=> { setSelectedGroup(row); setDeleteDialogOpen(true); }}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>

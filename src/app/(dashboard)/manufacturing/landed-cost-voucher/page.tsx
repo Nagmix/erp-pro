@@ -630,7 +630,7 @@ export default function LandedCostVoucherPage() {
                             variant="ghost"
                             size="icon"
                             className="h-7"
-                            onClick={() =>
+                            onClick={()=>
                               receipts.length > 1 &&
                               setReceipts((rows) => rows.filter((_, j) => j !== idx))
                             }
@@ -719,7 +719,7 @@ export default function LandedCostVoucherPage() {
                             variant="ghost"
                             size="icon"
                             className="h-7"
-                            onClick={() =>
+                            onClick={()=>
                               taxes.length > 1 &&
                               setTaxes((rows) => rows.filter((_, j) => j !== idx))
                             }

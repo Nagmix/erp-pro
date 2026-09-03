@@ -298,7 +298,7 @@ export default function ProductExtensionsSettingsPage() {
      variant="ghost"
      size="icon"
      className="w-9 text-destructive"
-     onClick={() => {
+     onClick={()=> {
      patch({ reportSchedules: data.reportSchedules.filter((_, j) => j !== i) });
      }}
     >

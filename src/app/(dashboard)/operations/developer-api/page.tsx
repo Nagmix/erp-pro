@@ -429,10 +429,10 @@ export default function DeveloperApiPage() {
                             <code className="text-[11px] text-muted-foreground font-mono" dir="ltr">
                               {visibleKeys.has(key.id) ? key.key : `${key.key.slice(0, 8)}${'•'.repeat(16)}`}
                             </code>
-                            <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => toggleKeyVisibility(key.id)}>
+                            <Button size="icon" variant="ghost" className="h-5 w-5" onClick={()=> toggleKeyVisibility(key.id)}>
                               {visibleKeys.has(key.id) ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                             </Button>
-                            <Button size="icon" variant="ghost" className="h-5 w-5" onClick={() => copyToClipboard(key.key)}>
+                            <Button size="icon" variant="ghost" className="h-5 w-5" onClick={()=> copyToClipboard(key.key)}>
                               <Copy className="h-3 w-3" />
                             </Button>
                           </div>
@@ -531,7 +531,7 @@ export default function DeveloperApiPage() {
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7 text-destructive"
-                            onClick={() => void deleteWebhook(hook.id)}
+                            onClick={()=> void deleteWebhook(hook.id)}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -644,7 +644,7 @@ export default function DeveloperApiPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-semibold">cURL (سطر الأوامر)</Label>
-                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(`curl -X GET "https://your-erp.com/api/resource/Company" \\
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={()=> copyToClipboard(`curl -X GET "https://your-erp.com/api/resource/Company" \\
   -H "Authorization: token YOUR_API_KEY:YOUR_API_SECRET"`)}>
                     <Copy className="h-3 w-3" />
                   </Button>
@@ -658,7 +658,7 @@ export default function DeveloperApiPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-semibold">بايثون (Python)</Label>
-                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(`import requests
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={()=> copyToClipboard(`import requests
 
 url = "https://your-erp.com/api/resource/Company"
 headers = {"Authorization": "token YOUR_API_KEY:YOUR_API_SECRET"}
@@ -680,7 +680,7 @@ print(response.json())`}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-semibold">جافاسكريبت (JavaScript)</Label>
-                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(`const response = await fetch("https://your-erp.com/api/resource/Company", {
+                  <Button size="icon" variant="ghost" className="h-6 w-6" onClick={()=> copyToClipboard(`const response = await fetch("https://your-erp.com/api/resource/Company", {
   headers: { "Authorization": "token YOUR_API_KEY:YOUR_API_SECRET" }
 });
 const data = await response.json();
@@ -774,7 +774,7 @@ console.log(data);`}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-medium">الاستجابة</Label>
-                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => copyToClipboard(testResponse)}>
+                    <Button size="icon" variant="ghost" className="h-6 w-6" onClick={()=> copyToClipboard(testResponse)}>
                       <Copy className="h-3 w-3" />
                     </Button>
                   </div>

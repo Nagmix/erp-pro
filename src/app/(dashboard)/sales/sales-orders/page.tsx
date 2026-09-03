@@ -615,7 +615,7 @@ export default function SalesOrdersPage() {
                         />
                       </TableCell>
                       <TableCell>
-                        <Button type="button" variant="ghost" size="icon" className="h-9" onClick={() => removeLine(idx)} disabled={lines.length === 1}>
+                        <Button type="button" variant="ghost" size="icon" className="h-9" onClick={()=> removeLine(idx)} disabled={lines.length === 1}>
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </TableCell>

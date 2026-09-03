@@ -392,7 +392,7 @@ export default function PurchaseReceiptsPage() {
                         <ErpLinkCombobox doctype="Purchase Order" value={line.purchase_order} onChange={(v) => updateLine(idx, { purchase_order: v })} />
                       </TableCell>
                       <TableCell>
-                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => lines.length > 1 && setLines((p) => p.filter((_, j) => j !== idx))} disabled={lines.length === 1}>
+                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> lines.length > 1 && setLines((p) => p.filter((_, j) => j !== idx))} disabled={lines.length === 1}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </TableCell>

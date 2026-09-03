@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { formatDate } from '@/lib/core/helpers';
 import { DataTable, type Column } from '@/components/erp/data-table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1051,8 +1052,8 @@ export default function PurchasesSuppliersPage() {
                   </div>
                   <div className="p-4 space-y-3 bg-card/50">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <SupplierDetailField label="تاريخ الإنشاء" value={viewDoc.creation ? new Date(viewDoc.creation).toLocaleDateString('en-US') : '—'} />
-                      <SupplierDetailField label="آخر تعديل" value={viewDoc.modified ? new Date(viewDoc.modified).toLocaleDateString('en-US') : '—'} />
+                      <SupplierDetailField label="تاريخ الإنشاء" value={viewDoc.creation ? formatDate(String(viewDoc.creation)) : '—'} />
+                      <SupplierDetailField label="آخر تعديل" value={viewDoc.modified ? formatDate(String(viewDoc.modified)) : '—'} />
                       <SupplierDetailField label="المُنشئ" value={viewDoc.owner || '—'} dir="ltr" />
                       <SupplierDetailField label="الحالة" value={viewDoc.disabled ? 'معطّل' : 'نشط'} badge badgeClass={viewDoc.disabled ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'} />
                     </div>

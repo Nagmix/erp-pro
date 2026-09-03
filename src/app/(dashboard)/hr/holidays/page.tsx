@@ -514,7 +514,7 @@ export default function HolidaysPage() {
                       variant="ghost"
                       size="icon"
                       className="col-span-2 h-8"
-                      onClick={() => entries.length > 1 && setEntries(entries.filter((_, i) => i !== idx))}
+                      onClick={()=> entries.length > 1 && setEntries(entries.filter((_, i) => i !== idx))}
                       disabled={entries.length === 1}
                     >
                       <Trash2 className="h-3 w-3 text-destructive" />

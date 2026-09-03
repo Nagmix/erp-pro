@@ -569,7 +569,7 @@ export default function InventoryPermitsPage() {
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 text-destructive"
-                  onClick={() => setDeleteTarget(row)}
+                  onClick={()=> setDeleteTarget(row)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -917,7 +917,7 @@ export default function InventoryPermitsPage() {
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() => removeLine(idx)}
+                              onClick={()=> removeLine(idx)}
                               disabled={lines.length === 1}
                             >
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />

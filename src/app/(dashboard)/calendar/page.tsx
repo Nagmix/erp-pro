@@ -707,10 +707,10 @@ export default function CalendarPage() {
           {/* Navigation bar */}
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigatePrev}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigatePrev} aria-label="السابق">
                 <ChevronRight className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateNext}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateNext} aria-label="التالي">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <h2 className="text-sm font-bold text-foreground min-w-[120px] text-center">

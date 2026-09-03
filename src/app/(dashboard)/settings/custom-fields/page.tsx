@@ -119,7 +119,7 @@ export default function CustomFieldsPage() {
    variant="ghost"
    size="icon"
    className="h-8 w-8 text-destructive hover:text-destructive"
-   onClick={() => {
+   onClick={()=> {
     setToDelete(row);
     setDeleteOpen(true);
    }}

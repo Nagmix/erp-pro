@@ -517,7 +517,7 @@ export default function SettingsIntegrationsPage() {
       variant="ghost"
       size="icon"
       className="h-8 w-8"
-      onClick={() => openConfig(def.key)}
+      onClick={()=> openConfig(def.key)}
       aria-label={`إعدادات ${def.title}`}
       >
       <Settings className="h-4 w-4" />

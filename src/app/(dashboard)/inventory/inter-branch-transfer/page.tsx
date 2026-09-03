@@ -266,7 +266,7 @@ export default function InterBranchTransferPage() {
                   </TableCell>
                   <TableCell>
                     {lines.length > 1 ? (
-                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setLines((p) => p.filter((_, i) => i !== idx))}>
+                      <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={()=> setLines((p) => p.filter((_, i) => i !== idx))}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     ) : null}

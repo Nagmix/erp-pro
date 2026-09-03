@@ -343,7 +343,7 @@ export default function RequestForQuotationPage() {
                         <ErpLinkCombobox doctype="Supplier" value={s.supplier} onChange={(v) => setSuppliers((p) => { const n = [...p]; n[idx] = { supplier: v }; return n; })} displayKey="supplier_name" />
                       </TableCell>
                       <TableCell className="w-10">
-                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => suppliers.length > 1 && setSuppliers((p) => p.filter((_, j) => j !== idx))} disabled={suppliers.length === 1}>
+                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> suppliers.length > 1 && setSuppliers((p) => p.filter((_, j) => j !== idx))} disabled={suppliers.length === 1}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </TableCell>
@@ -385,7 +385,7 @@ export default function RequestForQuotationPage() {
                         <ErpLinkCombobox doctype="Warehouse" value={it.warehouse} onChange={(v) => setItems((p) => { const n = [...p]; n[idx] = { ...n[idx]!, warehouse: v }; return n; })} />
                       </TableCell>
                       <TableCell>
-                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => items.length > 1 && setItems((p) => p.filter((_, j) => j !== idx))} disabled={items.length === 1}>
+                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> items.length > 1 && setItems((p) => p.filter((_, j) => j !== idx))} disabled={items.length === 1}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </TableCell>

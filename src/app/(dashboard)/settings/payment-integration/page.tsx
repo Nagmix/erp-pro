@@ -101,6 +101,15 @@ export default function PaymentIntegrationPage() {
  const [gatewayForm, setGatewayForm] = useState({ name: '', url: '', apiKey: '', merchantId: '' });
  const [testLoading, setTestLoading] = useState<string | null>(null);
  const [gatewayStatuses, setGatewayStatuses] = useState<Record<string, 'connected' | 'disconnected' | 'error'>>({});
+ // F-03: حوار اختبار اتصال حقيقي (رابط البوابة + نتيجة فعلية)
+ const [testDialog, setTestDialog] = useState<{
+  open: boolean;
+  gwName: string;
+  url: string;
+  loading: boolean;
+  result: string | null;
+  ok: boolean | null;
+ }>({ open: false, gwName: '', url: '', loading: false, result: null, ok: null });
 
  /* ──── ERPNext data hooks ──── */
  const { data: methods, isLoading: methodsLoading, isError: methodsError, error: methodsErr, refetch: refetchMethods } = useDocList<ModeOfPaymentRow>('Mode of Payment', {
@@ -189,14 +198,56 @@ export default function PaymentIntegrationPage() {
  }
  };
 
+ /** F-03: فحص حقيقي عبر /api/integrations/test-url (حرس SSRF + مهلة) — لا محاكاة */
  const handleTestConnection = (gwName: string) => {
- setTestLoading(gwName);
- // Simulate test — real implementation would call API
- setTimeout(() => {
-  setGatewayStatuses(prev => ({ ...prev, [gwName]: 'connected' }));
-  setTestLoading(null);
-  toast.success('نجح الاتصال', { description: `تم الاتصال ببوابة ${gwName} بنجاح` });
- }, 1500);
+  setTestDialog({ open: true, gwName, url: '', loading: false, result: null, ok: null });
+ };
+
+ const runRealConnectionTest = async () => {
+  setTestDialog((prev) => ({ ...prev, loading: true, result: null }));
+  try {
+   const res = await fetch('/api/integrations/test-url', {
+    method: 'POST',
+    headers: {
+     'Content-Type': 'application/json',
+     'x-csrf-token': document.cookie.match(/(?:^|; )erp_csrf=([^;]*)/)?.[1]
+      ? decodeURIComponent(document.cookie.match(/(?:^|; )erp_csrf=([^;]*)/)![1])
+      : '',
+    },
+    body: JSON.stringify({ url: testDialog.url }),
+   });
+   const json = (await res.json()) as {
+    success: boolean;
+    error?: string;
+    data?: { reachable?: boolean; ok?: boolean; status?: number; ms?: number; error?: string };
+   };
+   if (!json.success) {
+    setTestDialog((prev) => ({ ...prev, loading: false, ok: false, result: json.error || 'فشل الفحص' }));
+    setGatewayStatuses((prev) => ({ ...prev, [testDialog.gwName]: 'error' }));
+    return;
+   }
+   const d = json.data;
+   if (d?.reachable && d.ok) {
+    const msg = `الخادم يستجيب بنجاح (HTTP ${d.status}) — ${d.ms}ms`;
+    setTestDialog((prev) => ({ ...prev, loading: false, ok: true, result: msg }));
+    setGatewayStatuses((prev) => ({ ...prev, [testDialog.gwName]: 'connected' }));
+    toast.success('نجح الاتصال', { description: msg });
+   } else if (d?.reachable) {
+    const msg = `الخادم يستجيب بـ HTTP ${d.status} — تحقق من مسار الـ API وصلاحيات المفتاح (${d.ms}ms)`;
+    setTestDialog((prev) => ({ ...prev, loading: false, ok: false, result: msg }));
+    setGatewayStatuses((prev) => ({ ...prev, [testDialog.gwName]: 'error' }));
+    toast.warning('استجابة غير متوقعة', { description: msg });
+   } else {
+    const msg = d?.error || 'تعذر الوصول للرابط';
+    setTestDialog((prev) => ({ ...prev, loading: false, ok: false, result: msg }));
+    setGatewayStatuses((prev) => ({ ...prev, [testDialog.gwName]: 'disconnected' }));
+    toast.error('فشل الاتصال', { description: msg });
+   }
+  } catch (e) {
+   const msg = e instanceof Error ? e.message : 'فشل الفحص';
+   setTestDialog((prev) => ({ ...prev, loading: false, ok: false, result: msg }));
+   setGatewayStatuses((prev) => ({ ...prev, [testDialog.gwName]: 'error' }));
+  }
  };
 
  return (
@@ -583,6 +634,55 @@ export default function PaymentIntegrationPage() {
    </Button>
    </div>
   </DialogContent>
+  </Dialog>
+
+  {/* F-03: حوار اختبار اتصال حقيقي — فحص فعلي للرابط عبر الخادم (حرس SSRF) */}
+  <Dialog open={testDialog.open} onOpenChange={(open) => setTestDialog((prev) => ({ ...prev, open }))}>
+   <DialogContent className="sm:max-w-md" dir="rtl">
+   <DialogHeader>
+    <DialogTitle className="flex items-center gap-2 text-base">
+    <Wifi className="h-4 w-4" />
+    اختبار اتصال — {testDialog.gwName}
+    </DialogTitle>
+   </DialogHeader>
+   <div className="space-y-4 py-2">
+    <div className="space-y-2">
+    <Label className="text-sm font-medium">رابط البوابة *</Label>
+    <Input
+     dir="ltr"
+     placeholder="https://api.gateway.com"
+     value={testDialog.url}
+     onChange={(e) => setTestDialog((prev) => ({ ...prev, url: e.target.value, result: null }))}
+    />
+    <p className="text-xs text-muted-foreground">
+     سيتم فحص الرابط فعلياً من الخادم (حظر العناوين الداخلية تلقائياً).
+    </p>
+    </div>
+    {testDialog.result && (
+    <div
+     className={`flex items-start gap-2 rounded-md border p-3 text-sm ${
+      testDialog.ok === true
+       ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400'
+       : 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400'
+     }`}
+    >
+     {testDialog.ok ? <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" /> : <XCircle className="h-4 w-4 mt-0.5 shrink-0" />}
+     <span>{testDialog.result}</span>
+    </div>
+    )}
+    <Button
+    className="w-full"
+    onClick={runRealConnectionTest}
+    disabled={testDialog.loading || !testDialog.url.trim()}
+    >
+    {testDialog.loading ? (
+     <><Loader2 className="h-4 w-4 animate-spin ms-2" /> جاري الفحص الفعلي...</>
+    ) : (
+     'فحص الاتصال الآن'
+    )}
+    </Button>
+   </div>
+   </DialogContent>
   </Dialog>
  </div>
  );

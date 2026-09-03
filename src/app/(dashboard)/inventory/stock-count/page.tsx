@@ -440,7 +440,7 @@ export default function StockCountPage() {
                         <Input type="number" className="h-8 text-xs" dir="ltr" value={line.valuation_rate} onChange={(e) => setLines((p) => { const n = [...p]; n[idx] = { ...n[idx]!, valuation_rate: e.target.value }; return n; })} placeholder="0" />
                       </TableCell>
                       <TableCell>
-                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => lines.length > 1 && setLines((p) => p.filter((_, j) => j !== idx))} disabled={lines.length === 1}>
+                        <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> lines.length > 1 && setLines((p) => p.filter((_, j) => j !== idx))} disabled={lines.length === 1}>
                           <Trash2 className="h-3.5 w-3.5 text-destructive" />
                         </Button>
                       </TableCell>
@@ -540,7 +540,7 @@ export default function StockCountPage() {
                           <Input type="number" className="h-8 text-xs" dir="ltr" value={line.valuation_rate} onChange={(e) => setEditLines((p) => { const n = [...p]; n[idx] = { ...n[idx]!, valuation_rate: e.target.value }; return n; })} placeholder="0" />
                         </TableCell>
                         <TableCell>
-                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={() => editLines.length > 1 && setEditLines((p) => p.filter((_, j) => j !== idx))} disabled={editLines.length === 1}>
+                          <Button type="button" variant="ghost" size="icon" className="h-7" onClick={()=> editLines.length > 1 && setEditLines((p) => p.filter((_, j) => j !== idx))} disabled={editLines.length === 1}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
                         </TableCell>

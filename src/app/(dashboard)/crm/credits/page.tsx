@@ -132,6 +132,16 @@ export default function CreditsPage() {
   const [editFormReference, setEditFormReference] = useState('');
   const [editFormRemarks, setEditFormRemarks] = useState('');
   const [editFormPostingDate, setEditFormPostingDate] = useState('');
+  // F-05: حوار إرسال كشف الحساب بالبريد (حقيقي عبر SMTP المخزن)
+  const [statementDialog, setStatementDialog] = useState<{
+    open: boolean;
+    customer: string;
+    customerName: string;
+    email: string;
+    loading: boolean;
+    message: string | null;
+    ok: boolean | null;
+  }>({ open: false, customer: '', customerName: '', email: '', loading: false, message: null, ok: null });
 
   // فلاتر
   const [customerFilter, setCustomerFilter] = useState('');
@@ -638,12 +648,10 @@ export default function CreditsPage() {
               size="sm"
               variant="outline"
               className="gap-1.5"
-              disabled
-              title="قريباً"
+              onClick={() => setStatementDialog((p) => ({ ...p, open: true, customer: customerFilter || '', customerName: '', email: '', loading: false, message: null, ok: null }))}
             >
               <Mail className="h-3.5 w-3.5" />
               إرسال كشف حساب
-              <Badge variant="secondary" className="text-[9px] px-1 py-0">قريباً</Badge>
             </Button>
             <Button
               size="sm"
@@ -1334,6 +1342,128 @@ export default function CreditsPage() {
             >
               {updateMut.isPending ? 'جاري الحفظ...' : 'حفظ التعديلات'}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* F-05: إرسال كشف حساب العميل بالبريد */}
+      <Dialog
+        open={statementDialog.open}
+        onOpenChange={(open) => setStatementDialog((p) => ({ ...p, open }))}
+      >
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Mail className="h-4 w-4" />
+              إرسال كشف حساب بالبريد
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label className="text-xs">العميل *</Label>
+              <Select
+                value={statementDialog.customer}
+                onValueChange={(v) => {
+                  const row = entries.find((e) => e.party === v);
+                  setStatementDialog((p) => ({
+                    ...p,
+                    customer: v,
+                    customerName: String(row?.party_name || v),
+                  }));
+                }}
+              >
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="اختر العميل" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from(new Set(entries.map((e) => e.party).filter(Boolean))).map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">البريد الإلكتروني *</Label>
+              <Input
+                dir="ltr"
+                type="email"
+                placeholder="customer@example.com"
+                value={statementDialog.email}
+                onChange={(e) => setStatementDialog((p) => ({ ...p, email: e.target.value, message: null }))}
+              />
+            </div>
+            {statementDialog.message && (
+              <div
+                className={`rounded-md border p-3 text-sm ${
+                  statementDialog.ok
+                    ? 'border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400'
+                    : 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400'
+                }`}
+              >
+                {statementDialog.message}
+              </div>
+            )}
+            <Button
+              className="w-full"
+              disabled={
+                statementDialog.loading ||
+                !statementDialog.customer ||
+                !statementDialog.email.trim()
+              }
+              onClick={async () => {
+                setStatementDialog((p) => ({ ...p, loading: true, message: null }));
+                try {
+                  const csrf = document.cookie.match(/(?:^|; )erp_csrf=([^;]*)/)?.[1];
+                  const res = await fetch('/api/crm/credit-statement', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      ...(csrf ? { 'x-csrf-token': decodeURIComponent(csrf) } : {}),
+                    },
+                    body: JSON.stringify({
+                      customer: statementDialog.customer,
+                      customerName: statementDialog.customerName,
+                      email: statementDialog.email,
+                    }),
+                  });
+                  const json = (await res.json()) as {
+                    success: boolean;
+                    error?: string;
+                    data?: { message?: string };
+                  };
+                  if (json.success) {
+                    setStatementDialog((p) => ({
+                      ...p,
+                      loading: false,
+                      ok: true,
+                      message: json.data?.message || 'تم الإرسال بنجاح',
+                    }));
+                    toast.success('تم إرسال كشف الحساب');
+                  } else {
+                    setStatementDialog((p) => ({
+                      ...p,
+                      loading: false,
+                      ok: false,
+                      message: json.error || 'فشل الإرسال',
+                    }));
+                  }
+                } catch (e) {
+                  setStatementDialog((p) => ({
+                    ...p,
+                    loading: false,
+                    ok: false,
+                    message: e instanceof Error ? e.message : 'فشل الإرسال',
+                  }));
+                }
+              }}
+            >
+              {statementDialog.loading ? 'جاري الإرسال...' : 'إرسال الكشف الآن'}
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              يُبنى الكشف من قيود الدفع المُرحّلة للعميل ويُرسل عبر إعدادات SMTP المحفوظة.
+            </p>
           </div>
         </DialogContent>
       </Dialog>

@@ -126,8 +126,11 @@ const fieldMappings: Record<keyof AppSettings, FieldMapping> = {
   reorderLevel:     { doctype: 'Stock Settings', field: 'default_reorder_level',    fromErp: (v) => (v == null ? '' : String(v)), toErp: strToErp },
   // الموارد البشرية
   workingHours:    { doctype: 'HR Settings', field: 'standard_working_hours', fromErp: (v) => (v == null ? '' : String(v)), toErp: strToErp },
-  overtimeRate:    { doctype: 'HR Settings', field: 'standard_working_hours',          fromErp: (v) => (v == null ? '' : String(v)), toErp: strToErp },
-  penaltyEnabled:  { doctype: 'HR Settings', field: 'expense_approval',       fromErp: boolFromErp, toErp: boolToErp },
+  // QUA-04: overtimeRate وpenaltyEnabled ليس لهما حقول حقيقية في HR Settings —
+  // كانا يكتبان فوق standard_working_hours وexpense_approval فيفسد إعداداً آخر.
+  // أصبحا محليين فقط (__local__) — يُخزنان في JSON المحلي بلا كتابة على ERPNext.
+  overtimeRate:    { doctype: '__local__', field: 'overtime_rate', fromErp: (v) => (v == null ? '' : String(v)), toErp: strToErp },
+  penaltyEnabled:  { doctype: '__local__', field: 'penalty_enabled', fromErp: boolFromErp, toErp: boolToErp },
   // الطباعة
   printTemplate:   { doctype: 'Print Settings', field: 'print_style',   fromErp: strFromErp, toErp: strToErp },
   paperSize:       { doctype: 'Print Settings', field: 'pdf_page_size', fromErp: strFromErp, toErp: strToErp },
@@ -259,6 +262,8 @@ export async function loadAppSettingsFromErp(): Promise<{
         (settings as Record<string, unknown>)[key] = fiscalYear;
         continue;
       }
+      // QUA-04: الإعدادات المحلية فقط لا تُقرأ من ERPNext — تُبقى من الذاكرة المحلية
+      if (mapping.doctype === '__local__') continue;
 
       const doc = cache[mapping.doctype];
       if (!doc) continue;
@@ -311,7 +316,7 @@ export async function saveAppSettingsToErp(
     if (!mapping) continue;
 
     const dt = mapping.doctype;
-    if (dt === '__fiscal_year__') continue; // السنة المالية لا تُحدَّث من هنا
+    if (dt === '__fiscal_year__' || dt === '__local__') continue; // تُحدَّث محلياً فقط
 
     if (!updatesByDoctype[dt]) {
       updatesByDoctype[dt] = { doctype: dt, name: dt };

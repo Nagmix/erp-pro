@@ -166,14 +166,16 @@ const CALC_STATUS_MAP: Record<string, { label: string; color: string }> = {
 
 // ─── API helpers ─────────────────────────────────────────────────────────────
 
-async function fetchCommissionRules(): Promise<CommissionRule[]> {
+async function fetchCommissionRules(): Promise<{ rules: CommissionRule[]; capped: boolean }> {
   try {
     const res = await fetch('/api/erpnext/commissions?fields=' + encodeURIComponent(JSON.stringify(['*'])) + '&limit=500');
     const json = await res.json();
     if (!json.success) throw new Error(json.error || 'فشل تحميل البيانات');
-    return json.data || [];
+    const rules: CommissionRule[] = json.data || [];
+    // QUA-12: كشف الوصول للحد الأعلى بدل الصمت
+    return { rules, capped: rules.length >= 500 };
   } catch {
-    return [];
+    return { rules: [], capped: false };
   }
 }
 
@@ -277,8 +279,13 @@ export default function SalesCommissionsPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchCommissionRules();
+      const { rules: data, capped } = await fetchCommissionRules();
       setRules(data);
+      if (capped) {
+        toast.info('تم جلب أول 500 سجل فقط', {
+          description: 'استخدم الفلاتر لتضييق النطاق — الترقيم الخادمي كامل مُخطط في إصدار قادم',
+        });
+      }
     } catch (e) {
       setError(e as Error);
     } finally {
@@ -620,7 +627,7 @@ export default function SalesCommissionsPage() {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-destructive"
-              onClick={() => setDeleteTarget(row)}
+              onClick={()=> setDeleteTarget(row)}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>

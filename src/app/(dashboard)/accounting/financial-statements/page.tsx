@@ -198,7 +198,7 @@ export default function FinancialStatementsPage() {
           <p>
             <span className="font-medium text-foreground/90">IFRS 9:</span> أدوات مالية مذمومة/مدينة تُراجع عبر ذمم العملاء والموردين والبنوك —{' '}
             <Link href="/accounting/advanced-reports">التقارير المتقدمة</Link>
-            {' '}، <Link href="/accounting/bank-and-cash">البنوك والصناديق</Link>
+            {' '}، <Link href="/accounting/bank-accounts">البنوك والصناديق</Link>
             {' '}، <Link href="/reports">مركز التقارير</Link>. الاعتراف بقيمة عادلة وتغطية مخاطر الائتمان أوسع من التقارير الجاهزة.
           </p>
           <p className="text-[11px] opacity-90">

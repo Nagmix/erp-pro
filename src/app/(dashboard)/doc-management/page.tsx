@@ -523,7 +523,7 @@ export default function DocManagementPage() {
                     variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                     size="icon"
                     className="h-8 w-8 rounded-none"
-                    onClick={() => setViewMode('list')}
+                    onClick={()=> setViewMode('list')}
                   >
                     <List className="h-3.5 w-3.5" />
                   </Button>
